@@ -15,7 +15,7 @@ import numpy as np
 from fastapi.testclient import TestClient
 
 from dino_autofocus.server.api import SESSION_COOKIE, AuthSeat
-from dino_autofocus.server.schemas import Command, Event
+from dino_autofocus.server.schemas import Event
 
 LOCAL = ("127.0.0.1", 50000)
 REMOTE = ("192.168.1.20", 50000)
@@ -33,7 +33,6 @@ USERS = [
 
 class FakeEngine:
     def __init__(self) -> None:
-        self.commands: list[Command] = []
         self.sinks: list[Callable[[Event], None]] = []
         self.frame: tuple[np.ndarray, dict[str, Any]] | None = None
         self.frame_reads = 0
@@ -42,12 +41,6 @@ class FakeEngine:
         self.viewers: list[int] = []  # every set_local_viewers report
         self.checks: list[tuple[list[str] | None, dict | None]] = []
         self._lock = threading.Lock()
-
-    def submit(self, cmd: Command) -> str:
-        if cmd.op == "unknown_op":
-            raise ValueError("no operation named 'unknown_op'")
-        self.commands.append(cmd)
-        return cmd.op_id or f"op{len(self.commands)}"
 
     def subscribe(self, sink: Callable[[Event], None]) -> Callable[[], None]:
         with self._lock:

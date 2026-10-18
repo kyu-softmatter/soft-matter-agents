@@ -16,9 +16,11 @@ proposal cannot get round it: a stop as a stop, a map write by WRITE_MAP_FLAG (D
 `/api/map`), anything else as a `start` of that operation (role OPERATE). The engine then
 checks control, session and state, as for any command.
 
-The engine holds each proposal too (an unconfirmed assistant `start`, T-011), so it appears in
-every screen's snapshot; a confirmation sends `approve` with this request's login and control
-grant. The browser never sees the grant.
+No proposal reaches an engine (soft-matter-agents card 077): the engine hooks that held a
+proposal in the engine and sent a confirmation as an engine command were retired with dino's
+engine command path. A proposal is kept and can be rejected here; confirming one is refused
+with 409 `not_connected`, because the console commands nothing. What a proposal asked for
+re-enters, if it is still wanted, as a plan the person approves in soft-matter-agents.
 
 The `Assistant` lives in `app.state.assistant`; it is built on first use from
 `AssistantConfig.from_env()` (fake provider unless the server was started with
@@ -32,7 +34,6 @@ import json
 import logging
 import queue
 import threading
-import time
 from typing import Any, Literal
 
 from fastapi import APIRouter, Request
@@ -50,9 +51,8 @@ from ...assistant.tools import (
     required_permission,
 )
 from ...auth import AuditKind, allows
-from ..schemas import ApiError, Command, EngineAPI
+from ..schemas import ApiError, EngineAPI
 from . import (
-    AuthSeat,
     LoginState,
     Refusal,
     SessionSeat,
@@ -215,56 +215,6 @@ def engine_gates(engine: EngineAPI):
     return gates
 
 
-def engine_propose(engine: EngineAPI):
-    """Hand a new proposal to the engine, which holds it as `proposed` until a person
-    decides (an assistant `start` without `confirmed_by` never runs)."""
-
-    def propose(d: dict) -> str:
-        return engine.submit(
-            Command(
-                kind="start",
-                op=d["op"],
-                args=dict(d.get("args") or {}),
-                origin="assistant",
-                user_id=d.get("user_id"),
-                session_id=d.get("session_id"),
-                proposal_id=d.get("proposal_id"),
-                conversation_id=d.get("conversation_id"),
-                t=time.time(),
-            )
-        )
-
-    return propose
-
-
-def request_submit(engine: EngineAPI, me: LoginState, seat: AuthSeat):
-    """A decision as an engine Command from this request: its login, place and control
-    grant (held by the server, never sent to the browser)."""
-    grant = seat.grant_for(me.info)
-
-    def submit(d: dict) -> str:
-        origin = d.get("origin", "human")
-        return engine.submit(
-            Command(
-                kind=d["kind"],
-                op=d.get("op", ""),
-                op_id=d.get("op_id") or "",
-                args=dict(d.get("args") or {}),
-                origin=origin,
-                user_id=me.user_id,
-                session_id=d.get("session_id"),
-                proposal_id=d.get("proposal_id"),
-                conversation_id=d.get("conversation_id"),
-                confirmed_by=d.get("confirmed_by") if origin == "assistant" else None,
-                remote=not me.local,
-                control_grant=grant,
-                t=time.time(),
-            )
-        )
-
-    return submit
-
-
 def build_assistant(state: Any, config: AssistantConfig | None = None) -> Assistant:
     config = config or AssistantConfig.from_env()
     engine = state.engine
@@ -276,7 +226,7 @@ def build_assistant(state: Any, config: AssistantConfig | None = None) -> Assist
     return Assistant(
         config,
         sources=Sources(snapshot=engine.snapshot, store=state.agent_store, gates=gates),
-        propose=engine_propose(engine),
+        propose=None,  # no engine holds a proposal (card 077)
         allows=allows,
         records=RecordLog(config.records_dir, sinks=[audit_sink(audit)] if audit else []),
     )
@@ -424,12 +374,14 @@ def confirm(proposal_id: str, request: Request) -> ProposalOut:
             role=str(me.info.role),
             local=me.local,
             session_id=_session_id(state.sessions),
-            submit=request_submit(state.engine, me, state.auth),
+            submit=None,
         )
     except PermissionError as e:
         raise Refusal(403, "role", str(e)).http() from e
     except ConfirmRefused as e:
         raise Refusal(400, "refused", str(e)).http() from e
+    except RuntimeError as e:  # no engine connected: nothing can carry out a confirmation
+        raise Refusal(409, "not_connected", str(e)).http() from e
     except ValueError as e:
         raise Refusal(409, "decided", str(e)).http() from e
     return ProposalOut.of(out)
@@ -439,7 +391,6 @@ def confirm(proposal_id: str, request: Request) -> ProposalOut:
 def reject(proposal_id: str, request: Request, body: RejectIn | None = None) -> ProposalOut:
     """Clearing a card needs the same permission as confirming it (T-013c, D16)."""
     me, a = _decision_gate(request, proposal_id)
-    state = request.app.state
     try:
         out = a.reject(
             proposal_id,
@@ -447,7 +398,7 @@ def reject(proposal_id: str, request: Request, body: RejectIn | None = None) -> 
             note=(body.note if body else ""),
             role=str(me.info.role),
             local=me.local,
-            submit=request_submit(state.engine, me, state.auth),
+            submit=None,
         )
     except KeyError as e:
         raise _not_found("proposal with that id").http() from e

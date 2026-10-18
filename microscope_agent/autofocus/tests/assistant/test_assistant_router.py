@@ -1,10 +1,13 @@
 """The assistant's HTTP routes (server/api/assistant.py) on the real app, with a fake engine,
-the fake provider and seeded fake accounts (example.test only, a test-only password)."""
+the fake provider and seeded fake accounts (example.test only, a test-only password).
+
+Since soft-matter-agents card 077 no proposal reaches an engine: none is held there, a
+confirmation is refused as `not_connected` and leaves the card proposed, and a rejection is
+the assistant's own. The fake engine has no `submit`, so a route that tried would fail."""
 
 from __future__ import annotations
 
 import json
-import threading
 from collections.abc import Callable
 from typing import Any
 
@@ -18,7 +21,7 @@ from dino_autofocus.auth import config as auth_config
 from dino_autofocus.server import create_app
 from dino_autofocus.server.api import SESSION_COOKIE, AuthSeat
 from dino_autofocus.server.api.assistant import build_assistant
-from dino_autofocus.server.schemas import Command, Event
+from dino_autofocus.server.schemas import Event
 
 LOCAL = ("127.0.0.1", 50000)
 REMOTE = ("192.168.1.20", 50000)
@@ -31,22 +34,11 @@ USERS = [
 
 
 class FakeEngine:
-    """Records every Command. An assistant `start` without confirmed_by is held as a
-    proposal (as T-011 does); `refuse_approve` makes the next approve fail."""
+    """Events and a snapshot, and `check` as the card's gate. No `submit`: the console sends
+    no command to any engine (card 077)."""
 
     def __init__(self) -> None:
-        self.commands: list[Command] = []
         self.sinks: list[Callable[[Event], None]] = []
-        self.refuse_approve = False
-        self._lock = threading.Lock()
-
-    def submit(self, cmd: Command) -> str:
-        if cmd.kind == "approve" and self.refuse_approve:
-            raise ValueError("busy: scan_4x_1 holds the core")
-        with self._lock:
-            self.commands.append(cmd)
-            n = len(self.commands)
-        return cmd.op_id or f"{cmd.op or cmd.kind}_{n}"
 
     def subscribe(self, sink):
         self.sinks.append(sink)
@@ -69,9 +61,6 @@ class FakeEngine:
 
     def set_local_viewers(self, count: int) -> None:
         pass
-
-    def kinds(self) -> list[tuple[str, str, str]]:
-        return [(c.kind, c.op, c.origin) for c in self.commands]
 
 
 def tool_use(tool, **inp):
@@ -164,7 +153,7 @@ def test_status_is_readable_remotely_but_not_without_login(setup):
 # -- ask -------------------------------------------------------------------------------
 
 
-def test_ask_streams_ndjson_and_the_engine_only_holds_the_proposal(setup):
+def test_ask_streams_ndjson_and_no_engine_holds_the_proposal(setup):
     client, engine, _ = setup(
         [
             [text("Checking. "), tool_use("get_hardware_state")],
@@ -181,17 +170,9 @@ def test_ask_streams_ndjson_and_the_engine_only_holds_the_proposal(setup):
     done = lines[-1]["answer"]
     assert done["conversation_id"] == cid and done["text"].endswith("please confirm.")
     prop = next(e["proposal"] for e in lines if e["type"] == "proposal")
-    assert prop["status"] == "proposed" and prop["engine_op_id"] == "goto_xy_1"
+    assert prop["status"] == "proposed" and prop["engine_op_id"] is None
     assert prop["expected_gate"] == {"checked": True, "enabled": True, "reasons": []}
-    # the engine holds an unconfirmed assistant start; nothing was confirmed or run
-    (held,) = engine.commands
-    assert (held.kind, held.op, held.origin, held.confirmed_by) == (
-        "start",
-        "goto_xy",
-        "assistant",
-        None,
-    )
-    assert held.proposal_id == prop["proposal_id"] and held.user_id == OTTO
+    assert not hasattr(engine, "submit")  # nothing could have been held or run
 
 
 def test_ask_needs_submit_question_on_the_microscope_pc(setup):
@@ -247,23 +228,18 @@ def test_one_conversation_across_screens(setup):
 # -- decisions ---------------------------------------------------------------------------
 
 
-def test_confirm_sends_approve_with_the_requests_login_and_grant(setup):
-    client, engine, _ = setup(
+def test_confirm_is_refused_as_not_connected(setup):
+    """Card 077: nothing can carry out a confirmation here, so it is refused and the card
+    stays proposed; the operator's control grant never reaches the browser."""
+    client, _, app = setup(
         [[tool_use("propose_scan_4x", sample_id="s1", reason="map")], [text("ok")]]
     )
     _, lines = ask(client)
     pid = proposal_id(lines)
     r = client.post(f"/api/assistant/proposals/{pid}/confirm")
-    assert r.status_code == 200, r.text
-    out = r.json()
-    assert out["status"] == "confirmed" and out["decided_by"] == OTTO
-    approve = engine.commands[-1]
-    assert (approve.kind, approve.op_id, approve.origin) == ("approve", "scan_4x_1", "human")
-    assert approve.user_id == OTTO and approve.proposal_id == pid and not approve.remote
-    assert approve.control_grant  # the server attached the operator's grant
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "not_connected")
     assert "control_grant" not in r.text
-    r = client.post(f"/api/assistant/proposals/{pid}/confirm")
-    assert (r.status_code, r.json()["detail"]["code"]) == (409, "decided")
+    assert app.state.assistant.proposals.get(pid).status == "proposed"
 
 
 def test_viewer_and_remote_cannot_confirm(setup, seat):
@@ -280,7 +256,6 @@ def test_viewer_and_remote_cannot_confirm(setup, seat):
     remote.cookies.set(SESSION_COOKIE, seat.logins.login(OTTO, TEST_PASSWORD).token)
     r = remote.post(f"/api/assistant/proposals/{pid}/confirm")
     assert (r.status_code, r.json()["detail"]["code"]) == (403, "remote_view")
-    assert [c.kind for c in engine.commands] == ["start"]  # only the held proposal
     assert app.state.assistant.proposals.get(pid).status == "proposed"
 
 
@@ -301,28 +276,22 @@ def test_map_flag_card_follows_d16(setup, seat):
     r = viewer.post(f"/api/assistant/proposals/{pid}/confirm")
     assert (r.status_code, r.json()["detail"]["code"]) == (403, "role")
     r = client.post(f"/api/assistant/proposals/{pid}/confirm")
-    assert r.status_code == 200
-    assert engine.kinds() == [("start", "map_flag", "assistant"), ("approve", "", "human")]
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "not_connected")
 
 
-def test_lights_off_card_sends_the_persons_own_stop(setup):
-    client, engine, _ = setup(
+def test_lights_off_card_is_not_connected_either(setup):
+    """A stop card too: no engine takes its stop from here (card 077)."""
+    client, _, app = setup(
         [[tool_use("propose_lights_off", reason="done")], [text("x")]], control=False
     )
     _, lines = ask(client)
-    assert engine.commands == []  # a stop card is not held by the engine
     pid = proposal_id(lines)
-    assert client.post(f"/api/assistant/proposals/{pid}/confirm").status_code == 200
-    (cmd,) = engine.commands
-    assert (cmd.kind, cmd.origin, cmd.user_id, cmd.proposal_id) == (
-        "lights_off",
-        "human",
-        OTTO,
-        pid,
-    )
+    r = client.post(f"/api/assistant/proposals/{pid}/confirm")
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "not_connected")
+    assert app.state.assistant.proposals.get(pid).status == "proposed"
 
 
-def test_reject_tells_the_engine_and_engine_refusal_keeps_the_card(setup):
+def test_reject_is_the_assistants_own_and_confirm_keeps_the_card(setup):
     script = [
         [
             tool_use("propose_scan_4x", sample_id="a", reason="r"),
@@ -335,12 +304,9 @@ def test_reject_tells_the_engine_and_engine_refusal_keeps_the_card(setup):
     first, second = [e["proposal"]["proposal_id"] for e in lines if e["type"] == "proposal"]
     r = client.post(f"/api/assistant/proposals/{first}/reject", json={"note": "not now"})
     assert r.status_code == 200 and r.json()["status"] == "rejected"
-    assert engine.kinds()[-1] == ("reject", "", "human")
-    engine.refuse_approve = True
     r = client.post(f"/api/assistant/proposals/{second}/confirm")
-    assert (r.status_code, r.json()["detail"]["code"]) == (400, "refused")
-    p = app.state.assistant.proposals.get(second)
-    assert p.status == "proposed" and "busy" in p.note
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "not_connected")
+    assert app.state.assistant.proposals.get(second).status == "proposed"
     assert client.post("/api/assistant/proposals/nope/confirm").status_code == 404
     assert client.post("/api/assistant/proposals/nope/reject").status_code == 404
 
@@ -351,11 +317,10 @@ def test_questions_proposals_and_decisions_reach_the_audit_log(setup, seat):
     client.post(f"/api/assistant/proposals/{proposal_id(lines)}/confirm")
     rows = [r for r in seat.audit.entries() if r.get("source") == "assistant"]
     kinds = [r["kind"] for r in rows]
-    assert kinds == [
+    assert kinds == [  # no command_confirmed: confirming is refused here (card 077)
         "question_submitted",
         "command_proposed",
         "assistant_message",
-        "command_confirmed",
     ]
     assert all(r["user_id"] == OTTO for r in rows)
     assert rows[0]["question"] == "lights off?"
@@ -385,22 +350,16 @@ def test_openapi_lists_the_routes():
     }
 
 
-def test_a_proposal_the_engine_will_not_hold_is_failed_and_claude_is_told(setup):
-    client, engine, app = setup(
+def test_a_proposal_the_engine_would_refuse_shows_its_gate_and_is_not_connected(setup):
+    """No engine holds a proposal (card 077), so it is not `failed` for want of a hold; the
+    card's gate still says what the engine's check says, and a confirmation is refused."""
+    client, _, _ = setup(
         [[tool_use("propose_focus_100x", sample_id="s", reason="r")], [text("x")]]
     )
-
-    def refuse(cmd):
-        raise ValueError("unknown operation 'focus_100x'")
-
-    engine.submit = refuse
     _, lines = ask(client)
     prop = next(e["proposal"] for e in lines if e["type"] == "proposal")
-    assert prop["status"] == "failed" and "unknown operation" in prop["note"]
-    assert prop["expected_gate"]["enabled"] is False  # the engine's check said no, too
-    req = app.state.assistant.provider.requests[1]
-    body = json.loads(req.messages[-1]["content"][0]["content"])
-    assert body["status"] == "failed" and "cannot be confirmed" in body["note"]
+    assert prop["status"] == "proposed" and prop["engine_op_id"] is None
+    assert prop["expected_gate"]["enabled"] is False  # the engine's check said no
     r = client.post(f"/api/assistant/proposals/{prop['proposal_id']}/confirm")
     assert r.status_code == 409
 
@@ -468,10 +427,8 @@ def test_viewer_and_remote_cannot_reject(setup, seat, tool, inp):
     r = _client_for(app, seat, OTTO, REMOTE).post(f"/api/assistant/proposals/{pid}/reject")
     assert (r.status_code, r.json()["detail"]["code"]) == (403, "remote_view")
     assert app.state.assistant.proposals.get(pid).status == "proposed"
-    assert [c.kind for c in engine.commands] == ["start"]  # no reject reached the engine
     r = client.post(f"/api/assistant/proposals/{pid}/reject", json={"note": "no"})
     assert r.status_code == 200 and r.json()["status"] == "rejected"
-    assert engine.kinds()[-1] == ("reject", "", "human")
 
 
 def test_a_stop_card_may_be_cleared_by_anyone_allowed_to_stop(setup, seat):

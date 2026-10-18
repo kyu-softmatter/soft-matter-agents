@@ -12,7 +12,8 @@ Lock values at the time of writing, with where they live:
   climb to 3200 um; 40x-WI, 60x-Oil, 100x-Oil, an unknown or unreadable lens stop at 2800 um
 
 The behaviour behind each fact is tested beside its code (``test_backends_mm_real_lock.py``,
-``test_operations_bench_approach.py``, ``test_tweezers.py``, ``e2e/test_e2e_safety.py``); this
+``test_operations_bench_approach.py``, ``test_tweezers.py``, ``test_mock_bench_safety.py``,
+moved from ``e2e/test_e2e_safety.py`` by soft-matter-agents card 077); this
 module asserts the baseline itself and one thing nothing else does: the inventory of direct
 Micro-Manager write calls in the tree, in three buckets.
 
@@ -219,7 +220,8 @@ def test_the_bench_bucket_sits_behind_the_lock():
 
 
 def test_the_e2e_safety_spec_is_present_and_whole():
-    spec = ROOT / "tests" / "e2e" / "test_e2e_safety.py"
+    # moved from tests/e2e/test_e2e_safety.py with every one of these tests (card 077)
+    spec = ROOT / "tests" / "engine" / "test_mock_bench_safety.py"
     text = spec.read_text(encoding="utf-8")
     for name in (
         "test_abort_mid_trace_switches_everything_off",

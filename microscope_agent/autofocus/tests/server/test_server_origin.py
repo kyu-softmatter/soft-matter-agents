@@ -12,7 +12,9 @@ from dino_autofocus.server.api import SESSION_COOKIE
 
 OWN = "http://127.0.0.1:8765"  # the LoopbackClient's base: the page this server served
 DEV = "http://localhost:5173"
-START = {"kind": "start", "op": "status"}
+#: a write behind the origin rule, with no side effect: the commands route it replaced is gone
+#: (soft-matter-agents card 077)
+WRITE = "/api/auth/activity"
 TEST_PASSWORD = "server-test-pass-1"  # conftest's seeded test password (a test value)
 
 
@@ -41,24 +43,21 @@ def test_other_pages_holding_the_cookie_cannot_command(origin, engine, make_clie
     another loopback port sends the cookie along (SameSite ignores ports). Refused."""
     c = make_client(engine, control=True)
     assert c.cookies.get(SESSION_COOKIE)
-    for body in (START, {"kind": "abort"}, {"kind": "lights_off"}):
-        r = c.post("/api/commands", json=body, headers={"origin": origin})
-        assert (r.status_code, code(r)) == (403, "foreign_origin"), (origin, body)
+    r = c.post(WRITE, json={}, headers={"origin": origin})
+    assert (r.status_code, code(r)) == (403, "foreign_origin"), origin
     assert code(c.put("/api/anything", json={}, headers={"origin": origin})) == "foreign_origin"
-    assert engine.commands == []
 
 
 def test_own_page_and_no_origin_may_command(engine, make_client):
     c = make_client(engine, control=True)
-    assert c.post("/api/commands", json=START, headers={"origin": OWN}).status_code == 200
-    assert c.post("/api/commands", json=START).status_code == 200  # no browser: no Origin
-    assert [x.control_grant is not None for x in engine.commands] == [True, True]
+    assert c.post(WRITE, json={}, headers={"origin": OWN}).status_code == 204
+    assert c.post(WRITE, json={}).status_code == 204  # no browser: no Origin
 
 
 def test_listed_dev_origin_may_command(engine, make_client):
     c = make_client(engine, control=True, dev_origins=[DEV + "/"])
-    assert c.post("/api/commands", json=START, headers={"origin": DEV}).status_code == 200
-    other = c.post("/api/commands", json=START, headers={"origin": "http://localhost:5174"})
+    assert c.post(WRITE, json={}, headers={"origin": DEV}).status_code == 204
+    other = c.post(WRITE, json={}, headers={"origin": "http://localhost:5174"})
     assert code(other) == "foreign_origin"
 
 
@@ -143,14 +142,13 @@ def test_open_socket_stops_events_when_its_login_locks(engine, make_client, seat
         seat.logins.lock(c.login_token)
         engine.emit("position", z_um=2.0)
         assert recv(ws) == {"type": "lock", "locked": True}
-        # stops still work and their replies still come while locked
+        # replies still come while locked (no command is taken: card 077)
         ws.send_text(json.dumps({"type": "command", "command": {"kind": "abort", "op_id": "a"}}))
-        assert recv(ws) == {"type": "accepted", "op_id": "a"}
+        assert recv(ws)["code"] == "no_commands"
         seat.logins.unlock(c.login_token, TEST_PASSWORD)
         assert recv(ws) == {"type": "lock", "locked": False}
         engine.emit("position", z_um=3.0)
         assert recv(ws)["event"]["data"] == {"z_um": 3.0}
-    assert [x.kind for x in engine.commands] == ["abort"]
 
 
 def test_socket_closes_when_its_login_ends(engine, make_client, seat):

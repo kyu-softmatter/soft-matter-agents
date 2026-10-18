@@ -15,9 +15,9 @@ def test_a_forwarded_request_from_loopback_is_refused(engine, make_client, heade
     r = c.get("/api/state", headers={header: "203.0.113.7"})
     assert r.status_code == 403 and r.json()["detail"]["code"] == "proxied"
     assert r.headers["x-dinoaf-refusal"] == "proxied"
-    r = c.post("/api/commands", json={"kind": "abort"}, headers={header: "203.0.113.7"})
+    r = c.post("/api/shutdown", json={}, headers={header: "203.0.113.7"})
     assert r.status_code == 403
-    assert engine.commands == []
+    assert engine.shutdowns == []
 
 
 def test_a_forwarded_websocket_is_refused(engine, make_client):

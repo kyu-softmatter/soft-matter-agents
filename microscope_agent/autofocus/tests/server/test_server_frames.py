@@ -11,7 +11,6 @@ import pytest
 from PIL import Image
 from server_fakes import FakeFrameEngine
 
-from dino_autofocus.focus import vollath4
 from dino_autofocus.server.ws import FrameBridge, encode_frame
 
 
@@ -42,13 +41,11 @@ def test_encode_frame_display_range():
         encode_frame(np.zeros((4, 4, 3), np.uint8), {}, 1)
 
 
-def test_encode_frame_live_focus_score():
-    a = np.random.default_rng(1).integers(0, 4096, (120, 160), dtype=np.uint16)
-    frame, _ = encode_frame(a, {}, 1)  # binning 1: the score of the frame itself
-    assert frame.focus_metric == "vollath4"
-    assert frame.focus_score == pytest.approx(vollath4(a.astype(np.float32)))
-    tiny, _ = encode_frame(np.zeros((2, 2), np.uint16), {}, 1)
-    assert tiny.focus_score is None and tiny.focus_metric is None
+def test_encode_frame_computes_no_focus_score():
+    """Card 077: a focus score is a measurement, and the console measures nothing."""
+    a = np.random.default_rng(0).integers(0, 4096, (40, 60)).astype(np.uint16)
+    frame, _ = encode_frame(a, {}, 1)
+    assert frame.focus_score is None and frame.focus_metric is None
 
 
 def test_encode_frame_gauge_reading():

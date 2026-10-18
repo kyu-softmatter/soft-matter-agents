@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import atexit
-import json
 import signal
 import threading
 
@@ -25,11 +24,6 @@ def test_shutdown_route_stops_engine_then_exits(engine, make_client):
     assert again.json() == {"reason": "launcher closing", "already": True}
     assert engine.shutdowns == ["launcher closing"]  # stopped once
 
-    assert c.post("/api/commands", json={"kind": "lights_off"}).status_code == 503
-    with c.websocket_connect("/ws/events") as ws:
-        ws.send_text(json.dumps({"type": "command", "command": {"kind": "abort"}}))
-        assert json.loads(ws.receive_text())["status"] == 503
-    assert engine.commands == []
 
 
 def test_shutdown_is_local_only_even_under_d13(engine, make_client):

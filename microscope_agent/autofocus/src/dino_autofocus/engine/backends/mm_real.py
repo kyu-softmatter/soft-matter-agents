@@ -5,8 +5,10 @@ Ported from `scripts/mm_grab.py` (`open_core`, `set_and_read`, `aura_on/off`, `p
 history). pymmcore-plus is imported
 only when the backend opens; the piezo DLL only when the piezo is read.
 
-- **Config**: `config_path()` = the argument, else `DINO_AF_MM_CONFIG`, else `"mm_config"`
-  in the settings folder's settings.json (`auth.config.config_dir`), else `BENCH_CONFIG`.
+- **Config**: `config_path()` = the argument, else `DINO_AF_MM_CONFIG`, else `BENCH_CONFIG`.
+  The settings-folder lookup (`"mm_config"` in the login settings' settings.json) left with
+  soft-matter-agents card 077: it imported the console's `auth.config`, and its only caller
+  was the server's start-up, which can no longer reach this backend.
   Loading applies the file's System/Startup preset (`LappMainBranch1 State 1`); AutoShutter
   goes off straight after, as mm_grab does, else every snap would switch the light on. Both
   facts are in `config_record()`. **Before loading (T-036b)** the `.cfg` text is parsed and
@@ -44,7 +46,6 @@ Nothing here has run on the stand: what only the microscope PC can confirm is li
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import os
 import re
@@ -97,7 +98,6 @@ READ_HUB_PERIPHERALS = False
 
 BENCH_CONFIG = Path(r"C:\agentic_microscope\config\micromanager\single_cam_red_noDMD_nocom10.cfg")
 CONFIG_ENV = "DINO_AF_MM_CONFIG"
-SETTINGS_KEY = "mm_config"
 MEASURED_AURA_LINES = ("GREEN",)  # 2026-09-30 bench run
 #: lens facts by nosepiece State, docs/runs/2026-09-30_substrate-scan.yaml; others unknown
 BENCH_PIXEL_UM = {0: 1.625, 5: 0.065}
@@ -252,14 +252,6 @@ def config_path(override: str | os.PathLike[str] | None = None) -> Path:
     env = os.environ.get(CONFIG_ENV, "").strip()
     if env:
         return Path(env)
-    from ...auth.config import SETTINGS_FILE, config_dir
-
-    try:
-        settings = json.loads((config_dir() / SETTINGS_FILE).read_text(encoding="utf-8"))
-        if settings.get(SETTINGS_KEY):
-            return Path(settings[SETTINGS_KEY])
-    except (OSError, ValueError):
-        pass
     return BENCH_CONFIG
 
 

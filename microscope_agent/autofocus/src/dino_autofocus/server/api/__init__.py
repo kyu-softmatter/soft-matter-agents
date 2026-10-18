@@ -54,7 +54,6 @@ from ...auth import (
     LoginSessions,
     allows,
 )
-from ...engine.runner import permission
 from ..schemas import EngineAPI
 
 SESSION_COOKIE = "dinoaf_session"  # the T-018 login token; set by server/api/auth.py (T-105)
@@ -277,11 +276,11 @@ def logged_in_refusal(me: LoginState, *, locked_ok: bool = False) -> Refusal | N
 
 def command_why(me: LoginState, kind: str | None, op: str = "", *,
                 remote_abort: bool = True) -> Refusal | None:
-    """Why this person may not send a command of `kind` (and `op` for `start`), from login,
-    loopback, D13 and D16, or None. The engine adds control, session and state (T-011).
-    `kind=None` means "some write whose kind is unknown" and gets no stop exception."""
-    if kind == "start" and op in MAP_WRITE_OPS:
-        return Refusal(403, "map_route", f"{op!r} goes through /api/map, not /api/commands (D16)")
+    """Why this person may not make a write of `kind` (a stop, or None for any other write),
+    from login, loopback and D13, or None. `kind=None` means "some write whose kind is
+    unknown" and gets no stop exception. No engine command reaches this server any more
+    (soft-matter-agents card 077), so the `start` rules that read the engine's permission
+    table went with `/api/commands`; `op` is kept for the callers' signature."""
     stop = kind in STOPS
     if not me.local:
         if kind != "abort":
@@ -295,9 +294,6 @@ def command_why(me: LoginState, kind: str | None, op: str = "", *,
         return None  # loopback stops: always, with or without a login (PLAN.md 5)
     if why := logged_in_refusal(me):
         return why
-    if kind == "start" and permission(op).operator and not allows(
-            me.info.role, Action.OPERATE, local=True):
-        return Refusal(403, "role", f"role {me.info.role} may not run {op}")
     return None
 
 

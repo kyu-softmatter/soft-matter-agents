@@ -1,30 +1,22 @@
-"""Server-wide schemas: the engine contract the server assumes and the shared wire models."""
+"""Server-wide schemas: what the server assumes of the engine it shows (events and status, no
+commands; soft-matter-agents card 077) and the shared wire models."""
 
 from .common import (
-    SERVER_STAMPED,
     WS_MODELS,
     ApiError,
-    CommandAccepted,
-    CommandIn,
-    CommandKind,
     EventKind,
     EventOut,
     Health,
     RefusalDetail,
     ShutdownAccepted,
     ShutdownIn,
-    WsAccepted,
-    WsCommand,
     WsError,
     WsEvent,
     WsFrame,
     WsLock,
 )
 from .contract import (
-    COMMAND_KINDS,
     EVENT_KINDS,
-    ORIGINS,
-    Command,
     EngineAPI,
     Event,
     FrameSource,
@@ -45,11 +37,11 @@ from .state import (
 )
 
 __all__ = [
-    "COMMAND_KINDS", "EVENT_KINDS", "ORIGINS", "SERVER_STAMPED", "WS_MODELS", "ApiError",
-    "AuraState", "Command", "CommandAccepted", "CommandIn", "CommandKind", "EngineAPI", "Event",
+    "EVENT_KINDS", "WS_MODELS", "ApiError",
+    "AuraState", "EngineAPI", "Event",
     "EventKind", "EventOut", "FrameSource", "GateRow", "HardwareState", "Health", "LampState",
     "Lights", "MultiFrameSource", "OpSummary", "PermissionOut", "Positions", "RefusalDetail",
     "SampleRef", "SessionRef",
-    "ShutdownAccepted", "ShutdownIn", "Snapshot", "WsAccepted", "WsCommand", "WsError",
+    "ShutdownAccepted", "ShutdownIn", "Snapshot", "WsError",
     "WsEvent", "WsFrame", "WsLock",
 ]

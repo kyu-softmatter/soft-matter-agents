@@ -28,17 +28,16 @@ def test_events_stream_and_unsubscribe(engine, make_client):
     wait_for(lambda: engine.sinks == [])
 
 
-def test_ws_command_local(engine, make_client):
+def test_ws_takes_no_command(engine, make_client):
+    """Card 077: whatever arrives on /ws/events is answered as a command this server does not
+    take, and nothing reaches the engine."""
     with make_client(engine) as c, c.websocket_connect("/ws/events") as ws:
-        ws.send_text(json.dumps({"type": "command", "command": {"kind": "lights_off"}}))
-        assert json.loads(ws.receive_text()) == {"type": "accepted", "op_id": "op1"}
-        ws.send_text("not json")
-        bad = json.loads(ws.receive_text())
-        assert (bad["type"], bad["status"]) == ("error", 422)
-        ws.send_text(json.dumps({"type": "command",
-                                 "command": {"kind": "start", "op": "unknown_op"}}))
-        assert json.loads(ws.receive_text())["status"] == 400
-    assert [x.kind for x in engine.commands] == ["lights_off"]
+        for text in (json.dumps({"type": "command", "command": {"kind": "lights_off"}}),
+                     "not json"):
+            ws.send_text(text)
+            reply = json.loads(ws.receive_text())
+            assert (reply["type"], reply["status"], reply["code"]) == ("error", 405,
+                                                                       "no_commands")
 
 
 def test_ws_remote_gets_events_but_cannot_command(engine, make_client):
@@ -46,11 +45,10 @@ def test_ws_remote_gets_events_but_cannot_command(engine, make_client):
             c.websocket_connect("/ws/events") as ws:
         ws.send_text(json.dumps({"type": "command", "command": {"kind": "lights_off"}}))
         refused = json.loads(ws.receive_text())
-        assert (refused["type"], refused["status"]) == ("error", 403)
+        assert (refused["type"], refused["code"]) == ("error", "no_commands")
         wait_for(lambda: len(engine.sinks) == 1)
         engine.emit("light_changed", aura="off")
         assert json.loads(ws.receive_text())["event"]["kind"] == "light_changed"
-    assert engine.commands == []
 
 
 def test_ws_command_refused_from_foreign_page(engine, make_client):
@@ -58,7 +56,6 @@ def test_ws_command_refused_from_foreign_page(engine, make_client):
             c.websocket_connect("/ws/events", headers={"origin": "https://example.com"}) as ws:
         ws.send_text(json.dumps({"type": "command", "command": {"kind": "lights_off"}}))
         assert json.loads(ws.receive_text())["status"] == 403
-    assert engine.commands == []
 
 
 def test_frames_end_to_end(frame_engine, make_client):

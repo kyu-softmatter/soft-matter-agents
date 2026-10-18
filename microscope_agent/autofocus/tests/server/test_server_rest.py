@@ -23,58 +23,34 @@ def test_health_and_state(engine, make_client):
     assert state["owner"] is None and state["session"] is None  # typed defaults
 
 
-def test_command_round_trip(engine, make_client):
-    c = make_client(engine)
-    r = c.post("/api/commands", json={"kind": "start", "op": "status", "args": {"n": 2}})
-    assert r.status_code == 200
-    assert r.json() == {"op_id": "op1"}
-    (cmd,) = engine.commands
-    assert (cmd.kind, cmd.op, cmd.args) == ("start", "status", {"n": 2})
-    assert cmd.t > 0
-
-    r = c.post("/api/commands", json={"kind": "abort", "op_id": "op1"})
-    assert r.json() == {"op_id": "op1"}
-    assert c.post("/api/commands", json={"kind": "lights_off"}).status_code == 200
-    assert [x.kind for x in engine.commands] == ["start", "abort", "lights_off"]
-
-
-def test_bad_commands(engine, make_client):
-    c = make_client(engine)
-    assert c.post("/api/commands", json={"kind": "move_z"}).status_code == 422
-    r = c.post("/api/commands", json={"kind": "start", "op": "unknown_op"})
-    assert r.status_code == 400
-    assert r.json()["detail"]["code"] == "refused"
-    assert "unknown_op" in r.json()["detail"]["message"]
-    assert engine.commands == []
-
-
-def test_remote_may_read_but_not_command(engine, make_client):
+def test_remote_may_read_but_not_write(engine, make_client):
+    """The write probe was the commands route until card 077 retired it; any write will do."""
     c = make_client(engine, remote=True, remote_view=True)
     assert c.get("/api/health").status_code == 200
     assert c.get("/api/state").status_code == 200
-    r = c.post("/api/commands", json={"kind": "lights_off"})
+    r = c.post("/api/auth/control/release", json={})
     assert r.status_code == 403
     assert r.json()["detail"]["code"] == "remote_view"
     assert r.headers["X-DinoAF-Refusal"] == "remote_view"
     # any non-read method, on any path, including area routers and unknown paths
     assert c.put("/api/anything", json={}).status_code == 403
     assert c.delete("/api/anything").status_code == 403
-    assert engine.commands == []
 
 
-def test_commands_refused_from_foreign_pages(engine, make_client):
+def test_writes_refused_from_foreign_pages(engine, make_client):
+    """The write probe was the commands route until card 077 retired it; the origin rule is
+    the same for every write."""
     c = make_client(engine)
-    body = {"kind": "lights_off"}
-    evil = c.post("/api/commands", json=body, headers={"origin": "https://example.com"})
+    write = "/api/auth/activity"
+    evil = c.post(write, json={}, headers={"origin": "https://example.com"})
     assert evil.status_code == 403
-    same = c.post("/api/commands", json=body, headers={"origin": "http://127.0.0.1:8765"})
-    assert same.status_code == 200
+    same = c.post(write, json={}, headers={"origin": "http://127.0.0.1:8765"})
+    assert same.status_code == 204
     # the Vite dev server on this PC: refused unless named with --dev-origin (T-009c)
     dev = {"origin": "http://localhost:5173"}
-    assert c.post("/api/commands", json=body, headers=dev).status_code == 403
+    assert c.post(write, json={}, headers=dev).status_code == 403
     listed = make_client(engine, dev_origins=["http://localhost:5173"])
-    assert listed.post("/api/commands", json=body, headers=dev).status_code == 200
-    assert len(engine.commands) == 2
+    assert listed.post(write, json={}, headers=dev).status_code == 204
 
 
 def test_area_router_discovery(tmp_path, monkeypatch, engine, agent_store, seat, log_in_as):

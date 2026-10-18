@@ -1,4 +1,7 @@
-"""WebSocket bridges: `/ws/events` (engine events out, commands in) and `/ws/frames` (live view).
+"""WebSocket bridges: `/ws/events` (engine events out) and `/ws/frames` (live view).
+
+No command comes in (soft-matter-agents card 077): a message sent on `/ws/events` is answered
+with a `no_commands` error, and the live focus score left this file with the engine.
 
 Engine sinks are called from engine threads. Every sink here only serialises and hands the
 message to the event loop with `call_soon_threadsafe`, and never raises back into the engine.
@@ -27,12 +30,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 from starlette.requests import HTTPConnection
 
-from ..focus import score
 from .api import (
     LOGIN_REQUIRED,
     LoginState,
     Refusal,
-    command_refusal,
     logged_in_refusal,
     login_state,
     origin_refusal,
@@ -43,8 +44,6 @@ from .schemas import (
     EventOut,
     FrameSource,
     MultiFrameSource,
-    WsAccepted,
-    WsCommand,
     WsError,
     WsEvent,
     WsFrame,
@@ -58,7 +57,6 @@ EVENT_QUEUE_MAX = 1000  # a client this far behind is closed (1013) and should r
 CLOSE_TRY_AGAIN = 1013
 CLOSE_UNSUPPORTED = 1003
 CLOSE_REFUSED = 4000  # + the HTTP status: 4401 login_required, 4423 locked, 4403 origin
-LIVE_FOCUS_METRIC = "vollath4"  # the classical default (focus/classical.py)
 LOCK_POLL_S = 1.0  # how soon an open socket notices a lock or unlock with no events flowing
 
 
@@ -138,8 +136,8 @@ def install(
 
     @app.websocket("/ws/events")
     async def events(websocket: WebSocket) -> None:
-        """Events out, commands in. A locked login (local only) gets its lock state and the
-        replies to its commands, never event payloads (T-009c, D14)."""
+        """Events out. A locked login (local only) gets its lock state and the replies to
+        what it sends, never event payloads (T-009c, D14). Nothing it sends is a command."""
         me = await _admitted(websocket, locked_ok=True)
         if me is None:
             return
@@ -193,25 +191,10 @@ def install(
                 reply = await _command_reply(await websocket.receive_text(), websocket)
                 push(("reply", reply.model_dump_json()))
 
-        async def _command_reply(text: str, conn: HTTPConnection) -> WsAccepted | WsError:
-            try:
-                msg = WsCommand.model_validate_json(text)
-            except ValidationError as e:
-                return WsError(status=422, detail=str(e), code="invalid")
-            # login and lock are read again for every command: the socket outlives a lock
-            if why := command_refusal(conn, msg.command.kind, msg.command.op):
-                return WsError(status=why.status, detail=why.message, code=why.code)
-            if stopped():
-                return WsError(status=503, detail="the server is shutting down",
-                               code="shutting_down")
-            me = login_state(conn)
-            cmd = msg.command.to_engine(remote=not me.local, user_id=me.user_id,
-                                        control_grant=conn.app.state.auth.grant_for(me.info))
-            try:
-                op_id = await asyncio.to_thread(engine.submit, cmd)
-            except ValueError as e:  # runner.CommandRefused
-                return WsError(status=400, detail=str(e), code="refused")
-            return WsAccepted(op_id=op_id)
+        async def _command_reply(text: str, conn: HTTPConnection) -> WsError:
+            """No command reaches any engine from here (soft-matter-agents card 077)."""
+            return WsError(status=405, code="no_commands",
+                           detail="this console sends no command to any engine")
 
         local = me.local
         unsubscribe = engine.subscribe(sink)
@@ -377,8 +360,8 @@ def encode_frame(
     pixels: Any, meta: dict[str, Any], seq: int, target_px: int = 800, quality: int = 80
 ) -> tuple[WsFrame, bytes]:
     """Bin a mono frame to at most `target_px` on the long side and JPEG it. Display range is
-    the 0.5-99.5 percentile of the binned frame (reported, so the UI can say so). The live
-    focus score is `LIVE_FOCUS_METRIC` on the binned frame (cheap at 10 fps per camera)."""
+    the 0.5-99.5 percentile of the binned frame (reported, so the UI can say so). No focus
+    score is computed: that is a measurement, and it stays with the engine (card 077)."""
     from PIL import Image
 
     a = np.asarray(pixels)
@@ -395,9 +378,6 @@ def encode_frame(
     buf = io.BytesIO()
     Image.fromarray(u8).save(buf, format="JPEG", quality=quality)
     jpeg = buf.getvalue()
-    focus = score(binned, LIVE_FOCUS_METRIC) if min(binned.shape) >= 3 else None
-    if focus is not None and not math.isfinite(focus):
-        focus = None
     try:  # the engine's gauge reading, if any (engine/live_dz.py); a bad one is dropped
         dz = FocusDz.model_validate(meta["focus_dz"]) if meta.get("focus_dz") else None
     except ValidationError:
@@ -408,7 +388,6 @@ def encode_frame(
         binning=b,
         source_width=w, source_height=h, display_min=lo, display_max=hi,
         jpeg_bytes=len(jpeg), camera=(str(meta["camera"]) if meta.get("camera") else None),
-        focus_score=focus, focus_metric=LIVE_FOCUS_METRIC if focus is not None else None,
         focus_dz=dz, meta=meta,
     )
     return frame, jpeg

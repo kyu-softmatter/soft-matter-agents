@@ -1,4 +1,4 @@
-"""The M1 safety properties on the mock, each on a fresh bench (conftest `bench`):
+"""The M1 safety properties on the mock, each on a fresh bench (`bench` below):
 
 - lights off on every non-normal end: abort, lights_off pre-emption, a stage fault, the
   local viewer leaving (D14), the session closing, shutdown;
@@ -7,6 +7,11 @@
 - remote clients may abort and nothing else (D13).
 
 The trace runs used here are the real edge_trace code on MockBackend, stopped early.
+
+Moved from tests/e2e/test_e2e_safety.py by soft-matter-agents card 077, every test the
+engine's alone. One was dropped: the console login package's own `authorize` check (anyone
+may stop, only a local operator with a grant may operate), which is that package's rule and
+not the engine's.
 """
 
 from __future__ import annotations
@@ -16,12 +21,32 @@ import math
 from pathlib import Path
 
 import pytest
-from e2e_helpers import OFF, OPERATOR
+from mock_bench import OFF, OPERATOR, Bench, SharedWorld, engine_on, records_store
 
-from dino_autofocus.auth import Action
 from dino_autofocus.engine.backend import UnguardedMotion
 from dino_autofocus.engine.backends.mock_world import SampleSpec
 from dino_autofocus.engine.runner import CommandRefused
+from dino_autofocus.records import session as session_mod
+from dino_autofocus.records.codeversion import CodeVersion
+
+
+@pytest.fixture(scope="module")
+def _shared(tmp_path_factory):
+    """What the per-test benches of this module share: one records repository (one
+    `git init`) and one mock world (one virtual sample). Each bench still has its own
+    device control, runner, sample folder and experiment session."""
+    return records_store(tmp_path_factory.mktemp("records")), SharedWorld()
+
+
+@pytest.fixture
+def bench(tmp_path, monkeypatch, _shared):
+    """A fresh bench per test. The code version a session records is stubbed here (two git
+    calls on this repository per session)."""
+    store, world = _shared
+    monkeypatch.setattr(session_mod, "code_version",
+                        lambda repo=None: CodeVersion("bench stub", "0" * 40, False))
+    yield from engine_on(Bench(tmp_path / "bench", local_gone_abort_s=0.3, store=store,
+                               world=world.fresh()))
 
 SPEC = SampleSpec()
 TRACE = {"speed_um_s": 1000.0, "hole_diameter_mm": SPEC.hole_diameter_mm}
@@ -147,7 +172,7 @@ def test_motion_and_light_need_the_operators_grant(bench):
             bench.start(op, args, grant="made-up-token")
         with pytest.raises(CommandRefused, match="equipment control"):  # not Olga's grant
             bench.start(op, args, user="olga@example.test")
-    bench.control.release(bench.login_token)
+    bench.control.release()
     with pytest.raises(CommandRefused, match="equipment control"):  # given back: gone
         bench.start("edge_trace", TRACE)
     assert bench.lights() == OFF
@@ -195,17 +220,6 @@ def test_a_remote_client_may_abort_and_nothing_else(bench):
     end = bench.wait_end(op_id)
     assert end.kind == "aborted" and bench.lights() == OFF
     assert any(e.kind == "log" and e.data.get("rule") == "D13" for e in bench.events)
-
-
-def test_the_server_side_check_lets_anyone_stop_but_only_local_operators_operate(bench):
-    bench.take_control()
-    c, login, grant = bench.control, bench.login_token, bench.control_token
-    assert c.authorize(Action.STOP, None, local=False).allowed  # no login, remote
-    assert c.authorize(Action.OPERATE, login, grant, local=True).allowed
-    assert not c.authorize(Action.OPERATE, login, grant, local=False).allowed
-    assert not c.authorize(Action.OPERATE, login, None, local=True).allowed
-    viewer = bench.login("vera@example.test")
-    assert not c.authorize(Action.OPERATE, viewer, grant, local=True).allowed
 
 
 # -- the bench itself ------------------------------------------------------------------------

@@ -1,10 +1,15 @@
 """One scripted M1 day on the mock (PLAN 8 M1: F1-F5 without hardware), step by step.
 
-The steps run in file order on one shared `day` bench (conftest) and go through the T-011
-runner with `Command`s, as the server will send them; T-009's server is the last step. A step
-whose operation has not landed skips with its task number. When it lands, `pending(...)`
-turns into a skip saying the step is still to be written here (a T-035 follow-up), so
-nothing passes by accident.
+The steps run in file order on one shared `day` bench and go through the T-011 runner with
+`Command`s. A step whose operation has not landed skips with its task number. When it lands,
+`pending(...)` turns into a skip saying the step is still to be written here (a T-035
+follow-up), so nothing passes by accident.
+
+Moved from tests/e2e/test_e2e_m1_day.py by soft-matter-agents card 077, with the engine's
+assertions kept and the console login package's own dropped: the log-in step (a wrong
+password, the operator's role), control refused to a remote viewer and to a viewer, one
+controller at a time, logout, the audit log's control_released row, and the step through the
+server, which no longer holds an engine.
 """
 
 from __future__ import annotations
@@ -13,13 +18,21 @@ import json
 import math
 
 import pytest
-from e2e_helpers import OFF, OPERATOR, after, need, read_jsonl
+from mock_bench import OFF, OPERATOR, Bench, after, engine_on, need, read_jsonl
 
-from dino_autofocus.auth import ControlBusy, ControlError
 from dino_autofocus.engine.backends.mock_world import SampleSpec
 from dino_autofocus.engine.runner import CommandRefused
 from dino_autofocus.engine.sample import read_sample
 from dino_autofocus.records import GitFolderStore, SessionClosedError, open_session, sample_state
+
+
+@pytest.fixture(scope="module")
+def day(tmp_path_factory):
+    """One bench for a whole module: the steps of one day share it, in file order."""
+    b = Bench(tmp_path_factory.mktemp("m1_day"))
+    b.done, b.trace = set(), None
+    yield from engine_on(b)
+
 
 SPEC = SampleSpec()  # the sample MockBackend(seed=0) holds: 6.144 mm hole at (8026, 571.6)
 #: the camera ROI for the day's frames: a 1200 px field keeps the trace near 20 s and each
@@ -54,26 +67,10 @@ def summaries(day) -> list[dict]:
 
 # -- morning: who is at the microscope ------------------------------------------------------
 
-def test_01_operator_logs_in(day):
-    assert not day.logins.login(OPERATOR, "not-the-password").ok
-    day.login_token = day.login(OPERATOR)
-    assert day.logins.get(day.login_token).role == "operator"
-    day.done.add("login")
-
-
 def test_02_nothing_runs_until_the_operator_holds_control(day):
-    after(day, "login")
     with pytest.raises(CommandRefused, match="equipment control"):
         day.start("status", grant=None)
-    with pytest.raises(ControlError):  # remote viewing never takes control
-        day.control.acquire(day.login_token, local=False)
-    with pytest.raises(ControlError):  # a viewer cannot operate
-        day.control.acquire(day.login("vera@example.test"), local=True)
-
-    day.control_token = day.control.acquire(day.login_token, local=True).token
-    assert day.control.holder().user_id == OPERATOR
-    with pytest.raises(ControlBusy):  # one operator at a time
-        day.control.acquire(day.login("olga@example.test"), local=True)
+    day.take_control(OPERATOR)
     with pytest.raises(CommandRefused, match="equipment control"):  # not Olga's grant
         day.start("status", user="olga@example.test")
     day.runner.set_local_viewers(1)  # the operator's own browser on the microscope PC
@@ -279,20 +276,15 @@ def test_17_the_day_closes(day):
     day.runner.set_experiment_session(None)  # closing is a stop: lights off
     with pytest.raises(CommandRefused, match="no open experiment session"):
         day.start("light_set", {"mode": "brightfield"}, session_id=s.session_id)
-    day.control.release(day.login_token)
-    assert day.control.holder() is None
+    day.control.release()
     with pytest.raises(CommandRefused, match="equipment control"):
         day.start("status")
     s.close("end of the M1 mock day")
     with pytest.raises(SessionClosedError):
         s.log("after close")
     assert open_session(day.store) is None
-    assert day.logins.logout(day.login_token)
     assert day.lights() == OFF
 
-    released = [e for e in day.audit.entries() if e["kind"] == "control_released"]
-    assert released[-1]["user_id"] == OPERATOR
-    assert released[-1]["session_id"] == s.session_id  # stamped while the session was open
     if isinstance(day.store, GitFolderStore):  # the records repository holds the day
         log = day.store._git("log", "--format=%ae %s").stdout.splitlines()
         assert log and all(line.startswith(OPERATOR) for line in log)
@@ -300,12 +292,8 @@ def test_17_the_day_closes(day):
     day.done.add("closed")
 
 
-def test_18_the_same_day_through_the_server(day):
-    pending("dino_autofocus.server.app", "T-009")
-
-
 def test_19_stand_ins_in_use_are_the_unregistered_ones(day):
-    """The suite says which merged operations still run through a conftest stand-in."""
+    """The suite says which merged operations still run through a stand-in."""
     from dino_autofocus.engine.runner import OPERATIONS
 
     assert set(day.stand_ins) == {n for n in ("status", "light_set", "edge_trace")

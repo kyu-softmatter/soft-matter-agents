@@ -98,14 +98,16 @@ def test_import_pulls_in_no_device_library():
     subprocess.run([sys.executable, "-c", code], check=True)
 
 
-def test_config_path_argument_env_settings_default(monkeypatch, tmp_path):
+def test_config_path_argument_env_default_and_no_settings_file(monkeypatch, tmp_path):
+    """The settings-folder lookup left with soft-matter-agents card 077: a settings.json
+    naming a configuration is not read any more."""
     monkeypatch.delenv(mm_real.CONFIG_ENV, raising=False)
     monkeypatch.setenv("DINO_AF_CONFIG_DIR", str(tmp_path))
     assert config_path() == BENCH_CONFIG
     (tmp_path / "settings.json").write_text(json.dumps({"mm_config": "D:/cfg/a.cfg"}))
-    assert str(config_path()).replace("\\", "/") == "D:/cfg/a.cfg"
+    assert config_path() == BENCH_CONFIG
     monkeypatch.setenv(mm_real.CONFIG_ENV, "D:/cfg/env.cfg")
-    assert str(config_path()).replace("\\", "/") == "D:/cfg/env.cfg"
+    assert str(config_path()).replace(chr(92), "/") == "D:/cfg/env.cfg"
     assert config_path(tmp_path / "x.cfg") == tmp_path / "x.cfg"
 
 

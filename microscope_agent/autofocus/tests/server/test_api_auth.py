@@ -309,16 +309,6 @@ def test_logout_frees_control(engine, make_client):
 # -- stops are never blocked by login state ---------------------------------------------
 
 
-def test_abort_while_locked_and_without_control(engine, make_client, seat):
-    c = make_client(engine, login=OPERATOR)  # no control
-    c.post("/api/auth/lock")
-    for kind in ("abort", "lights_off"):
-        assert c.post("/api/commands", json={"kind": kind}).status_code == 200, kind
-    nobody = make_client(engine, login=None)
-    assert nobody.post("/api/commands", json={"kind": "abort"}).status_code == 200
-    assert [x.kind for x in engine.commands] == ["abort", "lights_off", "abort"]
-
-
 def test_the_auth_routes_are_in_the_openapi_schema(engine, make_client):
     paths = make_client(engine).get("/openapi.json").json()["paths"]
     for p in ("/api/auth/login", "/api/auth/me", "/api/auth/signup", "/api/auth/control/acquire",

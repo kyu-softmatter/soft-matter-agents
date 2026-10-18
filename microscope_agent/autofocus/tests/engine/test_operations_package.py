@@ -1,5 +1,6 @@
-"""engine.operations: importing the package (as the server does through sample_ops) registers
-every operation with the runner, and an import touches nothing."""
+"""engine.operations: importing the package registers every operation with the runner, and an
+import touches nothing. The console's server no longer imports it (soft-matter-agents card
+077), so the server-side checks that stood here went with the cut."""
 
 from __future__ import annotations
 
@@ -8,11 +9,8 @@ import pkgutil
 import subprocess
 import sys
 
-import pytest
-from engine_fakes import FakeBackend
-
 import dino_autofocus.engine.operations as ops
-from dino_autofocus.engine.runner import OPERATIONS, Runner, RunnerConfig
+from dino_autofocus.engine.runner import OPERATIONS
 
 # operations-spec op names (sections 1-8, ui-spec light_set) and the sample ops (T-027)
 SPEC_OPS = {"status", "scan_4x", "objective_change", "focus_100x", "edge_trace", "light_set",
@@ -38,23 +36,10 @@ def test_every_operation_is_registered() -> None:
     assert not (set(PENDING) & SPEC_OPS)
 
 
-def test_a_server_built_by_create_app_knows_every_operation(tmp_path) -> None:
-    pytest.importorskip("fastapi")  # the server group
-    from dino_autofocus.server import create_app
-
-    r = Runner(FakeBackend(), config=RunnerConfig(position_interval_s=None))
-    try:
-        create_app(r)
-        assert set(r.snapshot()["operations"]) >= SPEC_OPS | SAMPLE_OPS
-    finally:
-        r.shutdown("test teardown", timeout=5)
-
-
-def test_importing_the_server_alone_registers_them_and_touches_nothing(tmp_path) -> None:
-    """A fresh interpreter that imports only the server app (as the launcher does) sees every
-    operation; the import writes no file."""
-    pytest.importorskip("fastapi")  # the server group
-    code = ("import json; import dino_autofocus.server.app; "
+def test_importing_the_package_alone_registers_them_and_touches_nothing(tmp_path) -> None:
+    """A fresh interpreter that imports only engine.operations sees every operation; the
+    import writes no file."""
+    code = ("import json; import dino_autofocus.engine.operations; "
             "from dino_autofocus.engine.runner import OPERATIONS; "
             "print(json.dumps(OPERATIONS.names()))")
     out = subprocess.run([sys.executable, "-c", code], cwd=tmp_path, capture_output=True,

@@ -1,5 +1,11 @@
-"""The FastAPI app: the only owner of the engine. It turns requests into engine commands and
-engine events into WebSocket messages, and decides nothing itself.
+"""The FastAPI app: it shows. It passes the engine's events and snapshot on to the screens,
+reads soft-matter-agents' files through the agent store, and decides nothing itself.
+
+Since soft-matter-agents card 077 it sends no command to any engine: `/api/commands`, the
+command messages on `/ws/events`, the assistant's engine hooks and the engine-backed area
+routers (hardware, map, objective, patterns, sample, sessions) were retired with dino's
+engine command path, and the only engine it is built with is the placeholder. The engine and
+its records stay in `microscope_agent/autofocus/`; this module imports neither.
 
 Access scope (PLAN.md 5, D13, D16; the rules live in `server/api/__init__.py`):
 - The server listens on 127.0.0.1 only; `remote_view` opens it to other PCs for viewing.
@@ -16,24 +22,18 @@ Access scope (PLAN.md 5, D13, D16; the rules live in `server/api/__init__.py`):
   even one on another loopback port that carries the login cookie, cannot drive the stage.
   WebSocket handshakes get the same origin check.
 - D13: a logged-in remote viewer may send `abort` and nothing else (`remote_abort`).
-- D16: map writes are refused on `/api/commands`; they go through `/api/map`.
-- The server stamps every engine Command with who sent it, from where and with which control
-  grant (T-018); the browser never sees the grant.
 """
 
 from __future__ import annotations
 
 import asyncio
 import contextlib
-import importlib
 import logging
-import pkgutil
 import re
 import threading
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Sequence
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.openapi.utils import get_openapi
@@ -41,19 +41,14 @@ from pydantic.json_schema import models_json_schema
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from ..agents import AgentStore, MockStore
-from ..engine.operations import sample_ops  # registers the sample operations (T-027)
 from . import static, ws
 from .api import (
-    MAP_WRITE_OPS,
     SERVER_ACTIONS,
-    STOPS,
-    Auth,
     AuthSeat,
     Engine,
     Refusal,
     SessionSeat,
     command_refusal,
-    command_why,
     include_area_routers,
     is_local,
     logged_in_refusal,
@@ -68,8 +63,6 @@ from .edge import EdgeMiddleware
 from .schemas import (
     WS_MODELS,
     ApiError,
-    CommandAccepted,
-    CommandIn,
     EngineAPI,
     Health,
     PermissionOut,
@@ -82,7 +75,6 @@ log = logging.getLogger(__name__)
 
 READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 LOOPBACK_HOSTS = ("127.0.0.1", "localhost")
-COMMANDS_PATH = "/api/commands"  # checked in the endpoint, which knows the command kind
 # the Abort of a run soft-matter-agents executes (plan.md 11-25): a stop, so it gets the stop
 # rules (loopback always; a logged-in remote viewer when remote abort is on, D13)
 SMA_STOP_PATH = re.compile(r"^/api/console/runs/[^/]+/[^/]+/stop$")
@@ -130,7 +122,7 @@ class EngineStopper:
             log.exception("engine shutdown (%s) failed", reason)
 
 
-SHUTTING_DOWN = Refusal(503, "shutting_down", "the server is shutting down")
+NO_COMMANDS = "the console sends no command to any engine (soft-matter-agents card 077)"
 
 
 def _shutdown_refusal(request: Request) -> Refusal | None:
@@ -141,8 +133,7 @@ def _shutdown_refusal(request: Request) -> Refusal | None:
 
 
 def _http_refusal(request: Request) -> Refusal | None:
-    """The cookie check and the write rule for every `/api/*` request but the commands
-    route, which needs the command kind and checks in its handler."""
+    """The cookie check and the write rule for every `/api/*` request."""
     path = request.url.path
     if request.method in READ_METHODS:
         if path in OPEN_READS:
@@ -154,165 +145,11 @@ def _http_refusal(request: Request) -> Refusal | None:
         return own_origin_refusal(request)
     if path in AUTH_OPEN_PATHS:
         return origin_refusal(request)
-    if path == COMMANDS_PATH:
-        return None
     if path == SHUTDOWN_PATH:
         return _shutdown_refusal(request)
     if SMA_STOP_PATH.match(path):
         return command_refusal(request, "abort")
     return command_refusal(request)  # any other write: loopback, logged in, unlocked
-
-
-def hardware_root(records_root: str | Path) -> Path:
-    """The microscope's own hardware profile folder (not per session; manager, T-028)."""
-    return Path(records_root) / "microscope" / "hardware"
-
-
-def import_operations() -> list[str]:
-    """Import every module in `engine.operations`: operations register themselves in
-    `OPERATIONS` on import (WP-C). Called by `build_runner`, not at server import, so the
-    server package stays light. Returns the module names."""
-    from ..engine import operations
-
-    names = sorted(m.name for m in pkgutil.iter_modules(operations.__path__)
-                   if not m.name.startswith("_"))
-    for name in names:
-        importlib.import_module(f"{operations.__name__}.{name}")
-    return names
-
-
-def build_runner(backend: Any, *, records_root: str | Path, auth: AuthSeat | None = None,
-                 registry: Any = None, **runner_kw: Any) -> tuple[Any, Any]:
-    """The engine the server owns: a `Runner` over `backend` with every registered operation,
-    the hardware provider (T-028 `register_hardware` over `ProfileStore(<records root>/
-    microscope/hardware)`) as its `hardware=`, and T-018 device control as its control seat.
-    The registry is a copy, so building twice (tests, a restart) never re-registers into the
-    shared `OPERATIONS`. Returns `(runner, hardware)`; pass `hardware` to `create_app` too, so
-    the assistant's tool `gates=` can use `hardware.check`. `runner_kw` goes to `Runner`."""
-    from ..engine.gates import ProfileStore
-    from ..engine.operations.hardware_scan import register_hardware
-    from ..engine.runner import OPERATIONS, DeviceControlSeat, Registry, Runner
-
-    import_operations()
-    source = registry if registry is not None else OPERATIONS
-    reg = Registry()
-    hw_ops = ("hardware_scan", "hardware_confirm")
-    for name in source.names():
-        if name not in hw_ops:  # bound to this runner's profile store below
-            reg.register(source.get(name))
-    hw = register_hardware(reg, ProfileStore(hardware_root(records_root)))
-    if auth is not None:
-        runner_kw.setdefault("control", DeviceControlSeat(auth.control))
-    return Runner(backend, registry=reg, hardware=hw, **runner_kw), hw
-
-
-class SessionOpRecord:
-    """One operation's record inside the open experiment session (manager, T-009j): a line per
-    engine event in the session's `records/<op>.jsonl` (`layout.operation_record`), closed
-    with `end_operation`, which commits it with the session. If the session refuses a write
-    (closed under the op), the rest goes to the folder record instead and a warning is
-    logged, so the engine never loses a record and never sees an error from it."""
-
-    def __init__(self, session: Any, meta: dict, fallback: Callable[[dict], Any]) -> None:
-        self._session, self._meta, self._fallback_for = session, dict(meta), fallback
-        self._op = meta["op"]
-        self._fallback: Any = None
-        self.dir: str | None = str(session.layout.operation_record(self._op).parent)
-        self._write({"event": "operation_started", **{k: meta.get(k) for k in (
-            "op_id", "origin", "user_id", "session_id", "proposal_id", "confirmed_by")}})
-
-    def _switch(self, why: Exception) -> Any:
-        log.warning("op %s (%s): session record failed (%s); recording to the folder instead",
-                    self._meta.get("op_id"), self._op, why)
-        self._fallback = self._fallback_for(self._meta)
-        self.dir = getattr(self._fallback, "dir", None)
-        return self._fallback
-
-    def _write(self, obj: dict) -> None:
-        if self._fallback is None:
-            try:
-                self._session.record(self._op, obj)
-                return
-            except Exception as e:
-                self._switch(e)
-
-    def event(self, ev: Any) -> None:
-        if self._fallback is not None:
-            self._fallback.event(ev)
-            return
-        self._write({"event": "engine_event", "kind": ev.kind, "op_id": ev.op_id,
-                     "data": ev.data, "t": ev.t})
-        if self._fallback is not None:
-            self._fallback.event(ev)
-
-    def close(self, end: dict) -> None:
-        if self._fallback is None:
-            try:
-                self._session.end_operation(self._op, summary=dict(end))
-                return
-            except Exception as e:
-                self._switch(e)
-        self._fallback.close(end)
-
-
-def session_records(sessions: SessionSeat, fallback_parent: str | Path) -> Callable[[dict], Any]:
-    """The runner's `records=` seat: an op that runs in the open experiment session is
-    recorded in that session (committed with it); any other op (no session open: status,
-    hardware_scan) goes to `<fallback_parent>/<op>_<stamp>/`, outside git."""
-    from ..engine.runner import folder_records
-
-    folder = folder_records(lambda meta: Path(fallback_parent))
-
-    def make(meta: dict) -> Any:
-        session = sessions.session_for(meta.get("session_id"))
-        if session is not None and getattr(session, "writable", True):
-            return SessionOpRecord(session, meta, folder)
-        return folder(meta)
-
-    return make
-
-
-def install_sample_seat(engine: EngineAPI, records: Any, samples_root: Path | None,
-                        sessions: SessionSeat) -> None:
-    """The one seam between the server and the sample operations (T-027)."""
-    seat = sample_ops.SampleSeat(records, Path(samples_root or sample_ops.SAMPLES_ROOT),
-                                 sessions.session_for)
-    sample_ops.install_sample_seat(engine, seat)
-
-
-INTERRUPTED_NOTE = "interrupted: server restart"
-COMMITTER_STOP_S = 30.0
-
-
-def close_interrupted_sessions(records: Any, committer: Any = None) -> list[str]:
-    """Close every experiment session a crash left `open` (manager decision, T-009e). None is
-    handed to the engine: the operator carries on with `continue_from` (T-106 "Continue"), so
-    a restarted server never resumes motion context on its own. Returns the closed ids."""
-    from ..records import ExperimentSession
-
-    closed = []
-    for info in records.list_sessions():
-        if info.get("status") != "open":
-            continue
-        sid = info["session_id"]
-        try:
-            ExperimentSession.load(records, sid, committer=committer).close(note=INTERRUPTED_NOTE)
-        except Exception:
-            log.exception("could not close interrupted session %s", sid)
-            continue
-        log.warning("closed experiment session %s left open by the last run", sid)
-        closed.append(sid)
-    return closed
-
-
-def stop_committer(committer: Any, timeout_s: float = COMMITTER_STOP_S) -> None:
-    """Let queued record commits finish, then end the worker. Never raises."""
-    try:
-        if not committer.flush(timeout_s):
-            log.warning("record commits still queued after %.0f s at shutdown", timeout_s)
-        committer.stop(timeout_s)
-    except Exception:
-        log.exception("stopping the records auto-committer failed")
 
 
 def _package_version() -> str:
@@ -327,12 +164,7 @@ def create_app(
     *,
     agent_store: AgentStore | None = None,
     auth: AuthSeat | None = None,
-    records: Any = None,
-    committer: Any = None,
-    hardware: Any = None,
     sessions: SessionSeat | None = None,
-    samples_root: Path | None = None,
-    patterns_root: Path | None = None,
     remote_view: bool = False,
     remote_abort: bool = True,
     allowed_hosts: Sequence[str] = (),
@@ -344,17 +176,8 @@ def create_app(
 ) -> FastAPI:
     """`agent_store` defaults to a `MockStore` (dev); `auth` to an `AuthSeat` with no accounts
     in a temporary folder (nobody can log in; the launcher passes `AuthSeat.from_config()`).
-    `records` (a T-019 RecordsStore) installs the engine's sample seat (T-027): the sample
-    operations write through the server's one open ExperimentSession (`app.state.sessions`,
-    set by the sessions router). Without it the sample operations refuse. It is also on
-    `app.state.records` for the sessions router. `committer` (the T-019 AutoCommitter the
-    records are written with) is flushed and stopped when the app shuts down.
-    `sessions` lets the launcher hand in the `SessionSeat` it already gave the runner's
-    record seat (`session_records`), so both see the same open session.
-    `hardware` (from `build_runner`) is kept on `app.state.hardware`: the gates the
-    assistant's tools ask (`gates=app.state.hardware.check`, T-013b) and the screens read.
-    `patterns_root` is the folder of motion patterns (`/api/patterns`, one JSON file each);
-    without it that router answers 503.
+    `sessions` is the `SessionSeat` the assistant reads the open session from; nothing opens
+    one here since the sessions router was retired (soft-matter-agents card 077).
     `allowed_hosts` adds Host header names beyond the loopback ones; under remote view the
     launcher passes this PC's host names and addresses. `dev_origins` names page origins
     besides this server's own that may write, e.g. the Vite dev server
@@ -363,14 +186,9 @@ def create_app(
 
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-        app.state.sessions.clear()  # nothing open until the operator opens or continues one
-        if records is not None:
-            app.state.interrupted_sessions = await asyncio.to_thread(
-                close_interrupted_sessions, records, committer)
+        app.state.sessions.clear()
         yield
         await asyncio.to_thread(stopper.quietly, "server stopping")
-        if committer is not None:  # after the engine's last records, before exit
-            await asyncio.to_thread(stop_committer, committer)
 
     app = FastAPI(title="dino-autofocus", version=_package_version(), lifespan=lifespan)
     app.state.engine = engine
@@ -380,16 +198,6 @@ def create_app(
     app.state.live_host = live_host
     app.state.auth = auth if auth is not None else AuthSeat.throwaway()
     app.state.sessions = sessions if sessions is not None else SessionSeat()
-    app.state.records = records
-    app.state.committer = committer
-    app.state.interrupted_sessions = []  # closed at start-up, for the sessions screen
-    app.state.hardware = hardware
-    app.state.patterns = None
-    if patterns_root is not None:
-        from .api.patterns import PatternStore
-        app.state.patterns = PatternStore(patterns_root)
-    if records is not None:
-        install_sample_seat(engine, records, samples_root, app.state.sessions)
     app.state.remote_view = remote_view
     app.state.remote_abort = remote_abort
     app.state.dev_origins = frozenset(normalize_origin(o) for o in dev_origins)
@@ -418,54 +226,23 @@ def create_app(
         return Snapshot.model_validate(eng.snapshot())
 
     @app.get("/api/permissions", response_model=dict[str, PermissionOut], tags=["server"])
-    def permissions(request: Request, eng: Engine, seat: Auth,
-                    ops: str = "") -> dict[str, PermissionOut]:
-        """`?ops=a,b,c` -> may I do each now, and if not, why. Engine operations and the stops
-        come from the engine's `check()` with login, loopback, role and D13 on top; the
-        session actions and `submit_question` from the T-018 permissions plus loopback."""
+    def permissions(request: Request, ops: str = "") -> dict[str, PermissionOut]:
+        """`?ops=a,b,c` -> may I do each now, and if not, why. The server's own actions
+        (`SERVER_ACTIONS`: the session actions, `submit_question`, `live_on`) follow the
+        T-018 permissions plus loopback. Every other name -- an engine operation, a stop, a
+        map write -- is not allowed, code `no_commands`: the console sends no command to any
+        engine (soft-matter-agents card 077), so no screen should offer one."""
         me = login_state(request)
         names = list(dict.fromkeys(n.strip() for n in ops.split(",") if n.strip()))
-        engine_ops = [n for n in names if n not in SERVER_ACTIONS]
-        checked = (eng.check(engine_ops, {"user_id": me.user_id,
-                                          "control_grant": seat.grant_for(me.info)})
-                   if engine_ops else {})
         out = {}
         for n in names:
-            if n in SERVER_ACTIONS or n in MAP_WRITE_OPS:
-                why = server_action_why(me, n)
-            else:
-                why = command_why(me, n if n in STOPS else "start", n,
-                                  remote_abort=remote_abort)
-            if why is not None:
+            if n not in SERVER_ACTIONS:
+                out[n] = PermissionOut(allowed=False, reason=NO_COMMANDS, code="no_commands")
+            elif why := server_action_why(me, n):
                 out[n] = PermissionOut(allowed=False, reason=why.message, code=why.code)
-            elif n in SERVER_ACTIONS:
-                out[n] = PermissionOut(allowed=True)
             else:
-                e = checked.get(n) or {"allowed": False, "reason": "the engine did not answer"}
-                out[n] = PermissionOut(allowed=bool(e.get("allowed")), reason=e.get("reason"))
+                out[n] = PermissionOut(allowed=True)
         return out
-
-    @app.post(
-        COMMANDS_PATH,
-        response_model=CommandAccepted,
-        responses={400: {"model": ApiError}, 401: {"model": ApiError},
-                   403: {"model": ApiError}, 423: {"model": ApiError},
-                   503: {"model": ApiError}},
-        tags=["server"],
-    )
-    def commands(cmd: CommandIn, request: Request, eng: Engine, seat: Auth) -> CommandAccepted:
-        """Hand a command to the engine. Whether it runs is reported by events."""
-        if why := command_refusal(request, cmd.kind, cmd.op):
-            raise why.http()
-        if stopper.done:
-            raise SHUTTING_DOWN.http()
-        me = login_state(request)
-        try:
-            op_id = eng.submit(cmd.to_engine(remote=not me.local, user_id=me.user_id,
-                                             control_grant=seat.grant_for(me.info)))
-        except ValueError as e:  # runner.CommandRefused
-            raise Refusal(400, "refused", str(e)).http() from e
-        return CommandAccepted(op_id=op_id)
 
     @app.post(
         "/api/shutdown",

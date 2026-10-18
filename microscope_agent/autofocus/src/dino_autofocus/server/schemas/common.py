@@ -1,59 +1,23 @@
 """Shared wire models. These are the one place the API contract is written down: FastAPI turns
 them into OpenAPI and the web shell generates its TypeScript types from that.
 
-Each model wraps an engine dataclass; `kind` is a Literal built from the engine's kind list
+Each model wraps a dataclass of `contract.py`; `kind` is a Literal built from its kind list
 and `data` stays a dict. Area routers (`server/api/<area>.py`) type their own payloads.
+
+No command model is here (soft-matter-agents card 077): the console sends no command to any
+engine, so `CommandIn`, `CommandAccepted`, `WsCommand` and `WsAccepted` went with
+`/api/commands` and the command messages on `/ws/events`.
 """
 
 from __future__ import annotations
 
-import time
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
-from .contract import COMMAND_KINDS, EVENT_KINDS, Command, Event
+from .contract import EVENT_KINDS, Event
 
-CommandKind = Literal[COMMAND_KINDS]  # type: ignore[valid-type]
 EventKind = Literal[EVENT_KINDS]  # type: ignore[valid-type]
-
-# Command fields the browser does not send: the server sets them from the request and its
-# own state. Who (user_id, from the login cookie, T-018), where (remote: a non-loopback
-# client, D13), with what right (control_grant, from the operator's control, T-018), in which
-# experiment session (session_id, the one the server opened, T-019), and the assistant's
-# provenance (origin, proposal_id, conversation_id, confirmed_by: set only by the assistant
-# routes, T-013, from the proposal card; this endpoint is the human path). t is when the
-# server received it.
-SERVER_STAMPED = ("origin", "user_id", "session_id", "proposal_id", "conversation_id",
-                  "confirmed_by", "remote", "control_grant", "t")
-
-
-class CommandIn(BaseModel):
-    """A command for the engine, as the browser sends it. `start` names an operation in `op`
-    with its `args`; `abort`, `confirm` and `update` name the running operation by `op_id`;
-    `approve` / `reject` name a proposal by `op_id`; `lights_off` pre-empts anything. Any
-    other field is refused (422): the server sets the rest (see SERVER_STAMPED)."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    kind: CommandKind
-    op: str = ""
-    op_id: str = ""
-    args: dict[str, Any] = Field(default_factory=dict)
-
-    def to_engine(
-        self, *, remote: bool, user_id: str | None = None, session_id: str | None = None,
-        control_grant: str | None = None,
-    ) -> Command:
-        """The caller (server) passes what it knows about the request; until login and
-        sessions are wired in (T-009b) user_id, session_id and control_grant stay None."""
-        return Command(kind=self.kind, op=self.op, op_id=self.op_id, args=dict(self.args),
-                       origin="human", user_id=user_id, session_id=session_id,
-                       remote=remote, control_grant=control_grant, t=time.time())
-
-
-class CommandAccepted(BaseModel):
-    op_id: str
 
 
 class EventOut(BaseModel):
@@ -115,20 +79,6 @@ class WsEvent(BaseModel):
     event: EventOut
 
 
-class WsCommand(BaseModel):
-    """`/ws/events`, client -> server. Accepted only from the microscope PC (loopback)."""
-
-    type: Literal["command"] = "command"
-    command: CommandIn
-
-
-class WsAccepted(BaseModel):
-    """`/ws/events`, server -> client: reply to a `WsCommand`."""
-
-    type: Literal["accepted"] = "accepted"
-    op_id: str
-
-
 class WsError(BaseModel):
     """`/ws/*`, server -> client: a refused or malformed message. `status` and `code` follow
     the REST refusals (401 login_required, 423 locked, 403 remote_view and others, 400
@@ -184,9 +134,9 @@ class WsFrame(BaseModel):
     #: the camera label (e.g. "Kinetix_blue"); null when the engine names none. With two
     #: cameras both arrive on the same socket, told apart by this field.
     camera: str | None = None
-    #: a live focus score of this frame (`focus_metric`, scale invariant), computed on the
-    #: binned frame sent here, so it follows the focus but is not a sweep score; null when
-    #: it could not be computed
+    #: always null since soft-matter-agents card 077: a focus score is a measurement, and the
+    #: console measures nothing. It was computed here from the binned frame; it stays with the
+    #: engine side, and a frame statistic for a run comes from the runtime by a later card
     focus_score: float | None = None
     focus_metric: str | None = None
     #: the signed gauge reading of this frame (`meta.focus_dz` from the engine); null when the
@@ -201,5 +151,4 @@ class WsFrame(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
 
 
-WS_MODELS: tuple[type[BaseModel], ...] = (WsEvent, WsCommand, WsAccepted, WsError, WsLock,
-                                          WsFrame)
+WS_MODELS: tuple[type[BaseModel], ...] = (WsEvent, WsError, WsLock, WsFrame)

@@ -1,23 +1,24 @@
-"""Helpers of the M1 mock bench (T-035); the fixtures are in tests/e2e/conftest.py.
+"""The mock bench: one engine on MockBackend, its runner, records and a device-control
+stand-in, in temp folders only. Moved from tests/e2e/ by soft-matter-agents card 077.
 
-Test modules import from here (`from e2e_helpers import ...`), never from a conftest
-module: several test directories have one, so importing it by name depended on load
-order (T-015d).
+Until the cut the bench held the engine "as the server will hold it", with the console's own
+login package (accounts, login sessions, device control, audit) behind the runner's control
+seat. The console crossed to its own folder and the engine stayed, so the bench now gives the
+runner what the runner itself asks for, `check(user_id, grant) -> bool` (the duck type
+`runner.DeviceControlSeat` documents, so the engine imports no login code): `GrantHolder`,
+one operator holding one grant. What the login package's own rules were (passwords, roles,
+one controller at a time, remote viewers never taking control, logout, its audit log) is not
+the engine's and is not tested here; the assertions about it were dropped with tests/e2e/.
 
-The M1 mock bench (T-035): MockBackend, the T-011 runner, auth, records; temp folders only.
-
-`Bench` is one engine as the server will hold it: the runner owns the backend (opened by
-`exclusive`), device control from T-018 sits behind its control seat, records go to a fresh
-local git repository and to the sample folder. Commands go in through `Bench.submit`, events
-come out on a queue, and a test waits on them as a screen would.
+Test modules import from here (`from mock_bench import ...`) and define their own `bench` or
+`day` fixture from `Bench`, `SharedWorld`, `records_store` and `engine_on`.
 
 Operations come from the runner's registry (`engine.runner.OPERATIONS`). The ones merged as
-plain `run_*` functions but not registered yet (status, light_set, edge_trace: T-030, to be
-registered with T-032's op stage) get a thin stand-in here, and each stand-in is dropped as
-soon as the real class is registered (`Bench.stand_ins` says which are in use).
+plain `run_*` functions but not registered yet get a thin stand-in here, and each stand-in is
+dropped as soon as the real class is registered (`Bench.stand_ins` says which are in use).
 
 `need(module, task)` skips a step whose operation is not on main and names the task that
-brings it, so `pytest tests/e2e -rs` reads as M1's progress. No windows, no network.
+brings it. No windows, no network.
 """
 
 from __future__ import annotations
@@ -35,7 +36,6 @@ from typing import Any
 
 import pytest
 
-from dino_autofocus.auth import AccountStore, AuditLog, DeviceControl, LoginSessions
 from dino_autofocus.engine import operations as operations_pkg
 from dino_autofocus.engine.backends.mock import MockBackend
 from dino_autofocus.engine.backends.mock_world import Faults, MockWorld
@@ -46,7 +46,6 @@ from dino_autofocus.engine.operations.status import read_status
 from dino_autofocus.engine.runner import (
     OPERATIONS,
     Aborted,
-    DeviceControlSeat,
     Operation,
     Registry,
     Runner,
@@ -56,17 +55,8 @@ from dino_autofocus.engine.runner import (
 from dino_autofocus.engine.sample import Sample, new_sample_id
 from dino_autofocus.records import ExperimentSession, FolderStore, GitFolderStore, RecordsConfig
 
-#: test accounts on the example.test domain; every one gets PASSWORD (a test value)
-USERS = [
-    {"name": "Ada Admin", "email": "admin@example.test", "role": "admin"},
-    {"name": "Otto Operator", "email": "otto@example.test", "role": "operator"},
-    {"name": "Olga Operator", "email": "olga@example.test", "role": "operator"},
-    {"name": "Vera Viewer", "email": "vera@example.test", "role": "viewer"},
-]
-PASSWORD = "e2e-test-pass-2468"
-
-# every operations module on main registers its classes with the runner on import (as the
-# server will load them); a module that is not on main yet simply is not there
+# every operations module on main registers its classes with the runner on import; a module
+# that is not on main yet simply is not there
 for _m in pkgutil.iter_modules(operations_pkg.__path__):
     importlib.import_module(f"{operations_pkg.__name__}.{_m.name}")
 try:  # T-027: the runner reaches the records store and the open session through this seat
@@ -200,6 +190,30 @@ def records_store(root: Path) -> FolderStore:
     return GitFolderStore(cfg) if shutil.which("git") else FolderStore(cfg)
 
 
+class GrantHolder:
+    """Device control as the runner's control seat asks for it: `check(user_id, grant)`.
+    One operator holds one grant at a time; `release` gives it back. A test stand-in, not a
+    login system: it decides nothing about who may hold control."""
+
+    def __init__(self) -> None:
+        self.user: str | None = None
+        self.token: str | None = None
+        self._n = 0
+
+    def acquire(self, user: str) -> str:
+        self._n += 1
+        self.user, self.token = user, f"grant-{self._n}"
+        return self.token
+
+    def release(self) -> None:
+        self.user = self.token = None
+
+    def check(self, user_id: str | None, grant: str | None) -> bool:
+        return (bool(grant) and isinstance(grant, str) and grant == self.token
+                and user_id is not None and self.user is not None
+                and user_id.lower() == self.user.lower())
+
+
 class SharedWorld:
     """One MockWorld for a module's benches, put back to its first state for each one, so
     the virtual sample is built once (T-035b). Faults and state are reset; the sample and
@@ -216,8 +230,8 @@ class SharedWorld:
 
 
 class Bench:
-    """One engine on the mock with its auth and records, for one test module or one test.
-    `store` and `world` may be shared with other benches of the same module."""
+    """One engine on the mock with its device-control stand-in and records, for one test
+    module or one test. `store` and `world` may be shared with other benches of the module."""
 
     def __init__(self, root: Path, *, seed: int = 0, local_gone_abort_s: float = 10.0,
                  store: FolderStore | None = None, world: MockWorld | None = None):
@@ -225,17 +239,11 @@ class Bench:
         self.clock = SimClock()
         self.session: ExperimentSession | None = None
         self.sample: Sample | None = None
-        self.login_token: str | None = None
         self.control_token: str | None = None
         self.events: list[Event] = []
         self._q: queue.Queue = queue.Queue()
 
-        self.audit = AuditLog(root / "config" / "audit.jsonl",
-                              session_id_provider=lambda: self.open_session_id)
-        self.accounts = AccountStore(root / "config" / "accounts.json", audit=self.audit)
-        self.accounts.seed(USERS, PASSWORD)
-        self.logins = LoginSessions(self.accounts, audit=self.audit)
-        self.control = DeviceControl(self.logins, audit=self.audit)
+        self.control = GrantHolder()
 
         self.store = store if store is not None else records_store(root)
         self.samples_root = root / "samples"
@@ -253,7 +261,7 @@ class Bench:
             if registry.get(name) is None:
                 registry.register(OPERATIONS.get(name))
         self.runner = Runner(
-            self.backend, registry=registry, control=DeviceControlSeat(self.control),
+            self.backend, registry=registry, control=self.control,
             records=folder_records(self._record_parent), state_dir=root / "engine_state",
             config=RunnerConfig(position_interval_s=None,
                                 local_gone_abort_s=local_gone_abort_s))
@@ -276,18 +284,12 @@ class Bench:
         return self.sample.dir if self.sample is not None else self.root / "engine_records"
 
     # -- the operator's day, short forms
-    def login(self, email: str = OPERATOR) -> str:
-        r = self.logins.login(email, PASSWORD)
-        assert r.ok, r.outcome
-        return r.token
-
     def take_control(self, email: str = OPERATOR) -> None:
-        self.login_token = self.login(email)
-        self.control_token = self.control.acquire(self.login_token, local=True).token
+        self.control_token = self.control.acquire(email)
 
     def open_session(self, user: str = OPERATOR) -> ExperimentSession:
         """Pick a new sample (T-027 `sample_new` through the runner when it is registered),
-        then open the experiment session for it as the server will."""
+        then open the experiment session for it."""
         if self.registry.get("sample_new") is not None:
             end = self.run("sample_new")
             assert end.kind == "finished", end.data
@@ -303,7 +305,7 @@ class Bench:
         return self.session
 
     def ready(self) -> Bench:
-        """Logged in, holding control, session open, one local viewer: ready to operate."""
+        """Holding control, session open, one local viewer: ready to operate."""
         self.take_control()
         self.open_session()
         self.runner.set_local_viewers(1)
