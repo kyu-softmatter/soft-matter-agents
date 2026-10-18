@@ -40,24 +40,11 @@ all = ["dino-autofocus[ml,hw,synth,plot]"]
 # httpx2: the HTTP client starlette.testclient wants since starlette 1.x
 # dino-autofocus[all]: the dev env keeps every extra, so `uv sync` installs what it did before
 dev = ["pytest>=8", "ruff>=0.6", "httpx2>=2.13", "dino-autofocus[all]"]
-# local web app back end (FastAPI); pillow encodes the live-view JPEGs; anthropic is the
-# assistant's Claude provider (T-013), imported only when that provider is switched on
-# gsd reads HOOMD GSD trajectories for the simulation screen (T-012)
-server = [
-    "pydantic>=2.7",
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.30",
-    "pillow>=10",
-    "anthropic>=1.11.0",
-    "gsd>=5.0",
-]
-web = [
-    "nodejs-wheel>=22,<23",
-]
+# The `server` and `web` groups (FastAPI, uvicorn, pydantic, pillow, anthropic, gsd, Node) left
+# with the console's code, which moved to console/ (soft-matter-agents cards 078 and 079).
 
 [tool.uv]
-# `uv sync` installs the server and Node (web group) too, so the React build needs no system Node.
-default-groups = ["dev", "server", "web"]
+default-groups = ["dev"]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu126" }
