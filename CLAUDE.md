@@ -147,6 +147,14 @@ What the tool enforces, each a rule this file used to argue for at length:
 
 Its record is `.git/sma-seat-commit.jsonl`, outside every tree.
 
+- **A commit the person asks to keep local is held at once** with
+  `--hold <commit> --why <text>`; every push then refuses it until
+  `--release <commit>`. A hold said in a window and not recorded is not a
+  hold (HP-011, `5361fa5c`).
+- **No `git add -N` before the tool in this working copy.** Intent-to-add
+  leaves an empty blob in the shared index that another seat's plain commit
+  can land; the tool handles new files itself.
+
 What the tool does not reach, and so stays here as prose:
 - **The gate judges the tree the commit would create**, not the working copy.
   A `--no-verify` done by hand bypasses it and leaves no trace; the tool has

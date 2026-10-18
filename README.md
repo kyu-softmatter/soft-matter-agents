@@ -87,6 +87,7 @@ rather than passing.
 | `ARCHITECT.md` | standing orders for the architecture seat only |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
+| `docs/ideas/` | the person's ideas, questions and decisions, written verbatim and timed by the intake seat. A decision said there counts once its line is committed (`plan.md` §6) |
 | `docs/` | a one-screen page for someone who will not open this repository. **Built, not published** — GitHub Pages is off, so this is source and not a site |
 | `pyproject.toml` | **two manifests in one file.** `[project]` is the PyPI side; `[tool.pixi.*]` is the conda side, which is where HOOMD, `mcp` and `pymmcore-plus` live. The pixi tables state a different dependency set per platform, because Windows has no HOOMD build |
 | `uv.lock` | the exact versions the PyPI side resolves to. Being handed over to `pixi.lock` and kept until that exists |
