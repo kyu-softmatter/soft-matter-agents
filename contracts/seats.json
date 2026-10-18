@@ -3,7 +3,7 @@
   "note": "Which committer identity owns which paths (plan.md 6.2.1). git records no session, so a seat declares itself: the committer is the seat and the author stays the person. Read by check 41.",
   "adopt": "Put the seat in the worktree's own git config and git uses it: `git config extensions.worktreeConfig true` once, then `git config --worktree committer.name 'seat:<name>'` and `--worktree committer.email <name>@seat.invalid`. Git has read committer.name and committer.email since v2.22, so no environment prefix is needed -- verified on 2.50.1: the commit's committer is the seat and the author stays the person. An env prefix (GIT_COMMITTER_NAME=... GIT_COMMITTER_EMAIL=... git commit) still works and is what a shared working copy with no worktree config has to use. This note said until 2026-09-18 that git does not read those keys and that a context reset therefore downgrades the next commit to the person's identity; both were wrong, and the config survives a reset on its own (6.2.3).",
   "addresses": "seat.invalid is reserved by RFC 2606 and can never route. A seat identity is a label, not a mailbox.",
-  "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge. An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
+  "boundaries": "owns holds boundary names as check 41 derives them from the path, using the same table check 35 counts: design, microscope_agent, simulation_agent, librarian_agent, bridge, and from 2026-10-18 console (07b62a86; plan.md 15). An agent's CLAUDE.md and .claude/ are the design seat's, and so is all of contracts/.",
   "unknown_committer": "report",
   "unknown_committer_note": "report: a committer absent from this list is reported rather than refused, so a seat that has not adopted an identity is not blocked. refuse: fail-closed. The precondition for switching is that every seat has adopted one, the person included -- a person committing by hand would otherwise be refused on the first day, and that bypass is what becomes the habit. Note also what report costs: an unattributed commit gets no checking at all, because nothing says whose paths those were.",
   "structure": "Nine seats as of 2026-09-17: architecture (1), manager (4), execution (4). Manager and execution pair up per agent. The tiers hold no extra permission -- architecture and the managers are all Tier 0 and touch no instrument; what the tier gives is an order, not power (6.2). From 2026-10-16 there is a third top-tier role, harness (plan.md 8.3): one seat per machine at most, narrowed to contracts/harness/, proposing everywhere and landing only there.",
@@ -1983,7 +1983,11 @@
       ],
       "paths": [
         "README.md",
-        "contracts/"
+        "contracts/",
+        "console/CLAUDE.md",
+        "console/.claude/",
+        "console/tasks/",
+        "console/README.md"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -1995,7 +1999,7 @@
         "contracts/schemas/round_hashes.schema.json",
         "contracts/schemas/thread_status.schema.json"
       ],
-      "note": "The console's manager on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"콘솔 매니저\", opened by the person on 2026-10-17. The person seated it in its own window with the role and no name, first message verbatim: \"콘솔 매니저\" -- read off that session's transcript by architecture-20261007-1. The role follows the person's choice relayed from architecture-20261003-1's window that the operator console becomes a boundary of its own with its own manager and execution seat (\"새 담당 영역 + 새 매니저\"; plan.md 15). n is 1, the first of the role, machine and date. paths are the bridge manager's shape with console/ in place of bridge/; excludes keep it out of the registry, the harness records and every agent-owned contracts file, since the console writes no cards. console/CLAUDE.md, console/.claude/, console/tasks/ and console/README.md join paths in the registry commit that follows the validator mapping console/; written before it they are dead letter (check 48 refuses them), so until then this seat holds the shared contracts/ surface like the other managers and nothing under console/. Opened concurrently; closes nothing."
+      "note": "The console's manager on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"콘솔 매니저\", opened by the person on 2026-10-17. The person seated it in its own window with the role and no name, first message verbatim: \"콘솔 매니저\" -- read off that session's transcript by architecture-20261007-1. The role follows the person's choice relayed from architecture-20261003-1's window that the operator console becomes a boundary of its own with its own manager and execution seat (\"새 담당 영역 + 새 매니저\"; plan.md 15). n is 1, the first of the role, machine and date. paths are the bridge manager's shape with console/ in place of bridge/; excludes keep it out of the registry, the harness records and every agent-owned contracts file, since the console writes no cards. console/CLAUDE.md, console/.claude/, console/tasks/ and console/README.md join paths in the registry commit that follows the validator mapping console/; written before it they are dead letter (check 48 refuses them), so until then this seat holds the shared contracts/ surface like the other managers and nothing under console/. Opened concurrently; closes nothing. The four console/ paths joined on 2026-10-18 at the commit after 07b62a86, which mapped console/ to the console boundary and its instruction files to design."
     },
     {
       "seat": "console-office-20261017-1",
