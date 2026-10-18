@@ -1,0 +1,15 @@
+{
+ "sample": "20260930_1849_1",
+ "started": "2026-09-30T20:01:00",
+ "finished": "2026-09-30T20:04:00",
+ "light": "bf",
+ "um_per_px": 1.6252,
+ "fov_um": 3901.0,
+ "grid_n": 1,
+ "scan_box_um": {"x0": 4554.0, "x1": 11498.0, "y0": -2900.0, "y1": 4043.0},
+ "allowed_box_um": {"x0": 3554.0, "x1": 12498.0, "y0": -3900.0, "y1": 5043.0},
+ "tiles": [
+  {"name": "r0c0", "row": 0, "col": 0, "x_um": 8026.0, "y_um": 571.6, "z_focus_um": 3048.7,
+   "focus_note": "fine pass", "block_z_um": [], "blocks_per_side": 6, "dropout_z_um": []}
+ ]
+}

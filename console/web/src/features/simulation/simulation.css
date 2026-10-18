@@ -1,0 +1,186 @@
+.sim {
+  padding: 12px 16px;
+  overflow: auto;
+}
+
+.sim-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-mock {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #fff3e6;
+  color: var(--warn);
+  font-size: 12px;
+}
+
+.sim-panel {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.sim-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.sim-table th,
+.sim-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.sim-scalars {
+  width: auto;
+  margin-top: 8px;
+}
+
+.sim-state {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: #ecebe8;
+}
+
+.sim-state-running {
+  background: #e3eefb;
+  color: var(--accent);
+}
+
+.sim-state-complete {
+  background: #e4f3e8;
+  color: #2f7d47;
+}
+
+.sim-state-fault,
+.sim-state-aborted {
+  background: #fbe9e1;
+  color: var(--warn);
+}
+
+.sim-bar {
+  position: relative;
+  width: 180px;
+  height: 14px;
+  border-radius: 7px;
+  background: #ecebe8;
+  overflow: hidden;
+}
+
+.sim-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.sim-bar-fill.sim-state-complete {
+  background: #3a9b5c;
+}
+
+.sim-bar-fill.sim-state-fault,
+.sim-bar-fill.sim-state-aborted {
+  background: var(--warn);
+}
+
+.sim-bar-label {
+  position: absolute;
+  inset: 0;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.sim-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 16px;
+  margin: 8px 0 0;
+}
+
+.sim-facts dt {
+  color: var(--muted);
+}
+
+.sim-facts dd {
+  margin: 0;
+}
+
+.sim-canvas {
+  display: block;
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.sim-playback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-playback input[type="range"] {
+  width: 220px;
+}
+
+.sim-charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sim-chart {
+  margin: 0;
+}
+
+.sim-chart figcaption {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sim-chart-area {
+  fill: #fff;
+  stroke: var(--line);
+}
+
+.sim-chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.sim-chart-bar {
+  fill: var(--accent);
+  opacity: 0.7;
+}
+
+.sim-chart-axes {
+  display: flex;
+  justify-content: space-between;
+  width: 320px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.sim-button {
+  padding: 4px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  text-decoration: none;
+}

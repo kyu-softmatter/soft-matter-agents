@@ -1,0 +1,16 @@
+{
+ "sample_id": "20260930_1849_1",
+ "created": "2026-09-30T18:49:12",
+ "updated": "2026-09-30T21:02:40",
+ "coordinates": "sum = Ti2 XYStage/ZDrive + piezo, um (piezo axis signs unverified)",
+ "hole": {"centre_um": [1520.4, -830.2], "diameter_mm": 6.02, "fit_rms_um": 11.3,
+          "n_points": 412, "arc_deg": 352, "fitted_at": "2026-09-30T19:10:05"},
+ "boundary_limits_um": {"x": [-1490.0, 4530.8], "y": [-3841.0, 2180.6]},
+ "n_fields_visited": 57,
+ "objectives_used": ["4x", "100x"],
+ "stage_camera_calibration": null,
+ "score_offset_dof": {},
+ "config": "configs/kinetix_100x_oil.yaml",
+ "camera": "Kinetix_red",
+ "fixture_note": "small test copy of a 2026-09-30 legacy sample folder (T-103); values are made up"
+}

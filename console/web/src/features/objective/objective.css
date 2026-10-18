@@ -1,0 +1,11 @@
+.objective section { margin-bottom: 1rem; }
+.objective .reason { color: #8a5a00; font-size: 0.9em; }
+.objective .refusal, .objective .banner { color: #a3262a; }
+.objective .readonly { background: #f2f1ed; padding: 0.3rem 0.5rem; }
+.objective .steps li[data-status="done"] .status { color: #2f7d32; }
+.objective .steps li[data-status="running"] .status { color: #2a78d6; }
+.objective .steps li[data-status="failed"] .status { color: #a3262a; }
+.objective .steps li[data-status="skipped"] { color: #8a8985; }
+.objective .loading-card { border: 2px solid #2a78d6; padding: 0.75rem; margin: 0.5rem 0; }
+.objective .loading-card .big { font-size: 1.2em; padding: 0.5rem 1.5rem; }
+.objective table.refs th { text-align: left; padding-right: 1rem; font-weight: normal; }

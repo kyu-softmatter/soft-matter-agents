@@ -1,0 +1,25 @@
+.map-screen { display: flex; flex-direction: column; gap: 0.5rem; }
+.map-body { display: flex; gap: 1rem; align-items: flex-start; }
+.map-main { flex: 0 0 auto; }
+.map-side { flex: 1 1 18rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 16rem; }
+.map-canvas { border: 1px solid #ccc; background: #fafafa; cursor: crosshair; max-width: 100%; }
+.map-canvas[data-disabled="true"] { cursor: default; }
+.map-scale, .map-hover { margin: 0.2rem 0; font-size: 0.85rem; white-space: pre; }
+.map-panel { border: 1px solid #ddd; border-radius: 4px; padding: 0.4rem 0.6rem; }
+.map-panel h3 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+.map-panel label { display: block; margin: 0.15rem 0; }
+.map-panel ul { margin: 0.2rem 0; padding-left: 1rem; }
+.map-reason { display: block; color: #8a5a00; font-size: 0.85rem; }
+.map-warn { color: #a05a00; }
+.map-error { color: #b00020; }
+.map-readonly { color: #555; font-style: italic; }
+.map-muted { color: #888; }
+.map-plan { font-style: italic; }
+.map-move { border-left: 3px solid #e07b00; padding: 0.2rem 0.5rem; margin: 0.3rem 0; }
+.map-move-refused, .map-move-ended { border-left-color: #d33; }
+.map-move-arrived { border-left-color: #2e9d4f; }
+.map-confirm { border: 1px solid #e07b00; padding: 0.4rem; margin: 0.3rem 0; }
+.map-layers label { display: inline-block; margin-right: 0.6rem; }
+.map-link { background: none; border: none; padding: 0; color: #1f6fd1; cursor: pointer; text-decoration: underline; }
+.map-tiles { font-size: 0.85rem; border-collapse: collapse; }
+.map-tiles td, .map-tiles th { padding: 0 0.4rem; text-align: left; }

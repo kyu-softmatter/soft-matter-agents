@@ -1,0 +1,71 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20260925-001-r1",
+  "qid": "mic-20260925-001",
+  "thread": "solo-mic-20260925-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-09-25T20:30:00Z",
+  "status": "VALIDATED",
+  "purpose": "feed",
+  "intent": "explore",
+  "intent_rationale": "feed takes its intent from the other side. The simulation's ask frames its bench numbers as targets for a first comparison of a system nobody here has measured, so explore, with every target in decades.",
+  "observable": {
+    "name": "well_occupancy"
+  },
+  "targets": [
+    {
+      "metric": "well_occupancy",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade, the person's choice on 2026-09-25 in this seat's window ('Within a decade'), for all four observables. A decision, so no grade."
+    },
+    {
+      "metric": "well_residence_time",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade, the person's choice, as above. The registered renewal form is the observable; the mean completed dwell the simulation's ask used is computed beside it as a secondary quantity."
+    },
+    {
+      "metric": "interwell_transition_rate",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade, the person's choice, as above."
+    },
+    {
+      "metric": "interwell_barrier_height",
+      "kind": "decade_resolution",
+      "value": 1,
+      "unit": "count",
+      "note": "One decade, the person's choice, as above."
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "requested_by": "human",
+  "numbers": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": [
+    "librarian_agent"
+  ],
+  "constraint_notes": [
+    "PURPOSE. Asked, the person chose 'Compare': the point is to test the simulation's prediction against the bench. In this vocabulary `compare` means two arms on this instrument differing in one variable, and the comparison with the simulation happens at the bridge, so the microscope side's purpose is `feed`: produce the input the other side's comparison needs, in its format and with its estimator. Said so the person can correct it.",
+    "TARGET, cited and not copied: simulation_agent/questions/sim-20260923-101/result_run-20260924-101-v3-hold.json at 735a1a0. Its bench_* numbers are targets graded E5, not predictions. The round that carries it, thr-double-well-001 r1, is linked in from_round when the bridge files it.",
+    "ESTIMATOR, declared here so both sides apply one rule: the trajectory projected on the line joining the traps, +x from trap_1 to trap_2 and trap_1 at negative x; cores around the two peaks of the pooled record's histogram, core radius 0.2 of the peak spacing (the simulation's milestone_core_fraction); sticky milestoning at the frame interval. Occupancy is time assigned to a well; each ordered rate is transitions out over time assigned to the origin well; residence is the registered renewal form, with the mean completed dwell beside it; barrier from -k_B*T ln P(x). The full declaration, committed before any data at 5cd2b54: questions/mic-20260925-001/analysis_method_declared.json.",
+    "STIFFNESS, declared before data at 5cd2b54: each trap by its own power spectrum, which returns the in-situ diffusivity from the same record; equipartition beside it, never averaged.",
+    "ONE BEAD, TWO TRAPS. The person's protocol: equal strengths first, tune the separation to two histogram peaks with a small barrier, then weaken trap_2 in small steps -- at a strength ratio of 0.5 or below there are no hops at any separation. Strength trims are written as small separate steps: a strength change has no step limit in the envelope, and one step could release the bead.",
+    "SOFTWARE DRIVES THE TWEEZERS AND THE LAMP, not the laser. The trapping laser's power is the person's hand at the dial and nothing here reads it. The tweezers report nothing back, so a bead caught, held or lost is the person's statement or a frame, never a return code.",
+    "OBJECTIVE: 100x oil, the one in the path at 11:33 by architecture's stand read. The tweezers limits the person wrote are per objective, and a trap command at any other objective is refused.",
+    "SUBSTRATE: the person gave the bottom substrate's focus position as z = 2971.04 um (findings at 771e23a), the reference for the bead's height."
+  ]
+}

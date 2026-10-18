@@ -1,0 +1,38 @@
+{
+  "run_id": "run-20260924-001-smoke-g2k2",
+  "observable": "structural_relaxation_time",
+  "window_parameter": "relaxation_fit_window",
+  "window_si": 1000.0,
+  "plateau_fraction": 0.9,
+  "psi6_definition": "mean over particles of |psi6_j|, Voronoi neighbours from a Delaunay triangulation of folded positions with periodic images",
+  "psi6_curve": {
+    "time_si": [
+      0.0,
+      100.0
+    ],
+    "psi6_local_mean": [
+      0.3602523297114995,
+      0.871613454335108
+    ],
+    "psi6_global": [
+      0.025017635181859708,
+      0.23926481443547978
+    ]
+  },
+  "relaxation": {
+    "relaxation_time_si": 37.95503094849719,
+    "converged": false,
+    "plateau": 0.6159328920233037,
+    "plateau_sd": 0.36158691885653277,
+    "threshold": 0.5543396028209734,
+    "plateau_window_start_si": -900.0,
+    "reason": "the crossing lies inside the plateau window, so the plateau was still rising; the time is a lower bound"
+  },
+  "box_si": {
+    "lx": 0.0003,
+    "ly": 0.00025980762113533157
+  },
+  "cutoff_si": 4.347755261623519e-05,
+  "positions_convention": "unwrapped in the trajectory; folded into the box for psi6",
+  "max_single_step_displacement_si": 1.1100031386846181e-07
+}

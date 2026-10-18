@@ -1,0 +1,172 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "round": 0,
+  "revision": 3,
+  "author": "simulation_agent",
+  "created_at": "2026-09-24T14:40:00Z",
+  "status": "DRAFT",
+  "requested_by": "human",
+  "intent": "explore",
+  "numbers": [
+    {
+      "name": "bead_diameter",
+      "value": 5,
+      "unit": "um",
+      "source": "kb:tracer_diameter_measured",
+      "grade": "E2",
+      "precision": "significant_figures",
+      "note": "the lab's particles, measured by the operator on 2026-09-19 (CV at most 2 per cent). Taken from the store under the S2 id as the physical-units anchor; see the constraint note on anchoring"
+    },
+    {
+      "name": "temperature",
+      "value": 293,
+      "unit": "K",
+      "source": "kb:lab_ambient_temperature",
+      "grade": "E3",
+      "precision": "significant_figures",
+      "note": "the room's reading, not the sample's. In the model it is a parameter of the noise amplitude and exact; the reason to use the room's value is to match the lab"
+    },
+    {
+      "name": "viscosity",
+      "value": 0.001,
+      "unit": "Pa*s",
+      "source": "kb:water_viscosity_293k",
+      "grade": "E3",
+      "precision": "order_of_magnitude",
+      "note": "pure water near 293 K, textbook; the entry's own precision is of-order"
+    },
+    {
+      "name": "diffusivity",
+      "value": 0.09,
+      "unit": "um^2/s",
+      "source": "computed:stokes_einstein",
+      "grade": "E4",
+      "precision": "order_of_magnitude",
+      "formula": "k_B*temperature/(3*pi*viscosity*bead_diameter)",
+      "inputs": [
+        "temperature",
+        "viscosity",
+        "bead_diameter"
+      ],
+      "note": "the free diffusivity D0 of one particle in the bath; the Brownian time at the mean spacing, a^2/D0, is the natural time unit of the relaxation and every axis derives it from this"
+    },
+    {
+      "name": "gamma_max",
+      "value": 100,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the largest coupling U0/kT of the sweep; the stiff corner the timestep must survive"
+    },
+    {
+      "name": "kappa_a_max",
+      "value": 3,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the shortest range of the sweep, as kappa times the mean spacing"
+    },
+    {
+      "name": "gamma_min",
+      "value": 10,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the weakest coupling of the sweep"
+    },
+    {
+      "name": "kappa_a_min",
+      "value": 1,
+      "unit": "1",
+      "source": "assumed:a_sweep_corner",
+      "grade": "E5",
+      "precision": "order_of_magnitude",
+      "note": "the longest range of the sweep"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_sweep_corner",
+      "gap_ref": "yukawa_coupling_sweep_range_absent",
+      "authorised_by": "kyuhwan_20260923",
+      "statement": "The sweep corners. Revision 1 left them to the design stage, which took Gamma up to 1000 and kappa a up to 10 and refused on budget: one sweep point at that corner needed of order 8e11 particle-steps against 7e10. The relaxation option it attached -- Gamma 10 to 100, kappa a 1 to 3 -- was put to the person, who ruled for it on 2026-09-23. So these four numbers are the person's decision carried as an assumption, not the design stage's own; the store still holds nothing about a 2D Yukawa sweep range, which is the gap named here.",
+      "numbers": [
+        "gamma_max",
+        "kappa_a_max",
+        "gamma_min",
+        "kappa_a_min"
+      ],
+      "falsifier": "a first run showing psi6 already at its plateau at the lowest coupling, or unreachable inside the cap at the highest, moves the corresponding end by a decade -- with the person's word, since the corners are now theirs"
+    }
+  ],
+  "kb_refs": [
+    {
+      "entry_id": "tracer_diameter_measured",
+      "grade": "E2",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The particles in the bottle in use have a diameter of 5 micrometres, with a coefficient of variation no greater than 2 per cent, measured directly by the operator on 2026-09-19."
+    },
+    {
+      "entry_id": "lab_ambient_temperature",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "The laboratory's ambient temperature is 20 degrees Celsius, read off a thermometer by the operator. It is a reading and not a setpoint, and it is the room's rather than the sample's -- which is what makes it an operator reading at E3 and not a calibration at E2."
+    },
+    {
+      "entry_id": "water_viscosity_293k",
+      "grade": "E3",
+      "kb_version": "kbv-4b981dc870d3",
+      "claim": "Dynamic viscosity of pure water near 293 K is of order one millipascal second, and it changes by roughly two percent per kelvin in that neighbourhood."
+    }
+  ],
+  "degraded": [],
+  "id": "goal-sim-20260923-001-r3",
+  "qid": "sim-20260923-001",
+  "thread": "solo-sim-20260923-001",
+  "caller_id": "sim-20260923-001:v3:s2",
+  "purpose": "characterize",
+  "observable": {
+    "name": "structural_relaxation_time"
+  },
+  "targets": [],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "constraint_notes": [
+    "the person's question, verbatim in intent: interacting particles start from a random spatial configuration, evolve under a specified interparticle potential, and the quantity wanted is how long the structure takes to reorganise toward its steady state or equilibrium, quantified by a correlation or order parameter, as a function of interaction strength, interaction range, particle density and other relevant parameters",
+    "purpose was proposed by S2 and CONFIRMED by the person on 2026-09-23: `characterize` because the ask is to quantify a property over a swept condition range. Only a person can settle a purpose (4.5.1). If the person's interest is the ranking of conditions rather than the value, `compare` with one compare_variable is the alternative",
+    "the observable name is UNREGISTERED: contracts/observables.json holds tracer_diffusivity only. This card cannot enter S3 until the name is registered with its estimator and window, which is a write to contracts/ and so a request up to manager-simulation, not a refusal (CLAUDE.md, 11-1). The estimator is part of the identity, so which correlation or order parameter defines 'relaxed' has to be chosen before the name exists, and the question .md lists the candidates",
+    "NO CONFIGURATION CAN PRODUCE IT: capabilities/simulation.json declares bd_overdamped alone, undriven and without a pair potential. An interacting model is a change of physical model, which is a human decision (4.2) and a write to contracts/. S3.0 screening today returns zero candidates",
+    "the potential, its parameters, the density range and the ensemble size are all unspecified. None is filled here: S2 produces no numbers, and every one of these is a question for a person or a value for S3 to bound",
+    "the librarian was reached: four kb_query calls under the two S2 ids all returned absent, so branch two of S2 (already known, hand to the librarian and stop) does not close this question from the store's side. Whether the literature closes it is an external search the gap table points at, and is not this seat's to answer from memory",
+    "the envelope snapshot in this tree pins kbv-30966d978fbe while the publisher's copy is kbv-4b981dc870d3; this card queried the published version. Re-copy before any fan-out, and not during one",
+    "ANSWERED BY THE PERSON 2026-09-23: purpose `characterize` confirmed (it was proposed above); the system is TWO-DIMENSIONAL with PERIODIC boundaries; the interparticle potential is a PURELY REPULSIVE YUKAWA (screened Coulomb), u(r) proportional to exp(-kappa r)/r with no attractive well. The prefactor and the screening length kappa^-1 are the 'strength' and 'range' the question sweeps and are not numbers here: their decades are still the person's or S3's",
+    "ANSWERED BY THE PERSON 2026-09-23 (second reply): the estimator of 'relaxed' is the bond-orientational order parameter psi6 approaching its plateau; the swept ranges and the target accuracy are S3's to bound, not stated. The plateau criterion is a number and is S3's too (a threshold nobody has chosen is UNDECIDED, not satisfied)",
+    "PHYSICAL-UNITS ANCHOR, chosen by S2 and not by the person: the person named the model (2D, periodic, repulsive Yukawa) and not a physical system, and cards are authoritative in physical units (D7). The three numbers above are the lab's own system read from the store -- 5 um particles in water at the room's 293 K -- so that a result can one day be laid beside an experiment on this bench. They set D0 and hence the Brownian time; the Yukawa strength and range are swept in dimensionless groups (Gamma = U0/kT, kappa*a) and do not depend on this choice. The person may override the anchor; doing so changes the time unit and nothing in the sweep",
+    "REVISION 2, 2026-09-24. Revision 1's design stage refused the sweep as posed on budget (refusal_s4_sim-20260923-001.json): at Gamma 1000, kappa a 10 the curvature bound puts the timestep at 1e-4 s against a Brownian time of 1000 s, and one sweep point alone was a decade over the local wall clock. The person ruled for the relaxation option: Gamma 10 to 100, kappa a 1 to 3. Revision 1 is cited here as a record to compare against and is not an input (4.5.5): its cards stay on disk under their own names, and this revision re-runs the design from the axes with the corners carried on this card.",
+    "REVISION 3, 2026-09-24. The question and the person's corners are unchanged. What moves is the plan's shape, and a plan's content cannot move under a fixed revision: the operator refuses a smoke run unless the plan declares smoke.record_fraction and names its record parameter total_simulated_time, and revision 2 called it run_time_cap and declared no smoke; revision 2's integrate action also said wrapped positions where the trajectory convention (task 021) is unwrapped; and its in-run psi6 stop criterion compared against a plateau that is not knowable during the run. Revision 3 runs to the cap, reads the relaxation time from the saved curve afterwards, and makes convergence a success criterion. Revision 2 is cited as a record and not an input (4.5.5)."
+  ],
+  "kb_gaps": [
+    {
+      "gap_id": "yukawa_coupling_sweep_range_absent",
+      "observable": "yukawa_coupling_sweep_range",
+      "kind": "absent",
+      "searched": [
+        "kb/entries",
+        "kb/exports"
+      ],
+      "nearest": [],
+      "kb_version": "kbv-4b981dc870d3",
+      "asked_by": "sim-20260923-001:v3:s2",
+      "asked_at": "2026-09-24T14:38:38+00:00",
+      "near_names": []
+    }
+  ]
+}

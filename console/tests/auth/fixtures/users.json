@@ -1,0 +1,10 @@
+{
+  "_comment": "Fake users for development and tests. Addresses are example.test only; no passwords here (tests pass one to AccountStore.seed).",
+  "users": [
+    {"name": "Ada Admin", "email": "admin@example.test", "role": "admin"},
+    {"name": "Otto Operator", "email": "otto@example.test", "role": "operator"},
+    {"name": "Olga Operator", "email": "olga@example.test", "role": "operator"},
+    {"name": "Vera Viewer", "email": "vera@example.test", "role": "viewer"},
+    {"name": "Pat Pending", "email": "pat@example.test", "role": "viewer", "status": "pending"}
+  ]
+}
