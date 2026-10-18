@@ -106,9 +106,17 @@ core whatever it is told.
 
 **Root this session at `console/`.** An inward denial resolves only from the
 session's own root, so a console session started at the repository root
-carries none of the guards in `.claude/settings.json`. Settings are read at
-session start: a session that predates this file has to be restarted to get
-them.
+carries none of the guards in `.claude/settings.json`.
+
+**A change to that file reached a running session once, and that is all that
+is known.** On 2026-10-17 the console seat's session had been moved to
+`console/` by the person in the app, not restarted. It ran a harmless line
+through PowerShell before and after this file gained PowerShell denials. The
+line ran before and was refused after, with no restart between. So
+permission rules were seen to reload. Hooks, and the denial of the
+librarian's tools, were not probed. After a change to `.claude/`, probe the
+rule you need with a line that only prints. If the result is unclear,
+restart.
 
 ## Talking to the person
 
