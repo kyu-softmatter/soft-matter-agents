@@ -1894,6 +1894,17 @@
         "plan.md"
       ],
       "note": "An architecture session on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"실시간 의사결정 기능\", opened by the person on 2026-10-17 for the real-time decision feature. The person seated it directly in that session's own window on 2026-10-17, verbatim: \"너는 아키텍처의 새로운 세션이고 리얼타임 디시젼 기능을 구현할거야.\" (you are a new architecture session and you will implement the real-time decision feature) -- read off that session's transcript by architecture-20261007-1 after the session relayed it. The person gave no name, so n is the first for this role, machine and date. Recorded as the person's seating; corrected if they say otherwise. owns copied by code from architecture-20261007-1; paths narrowed to plan.md alone at the session's own request, so the registry, CLAUDE.md and the other architecture paths stay with the two architecture seats of 2026-10-15. Within plan.md the division of 2026-10-15 is extended: this seat holds section 13 (the decision model on the run) and item 11-27 from 2026-10-17, handed over by architecture-20261007-1, which keeps the rest of 0 to 5 and 10 to 13 and may be asked by message for a line in any of them (10.1's closed-loop non-goal, for one). \"Implement\" here means what an architecture seat does: settle the specification; manager-microscope cards it and a microscope seat builds it (the person's answer in that window). Opened concurrently; closes nothing. From 2026-10-17 it also holds a new plan.md section 15, the microscope runtime in its own folder, microscope_runtime/: the person, directly in this seat's window that day, \"실시간 의사결정 + 현미경 하드웨어 조작 까지\" and \"방문을 기다리지 말고 지금 분리 작업을 시작하자\". The D11 amendment that section needs lands in its commit with architecture-20261007-1's go-ahead."
+    },
+    {
+      "seat": "architecture-office-20261017-2",
+      "committer_email": "architecture-office-20261017-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "docs/ideas/"
+      ],
+      "note": "The intake seat on the Office computer (Windows, hostname Office), rooted at the repository root: the desktop session titled \"아키텍처 오피스 인테이크 시트\", opened by the person on 2026-10-17. The person seated it directly in that session's own window, first message, verbatim: \"You are architecture-office-20261017-2, the intake seat described in plan.md section 6 (\\\"The intake seat\\\"). Your paths are docs/ideas/ only. Write each of my ideas verbatim and timed in docs/ideas/<YYYYMMDD>.md before routing anything, route each piece to the architecture seat holding its section (read the division from contracts/seats.json), and be the one window for every question to me and every result for me. Commit my decisions verbatim before any seat acts on them. Report to me in Korean.\" -- read off that session's transcript by architecture-20261007-1. The person gave the name whole. owns copied by code from architecture-20261007-1; paths docs/ideas/ only, so it records the person's ideas and decisions and routes them, and lands nothing else. The plan.md text it names (section 6's intake seat) was uncommitted when this row was written; the row stands on the person's seating, not on that text. Opened concurrently; closes nothing."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
