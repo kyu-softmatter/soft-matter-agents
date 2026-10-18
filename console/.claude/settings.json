@@ -1,0 +1,63 @@
+{
+  "$comment": "Session boundary for the console (plan.md 15 and 11-25). What enforces the boundary is the commit gate, checks 35 and 41; this file states it, and only part of it is enforced at write time. Three groups, as in bridge/.claude/settings.json, and they do not all do the same amount.",
+  "permissions": {
+    "deny": [
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Edit(README.md)",
+      "Write(README.md)",
+      "Edit(tasks/**)",
+      "Write(tasks/**)",
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Bash(*mm-real*)",
+      "Bash(*mm_real*)",
+      "Bash(*mm-demo*)",
+      "Bash(*mm_demo*)",
+      "Bash(*--mm-config*)",
+      "Bash(*--backend replay*)",
+      "Bash(*--replay-source*)",
+      "Bash(*--live-host*)",
+      "Bash(*pymmcore*)",
+      "Bash(*--backend hardware*)",
+      "Bash(*orchestrator.py*)",
+      "Bash(*operator.py*)",
+      "Bash(*live_view.py*)",
+      "Edit(//**/soft-matter-agents/microscope_agent/**)",
+      "Edit(//**/soft-matter-agents/microscope_runtime/**)",
+      "Edit(//**/soft-matter-agents/simulation_agent/**)",
+      "Edit(//**/soft-matter-agents/librarian_agent/**)",
+      "Edit(//**/soft-matter-agents/bridge/**)",
+      "Edit(//**/soft-matter-agents/contracts/**)",
+      "Edit(//**/soft-matter-agents/plan.md)"
+    ],
+    "$comment_1_reachable": "THE FIRST EIGHT ENFORCE. A path pattern resolves against the session's root, which for this seat is console/, so Edit(tasks/**) means console/tasks/**. All four paths are the manager's (seats.json, manager-console), and an execution session can reach all four; a seat that can edit its own orders has none. The Claude Code documentation says Write rules are never consulted and Edit covers writes, so each Write line is intent and its Edit twin is the rule. Not a constraint on the manager, whose session sits at the repository root and never loads this file.",
+    "$comment_2_command": "THE COMMAND PATTERNS ENFORCE, against the text of a command and nothing else. The console's imported server can open a real Micro-Manager core (--backend mm-real with --mm-config) and pass light and motion operations to dino's own engine, which 11-25 rule 3 forbids; the live host lights the sample; the runtime's entry points are the instrument's. These lines stop a session typing them. They do not stop code that reaches the same place by another spelling, so they are a guard on a session, not on the code, and the code's own refusals are what the move must keep. None names a reading utility or contracts/, so check 53 passes them: they block running, never reading.",
+    "$comment_3_outward": "THE REST ARE INTENT. They name the repository's other folders through the //**/soft-matter-agents/ form, which only a folder of that name can match; whether Claude Code honours the form is not documented, so count them as a statement of what this seat must not write, not as protection. Check 35 is what refuses such a commit."
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/contracts/validate.py\" --quiet; done; echo \"validate: no RUNNABLE python on PATH (python3, python, py all failed a -c probe)\" >&2; exit 1'",
+            "$comment": "The validator's exit code is the only truth (plan.md 8). Resolved from the git root, as bridge/'s is, so a session rooted at console/ finds it."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'for c in python3 python py; do command -v \"$c\" >/dev/null 2>&1 || continue; \"$c\" -c \"\" >/dev/null 2>&1 || continue; exec \"$c\" \"$(git rev-parse --show-toplevel)/.claude/end-of-turn-commit-check.py\"; done; exit 0'",
+            "$comment": "The person's request, 2026-09-25: sessions commit and push what they made and learned before they stop. Asks once and never acts, as in every agent's settings."
+          }
+        ]
+      }
+    ]
+  }
+}
