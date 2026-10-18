@@ -111,7 +111,8 @@ python contracts/tools/seat_commit.py --save-patch P -- <paths>                 
 python contracts/tools/seat_commit.py --seat <seat> -F <msgfile> --patch P        # patch mode: commit exactly that patch
 python contracts/tools/seat_commit.py --seat <seat> -- <paths>                    # whole-path mode: every hunk and a digest
 python contracts/tools/seat_commit.py --seat <seat> -F <msgfile> --confirm <digest> -- <paths>
-python contracts/tools/seat_commit.py --seat <seat> --push [--push-includes-others]
+python contracts/tools/seat_commit.py --seat <seat> --push                         # lists what would be published; refuses if any of it is another seat's
+python contracts/tools/seat_commit.py --seat <seat> --push --push-includes-others <hash>,<hash>   # only after reading that list, naming each other seat's commit
 ```
 
 What the tool enforces, each a rule this file used to argue for at length:
@@ -139,7 +140,9 @@ What the tool enforces, each a rule this file used to argue for at length:
   race as success). In patch mode a stale shared-index entry is reset only
   where nobody staged anything.
 - **`--push` fetches first and refuses when behind**; publishing other seats'
-  commits needs `--push-includes-others`. On Windows it adds
+  commits needs `--push-includes-others` with each of their hashes, read off the
+  list a plain `--push` prints -- never passed up front (INC-20261018-01: a commit
+  the person had asked to hold was published that way). On Windows it adds
   `-c credential.helper=manager` when none is configured.
 
 Its record is `.git/sma-seat-commit.jsonl`, outside every tree.
