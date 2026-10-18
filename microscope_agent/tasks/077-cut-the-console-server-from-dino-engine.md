@@ -63,12 +63,36 @@ read only:
    - Move `mm_real.py:255`'s dependency on `auth.config` to the engine's
      side, or pass the value in. **Nothing that stays may import anything
      that crosses.**
-3. **Deleting dino's engine motion, rather than keeping it locked, is this
-   card's call.** dino's own plan deletes the motion only after this
-   repository's path is in use at the bench, and that path has not yet run
-   there. So **the default is to keep it locked**, and to say so in the
-   report. If you think it should go, write the reason in your report and
-   do not delete anything until this seat answers.
+3. **Then retire dino's engine command path. This is the target, not an
+   option** (revised 2026-10-17). plan.md 15 settles it, in the sentence
+   architecture-office-20261017-1 gave for its console paragraph: "dino's
+   engine command path is retired, not re-placed beside the orchestrator:
+   every command goes through the orchestrator (11-25 rule 3) on the one
+   execution path (4.6.8), so a second command path survives nowhere here,
+   whatever dino's own plan said about deleting its motion only later.
+   Until the cut card retires it, it stays locked where it is and moves into
+   neither new folder."
+   - **The lock stays in force until the retirement lands.** Never unlock
+     it, not even to test.
+   - Retire the path in its own commit, after the cut in step 2 and its
+     import test. That covers what lets dino's engine send a command to a
+     device: `/api/commands` and its handlers, and the `mm-demo`, `replay`
+     and `mm-real` backends' command and motion paths. List each file and
+     function removed.
+   - **What it could do that is still wanted is not re-built here.** A light
+     setting, a stage move, an objective change, a trap step, a sample map
+     or a pattern re-enters only as the orchestrator's, inside
+     `microscope_runtime/`, through plans the person approves, each by its
+     own card.
+   - **The console's command buttons are not this card's.** Section 15
+     orders them: each console area that sent commands to the engine gets
+     its draft-a-plan or run-interface replacement first, and its buttons
+     go after that, on the console manager's cards. If a console test that
+     crosses still calls a path you retire, report it to this seat and to
+     `manager-console-office-20261017-1` rather than keeping the path
+     alive.
+   - Measuring code the engine also holds (focus, models, configuration
+     files, scripts) is not a command path. It stays in `autofocus/`.
 4. **The console's reader of the run interface follows
    `contracts/schemas/run_interface.schema.json`** (`78e25f5b`). Its
    `run_ended` `how` must accept `refused`, which the operator writes and
@@ -87,6 +111,8 @@ read only:
 - dino's engine-side tests are as green as they were before the cut. Card
   072's suite is the baseline.
 - No backend that opens a core is reachable from anything that crosses.
+- dino's engine command path is retired, in its own commit, and its tests
+  are removed with it, or changed to assert that the path is gone.
 
 ## Boundaries
 
@@ -95,7 +121,8 @@ read only:
   to `contracts/`.
 - Move nothing to `console/`. That folder does not exist until the console
   seat's commit, and the move is not this card's.
-- Run nothing that opens a Micro-Manager core, and change no lock's value.
+- Run nothing that opens a Micro-Manager core, and never set the lock to
+  unlocked. Removing the path the lock guards is step 3.
 - Through the gate, naming each path. Never `--no-verify`, `--amend` or
   force.
 
@@ -108,5 +135,5 @@ To this seat, 6 lines at most:
 - each severed import, and what it now does instead;
 - the import test, watched failing, then passing;
 - the suites' counts before and after;
-- whether you keep the engine motion locked or recommend deleting it, and
-  why.
+- the engine command path retired: files and functions removed, and any
+  console test that still called it.
