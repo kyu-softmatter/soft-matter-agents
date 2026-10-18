@@ -554,6 +554,21 @@ def walk_files(root: Path, suffix: str | None = None) -> list[Path]:
     return sorted(out)
 
 
+#: The trees that hold an agent's runs, envelope, approvals and source. The
+#: microscope runtime is its own folder from plan.md 15 and does not match
+#: `*_agent`, so every glob that meant "an agent's runs" or "an agent's src"
+#: goes through agent_glob, or the runtime's files would be judged by nothing.
+AGENT_TREE_GLOBS = ("*_agent", "microscope_runtime")
+
+
+def agent_glob(rel: str) -> list[Path]:
+    """REPO.glob(f"<tree>/{rel}") over every agent tree, sorted and without repeats."""
+    found = set()
+    for tree in AGENT_TREE_GLOBS:
+        found.update(REPO.glob(f"{tree}/{rel}"))
+    return sorted(found)
+
+
 REJECTED = "rejected"
 GROUP_DIR = re.compile(r"^check([0-9]{2})_[a-z0-9_]+$")
 
@@ -853,8 +868,8 @@ def envelope_files() -> list:
     than refused by them -- a FAIL is loud and an empty glob is not, which is
     the worse of the two failures and the reason this is one function.
     """
-    return sorted(REPO.glob("*_agent/envelope/safety.json")) + \
-           sorted(REPO.glob("*_agent/envelope/budget.json"))
+    return sorted(agent_glob("envelope/safety.json")) + \
+           sorted(agent_glob("envelope/budget.json"))
 
 
 def check_05_envelope(b: Bundle) -> list[Finding]:
@@ -914,7 +929,7 @@ def check_05_envelope(b: Bundle) -> list[Finding]:
         # sitting in the simulation tree would validate perfectly while every
         # ceiling a run resolves there is the wrong instrument's.
         declared = doc.get("agent")
-        in_tree = rel.split("/")[0].removesuffix("_agent")
+        in_tree = rel.split("/")[0].removesuffix("_agent").removesuffix("_runtime")
         if declared and declared != in_tree:
             out.append(Finding(5, FAIL, f"declares agent {declared!r} and sits in {in_tree}'s tree. A run "
                                         f"resolves ceilings by path, so this file would answer with another "
@@ -1709,6 +1724,18 @@ ALLOWED_PATHS = [
     # until the simulation asks. This list first, then section 7's item,
     # which is architecture's, then check 13 goes green.
     r"^microscope_agent/tests/[A-Za-z0-9_.-]+\.py$",
+    # The microscope runtime (plan.md 15, 2026-10-17): execution, S6, and the
+    # run-time watcher, with the person's policy and approvals beside the code
+    # that enforces them. Declared here first, then section 7, then the files.
+    # No snapshot.json: one copy stays in microscope_agent/envelope/.
+    r"^microscope_runtime/(CLAUDE\.md|\.claude/settings\.json|failures\.jsonl)$",
+    r"^microscope_runtime/tasks/[A-Za-z0-9_.-]+$",
+    r"^microscope_runtime/envelope/safety\.json$",
+    r"^microscope_runtime/approvals/[A-Za-z0-9_.-]+$",
+    r"^microscope_runtime/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
+    r"^microscope_runtime/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
+    r"^microscope_runtime/tests/[A-Za-z0-9_.-]+\.py$",
+    r"^microscope_runtime/findings/[a-z0-9-]+\.json$",
     # An execution seat's findings for the librarian, one file per seat and
     # day (findings.schema.json). This list first, then section 7's item.
     # The simulation joined on 2026-10-08: closed-form answers have no run, so
@@ -1796,7 +1823,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
         # subtree keeps the layout of the project it came from (2026-10-15).
         if is_imported(rel):
             continue
-        if parts[0].endswith("_agent") or parts[0] == "bridge":
+        if parts[0].endswith("_agent") or parts[0] in ("bridge", "microscope_runtime"):
             if "raw" not in parts and len(parts) > 4:
                 out.append(Finding(13, FAIL, f"depth {len(parts) - 1} exceeds the limit of 3 inside an agent (7.1 rule 6)", rel))
 
@@ -1824,7 +1851,7 @@ def check_13_paths(b: Bundle) -> list[Finding]:
 
 
 def check_14_command_provenance(b: Bundle) -> list[Finding]:
-    logs = list(REPO.glob("*_agent/runs/*/log.json"))
+    logs = list(agent_glob("runs/*/log.json"))
     if not logs:
         return [Finding(14, PENDING, "needs runs/<run_id>/log.json, which M1 produces")]
     return [Finding(14, PENDING, "log provenance not implemented yet")]
@@ -1866,7 +1893,7 @@ def check_15_approval_precedes_run(b: Bundle) -> list[Finding]:
     which is why the null case is checked as hard as the other one: it is a
     claim about the plan's tier, and the plan is on disk to contradict it.
     """
-    runs = [d for d in REPO.glob("*_agent/runs/*") if d.is_dir()]
+    runs = [d for d in agent_glob("runs/*") if d.is_dir()]
     if not runs:
         return [Finding(15, NA, "no runs on disk")]
     plans = {str(c.data.get("id")): c for c in b.of_kind("plan")}
@@ -1991,10 +2018,10 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     for f in CONTRACTS.glob("*.py"):
         bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
-               if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge", "console"}]
+               if m.split(".")[0] in {"microscope_agent", "microscope_runtime", "simulation_agent", "librarian_agent", "bridge", "console"}]
         if bad:
             out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", f.relative_to(REPO).as_posix()))
-    src = list(REPO.glob("*_agent/src/*.py")) + list(REPO.glob("*_agent/src/devices/*.py"))
+    src = list(agent_glob("src/*.py")) + list(agent_glob("src/devices/*.py"))
     if not src:
         out.append(Finding(16, PASS, "contracts imports no agent (7.2 rule 1)"))
         out.append(Finding(16, PENDING, "the other four rules need agent code under src/, which M1 produces"))
@@ -2054,7 +2081,12 @@ def resolve_decision_input(card: Card, ref: str) -> tuple[str, str, object, obje
         return kind, body, None, None, "an envelope input is written envelope:<file>#<field>"
     fname, field = body.split("#", 1)
     agent = card.rel.split("/")[0]
-    f = REPO / agent / "envelope" / fname
+    # plan.md 15: the microscope's safety policy lives in microscope_runtime/
+    # once the person moves it (step 6), while its plans stay in
+    # microscope_agent/. Only one of the two exists at a time.
+    trees = [agent] + (["microscope_runtime"] if agent == "microscope_agent" else [])
+    f = next((REPO / t / "envelope" / fname for t in trees
+              if (REPO / t / "envelope" / fname).exists()), REPO / agent / "envelope" / fname)
     if not f.exists():
         return kind, field, None, None, f"{agent}/envelope/{fname} is not in this tree"
     try:
@@ -2298,7 +2330,7 @@ def check_20_alternatives(b: Bundle) -> list[Finding]:
 
 def config_of_run(run_id: str, b: Bundle) -> str | None:
     """run_id -> the plan it carried out -> the configuration that plan names."""
-    for log in REPO.glob(f"*_agent/runs/{run_id}/log.json"):
+    for log in agent_glob(f"runs/{run_id}/log.json"):
         try:
             plan_id = str(json.loads(log.read_text()).get("plan_id") or "")
         except Exception:
@@ -2469,7 +2501,7 @@ def check_22_irreversible(b: Bundle) -> list[Finding]:
 
 
 def check_23_manual_lockout(b: Bundle) -> list[Finding]:
-    if not list(REPO.glob("*_agent/runs/*/manual_steps.md")):
+    if not list(agent_glob("runs/*/manual_steps.md")):
         return [Finding(23, PENDING, "needs run logs and manual instruction sheets, which M1 produces")]
     return [Finding(23, PENDING, "lockout reconstruction not implemented yet")]
 
@@ -2824,7 +2856,7 @@ KB_LIKE = re.compile(r"(entries|literature|references|knowledge|kb)[/_.]", re.I)
 
 def check_27_knowledge_ownership(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
-    for agent in ("microscope_agent", "simulation_agent", "bridge"):
+    for agent in ("microscope_agent", "microscope_runtime", "simulation_agent", "bridge"):
         root = REPO / agent
         if not root.exists():
             continue
@@ -2895,7 +2927,7 @@ def check_29_failure_record(b: Bundle) -> list[Finding]:
     # honest third option, and it keeps what those rows actually say instead
     # of flattening them into one reserved token.
     task_files = list((REPO / "librarian_agent" / "tasks").glob("*.md"))
-    for agent in ("microscope_agent", "simulation_agent", "bridge"):
+    for agent in ("microscope_agent", "microscope_runtime", "simulation_agent", "bridge"):
         task_files += list((REPO / agent / "tasks").glob("*.md"))
     invented: list[str] = []
     n_records = 0
@@ -3055,6 +3087,10 @@ def check_34_compare_arms(b: Bundle) -> list[Finding]:
 
 AGENT_OF_PATH = [
     (re.compile(r"^microscope_agent/"), "microscope_agent"),
+    # The microscope runtime, its own folder and the same boundary (plan.md 15,
+    # 2026-10-17): the seats divide the boundary by `paths`, so a planning
+    # seat narrowed to microscope_agent/ is refused here by check 41.
+    (re.compile(r"^microscope_runtime/"), "microscope_agent"),
     (re.compile(r"^simulation_agent/"), "simulation_agent"),
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
@@ -3093,7 +3129,7 @@ SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|READ
 # granted fail loudly instead of silently.
 INBOX = re.compile(r"^(microscope|simulation)_agent/inbox/")
 
-DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge|console)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
+DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|microscope_runtime|bridge|console)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
 
 
 def seat_boundary_of(path: str) -> str:
@@ -3362,7 +3398,7 @@ def check_37_time_base(b: Bundle) -> list[Finding]:
                                              f"name (4.6.9)", c.rel))
         if not tb.get("t0_wall"):
             out.append(Finding(37, FAIL, "no t0_wall: events cannot be placed on a common axis", c.rel))
-    if not list(REPO.glob("*_agent/runs/*/log.json")):
+    if not list(agent_glob("runs/*/log.json")):
         out.append(Finding(37, PENDING, "per-event offsets need run logs from M1"))
     return out or [Finding(37, PASS, f"{len(results)} results rest on a time base 4.6.9 admits")]
 
@@ -5512,7 +5548,7 @@ def check_80_a_role_is_read_not_spelled(b: Bundle) -> list[Finding]:
 
     sites: list[str] = []
     prefix_total = 0
-    sources = sorted(REPO.glob("*_agent/src/**/*.py")) + sorted(REPO.glob("bridge/src/**/*.py"))
+    sources = sorted(agent_glob("src/**/*.py")) + sorted(REPO.glob("bridge/src/**/*.py"))
     for src in sources:
         try:
             tree = ast.parse(src.read_text())
@@ -6420,7 +6456,7 @@ def check_73_a_result_names_an_approval_and_a_run_that_exist(b: Bundle) -> list[
             approvals[c.data["id"]] = c.data
 
     runs_by_agent: dict[str, set[str]] = {}
-    for d in REPO.glob("*_agent/runs/*"):
+    for d in agent_glob("runs/*"):
         if d.is_dir():
             runs_by_agent.setdefault(d.parent.parent.name, set()).add(d.name)
 
@@ -7234,7 +7270,7 @@ def check_77_a_deletion_names_a_declared_trigger(b: Bundle) -> list[Finding]:
     results = {str(r.data.get("run_id")): r for r in b.of_kind("result")}
     out: list[Finding] = []
     n = 0
-    for log in sorted(REPO.glob("*_agent/runs/*/log.json")):
+    for log in sorted(agent_glob("runs/*/log.json")):
         rel = log.relative_to(REPO).as_posix()
         try:
             doc = json.loads(log.read_text())
@@ -7454,7 +7490,7 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
                     f"{len(declared)} directories .gitignore excludes are all in SKIP_DIRS")]
 
 
-AGENT_SRC = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(src|.*/src)/.*\.py$")
+AGENT_SRC = re.compile(r"^((microscope|simulation|librarian)_agent|microscope_runtime|bridge)/(src|.*/src)/.*\.py$")
 RELATIVE_IMPORT = re.compile(r"^[ \t]*from[ \t]+(\.+)([A-Za-z_][A-Za-z0-9_.]*)?[ \t]+import[ \t]+(.+)$", re.M)
 
 
@@ -7694,7 +7730,7 @@ def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
     log and says plainly what was never recorded. It prints its denominator.
     """
     plans = {str(p.data.get("id")): p for p in b.of_kind("plan")}
-    metas = sorted(REPO.glob("*_agent/runs/*/trajectory_meta.json"))
+    metas = sorted(agent_glob("runs/*/trajectory_meta.json"))
     if not metas:
         return [Finding(83, PENDING, "no trajectory_meta.json on disk, which a run produces")]
     wrote = present = by_pipeline = 0

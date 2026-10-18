@@ -196,6 +196,71 @@ def fixture_41_unregistered_committer(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_41_a_planning_seat_writes_into_the_runtime(repo: Path) -> str:
+    """A planning seat, narrowed to microscope_agent/, committing runtime code.
+
+    plan.md 15 puts the microscope runtime in its own folder inside the SAME
+    boundary, and the seats divide the boundary by `paths`. So nothing but the
+    narrowing keeps a design session out of device code -- the job card 064
+    did by naming files. microscope-1 carries paths ["microscope_agent/"] in
+    the real registry since df579182.
+    """
+    start = base(repo)
+    write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
+    commit(repo, "a planning seat writes into the runtime's folder",
+           "microscope_runtime", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_the_runtime_seat_inside_the_runtime(repo: Path) -> str:
+    """A seat narrowed to microscope_runtime/ committing runtime code is admitted.
+
+    The other side of the refusal above: a classifier that refused every
+    runtime path to everyone would satisfy that fixture alone, and the runtime
+    seat of plan.md 15 step 4 could not land the move. No such seat is
+    registered yet, so this appends one, the way the person's seating will.
+    """
+    seat = "microscope-20261018-9"
+    start = _registry_with(repo, {"seat": seat, "committer_email": f"{seat}@seat.invalid",
+                                  "owns": ["microscope_agent"], "paths": ["microscope_runtime/"],
+                                  "note": "a fixture's runtime seat"},
+                           "seats: a runtime seat for the fixture").split("..")[0]
+    write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
+    commit(repo, "the runtime seat writes its own code", "microscope_runtime", seat=seat)
+    return f"{start}..HEAD"
+
+
+def fixture_35_the_design_and_runtime_folders_are_one_boundary(repo: Path) -> str:
+    """One commit into microscope_agent/ and microscope_runtime/ is one boundary.
+
+    plan.md 15 chose a narrowing over a new boundary, so the runtime's move --
+    renames out of microscope_agent/ into microscope_runtime/, in one commit
+    so git sees renames -- must pass check 35. Check 41 then decides whose it
+    is, by the committer's paths.
+    """
+    start = base(repo)
+    write(repo, "microscope_agent/src/run_lock.py", "VALUE = 1\n")
+    write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
+    commit(repo, "one commit across the microscope's two folders",
+           "microscope_agent", "microscope_runtime", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_35_one_commit_into_the_runtime_and_another_agent(repo: Path) -> str:
+    """One commit writing into microscope_runtime/ and simulation_agent/ at once.
+
+    Until the classifier knew microscope_runtime/, its paths were
+    `unattributable`, which check 35 does not count, so this read as one
+    boundary and passed. The runtime is the microscope's, so it is two.
+    """
+    start = base(repo)
+    write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
+    write(repo, "simulation_agent/src/engine.py", "VALUE = 1\n")
+    commit(repo, "one commit, the runtime and another agent",
+           "microscope_runtime", "simulation_agent", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
 def _console_seat() -> str:
     """The first open seat in the real registry that owns the console boundary.
 
@@ -1023,6 +1088,13 @@ FIXTURES = [
     (41, "FAIL", "this path is console's", fixture_41_an_agent_seat_writes_into_the_console),
     (41, "FAIL", "owns ['console']; this path is design's", fixture_41_the_console_seat_writes_its_own_orders),
     (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_console_seat_inside_its_own),
+    (41, "FAIL", "is narrowed to ['microscope_agent/'], which does not cover this path",
+     fixture_41_a_planning_seat_writes_into_the_runtime),
+    (41, "PASS", "2 commits stay inside the seat that made them", fixture_41_the_runtime_seat_inside_the_runtime),
+    (35, "PASS", "stay inside one boundary (microscope_agent)",
+     fixture_35_the_design_and_runtime_folders_are_one_boundary),
+    (35, "FAIL", "one commit writes into ['microscope_agent', 'simulation_agent']",
+     fixture_35_one_commit_into_the_runtime_and_another_agent),
     (1, "FAIL", "unknown card kind 'console_only_shape' [console/src/pkg/agents/mock_data_draft.json]",
      fixture_01_a_card_beside_the_consoles_mock_data_is_read),
     (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
