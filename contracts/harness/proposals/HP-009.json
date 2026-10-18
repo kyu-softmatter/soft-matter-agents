@@ -1,0 +1,67 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-009",
+  "title": "A push that publishes other seats' commits must name each one, and the tool's log says what every push published",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-18",
+  "kind": "tighten",
+  "class": "confirmation-pre-supplied",
+  "answers": [
+    "INC-20261018-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261018-01"
+    ],
+    "looked_in": [
+      "the tool's log, every push line from 2026-10-17T23:00Z: 9 of 13 push lines in the tool's log from 2026-10-17T23:00Z to 2026-10-18T01:22Z passed --push-includes-others on the invocation itself",
+      "contracts/tools/seat_commit.py's --push-includes-others, a bare flag that covers whatever the push turns out to carry",
+      "the root CLAUDE.md's usage line, which shows the flag as an optional suffix of --push and so teaches passing it up front"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/tools/seat_commit.py",
+      "owner": "manager-microscope-office-20261016-1, its builder (shared surface under contracts/)",
+      "change": "--push-includes-others takes the other seats' commits by hash, comma-separated. The push goes ahead only when that set equals exactly the set of other seats' commits the push would publish. A bare flag, a missing hash or an extra one is refused, and the refusal prints the list, so a yes can only be given after the list is read. Each push line in .git/sma-seat-commit.jsonl also records the hashes it published and whose each was."
+    },
+    {
+      "path": "contracts/tools/seat_commit_fixtures.py",
+      "owner": "manager-microscope-office-20261016-1",
+      "change": "Fixtures in a throwaway repository with one commit of another seat under the pushing seat's own: a bare flag is refused, a list missing that commit is refused, a list naming a commit not in the push is refused, and the exact list pushes. The first is watched failing on today's tool, which pushes."
+    },
+    {
+      "path": "CLAUDE.md",
+      "owner": "architecture-20261007-1",
+      "change": "The usage line shows --push-includes-others <hashes> as a second step after a refused --push, not as an optional suffix of the first."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "contracts/tools/seat_commit_fixtures.py, the four cases above",
+        "reproduces": "INC-20261018-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every seat that pushes: the tool is read from the working copy on each run, so the next push with a bare flag is refused with the list, which is the moment the habit is spent"
+    ],
+    "how_they_learn": "In the tool's refusal, which names the commits and the exact flag to pass after reading them. The usage line in the root CLAUDE.md changes with it for seats that read before they push.",
+    "use_site": "contracts/tools/seat_commit.py --push"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "A commit already published cannot be unpublished here, and history is not rewritten, so e0d09c02 stays on origin. What remains is to tell the person, which this seat does through the intake seat. The remedy is the reporting seat's own suggestion, adopted with one addition: the log records what each push published. Without that the class cannot be counted, which this proposal's own classification ran into."
+}
