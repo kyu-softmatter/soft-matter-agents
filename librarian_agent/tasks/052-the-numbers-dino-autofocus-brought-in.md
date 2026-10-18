@@ -40,7 +40,10 @@ Re-derive the list before trusting it. Cite every number as
   (`live.py` and `backbone.py` each have at least one).
 
 **Not in scope, and not entered:**
-- `src/dino_autofocus/agents/mock_data/`: copies of this repository's own
+- `src/dino_autofocus/agents/mock_data/` (moved 2026-10-17 with the console,
+  to `console/src/sma_console/agents/mock_data/` at `9267874d`, byte-identical;
+  every citation here is pinned at `8f94789`, so it still resolves and is
+  left pinned): copies of this repository's own
   cards, used as test fixtures. They are not knowledge and are not a source.
 - `tests/`
 - `models/`: weights.
