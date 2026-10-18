@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(microscope_runtime/envelope/safety.json)",
+      "Edit(/approvals/**)",
+      "Edit(/tasks/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/.claude/**)"
+    ]
+  }
+}

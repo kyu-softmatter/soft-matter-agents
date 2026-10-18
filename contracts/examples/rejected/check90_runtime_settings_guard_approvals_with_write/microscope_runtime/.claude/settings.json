@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/envelope/safety.json)",
+      "Write(/approvals/**)",
+      "Edit(/tasks/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/.claude/**)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(/approvals/**)",
+      "Edit(/tasks/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/.claude/**)"
+    ]
+  }
+}

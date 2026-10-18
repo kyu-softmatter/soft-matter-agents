@@ -8920,6 +8920,75 @@ def _check_89_append_only(commit_range: str | None, staged: bool) -> list[Findin
     return out
 
 
+#: The folders a session runs the instrument from (plan.md 15). Each must
+#: carry its own guards on the person's files, because a session's inward
+#: denials resolve only from its own root (6.2).
+EXECUTION_FOLDERS = ("microscope_runtime",)
+#: The five inward guards, in the one form Claude Code resolves against the
+#: session's own folder: Edit(...), with a single leading slash.
+INWARD_GUARDS = ("Edit(/envelope/safety.json)", "Edit(/approvals/**)", "Edit(/tasks/**)",
+                 "Edit(/CLAUDE.md)", "Edit(/.claude/**)")
+
+
+def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Finding]:
+    """An execution folder's settings deny writing the person's files (plan.md 15).
+
+    The session that runs the instrument is the one that must be refused
+    envelope/safety.json and approvals/ on disk, not only at commit, and its
+    inward denials resolve only from its own root. So the runtime's
+    .claude/settings.json carries five guards -- the person's two, and the
+    manager's tasks/, CLAUDE.md and .claude/ -- and they exist before any of
+    those paths does.
+
+    THE FORM IS CHECKED, NOT ONLY THE INTENT, because the wrong form guards
+    nothing and reads as protection. Claude Code consults only Edit(...) for
+    file paths: a path rule written for Write is accepted and never consulted.
+    And `/path` is anchored at the session's primary working directory, while
+    a pattern naming the folder itself (`microscope_runtime/envelope/...`)
+    resolves inside it, to a path that does not exist (code.claude.com/docs/
+    en/permissions, 'Read and Edit', read 2026-10-17). A settings file this
+    check does not see -- user-level, harness or settings.local.json -- can
+    add refusals and cannot be relied on to; this asks only that the
+    repository's own file says the five lines.
+
+    A folder is judged wherever one with that name holds a file, so a rejected
+    fixture group is read by the same rule as the live tree.
+    """
+    roots: set[Path] = set()
+    for p in b.all_files:
+        for parent in p.parents:
+            if parent.name in EXECUTION_FOLDERS:
+                roots.add(parent)
+                break
+    if not roots:
+        return [Finding(90, NA, f"no execution folder ({', '.join(EXECUTION_FOLDERS)}) holds a file yet")]
+    out: list[Finding] = []
+    for root in sorted(roots):
+        settings = root / ".claude" / "settings.json"
+        rel = _rel(settings).replace("\\", "/")
+        if not settings.exists():
+            out.append(Finding(90, FAIL, "this execution folder has no .claude/settings.json, so a session rooted "
+                                         "here carries no guard on the person's files", rel))
+            continue
+        try:
+            deny = (json.loads(settings.read_text(encoding="utf-8")).get("permissions") or {}).get("deny") or []
+        except (OSError, json.JSONDecodeError) as exc:
+            out.append(Finding(90, FAIL, f"unreadable settings: {exc}", rel))
+            continue
+        for guard in INWARD_GUARDS:
+            if guard in deny:
+                continue
+            body = guard[len("Edit("):-1]
+            near = [d for d in deny if isinstance(d, str) and (
+                d == f"Write({body})" or d == f"Edit({body.lstrip('/')})"
+                or d == f"Edit({root.name}{body})" or d == f"Write({root.name}{body})")]
+            why = (f"; {near[0]} is there and guards nothing: a Write path rule is never consulted, and a "
+                   f"pattern without the leading slash, or naming the folder itself, does not resolve to this "
+                   f"folder's file") if near else ""
+            out.append(Finding(90, FAIL, f"the deny list lacks {guard}{why}", rel))
+    return out or [Finding(90, PASS, f"{len(roots)} execution folder(s) carry the five inward guards, anchored "
+                                     "at the folder, in the form Claude Code consults")]
+
 
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
@@ -8958,6 +9027,7 @@ CHECKS = [
     check_61_envelope_currency,
     check_87_safety_guides_follow_the_store, check_88_focus_search,
     check_89_harness_records,
+    check_90_an_execution_folder_guards_the_persons_files,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
