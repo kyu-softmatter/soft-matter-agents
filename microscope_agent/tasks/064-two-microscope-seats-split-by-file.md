@@ -107,6 +107,18 @@ holds as written. Card 076 waits on card 069, as it says, and its seat is
 whoever holds the code after the return. That is `microscope-20261007-1`
 unless the person says otherwise.
 
+**Paused for the move to `microscope_runtime/` (added 2026-10-17).** The
+person decided to move the execution layer out of this tree (plan.md
+section 15, coming). Card 069 stopped before any code, and
+microscope-office-20261015-1 reported that nothing of it is uncommitted.
+**The code does not return to Microscope 2 because of the pause.** Card 069
+is still Microscope 3's, and the return still waits for 069 to land. Until
+section 15 lands and card 069 is revised, **no seat edits `src/` or
+`tests/`**: neither Microscope 3 under this section nor Microscope 2 under
+the one above. The revision of 069 says where the code lives after the
+move and who holds it, and this section is rewritten to match in the same
+commit.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2, or whichever registered Office microscope seat is running
