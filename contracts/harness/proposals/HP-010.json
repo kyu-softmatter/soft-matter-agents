@@ -1,0 +1,67 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-010",
+  "title": "The commit tool marks a discarded gate run's lines as discarded, and ends with one line about the commit actually made",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-18",
+  "kind": "reshape",
+  "class": "discarded-attempt-output-reads-as-verdict",
+  "answers": [
+    "INC-20261018-06",
+    "INC-20261017-06"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261017-06",
+      "INC-20261018-06"
+    ],
+    "looked_in": [
+      "this seat's own saved outputs of every commit it made through the tool (eight files in its scratch folder): one, b362056f's, carries FAIL lines from a discarded run",
+      "the intake seat's report of 54d26c26, checked against the tool's log",
+      "the root CLAUDE.md, which tells seats not to filter a commit's output down to FAIL lines: a rule a seat must remember at the moment it is tempted, which is the kind HP-001 moved into a tool"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/tools/seat_commit.py",
+      "owner": "manager-microscope-office-20261016-1, its builder (shared surface under contracts/)",
+      "change": "Each gate run prints a header with its attempt number and the base it was built on. A run the tool discards because HEAD moved has every one of its lines prefixed so that a search for the gate's FAIL form does not match them (for example 'discarded attempt 1 on 51abeb8c:'). Or it is collapsed to one summary line that names what it would have refused and why that was not a verdict. The output ends with exactly one line about the commit that was made or not made, naming its paths, which is the line a reader should act on. The building seat picks the form; what matters is that no unmarked FAIL line from a discarded run survives in the output of a commit that landed."
+    },
+    {
+      "path": "contracts/tools/seat_commit_fixtures.py",
+      "owner": "manager-microscope-office-20261016-1",
+      "change": "A fixture in which HEAD moves during the gate so that the first run's check 41 charges another seat's file to the committing seat. The commit then lands on the rebuild, and the output must hold no unmarked FAIL line. Watched failing on today's tool, which prints the line bare."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "contracts/tools/seat_commit_fixtures.py, the moved-HEAD output case",
+        "reproduces": "INC-20261018-06",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": {
+      "before": null,
+      "after": null
+    }
+  },
+  "reach": {
+    "already_running": [
+      "every seat that commits: the tool is read from the working copy on each run"
+    ],
+    "how_they_learn": "In the output itself, which is where the misreading happens.",
+    "use_site": "contracts/tools/seat_commit.py's printed output"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "A reshape: what the gate judges and what the tool commits do not change, only how a discarded run's output reads. Its equivalence proof is that the tool's existing fixtures still pass unchanged. The root CLAUDE.md's warning against filtering for FAIL stays. This makes a seat that filters anyway see only what is true of its commit."
+}
