@@ -613,9 +613,58 @@ def tool_publishes_others(repo: Path) -> tuple:
     listed = "another seat's commit in this working copy" in said and "--push-includes-others" in said
     if code != 1 or not listed or out(remote, "rev-parse", "main") != before:
         return False, f"pushed, or refused without listing (exit {code}): {said[-300:]}"
-    code, said = tool(repo, "--seat", FIX, "--push", "--push-includes-others")
+    theirs = out(repo, "rev-parse", "HEAD~1")
+    code, said = tool(repo, "--seat", FIX, "--push", "--push-includes-others", theirs[:12])
     return (code == 0 and out(remote, "rev-parse", "main") == out(repo, "rev-parse", "HEAD"),
             "refused with the other seat's commit listed; pushed once told, and read the remote back")
+
+
+def _two_others_unpushed(repo: Path) -> tuple:
+    """A remote at the base, then two other seats' commits and one of this seat's, all unpushed."""
+    remote = repo.parent / "remote.git"
+    git(repo.parent, "init", "-q", "--bare", "-b", "main", str(remote))
+    git(repo, "remote", "add", "origin", str(remote))
+    git(repo, "push", "-q", "origin", "main")
+    write(repo, "microscope_agent/questions/q/held.json", '{"committed": "and the person said: do not push"}\n')
+    held = commit_as(repo, OTHER, "another seat's commit, held from the remote", "microscope_agent/questions/q/held.json")
+    write(repo, "microscope_agent/questions/q/theirs.json", '{"committed": "by a third seat"}\n')
+    third = commit_as(repo, REOPENED, "a third seat's commit", "microscope_agent/questions/q/theirs.json")
+    write(repo, CARD, card("MINE"))
+    mine = commit_as(repo, FIX, "my commit", CARD)
+    return remote, held, third, mine
+
+
+def naive_yes_before_the_list(repo: Path) -> tuple:
+    """INC-20261018-01: a push with the yes given in the same command as the
+    first --push published architecture-office-20261016-2's e0d09c02, which
+    the person had asked be committed and not pushed. The list was printed,
+    after the answer to it."""
+    remote, held, _third, _mine = _two_others_unpushed(repo)
+    git(repo, "push", "-q", "origin", "main")
+    published = held in out(remote, "log", "--format=%H", "main")
+    return published, "a push made for one seat's commit published the held commit, which nobody had named"
+
+
+def tool_yes_before_the_list(repo: Path) -> tuple:
+    remote, held, third, mine = _two_others_unpushed(repo)
+    before = out(remote, "rev-parse", "main")
+    checks = []
+    for label, flag in (("a bare flag", []), ("one of two named", [held[:12]]),
+                        ("an extra hash named", [held[:12], third[:12], mine[:12]])):
+        args = ["--seat", FIX, "--push", "--push-includes-others"] + ([",".join(flag)] if flag else [])
+        code, said = tool(repo, *args)
+        listed = held[:9] in said and third[:9] in said
+        checks.append((label, code == 1 and listed and out(remote, "rev-parse", "main") == before))
+    code, said = tool(repo, "--seat", FIX, "--push", "--push-includes-others", f"{third[:10]},{held[:10]}")
+    rec = last_record(repo)
+    published = {p.get("commit"): p.get("committer") for p in (rec.get("pushed") or {}).get("published") or []}
+    exact = (code == 0 and out(remote, "rev-parse", "main") == mine and published.get(held) == f"{OTHER}@seat.invalid"
+             and len(published) == 3)
+    bad = [label for label, ok in checks if not ok]
+    return (not bad and exact,
+            "a bare flag, a missing hash and an extra hash were each refused with the list, the remote unchanged; "
+            f"the exact list pushed and the record names each published commit and whose it was "
+            f"(refusals failed: {bad or 'none'}, exact push: {exact})")
 
 
 def naive_head_moves_in_gate(repo: Path) -> tuple:
@@ -840,6 +889,9 @@ FIXTURES = [
      tool_gate_refuses_a_moved_head),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
     ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
+    # HP-009 (2026-10-18): the yes to publishing others' commits names them.
+    ("the yes to others' commits given before the list", "yes", naive_yes_before_the_list,
+     tool_yes_before_the_list),
     # HP-006 (2026-10-17): not a defect the tool prevents but one the gate reports.
     ("a seat committing around the tool", "around", naive_around_the_tool, tool_around_the_tool),
 ]

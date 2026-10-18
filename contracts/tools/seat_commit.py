@@ -13,7 +13,8 @@ records what happened.
     seat_commit.py --seat S -F MSG --patch P           patch mode: commit exactly that patch
     seat_commit.py --seat S -- PATH...                 whole-path mode: show every hunk and a digest
     seat_commit.py --seat S -F MSG --confirm D -- PATH...   ... and commit, if the digest still matches
-    seat_commit.py --seat S --push [--push-includes-others]
+    seat_commit.py --seat S --push                     list what a push would publish (and push if it is all yours)
+    seat_commit.py --seat S --push --push-includes-others H1,H2   ... naming each other seat's commit
 
 What it does, by the numbers of the specification:
 
@@ -50,7 +51,10 @@ What it does, by the numbers of the specification:
    where it still equals the old HEAD's -- where nobody had staged anything.
 7. `--push` fetches first, refuses when the branch is behind (a merge is
    needed, and this tool does not merge), and when the push would carry
-   other seats' commits it lists them and needs `--push-includes-others`. It
+   other seats' commits it lists them and needs `--push-includes-others`
+   naming every one of them by hash, and nothing else (HP-009): a bare flag
+   is a yes given before the list is read, which is how a held commit was
+   published on 2026-10-18. It
    pushes the exact commit it listed, not whatever HEAD is a moment later,
    and reads the remote back whatever the push exits with: a push rejected
    because another push already published the same commits says they are
@@ -914,17 +918,18 @@ def push(git: Git, args, row: dict, rec: Record) -> None:
     say(f"seat_commit: a push of {branch} to {remote} publishes {len(ahead)} commits:")
     for sha, ce, cn, subj in ahead:
         say(f"    {sha[:9]}  {cn:<36} {subj[:70]}")
-    if others and not args.push_includes_others:
-        raise Refused(f"{len(others)} of them are not {row['seat']}'s, and on a shared branch a push publishes "
-                      "everyone's work. Pass --push-includes-others once you have read the list above")
+    check_named_others(others, args.push_includes_others, row)
     r = git.run(*cred, "push", remote, f"{tip}:refs/heads/{branch}", check=False, merge=True)
     lines = text(r.stdout).rstrip("\n").splitlines()
     say(f"--- the push's last {min(len(lines), GATE_TAIL)} lines, unfiltered (exit {r.returncode}) ---")
     for line in lines[-GATE_TAIL:]:
         say(line)
     say("--- end of the push ---")
+    # Each commit the push carried, and whose: without it the class HP-009
+    # answers (a push publishing a commit its seat had held) cannot be counted.
     rec.row["pushed"] = {"remote": remote, "branch": branch, "tip": tip, "commits": len(ahead),
-                         "others": len(others)}
+                         "others": len(others),
+                         "published": [{"commit": a[0], "committer": a[1]} for a in ahead]}
     # What the remote holds is read back either way, because the exit code
     # does not say it. On 2026-10-16 a push was rejected with "cannot lock
     # ref" because another seat's push had published the same commits a
@@ -944,6 +949,48 @@ def push(git: Git, args, row: dict, rec: Record) -> None:
         raise Refused(f"the push reported success and {remote}/{branch} does not contain {tip[:9]}, read back")
     say(f"seat_commit: {remote}/{branch} is {there[:9]}, which contains {tip[:9]}, read back from the remote")
     rec.row["outcome"] = (rec.row["outcome"] + "+pushed") if rec.row["outcome"] else "pushed"
+
+
+def check_named_others(others: list, named, row: dict) -> None:
+    """Refuse unless `named` is exactly the other seats' commits this push publishes (HP-009).
+
+    A bare yes can be given before the list it answers is read, and on
+    2026-10-18 one was: `--push --push-includes-others` in one command
+    published a commit the person had asked be committed and not pushed. So
+    the yes names what it is a yes to. Each hash is a prefix of at least
+    seven hex digits that matches exactly one of the other seats' commits; a
+    missing one, an extra one, or a bare flag is refused, and the refusal
+    gives the flag to pass once the list has been read.
+    """
+    if not others:
+        return
+    want = {a[0]: a for a in others}
+    exact = "--push-includes-others " + ",".join(a[0][:12] for a in others)
+    if named is None:
+        raise Refused(f"{len(others)} of them are not {row['seat']}'s, and on a shared branch a push publishes "
+                      "everyone's work. Read the list above, check that no seat asked for its commit to be held, "
+                      f"and name each one: {exact}")
+    if not named.strip():
+        raise Refused("--push-includes-others names the other seats' commits it publishes; a bare flag names "
+                      "none, and a yes given before the list is read is not a reading of it. "
+                      f"Once you have read the list above: {exact}")
+    given = [x.strip().lower() for x in named.split(",") if x.strip()]
+    found, extra = set(), []
+    for h in given:
+        hits = [s for s in want if s.startswith(h)] if re.fullmatch(r"[0-9a-f]{7,40}", h) else []
+        if len(hits) == 1:
+            found.add(hits[0])
+        else:
+            extra.append(h)
+    missing = [want[s] for s in want if s not in found]
+    if missing or extra:
+        said = []
+        if missing:
+            said.append("not named: " + "; ".join(f"{a[0][:12]} {a[2]} {a[3][:50]}" for a in missing))
+        if extra:
+            said.append("named but not another seat's commit in this push: " + ", ".join(extra))
+        raise Refused("--push-includes-others must name exactly the other seats' commits this push publishes. "
+                      + ". ".join(said) + f". The exact flag: {exact}")
 
 
 def remote_contains(git: Git, cred: list, remote: str, branch: str, tip: str) -> str | None:
@@ -975,8 +1022,9 @@ def parse(argv: list[str]):
     ap.add_argument("--confirm", metavar="DIGEST", help="whole-path mode: commit, if the digest still matches")
     ap.add_argument("--save-patch", metavar="FILE", help="write your own change under PATH... to FILE")
     ap.add_argument("--push", action="store_true", help="push the branch after committing, or alone")
-    ap.add_argument("--push-includes-others", action="store_true",
-                    help="allow a push that publishes other seats' commits, once they have been listed")
+    ap.add_argument("--push-includes-others", metavar="HASHES", nargs="?", const="", default=None,
+                    help="the other seats' commits a push publishes, comma-separated, exactly as --push listed "
+                         "them; a bare flag is refused")
     ap.add_argument("--remote", help="the remote to push to (default: the branch's, else origin)")
     ap.add_argument("--lock-wait", type=float, default=DEFAULT_LOCK_WAIT,
                     help=f"seconds to wait for .git/index.lock (default {DEFAULT_LOCK_WAIT:.0f})")
