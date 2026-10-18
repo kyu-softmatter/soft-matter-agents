@@ -667,6 +667,57 @@ def tool_yes_before_the_list(repo: Path) -> tuple:
             f"(refusals failed: {bad or 'none'}, exact push: {exact})")
 
 
+def _held_under_mine(repo: Path) -> tuple:
+    remote = repo.parent / "remote.git"
+    git(repo.parent, "init", "-q", "--bare", "-b", "main", str(remote))
+    git(repo, "remote", "add", "origin", str(remote))
+    git(repo, "push", "-q", "origin", "main")
+    write(repo, "microscope_agent/questions/q/held.json", '{"committed": "and the person said: not yet"}\n')
+    held = commit_as(repo, OTHER, "another seat's commit the person asked to hold", "microscope_agent/questions/q/held.json")
+    write(repo, CARD, card("MINE"))
+    mine = commit_as(repo, FIX, "my commit", CARD)
+    return remote, held, mine
+
+
+def naive_hold_said_in_a_window(repo: Path) -> tuple:
+    """HP-011, from INC-20261018-01: the person's word to hold e0d09c02 lived
+    in one window, where no tool could see it, and a push published it. A
+    hold that is said and not recorded is nothing a push can read."""
+    remote, held, _mine = _held_under_mine(repo)
+    git(repo, "push", "-q", "origin", "main")
+    return (held in out(remote, "log", "--format=%H", "main"),
+            "the hold was said and not recorded, and the push published the held commit")
+
+
+def tool_hold_said_in_a_window(repo: Path) -> tuple:
+    remote, held, mine = _held_under_mine(repo)
+    before = out(remote, "rev-parse", "main")
+    reason = "the person, in that seat's window: not yet"
+    steps = []
+    code, said = tool(repo, "--seat", FIX, "--hold", held, "--why", "not mine to hold")
+    steps.append(("another seat's commit cannot be held", code == 1 and "only its own seat" in said))
+    code, said = tool(repo, "--seat", OTHER, "--hold", held, "--why", reason)
+    steps.append(("the owner holds it", code == 0))
+    code, said = tool(repo, "--seat", FIX, "--release", held)
+    steps.append(("another seat's commit cannot be released", code == 1 and "only its own seat" in said))
+    code, said = tool(repo, "--seat", FIX, "--push", "--push-includes-others", held[:12])
+    steps.append(("a held commit refuses the push, even with the exact list",
+                  code == 1 and OTHER in said and reason in said and out(remote, "rev-parse", "main") == before))
+    code, said = tool(repo, "--seat", OTHER, "--release", held)
+    steps.append(("the owner releases it", code == 0))
+    code, said = tool(repo, "--seat", FIX, "--push", "--push-includes-others", held[:12])
+    steps.append(("after release it pushes", code == 0 and out(remote, "rev-parse", "main") == mine))
+    write(repo, CARD, card("MINE", "AGAIN"))
+    again = commit_as(repo, FIX, "my second commit", CARD)
+    tool(repo, "--seat", FIX, "--hold", again, "--why", "my own, not yet")
+    code, said = tool(repo, "--seat", FIX, "--push")
+    steps.append(("a hold on one's own commit refuses one's own push",
+                  code == 1 and "my own, not yet" in said and out(remote, "rev-parse", "main") == mine))
+    bad = [s for s, ok in steps if not ok]
+    return (not bad, "only the owner holds or releases; a held commit refuses a push whatever the list names, "
+                     f"and pushes once released; one's own hold binds one's own push (failed: {bad or 'none'})")
+
+
 def naive_head_moves_in_gate(repo: Path) -> tuple:
     """HEAD moving while the gate runs: `git commit` fails with fatal:, and a
     reader filtering for FAIL sees nothing and reads it as done."""
@@ -924,6 +975,9 @@ FIXTURES = [
     # HP-009 (2026-10-18): the yes to publishing others' commits names them.
     ("the yes to others' commits given before the list", "yes", naive_yes_before_the_list,
      tool_yes_before_the_list),
+    # HP-011 (2026-10-18): a hold is a record a push can read.
+    ("a hold said in a window and not recorded", "hold", naive_hold_said_in_a_window,
+     tool_hold_said_in_a_window),
     # HP-006 (2026-10-17): not a defect the tool prevents but one the gate reports.
     ("a seat committing around the tool", "around", naive_around_the_tool, tool_around_the_tool),
 ]

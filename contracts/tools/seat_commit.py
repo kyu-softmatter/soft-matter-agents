@@ -15,6 +15,8 @@ records what happened.
     seat_commit.py --seat S -F MSG --confirm D -- PATH...   ... and commit, if the digest still matches
     seat_commit.py --seat S --push                     list what a push would publish (and push if it is all yours)
     seat_commit.py --seat S --push --push-includes-others H1,H2   ... naming each other seat's commit
+    seat_commit.py --seat S --hold C --why TEXT        your own commit is not to be pushed yet (and why)
+    seat_commit.py --seat S --release C                ... and now it may be
 
 What it does, by the numbers of the specification:
 
@@ -61,6 +63,12 @@ What it does, by the numbers of the specification:
    public, and exits 0.
 8. Every use is appended to `.git/sma-seat-commit.jsonl`, outside every tree:
    seat, mode, paths, lock wait, retries, outcome.
+9. A hold is a record, not a sentence in a window (HP-011). `--hold <commit>
+   --why <text>` and `--release <commit>` append to `.git/sma-seat-holds.jsonl`,
+   beside that record, and only the seat that committed a commit may hold or
+   release it. A push that would publish a held commit is refused, whatever
+   `--push-includes-others` names, with the holder and the reason. A commit
+   with no hold line is free.
 
 Standard library only, and no syntax newer than 3.9, so it runs under any
 interpreter the three computers have, Anaconda 3.9 included. Its fixtures are
@@ -88,6 +96,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 RECORD_NAME = "sma-seat-commit.jsonl"
+# Held commits (HP-011): append-only, outside every tree, beside the record.
+HOLDS_NAME = "sma-seat-holds.jsonl"
 # A seat committing with plain `git commit` holds .git/index.lock for the whole
 # of its gate, and one pass of the gate took 3 min 58 s on the Office computer
 # on 2026-10-16, so a wait shorter than that refuses ordinary work.
@@ -967,6 +977,7 @@ def push(git: Git, args, row: dict, rec: Record) -> None:
     say(f"seat_commit: a push of {branch} to {remote} publishes {len(ahead)} commits:")
     for sha, ce, cn, subj in ahead:
         say(f"    {sha[:9]}  {cn:<36} {subj[:70]}")
+    check_held(ahead, current_holds(git))
     check_named_others(others, args.push_includes_others, row)
     r = git.run(*cred, "push", remote, f"{tip}:refs/heads/{branch}", check=False, merge=True)
     lines = text(r.stdout).rstrip("\n").splitlines()
@@ -998,6 +1009,69 @@ def push(git: Git, args, row: dict, rec: Record) -> None:
         raise Refused(f"the push reported success and {remote}/{branch} does not contain {tip[:9]}, read back")
     say(f"seat_commit: {remote}/{branch} is {there[:9]}, which contains {tip[:9]}, read back from the remote")
     rec.row["outcome"] = (rec.row["outcome"] + "+pushed") if rec.row["outcome"] else "pushed"
+
+
+def holds_file(git: Git) -> Path:
+    common = Path(git.out("rev-parse", "--git-common-dir"))
+    return (common if common.is_absolute() else git.root / common) / HOLDS_NAME
+
+
+def current_holds(git: Git) -> dict:
+    """Commit -> its hold row, for every commit whose latest line is a hold. No line means free."""
+    state: dict = {}
+    p = holds_file(git)
+    if p.exists():
+        for line in p.read_text(encoding="utf-8").splitlines():
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(r, dict) and r.get("commit"):
+                state[r["commit"]] = r
+    return {c: r for c, r in state.items() if r.get("action") == "hold"}
+
+
+def hold_or_release(git: Git, args, row: dict, reg: dict, rec: Record) -> None:
+    """Record that a commit must not be pushed yet, or that it may (HP-011).
+
+    On 2026-10-18 the person's word to hold e0d09c02 lived in one window, where
+    no tool could see it, and a push published it. A hold is now a line a push
+    reads. Only the seat that committed the commit may hold or release it, and
+    when the person asked for the hold, --why carries their words verbatim.
+    """
+    action = "hold" if args.hold else "release"
+    rec.row["mode"] = action
+    sha = git.rev(args.hold or args.release)
+    if not sha:
+        raise Refused(f"{args.hold or args.release!r} is not a commit here")
+    ce = git.out("log", "-1", "--format=%ce", sha)
+    if ce != row["committer_email"]:
+        owner = next((s["seat"] for s in reg.get("seats") or [] if s.get("committer_email") == ce), ce)
+        raise Refused(f"{sha[:9]} is {owner}'s commit, and only its own seat holds or releases it (HP-011)")
+    held = current_holds(git)
+    if action == "hold" and not (args.why or "").strip():
+        raise Refused("--why is required: say why it is held, with the person's words verbatim if they asked")
+    if action == "release" and sha not in held:
+        raise Refused(f"{sha[:9]} is not held, so there is nothing to release")
+    line = {"ts": now(), "action": action, "commit": sha, "seat": row["seat"],
+            "why": (args.why or None) if action == "hold" else None}
+    with open(holds_file(git), "a", encoding="utf-8") as f:
+        f.write(json.dumps(line, ensure_ascii=False) + "\n")
+    rec.row["paths"] = []
+    rec.row["commit"] = sha
+    rec.row["outcome"] = "held" if action == "hold" else "released"
+    say(f"seat_commit: {sha[:9]} is {'held: a push that would publish it is refused' if action == 'hold' else 'released'}"
+        + (f" ({args.why})" if action == "hold" else ""))
+
+
+def check_held(ahead: list, held: dict) -> None:
+    """Refuse a push that would publish a held commit, whatever --push-includes-others names (HP-011)."""
+    blocked = [(a, held[a[0]]) for a in ahead if a[0] in held]
+    if blocked:
+        raise Refused("this push would publish held commits, so nothing was pushed: "
+                      + "; ".join(f"{a[0][:12]} {a[3][:50]!r}, held by {h.get('seat')} at {h.get('ts')}: "
+                                  f"{h.get('why')}" for a, h in blocked)
+                      + ". Only the holding seat releases a hold (--release <commit>)")
 
 
 def check_named_others(others: list, named, row: dict) -> None:
@@ -1074,6 +1148,9 @@ def parse(argv: list[str]):
     ap.add_argument("--push-includes-others", metavar="HASHES", nargs="?", const="", default=None,
                     help="the other seats' commits a push publishes, comma-separated, exactly as --push listed "
                          "them; a bare flag is refused")
+    ap.add_argument("--hold", metavar="COMMIT", help="record that your own commit must not be pushed yet")
+    ap.add_argument("--why", help="why it is held; the person's words verbatim when they asked for the hold")
+    ap.add_argument("--release", metavar="COMMIT", help="release a hold you recorded on your own commit")
     ap.add_argument("--remote", help="the remote to push to (default: the branch's, else origin)")
     ap.add_argument("--lock-wait", type=float, default=DEFAULT_LOCK_WAIT,
                     help=f"seconds to wait for .git/index.lock (default {DEFAULT_LOCK_WAIT:.0f})")
@@ -1117,6 +1194,15 @@ def main(argv: list[str] | None = None) -> int:
         say("committing as: " + ident)
         if not ident.startswith(f"seat:{row['seat']} <{row['committer_email']}>"):
             raise Refused(f"git would commit as {ident}, which is not the registry's identity for {row['seat']}")
+        if args.hold or args.release:
+            if args.hold and args.release:
+                raise Refused("--hold and --release are two acts; make one at a time")
+            if args.patch or args.confirm or args.push or args.paths:
+                raise Refused("--hold and --release record a hold and do nothing else; run them on their own")
+            hold_or_release(git, args, row, reg, rec)
+            return 0
+        if args.why:
+            raise Refused("--why goes with --hold")
         if args.patch and args.paths:
             raise Refused("--patch says which change is yours; paths after -- are for whole-path mode")
         if args.confirm and args.patch:
