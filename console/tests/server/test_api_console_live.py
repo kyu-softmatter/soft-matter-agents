@@ -10,9 +10,9 @@ import pytest
 from server_fakes import OPERATOR, VIEWER
 from sma_fake_run import FakeLiveHost, sma_tree, tree_state, write_live_list
 
-from dino_autofocus.agents import SmaFiles, sma_live
-from dino_autofocus.server.__main__ import parse_args
-from dino_autofocus.server.api import REFUSAL_HEADER
+from sma_console.agents import SmaFiles, sma_live
+from sma_console.server.__main__ import parse_args
+from sma_console.server.api import REFUSAL_HEADER
 
 
 def refusal(r) -> tuple[int, str]:

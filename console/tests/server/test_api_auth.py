@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-from dino_autofocus.auth import config as auth_config
-from dino_autofocus.server.api import SESSION_COOKIE
+from sma_console.auth import config as auth_config
+from sma_console.server.api import SESSION_COOKIE
 
 ADMIN, OPERATOR, OPERATOR2, VIEWER = (
     "admin@example.test", "otto@example.test", "olga@example.test", "vera@example.test")
@@ -322,7 +322,7 @@ def test_the_auth_routes_are_in_the_openapi_schema(engine, make_client):
 
 @pytest.fixture
 def empty_seat(tmp_path):
-    from dino_autofocus.server.api import AuthSeat
+    from sma_console.server.api import AuthSeat
 
     return AuthSeat.from_config(tmp_path / "fresh")
 

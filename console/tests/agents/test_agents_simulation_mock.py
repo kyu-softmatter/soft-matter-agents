@@ -10,9 +10,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dino_autofocus.agents import mock_sim, sma_files
-from dino_autofocus.agents.mock_sim import MockSimulation, MockTicker, make_mock_runs
-from dino_autofocus.agents.simulation import SimulationRuns, read_progress, read_series
+from sma_console.agents import mock_sim, sma_files
+from sma_console.agents.mock_sim import MockSimulation, MockTicker, make_mock_runs
+from sma_console.agents.simulation import SimulationRuns, read_progress, read_series
 
 T0 = datetime(2026, 10, 1, 12, 0, 0, tzinfo=UTC)
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.auth import (
+from sma_console.auth import (
     AccountError,
     AccountStatus,
     AccountStore,
@@ -21,7 +21,7 @@ from dino_autofocus.auth import (
     normalize_email,
     passwords,
 )
-from dino_autofocus.auth import config as auth_config
+from sma_console.auth import config as auth_config
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -228,7 +228,7 @@ _EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}")
 
 def test_no_real_email_in_auth_code_or_tests():
     """Only example.test addresses may appear; the admin email lives in local settings."""
-    files = [*sorted((REPO / "src" / "dino_autofocus" / "auth").rglob("*.py")),
+    files = [*sorted((REPO / "src" / "sma_console" / "auth").rglob("*.py")),
              *sorted((REPO / "tests" / "auth").rglob("*.py")),
              *sorted((REPO / "tests" / "auth" / "fixtures").rglob("*.json"))]
     assert files

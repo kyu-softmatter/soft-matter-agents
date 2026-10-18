@@ -2,7 +2,7 @@
 
 import pytest
 
-from dino_autofocus.auth import PasswordPolicyError, hash_password, passwords, verify_password
+from sma_console.auth import PasswordPolicyError, hash_password, passwords, verify_password
 
 
 def test_round_trip_and_wrong_password():

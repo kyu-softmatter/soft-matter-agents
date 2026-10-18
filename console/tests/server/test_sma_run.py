@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 from sma_fake_run import FakeSmaRun, sma_tree, tree_state
 
-from dino_autofocus.agents import SmaFiles, sma_run
+from sma_console.agents import SmaFiles, sma_run
 
 
 @pytest.fixture

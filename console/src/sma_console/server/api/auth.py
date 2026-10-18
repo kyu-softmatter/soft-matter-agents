@@ -1,6 +1,6 @@
 """Login, sign-up, approval and device control over HTTP (T-105; docs/screens/login.md).
 
-Mounted at `/api/auth`. The logic is T-018's (`dino_autofocus.auth`) as the server holds it in
+Mounted at `/api/auth`. The logic is T-018's (`sma_console.auth`) as the server holds it in
 `AuthSeat`; this router only maps requests to it and its answers to HTTP. T-018 writes every
 login, logout, lock, unlock, sign-up, approval, role change and control change to
 `audit.jsonl`; nothing here logs a second time.

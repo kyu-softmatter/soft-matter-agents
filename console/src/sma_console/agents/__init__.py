@@ -60,7 +60,8 @@ __all__ = [
 def open_store(kind: Literal["mock", "sma"] = "mock",
                path: str | os.PathLike[str] | None = None) -> AgentStore:
     """`mock`: path is the write folder (temporary if None). `sma`: path is the
-    soft-matter-agents root ($DINO_AF_SMA_ROOT or the desktop checkout if None)."""
+    soft-matter-agents root ($DINO_AF_SMA_ROOT or the repository this console sits in if None;
+    `RootNotFoundError` when there is neither)."""
     if kind == "mock":
         return MockStore(path)
     if kind == "sma":

@@ -51,7 +51,7 @@ from .schemas import (
 )
 from .schemas.common import FocusDz
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("dino_autofocus.server.ws")
 
 EVENT_QUEUE_MAX = 1000  # a client this far behind is closed (1013) and should reload /api/state
 CLOSE_TRY_AGAIN = 1013

@@ -61,7 +61,7 @@ from . import (
     server_action_why,
 )
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("dino_autofocus.server.api.assistant")
 
 router = APIRouter()
 

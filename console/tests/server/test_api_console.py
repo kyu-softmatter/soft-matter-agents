@@ -9,10 +9,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from dino_autofocus.agents import MockStore, SmaFiles
-from dino_autofocus.agents.mock_store import MOCK_DATA
-from dino_autofocus.server.api import REFUSAL_HEADER
-from dino_autofocus.server.api.console import READ_ONLY_MESSAGE
+from sma_console.agents import MockStore, SmaFiles
+from sma_console.agents.mock_store import MOCK_DATA
+from sma_console.server.api import REFUSAL_HEADER
+from sma_console.server.api.console import READ_ONLY_MESSAGE
 
 # the seeded fake accounts of conftest.py
 ADMIN, OPERATOR, VIEWER = "admin@example.test", "otto@example.test", "vera@example.test"

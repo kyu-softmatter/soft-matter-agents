@@ -49,7 +49,6 @@ from .store import (
     check_agent,
 )
 
-DEFAULT_ROOT = Path(r"D:\codes\github\soft-matter-agents")
 ROOT_ENV = "DINO_AF_SMA_ROOT"
 
 # Record files a run detail opens. Anything else in a run folder (the trajectory, images,
@@ -65,10 +64,26 @@ _ROUND_RE = re.compile(r"^r([0-9]+)_(.+)$")
 _PREFIX_KINDS = ("axis", "plan", "refusal", "result", "synthesis", "goal")
 
 
+class RootNotFoundError(RuntimeError):
+    """There is no soft-matter-agents tree to read: the variable is unset and none sits above this file."""
+
+
+def repository_root(start: str | os.PathLike[str] | None = None) -> Path:
+    """The repository this package sits in: the first folder above `start` (this file if None)
+    that holds both `contracts/` and `console/`. Raises `RootNotFoundError` when there is none;
+    a guessed path is never returned."""
+    here = Path(start if start is not None else __file__).resolve()
+    for folder in here.parents:
+        if (folder / "contracts").is_dir() and (folder / "console").is_dir():
+            return folder
+    raise RootNotFoundError(f"no soft-matter-agents repository above {here}: no folder holds both "
+                            f"contracts/ and console/. Set {ROOT_ENV} or pass --sma-root.")
+
+
 def default_root() -> Path:
-    """`$DINO_AF_SMA_ROOT` if set, else the soft-matter-agents checkout on this desktop."""
+    """`$DINO_AF_SMA_ROOT` if set, else the repository this package sits in (`repository_root`)."""
     env = os.environ.get(ROOT_ENV)
-    return Path(env) if env else DEFAULT_ROOT
+    return Path(env) if env else repository_root()
 
 
 def split_version(name: str) -> tuple[int, str]:

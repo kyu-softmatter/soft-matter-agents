@@ -1,7 +1,7 @@
 """Local web app back end (FastAPI): owns the engine, exposes REST and WebSocket, serves web/dist.
 
 Importing this package pulls in no torch, pymmcore or UI toolkit (tests/server checks it).
-Run with `uv run python -m dino_autofocus.server`.
+Run with `uv run python -m sma_console.server`.
 """
 
 from .api import command_refusal

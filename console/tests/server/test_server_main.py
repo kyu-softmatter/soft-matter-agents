@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import pytest
 
-from dino_autofocus.server.__main__ import BACKENDS, PlaceholderEngine, main, parse_args
+from sma_console.server.__main__ import BACKENDS, PlaceholderEngine, main, parse_args
 
 COMMON = {"EventOut", "Health", "ApiError",
           "WsEvent", "WsError", "WsFrame", "RefusalDetail",
@@ -37,7 +37,7 @@ def test_dump_openapi(tmp_path, capsys):
 
 def test_import_pulls_no_heavy_modules():
     code = (
-        "import sys, dino_autofocus.server, dino_autofocus.server.__main__\n"
+        "import sys, sma_console.server, sma_console.server.__main__\n"
         "heavy = {'torch', 'pymmcore', 'pymmcore_plus', 'tkinter', 'PySide6', 'PyQt5', 'PyQt6'}\n"
         "bad = sorted(m for m in sys.modules if m.split('.')[0] in heavy)\n"
         "assert not bad, bad\n"

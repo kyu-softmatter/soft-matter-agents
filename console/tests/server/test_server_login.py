@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from dino_autofocus.server.api import SESSION_COOKIE
+from sma_console.server.api import SESSION_COOKIE
 
 OTTO, OLGA, VERA, ADA = ("otto@example.test", "olga@example.test", "vera@example.test",
                          "admin@example.test")

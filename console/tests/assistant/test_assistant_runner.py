@@ -4,12 +4,12 @@ import sys
 
 import pytest
 
-from dino_autofocus.assistant import Assistant, AssistantConfig, Sources, connection_status
-from dino_autofocus.assistant.providers.anthropic import credentials
-from dino_autofocus.assistant.providers.fake import FakeProvider
-from dino_autofocus.assistant.records import RecordLog
-from dino_autofocus.assistant.runner import SYSTEM_PROMPT
-from dino_autofocus.assistant.tools import REMOVED_IMAGE, ConfirmRefused
+from sma_console.assistant import Assistant, AssistantConfig, Sources, connection_status
+from sma_console.assistant.providers.anthropic import credentials
+from sma_console.assistant.providers.fake import FakeProvider
+from sma_console.assistant.records import RecordLog
+from sma_console.assistant.runner import SYSTEM_PROMPT
+from sma_console.assistant.tools import REMOVED_IMAGE, ConfirmRefused
 
 
 class FakeEngine:
@@ -369,8 +369,8 @@ def test_status_never_shows_the_key(tmp_path):
 def test_import_loads_neither_anthropic_nor_torch():
     code = (
         "import sys\n"
-        "import dino_autofocus.assistant, dino_autofocus.assistant.providers.anthropic\n"
-        "from dino_autofocus.assistant import Assistant\n"
+        "import sma_console.assistant, sma_console.assistant.providers.anthropic\n"
+        "from sma_console.assistant import Assistant\n"
         "Assistant().ask('hi')\n"
         "bad = {'anthropic', 'torch'} & set(sys.modules)\n"
         "assert not bad, bad\n"
@@ -489,7 +489,7 @@ def test_thinking_block_is_resent_byte_identical():
 
 
 def test_tool_definitions_are_byte_stable_across_toolsets():
-    from dino_autofocus.assistant.tools import ToolSet
+    from sma_console.assistant.tools import ToolSet
 
     one = json.dumps(ToolSet().definitions()).encode()
     two = json.dumps(ToolSet(Sources(snapshot=lambda: {})).definitions()).encode()
@@ -551,7 +551,7 @@ def test_map_flag_proposal_confirmed_by_the_local_operator():
     "op", ["map_flag", "map_flag_retire", "candidate_confirm", "candidate_reject"]
 )
 def test_every_map_write_needs_write_map_flag(op):
-    from dino_autofocus.assistant.tools import ProposalBook, required_permission
+    from sma_console.assistant.tools import ProposalBook, required_permission
 
     cmd = {"kind": "start", "op": op, "args": {}}
     assert required_permission(cmd) == "write_map_flag"

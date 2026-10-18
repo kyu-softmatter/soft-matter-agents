@@ -14,14 +14,14 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from dino_autofocus.agents import MockStore
-from dino_autofocus.assistant import AssistantConfig
-from dino_autofocus.assistant.providers.fake import FakeProvider
-from dino_autofocus.auth import config as auth_config
-from dino_autofocus.server import create_app
-from dino_autofocus.server.api import SESSION_COOKIE, AuthSeat
-from dino_autofocus.server.api.assistant import build_assistant
-from dino_autofocus.server.schemas import Event
+from sma_console.agents import MockStore
+from sma_console.assistant import AssistantConfig
+from sma_console.assistant.providers.fake import FakeProvider
+from sma_console.auth import config as auth_config
+from sma_console.server import create_app
+from sma_console.server.api import SESSION_COOKIE, AuthSeat
+from sma_console.server.api.assistant import build_assistant
+from sma_console.server.schemas import Event
 
 LOCAL = ("127.0.0.1", 50000)
 REMOTE = ("192.168.1.20", 50000)
@@ -327,7 +327,7 @@ def test_questions_proposals_and_decisions_reach_the_audit_log(setup, seat):
 
 
 def test_openapi_lists_the_routes():
-    from dino_autofocus.server import create_app as make_app
+    from sma_console.server import create_app as make_app
 
     app = make_app(FakeEngine(), engine_name="fake")
     spec = app.openapi()
@@ -370,7 +370,7 @@ def test_server_import_does_not_load_the_sdk():
 
     code = (
         "import sys\n"
-        "import dino_autofocus.server, dino_autofocus.server.api.assistant\n"
+        "import sma_console.server, sma_console.server.api.assistant\n"
         "assert 'anthropic' not in sys.modules\n"
     )
     subprocess.run([sys.executable, "-c", code], check=True)

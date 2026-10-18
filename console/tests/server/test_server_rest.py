@@ -9,9 +9,9 @@ from fastapi import APIRouter, FastAPI
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
-from dino_autofocus.agents import MockStore
-from dino_autofocus.server import create_app
-from dino_autofocus.server.api import include_area_routers
+from sma_console.agents import MockStore
+from sma_console.server import create_app
+from sma_console.server.api import include_area_routers
 
 
 def test_health_and_state(engine, make_client):
@@ -60,7 +60,7 @@ def test_area_router_discovery(tmp_path, monkeypatch, engine, agent_store, seat,
     (pkg / "_private.py").write_text("raise RuntimeError('must be skipped')\n")
     (pkg / "demo.py").write_text(
         "from fastapi import APIRouter\n"
-        "from dino_autofocus.server.api import AgentStoreDep, Engine, IsLocal, LocalOnly\n"
+        "from sma_console.server.api import AgentStoreDep, Engine, IsLocal, LocalOnly\n"
         "router = APIRouter()\n"
         "@router.get('/ping')\n"
         "def ping(eng: Engine, store: AgentStoreDep, local: IsLocal) -> dict:\n"
@@ -120,10 +120,10 @@ def area_modules(package: str) -> list[str]:
 def test_every_area_module_is_mounted_under_its_name(engine, make_client):
     """Whatever areas exist in server/api (none named here): each non-underscore module has a
     module-level APIRouter, and create_app mounts every one of its routes at /api/<module>."""
-    names = area_modules("dino_autofocus.server.api")
+    names = area_modules("sma_console.server.api")
     app = make_client(engine).app
     for name in names:
-        router = importlib.import_module(f"dino_autofocus.server.api.{name}").router
+        router = importlib.import_module(f"sma_console.server.api.{name}").router
         assert isinstance(router, APIRouter), name
         assert_mounted(app, name, router)
 

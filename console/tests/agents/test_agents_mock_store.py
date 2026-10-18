@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.agents import (
+from sma_console.agents import (
     AgentStore,
     InboxThread,
     MockStore,
@@ -22,8 +22,8 @@ from dino_autofocus.agents import (
     SmaFiles,
     open_store,
 )
-from dino_autofocus.agents.mock_store import MOCK_DATA, ORIGIN, PACKAGE_DIR
-from dino_autofocus.agents.sma_files import long_path
+from sma_console.agents.mock_store import MOCK_DATA, ORIGIN, PACKAGE_DIR
+from sma_console.agents.sma_files import long_path
 
 SIM_Q = "sim-20260923-001"
 DATA = long_path(MOCK_DATA)  # the tests' own reads survive a deep checkout too

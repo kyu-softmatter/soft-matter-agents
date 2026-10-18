@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pytest
 
-from dino_autofocus.assistant.tools import (
+from sma_console.assistant.tools import (
     REMOVED_IMAGE,
     TOOL_SPECS,
     ProposalBook,

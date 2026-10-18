@@ -3,7 +3,7 @@
 The cut's own walk, `microscope_agent/autofocus/tests/test_console_cut_imports.py`, resolves an
 import to the longest module it knows and drops the rest. Here that would hide the very failure
 this test is for: a module that imported the engine side and finds it gone. So a
-`dino_autofocus` import that names no module under `console/src/` is reported, not dropped.
+`sma_console` import that names no module under `console/src/` is reported, not dropped.
 
 Every `import` and `from ... import`, at module level or inside a function, with relative imports
 resolved, plus a literal `importlib.import_module` string. One edge no static import shows:
@@ -15,12 +15,12 @@ import importlib.util
 from pathlib import Path
 
 TREE = Path(__file__).resolve().parents[1]  # console/
-PKG = TREE / "src" / "dino_autofocus"
+PKG = TREE / "src" / "sma_console"
 TESTS = TREE / "tests"
 
-#: The only subpackages of dino_autofocus that live under console/.
+#: The only subpackages of sma_console that live under console/.
 PACKAGES = {"server", "agents", "assistant", "auth"}
-SCANNED_ROUTER_PACKAGE = "dino_autofocus.server.api"
+SCANNED_ROUTER_PACKAGE = "sma_console.server.api"
 
 
 def _module_name(path: Path) -> str:
@@ -33,8 +33,8 @@ def _module_name(path: Path) -> str:
 MODULES = {_module_name(p): p for p in PKG.rglob("*.py") if "__pycache__" not in p.parts}
 
 
-def _dino_names(path: Path, here: str | None) -> set[str]:
-    """Every `dino_autofocus` name `path` imports, resolved but not looked up."""
+def _package_names(path: Path, here: str | None) -> set[str]:
+    """Every `sma_console` name `path` imports, resolved but not looked up."""
     is_package = path.name == "__init__.py"
     found = set()
     for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
@@ -56,7 +56,7 @@ def _dino_names(path: Path, here: str | None) -> set[str]:
               and node.args and isinstance(node.args[0], ast.Constant)
               and isinstance(node.args[0].value, str)):
             names = [node.args[0].value]
-        found |= {n for n in names if n == "dino_autofocus" or n.startswith("dino_autofocus.")}
+        found |= {n for n in names if n == "sma_console" or n.startswith("sma_console.")}
     return found
 
 
@@ -79,9 +79,9 @@ def test_only_the_four_packages_are_here():
         assert folder in PACKAGES, folder
 
 
-def test_every_dino_autofocus_import_names_a_module_under_console_src():
+def test_every_sma_console_import_names_a_module_under_console_src():
     unresolved = sorted(f"{_rel(path)} -> {name}" for path, here in _files()
-                        for name in _dino_names(path, here) if name not in MODULES)
+                        for name in _package_names(path, here) if name not in MODULES)
     assert not unresolved, unresolved
 
 

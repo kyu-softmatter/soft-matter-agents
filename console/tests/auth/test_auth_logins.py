@@ -1,6 +1,6 @@
 """Login sessions: tokens, pending notice, idle lock and unlock, expiry, role changes apply."""
 
-from dino_autofocus.auth import LoginOutcome, Role
+from sma_console.auth import LoginOutcome, Role
 
 
 def test_login_issues_a_token_and_logout_ends_it(logins, seed_password, audit):
@@ -82,7 +82,7 @@ def test_deleting_an_account_ends_its_login(logins, login, seeded):
 
 def test_wrong_passwords_lock_the_account_and_a_right_one_clears_its_count(seeded, audit, clock,
                                                                          seed_password):
-    from dino_autofocus.auth import AttemptLimiter, LoginSessions
+    from sma_console.auth import AttemptLimiter, LoginSessions
 
     logins = LoginSessions(seeded, audit=audit, clock=clock,
                            limiter=AttemptLimiter(account_limit=3, client_limit=10,
@@ -101,7 +101,7 @@ def test_wrong_passwords_lock_the_account_and_a_right_one_clears_its_count(seede
 
 
 def test_the_client_limit_covers_many_accounts(seeded, audit, clock, seed_password):
-    from dino_autofocus.auth import AttemptLimiter, LoginSessions
+    from sma_console.auth import AttemptLimiter, LoginSessions
 
     logins = LoginSessions(seeded, audit=audit, clock=clock,
                            limiter=AttemptLimiter(account_limit=10, client_limit=3,
@@ -115,7 +115,7 @@ def test_the_client_limit_covers_many_accounts(seeded, audit, clock, seed_passwo
 
 def test_pending_or_disabled_with_the_right_password_is_no_guess(seeded, audit, clock,
                                                                 seed_password):
-    from dino_autofocus.auth import AttemptLimiter, LoginSessions
+    from sma_console.auth import AttemptLimiter, LoginSessions
 
     logins = LoginSessions(seeded, audit=audit, clock=clock,
                            limiter=AttemptLimiter(account_limit=2, clock=clock))
@@ -171,7 +171,7 @@ def test_unlock_of_a_session_that_ended_during_the_check_does_nothing(logins, lo
 
 
 def test_the_limiter_drops_stale_keys_and_caps_their_length():
-    from dino_autofocus.auth import throttle
+    from sma_console.auth import throttle
 
     t = [0.0]
     lim = throttle.AttemptLimiter(window_s=10, lockout_s=10, clock=lambda: t[0])

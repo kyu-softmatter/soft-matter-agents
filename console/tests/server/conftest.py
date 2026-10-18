@@ -23,11 +23,11 @@ from server_fakes import (  # noqa: F401 - re-export for one transition (T-015e)
     log_in,
 )
 
-from dino_autofocus.agents import MockStore
-from dino_autofocus.auth import config as auth_config
-from dino_autofocus.auth import passwords
-from dino_autofocus.server import create_app
-from dino_autofocus.server.api import AuthSeat
+from sma_console.agents import MockStore
+from sma_console.auth import config as auth_config
+from sma_console.auth import passwords
+from sma_console.server import create_app
+from sma_console.server.api import AuthSeat
 
 
 def pytest_configure(config):

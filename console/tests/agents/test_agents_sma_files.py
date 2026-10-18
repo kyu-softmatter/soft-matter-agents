@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.agents import NotFoundError, ReadOnlyStoreError, SmaFiles
-from dino_autofocus.agents.mock_store import MOCK_DATA
-from dino_autofocus.agents.sma_files import (
+from sma_console.agents import NotFoundError, ReadOnlyStoreError, SmaFiles
+from sma_console.agents.mock_store import MOCK_DATA
+from sma_console.agents.sma_files import (
     ROOT_ENV,
     default_root,
     guess_kind,
@@ -62,7 +62,8 @@ def test_root_from_environment(monkeypatch, tmp_path):
     assert default_root() == tmp_path
     assert SmaFiles().root == tmp_path
     monkeypatch.delenv(ROOT_ENV)
-    assert default_root() == Path(r"D:\codes\github\soft-matter-agents")
+    # no variable: the repository this console sits in (the folder above console/)
+    assert default_root() == Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture
@@ -133,7 +134,7 @@ def test_missing_root_is_empty_not_an_error(tmp_path):
 
 def test_importing_pulls_in_no_heavy_or_ui_module():
     heavy = "{'torch', 'pymmcore', 'pymmcore_plus', 'tkinter', 'PySide6'}"
-    code = (f"import sys, dino_autofocus.agents; bad = {heavy} & set(sys.modules); "
+    code = (f"import sys, sma_console.agents; bad = {heavy} & set(sys.modules); "
             "assert not bad, bad")
     subprocess.run([sys.executable, "-c", code], check=True)
 
@@ -188,7 +189,7 @@ def test_a_copy_past_max_path_reads_the_same(tmp_path):
 
 
 def test_mock_store_writes_and_reads_past_max_path(tmp_path):
-    from dino_autofocus.agents import MockStore
+    from sma_console.agents import MockStore
 
     deep = tmp_path / ("w" * 100) / ("x" * 100)
     store = MockStore(deep)

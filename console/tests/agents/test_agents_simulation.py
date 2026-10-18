@@ -13,9 +13,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dino_autofocus.agents import simulation as sim
-from dino_autofocus.agents import sma_files, store
-from dino_autofocus.agents.simulation import (
+from sma_console.agents import simulation as sim
+from sma_console.agents import sma_files, store
+from sma_console.agents.simulation import (
     Frame,
     NotFoundError,
     SimulationRuns,

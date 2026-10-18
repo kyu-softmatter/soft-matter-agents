@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.auth import AccountStore, AuditLog, DeviceControl, LoginSessions, passwords
-from dino_autofocus.auth import config as auth_config
+from sma_console.auth import AccountStore, AuditLog, DeviceControl, LoginSessions, passwords
+from sma_console.auth import config as auth_config
 
 FIXTURES = Path(__file__).parent / "fixtures"
 #: the one password every seeded fake user gets (a test value, not a real credential)

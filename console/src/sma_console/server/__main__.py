@@ -1,5 +1,5 @@
-"""`uv run python -m dino_autofocus.server [--store sma] [--port N] ...`
-`uv run python -m dino_autofocus.server --dump-openapi PATH` writes the OpenAPI JSON and exits.
+"""`uv run python -m sma_console.server [--store sma] [--port N] ...`
+`uv run python -m sma_console.server --dump-openapi PATH` writes the OpenAPI JSON and exits.
 
 The server shows; it runs no engine (soft-matter-agents card 077). Its one engine is the
 placeholder, which moves nothing, lights nothing and records nothing. dino's engine, its
@@ -171,14 +171,19 @@ class Built:
 
 def agent_store_of(args: argparse.Namespace) -> Any:
     """The console's agent store: the mock sample (default), or the soft-matter-agents files
-    at --sma-root (else $DINO_AF_SMA_ROOT, else the desktop checkout), read only. A root that
-    holds no seat folder stops the start-up with the reason rather than showing nothing."""
+    at --sma-root (else $DINO_AF_SMA_ROOT, else the repository this console sits in), read only.
+    A root that holds no seat folder, or no repository to default to, stops the start-up with
+    the reason rather than showing nothing."""
     from ..agents import open_store
+    from ..agents.sma_files import RootNotFoundError
 
     kind = getattr(args, "store", "mock")
     if kind != "sma":
         return None  # create_app's own MockStore
-    store = open_store("sma", getattr(args, "sma_root", None))
+    try:
+        store = open_store("sma", getattr(args, "sma_root", None))
+    except RootNotFoundError as e:
+        raise SystemExit(f"--store sma: {e}") from e
     if not store.available():  # type: ignore[attr-defined]
         raise SystemExit(f"--store sma: no microscope_agent/ or simulation_agent/ under "
                          f"{store.root}")  # type: ignore[attr-defined]
@@ -240,7 +245,7 @@ def install_exit_hooks(app: Any, server: Any) -> Callable[[], None]:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(prog="python -m dino_autofocus.server", description=__doc__,
+    p = argparse.ArgumentParser(prog="python -m sma_console.server", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--remote-view", action="store_true",
                    help=f"listen on 0.0.0.0 so other PCs can view (also {REMOTE_VIEW_ENV}=1); "
@@ -265,7 +270,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         "(the soft-matter-agents files, read only)")
     p.add_argument("--sma-root", type=Path, default=None, metavar="DIR",
                    help="soft-matter-agents folder for --store sma (default: "
-                        "$DINO_AF_SMA_ROOT, else the desktop checkout)")
+                        "$DINO_AF_SMA_ROOT, else the repository this console sits in)")
     p.add_argument("--live-host-file", type=Path, default=None, metavar="FILE",
                    help="where soft-matter-agents' live-view host announces its address "
                         "(default: $DINO_AF_SMA_LIVE_HOST_FILE, else "

@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.agents import MockStore, SmaFiles
-from dino_autofocus.agents.mock_store import MOCK_DATA
-from dino_autofocus.agents.sma_files import plan_hash
+from sma_console.agents import MockStore, SmaFiles
+from sma_console.agents.mock_store import MOCK_DATA
+from sma_console.agents.sma_files import plan_hash
 
 QID = "mic-20260925-002"
 PLAN_FILE = f"plan_microscope_{QID}.json"

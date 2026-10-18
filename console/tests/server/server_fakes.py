@@ -14,8 +14,8 @@ from typing import Any
 import numpy as np
 from fastapi.testclient import TestClient
 
-from dino_autofocus.server.api import SESSION_COOKIE, AuthSeat
-from dino_autofocus.server.schemas import Event
+from sma_console.server.api import SESSION_COOKIE, AuthSeat
+from sma_console.server.schemas import Event
 
 LOCAL = ("127.0.0.1", 50000)
 REMOTE = ("192.168.1.20", 50000)

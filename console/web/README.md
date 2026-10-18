@@ -1,6 +1,6 @@
 # dino-autofocus web app
 
-The browser UI (PLAN.md 5, D1). FastAPI (`python -m dino_autofocus.server`, T-009) serves the
+The browser UI (PLAN.md 5, D1). FastAPI (`python -m sma_console.server`, T-009) serves the
 built `web/dist`; Node is needed to build, not to run. Node comes from the uv `web` group, so
 there is no system install: always go through `uv run`.
 
@@ -18,7 +18,7 @@ For `npm run dev`, start the server so it accepts the dev page's origin (T-009c 
 `Origin` of every REST and WebSocket request):
 
 ```
-uv run python -m dino_autofocus.server --dev-origin http://localhost:5173
+uv run python -m sma_console.server --dev-origin http://localhost:5173
 ```
 
 The Vite dev server is pinned to `http://localhost:5173` (`strictPort`), so that origin stays

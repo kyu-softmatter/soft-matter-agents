@@ -2,7 +2,7 @@
 
 import pytest
 
-from dino_autofocus.auth import Action, ControlBusy, ControlError, Role, allows
+from sma_console.auth import Action, ControlBusy, ControlError, Role, allows
 
 
 def test_one_operator_at_a_time(control, login):

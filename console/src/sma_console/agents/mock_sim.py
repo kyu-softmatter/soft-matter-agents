@@ -31,7 +31,7 @@ from typing import Any
 import numpy as np
 
 from .simulation import _RUN_ID_RE
-from .sma_files import default_root
+from .sma_files import RootNotFoundError, default_root
 
 PACKAGE_DIR = Path(__file__).resolve().parents[1]
 BACKEND = "mock_sim"
@@ -176,7 +176,7 @@ class MockSimulation:
                 "temperature": 293.0,
                 "translational_diffusivity": self.diffusivity,
             },
-            "mock": "written by dino_autofocus.agents.mock_sim; not a soft-matter-agents run",
+            "mock": "written by sma_console.agents.mock_sim; not a soft-matter-agents run",
         }
 
     def _state(self, steps: int, state: str) -> dict[str, Any]:
@@ -351,7 +351,11 @@ class MockTicker:
 def checked_write_dir(write_dir: str | os.PathLike[str]) -> Path:
     """`write_dir`, refused when it lies in the package or the soft-matter-agents tree."""
     p = Path(write_dir).resolve()
-    for guarded in (PACKAGE_DIR, default_root().resolve()):
+    try:
+        tree = [default_root().resolve()]
+    except RootNotFoundError:  # no tree to protect; the package folder is still guarded
+        tree = []
+    for guarded in (PACKAGE_DIR, *tree):
         if p == guarded or guarded in p.parents:
             raise ValueError(f"the mock simulation does not write inside {guarded}: {p}")
     return p

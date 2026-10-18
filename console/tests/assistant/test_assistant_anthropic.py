@@ -2,11 +2,11 @@
 
 import pytest
 
-from dino_autofocus.assistant import Assistant
-from dino_autofocus.assistant.providers import TurnRequest
-from dino_autofocus.assistant.providers.anthropic import FALLBACK_BETA, AnthropicProvider
-from dino_autofocus.assistant.records import RecordLog
-from dino_autofocus.assistant.runner import SYSTEM_PROMPT
+from sma_console.assistant import Assistant
+from sma_console.assistant.providers import TurnRequest
+from sma_console.assistant.providers.anthropic import FALLBACK_BETA, AnthropicProvider
+from sma_console.assistant.records import RecordLog
+from sma_console.assistant.runner import SYSTEM_PROMPT
 
 
 class Obj:
@@ -170,7 +170,7 @@ def test_thinking_blocks_go_back_unchanged_and_prefix_bytes_stay_put():
 def test_request_kwargs_bytes_do_not_depend_on_question_or_context():
     import json
 
-    from dino_autofocus.assistant.tools import ToolSet
+    from sma_console.assistant.tools import ToolSet
 
     p = AnthropicProvider(client=object())
     a = p.request_kwargs(

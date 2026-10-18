@@ -8,10 +8,10 @@ import shutil
 
 import pytest
 
-from dino_autofocus.agents import SmaFiles
-from dino_autofocus.agents.mock_store import MOCK_DATA
-from dino_autofocus.agents.sma_files import plan_hash
-from dino_autofocus.server.__main__ import agent_store_of, parse_args
+from sma_console.agents import SmaFiles
+from sma_console.agents.mock_store import MOCK_DATA
+from sma_console.agents.sma_files import plan_hash
+from sma_console.server.__main__ import agent_store_of, parse_args
 
 QID = "mic-20260925-002"
 

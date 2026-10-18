@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dino_autofocus.agents.simulation import (
+from sma_console.agents.simulation import (
     GsdTrajectory,
     NotFoundError,
     SimulationRuns,

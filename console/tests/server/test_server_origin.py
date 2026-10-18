@@ -7,8 +7,8 @@ import json
 
 import pytest
 
-from dino_autofocus.server import ws as ws_module
-from dino_autofocus.server.api import SESSION_COOKIE
+from sma_console.server import ws as ws_module
+from sma_console.server.api import SESSION_COOKIE
 
 OWN = "http://127.0.0.1:8765"  # the LoopbackClient's base: the page this server served
 DEV = "http://localhost:5173"

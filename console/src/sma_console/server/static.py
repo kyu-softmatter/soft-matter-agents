@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse
 from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
-# src/dino_autofocus/server/static.py -> repository root
+# src/sma_console/server/static.py -> repository root
 DEFAULT_WEB_DIST = Path(__file__).resolve().parents[3] / "web" / "dist"
 
 NOT_BUILT = """<!doctype html>

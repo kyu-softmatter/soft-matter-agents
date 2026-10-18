@@ -6,8 +6,8 @@ import atexit
 import signal
 import threading
 
-from dino_autofocus.server.__main__ import PlaceholderEngine, install_exit_hooks
-from dino_autofocus.server.app import EngineStopper
+from sma_console.server.__main__ import PlaceholderEngine, install_exit_hooks
+from sma_console.server.app import EngineStopper
 
 
 def test_shutdown_route_stops_engine_then_exits(engine, make_client):

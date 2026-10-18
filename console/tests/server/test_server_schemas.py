@@ -6,8 +6,8 @@ import typing
 import pytest
 from pydantic import ValidationError
 
-from dino_autofocus.server import schemas
-from dino_autofocus.server.schemas import EventKind, EventOut, Snapshot, contract
+from sma_console.server import schemas
+from sma_console.server.schemas import EventKind, EventOut, Snapshot, contract
 
 
 def test_literals_follow_the_contract_kind_list():

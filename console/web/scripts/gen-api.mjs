@@ -1,6 +1,6 @@
 // npm run gen:api -- regenerate src/api/schema.ts from the server's OpenAPI.
 //
-// The schema comes from `python -m dino_autofocus.server --dump-openapi PATH` (T-009), run
+// The schema comes from `python -m sma_console.server --dump-openapi PATH` (T-009), run
 // through uv so it uses the repo's environment. The output is generated: do not edit it by
 // hand, change the pydantic models on the server and run this again.
 import { spawnSync } from "node:child_process";
@@ -23,14 +23,14 @@ const specPath = given ? resolve(given) : join(dir, "openapi.json");
 try {
   const run = given ? { status: 0 } : spawnSync(
     "uv",
-    ["run", "python", "-m", "dino_autofocus.server", "--dump-openapi", specPath],
+    ["run", "python", "-m", "sma_console.server", "--dump-openapi", specPath],
     // no shell: uv is an .exe on Windows too, and a shell would split a path with a space
     { cwd: repo, stdio: "inherit" },
   );
   if (run.status !== 0) {
     console.error(
       "gen:api: the server could not dump its OpenAPI schema " +
-        "(is dino_autofocus.server with --dump-openapi on this branch? see T-009)",
+        "(is sma_console.server with --dump-openapi on this branch? see T-009)",
     );
     process.exit(1);
   }

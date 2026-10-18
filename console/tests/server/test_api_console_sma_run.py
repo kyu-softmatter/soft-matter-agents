@@ -11,9 +11,9 @@ import pytest
 from server_fakes import OPERATOR, VIEWER
 from sma_fake_run import FakeSmaRun, sma_tree, tree_state
 
-from dino_autofocus.agents import SmaFiles
-from dino_autofocus.agents.mock_store import MOCK_DATA
-from dino_autofocus.server.api import REFUSAL_HEADER
+from sma_console.agents import SmaFiles
+from sma_console.agents.mock_store import MOCK_DATA
+from sma_console.server.api import REFUSAL_HEADER
 
 MIC_RUN = "run-20260924-003"  # the mock sample's microscope run: not followed
 

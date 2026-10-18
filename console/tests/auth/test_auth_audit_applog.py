@@ -10,7 +10,7 @@ from datetime import date
 
 import pytest
 
-from dino_autofocus.auth import AuditFieldError, AuditKind, AuditLog, applog
+from sma_console.auth import AuditFieldError, AuditKind, AuditLog, applog
 
 
 def test_every_line_has_time_kind_user_and_session(tmp_path):
@@ -99,7 +99,7 @@ def test_default_app_log_folder_is_under_the_settings_folder(isolated_config):
 
 
 def test_import_pulls_in_no_heavy_or_ui_packages():
-    code = ("import sys, dino_autofocus.auth; "
+    code = ("import sys, sma_console.auth; "
             "bad = [m for m in ('torch', 'pymmcore', 'pymmcore_plus', 'fastapi', 'starlette', "
             "'PySide6', 'PyQt6', 'anthropic', 'numpy') if m in sys.modules]; print(bad)")
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)

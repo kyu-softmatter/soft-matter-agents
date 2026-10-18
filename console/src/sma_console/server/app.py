@@ -71,7 +71,7 @@ from .schemas import (
     Snapshot,
 )
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("dino_autofocus.server.app")
 
 READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 LOOPBACK_HOSTS = ("127.0.0.1", "localhost")

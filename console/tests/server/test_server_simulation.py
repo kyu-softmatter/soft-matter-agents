@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
-from dino_autofocus.agents import SmaFiles
-from dino_autofocus.agents.simulation import SimulationRuns
-from dino_autofocus.server.api import REFUSAL_HEADER
-from dino_autofocus.server.api import simulation as sim_api
+from sma_console.agents import SmaFiles
+from sma_console.agents.simulation import SimulationRuns
+from sma_console.server.api import REFUSAL_HEADER
+from sma_console.server.api import simulation as sim_api
 
 VIEWER = "vera@example.test"  # the seeded viewer of conftest.py
 

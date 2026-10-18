@@ -11,7 +11,7 @@ import pytest
 from PIL import Image
 from server_fakes import FakeFrameEngine
 
-from dino_autofocus.server.ws import FrameBridge, encode_frame
+from sma_console.server.ws import FrameBridge, encode_frame
 
 
 @pytest.mark.parametrize(
