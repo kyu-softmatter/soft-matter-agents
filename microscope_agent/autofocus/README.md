@@ -34,6 +34,7 @@ uv sync
 
 The core package depends only on numpy and scipy; heavy parts are extras (`ml`, `hw`, `synth`,
 `server`, `plot`). Full setup, the DINOv2 clone and the desktop launcher: [`docs/setup-new-pc.md`](docs/setup-new-pc.md).
+> **Retired (soft-matter-agents card 079, after `8e9d8d9`):** `tools/launcher/` was removed. A console launcher, if one is wanted, is a console card.
 
 Run the web app (binds to `127.0.0.1` only) from `console/` at the repository root, where
 it lives since soft-matter-agents card 078:

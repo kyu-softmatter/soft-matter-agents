@@ -1,5 +1,7 @@
 # Desktop launcher ("DINO Autofocus.exe")
 
+> **Retired (soft-matter-agents card 079, after `8e9d8d9`):** `tools/launcher/` was removed. A console launcher, if one is wanted, is a console card.
+
 The exe starts the web app server from this clone's uv env and opens the browser. It needs
 no system Python: it finds `uv` and runs `uv run python -m dino_autofocus.server`.
 Source: `tools/launcher/Launcher.cs`, built by `tools/launcher/build.ps1`.

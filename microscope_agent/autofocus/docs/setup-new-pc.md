@@ -29,6 +29,8 @@ git -C ../dinov2 checkout 7764ea0f912e53c92e82eb78a2a1631e92725fc8
 
 ## 4. Build the desktop launcher
 
+> **Retired (soft-matter-agents card 079, after `8e9d8d9`):** `tools/launcher/` was removed. A console launcher, if one is wanted, is a console card.
+
 Needs `uv` and a finished `uv sync` in this clone; no system Python.
 
 ```
