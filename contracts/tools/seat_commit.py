@@ -182,6 +182,18 @@ class Git:
         p = Path(self.out("rev-parse", "--git-path", name))
         return p if p.is_absolute() else self.root / p
 
+    def intent_to_add(self, path: str) -> bool:
+        """Whether the shared index holds `path` as `git add -N` leaves it.
+
+        Such an entry is no one's staging: it says a file exists and holds
+        nothing of it. ls-files -s shows it as the empty blob, the same as a
+        staged empty file, so the flag is read from --debug: git's
+        CE_INTENT_TO_ADD bit, 0x20000000.
+        """
+        raw = text(self.run("--literal-pathspecs", "ls-files", "--debug", "--", path).stdout)
+        m = re.search(r"flags:\s*([0-9a-fA-F]+)", raw)
+        return bool(m and int(m.group(1), 16) & 0x20000000)
+
     def entry(self, ref_or_index: str, path: str, env: dict | None = None) -> tuple:
         """(mode, sha) of one path in a tree, or in the shared index when given ":index"."""
         if ref_or_index == ":index":
@@ -812,6 +824,14 @@ def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit:
             continue
         if shared == old:
             stale.append(p)
+        elif git.intent_to_add(p):
+            # `git add -N` marks a file and stages none of it, so it is no
+            # one's staging. Left alone, it reads as a staged deletion of the
+            # file just committed (`DA`), which the next plain commit from
+            # anyone would carry (004da816, 2026-10-18).
+            say(f"seat_commit: {p} had an intent-to-add entry (git add -N) in the shared index; it is moved "
+                "to the commit. This tool takes untracked files itself, so add -N is not needed before it")
+            stale.append(p)
         else:
             kept.append(p)
     for p in kept:
@@ -869,6 +889,10 @@ def say_shared(git: Git, ref: str, path: str, after: bool = False) -> None:
     """
     shared = git.entry(":index", path)
     if shared == git.entry(ref, path):
+        return
+    if git.intent_to_add(path):
+        say(f"seat_commit: {path} has an intent-to-add entry (git add -N) in the shared index. It is not "
+            "needed -- this tool takes untracked files itself -- and it is moved to the commit afterwards")
         return
     since = stale_since(git, ref, path, shared)
     if since:

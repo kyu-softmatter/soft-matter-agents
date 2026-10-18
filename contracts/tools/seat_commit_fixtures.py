@@ -812,6 +812,47 @@ def tool_discarded_gate_lines(repo: Path) -> tuple:
             f"with the commit made and its paths (exit {code}, bare FAIL lines {len(bare)}, ends right {ends})")
 
 
+NEW = "microscope_agent/questions/q/new_card.json"
+
+
+def naive_intent_to_add_left_behind(repo: Path) -> tuple:
+    """2026-10-18, 004da816: a seat ran `git add -N` on eleven new files before
+    committing them from a private index. The commit was right, and the shared
+    index kept the intent-to-add entries, which then read as staged deletions
+    (`DA`) of the files just committed. A plain commit by anyone would have
+    deleted them."""
+    write(repo, NEW, '{"card": "new"}\n')
+    git(repo, "add", "-N", "--", NEW)
+    idx = repo / ".git" / "fixture-private.index"
+    e = env_for(FIX, GIT_INDEX_FILE=str(idx))
+    git(repo, "read-tree", "HEAD", env=e)
+    git(repo, "add", "-A", "--", NEW, env=e)
+    git(repo, "commit", "-q", "-F", message(repo), env=e)
+    status = out(repo, "status", "--porcelain", "--", NEW)
+    return status.startswith("D"), f"git status reads {status!r} for the file just committed: a staged deletion"
+
+
+def tool_intent_to_add_left_behind(repo: Path) -> tuple:
+    results = []
+    for mode in ("whole-path", "patch"):
+        rel = NEW.replace("new_card", f"new_card_{mode.replace('-', '_')}")
+        write(repo, rel, '{"card": "new"}\n')
+        git(repo, "add", "-N", "--", rel)
+        if mode == "whole-path":
+            code, said = tool(repo, "--seat", FIX, "--", rel)
+            digest = next((x.split("digest ", 1)[1].split(".")[0] for x in said.splitlines() if "digest " in x), "")
+            code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--confirm", digest, "--", rel)
+        else:
+            patch = repo / ".git" / "fixture-mine.patch"
+            tool(repo, "--save-patch", str(patch), "--", rel)
+            code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+        status = out(repo, "status", "--porcelain", "--", rel)
+        results.append((mode, code == 0 and status == "" and "intent-to-add" in said, status))
+    bad = [(m, s) for m, ok, s in results if not ok]
+    return (not bad, "in both modes the intent-to-add entry was named and moved to the commit, and git status is "
+                     f"clean for the file (failed: {bad or 'none'})")
+
+
 def naive_stale_index(repo: Path) -> tuple:
     """2026-10-15: a commit from a private index moves HEAD and not .git/index,
     so `git diff --cached` shows the inverse of what was just committed, and
@@ -978,6 +1019,8 @@ FIXTURES = [
     # HP-011 (2026-10-18): a hold is a record a push can read.
     ("a hold said in a window and not recorded", "hold", naive_hold_said_in_a_window,
      tool_hold_said_in_a_window),
+    ("an intent-to-add entry left behind as a staged deletion", "ita", naive_intent_to_add_left_behind,
+     tool_intent_to_add_left_behind),
     # HP-006 (2026-10-17): not a defect the tool prevents but one the gate reports.
     ("a seat committing around the tool", "around", naive_around_the_tool, tool_around_the_tool),
 ]
