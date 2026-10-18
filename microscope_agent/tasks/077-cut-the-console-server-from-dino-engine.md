@@ -2,10 +2,13 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261015-2` (Microscope 4).** Card 064
-gives the dino seats `microscope_agent/autofocus/`, and this seat holds no
-open card since card 074 closed. If you are not that seat, take nothing from
-this card and report up.
+**Assigned to `microscope-office-20261015-1` (Microscope 3)**, from
+2026-10-18. It was first written for `microscope-office-20261015-2`, whose
+session closed before the card reached it, so nothing of this card has
+started. Card 064 gives both dino seats `microscope_agent/autofocus/`, so
+this card needs no handover of paths. Card 069, also yours, stays paused
+until plan.md 15's move and touches no file this card does. If you are not
+`microscope-office-20261015-1`, take nothing from this card and report up.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window** (plan.md 6 at
