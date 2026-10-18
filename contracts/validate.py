@@ -487,6 +487,26 @@ def is_imported(rel: str) -> bool:
     return any(rel.startswith(prefix) for prefix in IMPORTED_SUBTREES)
 
 
+#: The console's mock data (plan.md 15, 2026-10-17): a copied sample of this
+#: repository's own tree -- microscope_agent/, simulation_agent/ and bridge/
+#: subtrees with goals, plans, results, runs and a thread ledger -- that the
+#: console shows when it is not connected. Every card-shaped file there is a
+#: mock by construction, because the console writes no card into this tree
+#: (11-25 rule 1). Read as cards they are 49 failures (check 1: 46, check 8: 1,
+#: check 37: 2), measured on 2026-10-17 by running the checks with the
+#: console's part of the imported subtree treated as outside it. So the card
+#: and Markdown checks step over this one folder, and over nothing else under
+#: console/: the rest is this repository's own and judged as such, unlike an
+#: imported subtree. Keyed on console/src/<package>/ and not on the package's
+#: name, which is renamed in the commit after the move.
+CONSOLE_MOCK_DATA = re.compile(r"^console/src/[A-Za-z0-9_]+/agents/mock_data/")
+
+
+def is_mock_data(rel: str) -> bool:
+    """True for a repository-relative POSIX path inside the console's mock data."""
+    return bool(CONSOLE_MOCK_DATA.match(rel))
+
+
 #: git's empty tree, the base a root commit is diffed against (check 35).
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
@@ -577,7 +597,8 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
                 continue
             b.all_files.append(p)
             try:
-                if is_imported(p.relative_to(REPO).as_posix()):
+                rel_p = p.relative_to(REPO).as_posix()
+                if is_imported(rel_p) or is_mock_data(rel_p):
                     continue
             except ValueError:
                 pass
@@ -1718,6 +1739,19 @@ ALLOWED_PATHS = [
     r"^bridge/threads/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation|librarian)_agent/\.claude/.*$",
     r"^bridge/\.claude/.*$",
+    # The console's own folder (plan.md 15, 2026-10-17), a leaf above the
+    # four agents and not a fifth agent. Its instructions, cards and dead ends
+    # as every agent directory has them; its own manifest and lock, because an
+    # environment without the instrument's packages cannot open a core, which
+    # no settings file can promise (15); and its application -- src/, web/,
+    # tests/, docs/ -- declared by folder, because its layout is the imported
+    # project's and the move's card lists the files. Keyed on src/ and not on
+    # the package name, which is renamed after the move. This list first;
+    # section 7's tree is architecture's and follows.
+    r"^console/(CLAUDE\.md|README\.md|failures\.jsonl|pyproject\.toml|uv\.lock|\.python-version)$",
+    r"^console/tasks/[A-Za-z0-9_.-]+$",
+    r"^console/\.claude/.*$",
+    r"^console/(src|web|tests|docs)/.+$",
     r"^\.claude/.*$",
     # The public page (7). It is outside every agent and outside contracts/,
     # so nothing about it is shared code: it is the repository's own front
@@ -1957,7 +1991,7 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     for f in CONTRACTS.glob("*.py"):
         bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
-               if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge"}]
+               if m.split(".")[0] in {"microscope_agent", "simulation_agent", "librarian_agent", "bridge", "console"}]
         if bad:
             out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", f.relative_to(REPO).as_posix()))
     src = list(REPO.glob("*_agent/src/*.py")) + list(REPO.glob("*_agent/src/devices/*.py"))
@@ -3024,6 +3058,11 @@ AGENT_OF_PATH = [
     (re.compile(r"^simulation_agent/"), "simulation_agent"),
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
+    # A boundary of its own with its own execution seat and its own manager,
+    # the person's choice on 2026-10-17 (plan.md 15). The console reads all
+    # four agents, so inside any one of them a seat of that agent would own
+    # the screens about the other three.
+    (re.compile(r"^console/"), "console"),
 ]
 # `plan_ko.md` is deliberately still here, and deliberately gone from
 # ALLOWED_PATHS. The two lists answer different questions and the same name
@@ -3054,7 +3093,7 @@ SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|READ
 # granted fail loudly instead of silently.
 INBOX = re.compile(r"^(microscope|simulation)_agent/inbox/")
 
-DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
+DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|bridge|console)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
 
 
 def seat_boundary_of(path: str) -> str:

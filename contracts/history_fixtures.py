@@ -196,6 +196,102 @@ def fixture_41_unregistered_committer(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _console_seat() -> str:
+    """The first open seat in the real registry that owns the console boundary.
+
+    Read, not written down, for the reason base() copies seats.json: a fixture
+    that named today's console seat would break the day that seat closes, and
+    one that invented a seat would keep passing after the real registry moved.
+    """
+    reg = json.loads((CONTRACTS / "seats.json").read_text(encoding="utf-8"))
+    for s in reg.get("seats", []):
+        if "console" in (s.get("owns") or []) and not s.get("closed"):
+            return s["seat"]
+    raise RuntimeError("no open seat in contracts/seats.json owns the console boundary")
+
+
+def fixture_35_one_commit_into_the_console_and_an_agent(repo: Path) -> str:
+    """One commit writing into console/ and microscope_agent/ at once.
+
+    console/ became a boundary of its own on 2026-10-17 (plan.md 15). Until
+    the classifier knew it, console/ was `unattributable`, which check 35 does
+    not count, so this commit read as one boundary and passed. It is the shape
+    the console's move must not take: its additions and the deletions of the
+    originals are two commits by two seats, because no seat may make them one.
+    """
+    start = base(repo)
+    write(repo, "console/src/pkg/app.py", "VALUE = 1\n")
+    write(repo, "microscope_agent/questions/q/goal.json", {"card": "goal"})
+    commit(repo, "one commit, the console and an agent",
+           "console", "microscope_agent", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_an_agent_seat_writes_into_the_console(repo: Path) -> str:
+    """A microscope seat committing a screen of the console's.
+
+    The console reads all four agents, and the reason it left the microscope
+    agent's folder is that a seat of one agent would otherwise own the screens
+    about the other three. Before the classifier knew console/, this was
+    refused only as `unattributable`, which names no owner.
+    """
+    start = base(repo)
+    write(repo, "console/web/index.html", "<!doctype html>\n")
+    commit(repo, "a microscope seat writes into the console's tree",
+           "console", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_the_console_seat_writes_its_own_orders(repo: Path) -> str:
+    """The console's execution seat committing its own CLAUDE.md.
+
+    An agent directory's CLAUDE.md, README.md, .claude/ and tasks/ are the
+    design side's and its manager's (6.2), and the console's are too: a seat
+    that can edit its own orders has none. This is the case DESIGN_OWNED
+    exists for, and the console was added to it with this fixture.
+    """
+    start = base(repo)
+    write(repo, "console/CLAUDE.md", "# console\n")
+    commit(repo, "the console seat edits its own standing orders",
+           "console", seat=_console_seat())
+    return f"{start}..HEAD"
+
+
+def fixture_41_the_console_seat_inside_its_own(repo: Path) -> str:
+    """The console's execution seat committing its own code is admitted.
+
+    The other side of the two refusals above. Without it, a classifier that
+    refused every console/ path to everyone would satisfy both, and the
+    console seat could not land its move.
+    """
+    start = base(repo)
+    write(repo, "console/src/pkg/app.py", "VALUE = 1\n")
+    commit(repo, "the console seat writes its own code",
+           "console", seat=_console_seat())
+    return f"{start}..HEAD"
+
+
+def fixture_01_a_card_beside_the_consoles_mock_data_is_read(repo: Path) -> str:
+    """Only the console's mock-data folder is stepped over, and nothing beside it.
+
+    The console's mock data is a copied sample of this repository's tree, and
+    every card in it is a mock, so the card checks do not read it
+    (CONSOLE_MOCK_DATA). The dangerous direction for such a rule is the wide
+    one -- a skip that also hid a real card, or a console-only card shape,
+    which 11-25 rule 2 forbids. So this fixture puts a card of an unknown kind
+    one name beside the folder, `agents/mock_data_draft.json`, which a prefix
+    without its trailing slash would swallow, and asserts check 1 still reads
+    it. A mock card of another unknown kind sits inside the folder; that it is
+    not reported is what the skip does, and no row can assert an absence.
+    """
+    start = base(repo)
+    write(repo, "console/src/pkg/agents/mock_data/microscope_agent/questions/q/goal.json",
+          {"card": "console_only_mock"})
+    write(repo, "console/src/pkg/agents/mock_data_draft.json", {"card": "console_only_shape"})
+    commit(repo, "a mock card and a card beside the mock folder", "console", seat=_console_seat())
+    return f"{start}..HEAD"
+
+
 def fixture_26_snapshot_is_a_copy_of_another_commit(repo: Path) -> str:
     """An envelope snapshot whose embedded text belongs to a different commit.
 
@@ -919,6 +1015,16 @@ FIXTURES = [
     (41, "PENDING", "not a seat in", fixture_41_unregistered_committer),
     (35, "FAIL", "a session writes inside one agent", fixture_35_a_root_commit_in_the_range_is_judged),
     (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_an_imported_history_is_not_attributed),
+    # The console's boundary (plan.md 15, 2026-10-17). Each refusal row names
+    # the console in its phrase, so a classifier that left console/
+    # unattributable -- refused, but as nobody's -- satisfies none of them.
+    (35, "FAIL", "one commit writes into ['console', 'microscope_agent']",
+     fixture_35_one_commit_into_the_console_and_an_agent),
+    (41, "FAIL", "this path is console's", fixture_41_an_agent_seat_writes_into_the_console),
+    (41, "FAIL", "owns ['console']; this path is design's", fixture_41_the_console_seat_writes_its_own_orders),
+    (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_console_seat_inside_its_own),
+    (1, "FAIL", "unknown card kind 'console_only_shape' [console/src/pkg/agents/mock_data_draft.json]",
+     fixture_01_a_card_beside_the_consoles_mock_data_is_read),
     (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
     (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
     (76, "PASS", "disabledMcpjsonServers", fixture_76_a_local_settings_file_is_named),
