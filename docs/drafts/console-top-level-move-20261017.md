@@ -121,10 +121,9 @@ whichever folder the files sit in.
 **How it sits in 15's sequence** (as relayed, section 8): 15 moves nothing from `autofocus/` itself,
 and its step 2 pins the run interface in `contracts/` before its own move. The console's move is
 **the same step** in the person's words, so it rides on 15's sequence after that pin: the pin, then
-15's move of `src/` into `microscope_runtime/`, then -- or in the same commit if one seat holds both
-boundaries, section 6 step 5 -- the console's `git mv` into its top-level folder. Section 6 is the
-order; its first step is now the two decisions still open (the folder name and the ownership), not
-the timing.
+15's move of `src/` into `microscope_runtime/`, then the console's move as two commits (section 6
+step 5). Section 6 is the order; its first step is the person's act of seating the new seats, since
+the three decisions are made.
 
 ## 4. What moves, what stays, and the target layout
 
@@ -227,10 +226,10 @@ manager) -- option A in the bridge's shape, with a dedicated `manager-console`; 
 
 ### Recommendation
 
-**A**, in the bridge's shape, started under the condition in section 3, with the one-move seat of
-section 6 step 4 for the commit that crosses. If the person wants fewer seats, A with an existing
-manager holding `console/tasks/` is the smaller form and loses nothing of (a)-(d). B is right until
-the build starts and wrong after; C and D are not recommended.
+**A**, in the bridge's shape, started as section 3 says, with the move made as two commits (section 6
+step 5). A with an existing manager holding `console/tasks/` would have been the smaller form and lost
+nothing of (a)-(d); the person chose the dedicated manager (section 8). B is right until the build
+starts and wrong after; C and D are not recommended.
 
 ## 6. The move, in order, with owners (if A)
 
@@ -253,17 +252,30 @@ the build starts and wrong after; C and D are not recommended.
    in `IMPORTED_SUBTREES` after the split (the remainder, or nothing once 14's re-placements are
    done), fixtures for 35 and 41 that show the new boundary refuses and admits correctly.
    [manager-microscope]
-5. **The move commit.** A `git mv` by path list is one commit whose deletions are in the microscope
-   boundary and whose additions are in the console boundary -- check 41 refuses a commit across two
-   seats' boundaries, and splitting it into an add and a delete loses rename detection, so the files'
-   history would start over in `git log`. Two ways through, and a recommendation:
-   - (i) **a one-move seat**, minted by the person for this commit only, `owns: ["microscope_agent",
-     "console"]`, closed after -- one registry row, no check changes, and the registry already allows
-     a seat to own more than one boundary (architecture seats own `design` whole); or
-   - (ii) a rule in the gate admitting a cross-boundary commit when every path pair is a pure rename
-     -- permanent machinery for a one-time event.
-   **(i) is recommended.** The commit carries dino's tests at their new paths, green, and nothing else.
-   [the one-move seat, on manager-microscope's card]
+5. **The move, as two commits.** A `git mv` by path list would be one commit whose deletions are in
+   the microscope boundary and whose additions are in the console boundary, and **the gate refuses
+   that whoever commits it**: check 35 fails any commit whose paths classify into two boundaries
+   ("one commit writes into [...]; a session writes inside one agent", `validate.py` line 3222-3223,
+   read here on 2026-10-17), and check 41 is a second refusal, not the only one. So a seat owning both
+   boundaries -- this draft's first version proposed one, minted for the move alone -- does not get
+   through; **manager-microscope-20261003-1 corrected that the same day**, and this step is its
+   correction. Three ways, and its recommendation taken:
+   - (a) **Two commits**: the additions under `console/` first, by the console seat; the deletions
+     under `microscope_agent/autofocus/` second, by a microscope seat; each message carrying the full
+     old→new path list. Rename detection across the two is lost, so `git log --follow` starts over at
+     the first commit -- but every old path still resolves at the first commit's parent, and the path
+     list in both messages is the join, so a citation by old path keeps working. Nothing in the gate
+     changes. **Recommended.**
+   - (b) A declared exception in check 35 for a pure-rename commit between two named boundaries,
+     listed in a move manifest. It loosens the gate, so it lands only on the person's word (8.3 rule
+     1), and it grows a permanent hole for one move.
+   - (c) The import's route: build the move outside the working copy as a merge and fast-forward it in
+     -- check 35 skips merges and check 41 judges them via `--cc`. It works and makes a move look like
+     a merge, which misleads a later reader.
+   The first commit carries dino's tests at their new paths, green, and nothing else; the second
+   removes the old copies and nothing else. The console's seats are registered in `seats.json` by
+   architecture before the first of the two. [the console seat, then a microscope seat, each on
+   manager-microscope's card]
 6. **After**: `console/CLAUDE.md` and `console/README.md` written (design seat's); the first
    `console/tasks/` card is the console's connection to this repository's store, which today refuses
    with 409 "not connected yet" -- the mockup's screens are what that card builds toward. [manager,
@@ -338,8 +350,28 @@ and a dedicated `manager-console` holding `console/tasks/`. Recorded as relayed,
 person says otherwise. What follows from it is distributed as 7's rule for this folder says:
 architecture-20261007-1 takes the registry rows and 11-25's paragraph, architecture-20261003-1 takes
 7's tree and 14's order when 15 lands, manager-microscope takes the validator tables (section 5 A) and
-the one-move seat's card (section 6 step 5), and architecture-office-20261017-1 places the move in 15's
+the move card (section 6 step 5), and architecture-office-20261017-1 places the move in 15's
 sequence. The person still opens and seats the new seats in their own windows.
+
+**Corrected the same day, by manager-microscope-20261003-1, after reading the draft at `e0d09c02`:**
+the one-move seat the first version proposed for the cross-boundary commit does not pass the gate --
+check 35 refuses a two-boundary commit whoever the committer is, which this seat then read at
+`validate.py` line 3222-3223 rather than taking on the message. Section 6 step 5 now says two commits,
+additions first and deletions second, each carrying the old→new path list, as that seat recommended;
+the split line it took as written; and its order on its side once 15 lands is the run-interface
+fixture first, then the validator tables and the 35/41 history fixtures for both new folders
+(`microscope_runtime/` and `console/`), then the move card. It starts none of it before 15 lands.
+
+**The registry side, the same day (relayed by architecture-20261007-1):** the person has already opened
+and seated both console sessions in their own windows, and the rows are written from those seatings --
+`manager-console-office-20261017-1` (owns `design`; `paths` `README.md` and `contracts/` with excludes)
+and `console-office-20261017-1` (owns `console`) -- with the commit going through the commit tool as
+this was written; cite that commit, not this sentence. The manager's `console/` paths are left out of
+its row until the validator maps `console/`, because check 48 refuses a `paths` entry the validator
+cannot grant; they join in the commit after the mapping, as does the `boundaries` note. 11-25's
+paragraph, the root `CLAUDE.md` line and the store-display sentence are written after 15 and the
+mapping land, so that none of them describes a folder before it exists. So section 6 step 1 is done
+as far as seating goes, and step 2's registry part is in hand; the draft stays until each piece is in.
 
 ## 9. What does not change
 
