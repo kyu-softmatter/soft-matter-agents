@@ -1,0 +1,83 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-012",
+  "title": "Every shell-command denial names both shells, and a check refuses a settings file where one has no twin",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-18",
+  "kind": "tighten",
+  "class": "guard-covers-one-route-of-two",
+  "answers": [
+    "INC-20261018-07"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261018-07"
+    ],
+    "looked_in": [
+      "every committed .claude/settings.json at HEAD, outside the imported autofocus tree and the rejected fixtures: deny and ask lists, counted by tool",
+      "contracts/validate.py for any check that reads PowerShell entries: none",
+      "the root CLAUDE.md's paragraph on which denials are inert"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/validate.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "A check over every committed .claude/settings.json: each Bash(<pattern>) in deny or ask has a PowerShell(<pattern>) beside it in the same list, and the reverse. A missing twin is a FAIL naming the file and the line. It checks that both shells are named, not that the two patterns stop the same commands. The commands differ between shells, so whether a twin is sufficient stays the owner's judgement, and the check's message says so."
+    },
+    {
+      "path": "contracts/examples/rejected/",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "One rejected group: a settings file with a Bash command denial and no PowerShell twin. Watched being accepted before the check exists."
+    },
+    {
+      "path": "bridge/.claude/settings.json",
+      "owner": "a manager-bridge seat",
+      "change": "Twin Bash(python3*hardware*) with PowerShell, and name python as well as python3, since python3 is not Python on the Windows computers."
+    },
+    {
+      "path": "console/.claude/settings.json",
+      "owner": "manager-console-office-20261017-1",
+      "change": "Already in that seat's working copy when this was drafted: 13 PowerShell twins. Its landing is a member of this proposal's proof."
+    },
+    {
+      "path": "CLAUDE.md",
+      "owner": "architecture-20261007-1",
+      "change": "One sentence where tool denials are called not inert: a command denial names one shell tool, and on Windows the PowerShell tool needs its own line."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "the rejected group above",
+        "reproduces": "INC-20261018-07",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "console-office-20261017-1's two-command probe, re-run after the console's twins land",
+        "reproduces": "INC-20261018-07",
+        "watched_failing_before": "the PowerShell command ran (reported)",
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every session rooted at a folder whose settings change: settings are read at session start, so a running session keeps the old denials until it restarts"
+    ],
+    "how_they_learn": "The owner of each settings file tells the sessions rooted there to restart. The check refuses the next commit that adds a one-shell denial anywhere, which is where a new one would be written.",
+    "use_site": "the commit gate, for new denials; a restart, for running sessions"
+  },
+  "revert": "git revert <the check's landing commit>",
+  "notes": "Measured narrower than first reported: two files hold command denials, not all of them. The check is still worth having, because the next file to add one is where the gap would reopen. Settings denials are a second layer: the safety rules are enforced by deterministic code in the operator, which this does not touch. Nothing here is in 8.3 rule 2's core. A settings fix reaches only sessions started after it, which the root CLAUDE.md names as a class of its own. So the reach above asks each owner to say who must restart."
+}
