@@ -9,12 +9,15 @@ entries and nothing else -- so a hand edit is drift the next run overwrites, and
 The page set:
 
     kb/wiki/index.md                    the store: version, counts, every page
-    kb/wiki/device/<id>.md              each device id an entry names as subject
-    kb/wiki/quantity/<id>.md            each registered quantity an entry uses,
+    kb/wiki/device_<id>.md              each device id an entry names as subject
+    kb/wiki/quantity_<id>.md            each registered quantity an entry uses,
                                         as subject or as a numbers[] name
-    kb/wiki/observable/<id>.md          EVERY registered observable, entries or not
-    kb/wiki/sample/<id>.md              each sample id named as subject
-    kb/wiki/configuration/<id>.md       each configuration id named as subject
+    kb/wiki/observable_<id>.md          EVERY registered observable, entries or not
+    kb/wiki/sample_<id>.md              each sample id named as subject
+    kb/wiki/configuration_<id>.md       each configuration id named as subject
+
+FLAT, not one folder per section: check 13 caps a path inside an agent at three
+levels below it, and kb/wiki/<section>/<id>.md is four (e275ab39).
     kb/wiki/unfiled.md                  the entries that name no subject
 
 Every page carries the same eight sections in the same order, and an empty one
@@ -80,7 +83,7 @@ SOURCE_WORDS = {
     "kb": "another store entry",
 }
 STATUS_WORDS = {"refuted": "refuted", "superseded": "superseded", "conflict": "in conflict", "current": "current"}
-ASCII_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+ASCII_ID = re.compile(r"^[a-z0-9_]+$")     # what ALLOWED_PATHS admits in a page name (e275ab39)
 
 
 def footer(version: str) -> str:
@@ -179,12 +182,12 @@ def pages_of(d: Data) -> dict[tuple[str, str], list[str]]:
     on.setdefault(("unfiled", ""), set())
     for key in on:
         if key[0] != "unfiled" and not ASCII_ID.match(key[1]):
-            raise SystemExit(f"{key[0]} id {key[1]!r} is not ASCII and cannot be a file name; fix the id at its source")
+            raise SystemExit(f"{key[0]} id {key[1]!r} is not lowercase ASCII snake case and cannot be a page name; fix the id at its source")
     return {k: sorted(v, key=d.store.sort_key) for k, v in on.items()}
 
 
 def page_path(section: str, pid: str) -> str:
-    return "unfiled.md" if section == "unfiled" else f"{section}/{pid}.md"
+    return "unfiled.md" if section == "unfiled" else f"{section}_{pid}.md"
 
 
 def rel(from_page: str, target_in_kb: str) -> str:
@@ -407,23 +410,23 @@ def _self_test() -> int:
         elif text not in p[page]:
             bad.append(f"{page} lacks {text!r} ({why})")
     # an entry with two subjects is on both pages
-    has("device/dev_a.md", "e_two", "two subjects: first page")
-    has("device/dev_b.md", "e_two", "two subjects: second page")
+    has("device_dev_a.md", "e_two", "two subjects: first page")
+    has("device_dev_b.md", "e_two", "two subjects: second page")
     # one entry per status, on its page, with the other side named
-    has("device/dev_b.md", "e_conflict_a.json): in conflict; the other side: [e_conflict_b]", "conflict")
-    has("device/dev_c.md", "e_refuted.json): refuted; the other side: [e_refuter]", "refuted")
-    has("device/dev_c.md", "e_old.json): superseded; the other side: [e_new]", "superseded")
-    if "e_current.json): " in p.get("device/dev_a.md", "").split("## Disputed and withdrawn")[-1].split("## Reading")[0]:
+    has("device_dev_b.md", "e_conflict_a.json): in conflict; the other side: [e_conflict_b]", "conflict")
+    has("device_dev_c.md", "e_refuted.json): refuted; the other side: [e_refuter]", "refuted")
+    has("device_dev_c.md", "e_old.json): superseded; the other side: [e_new]", "superseded")
+    if "e_current.json): " in p.get("device_dev_a.md", "").split("## Disputed and withdrawn")[-1].split("## Reading")[0]:
         bad.append("a current entry was listed as disputed")
     # an observable with no entries still has its page; an unused quantity does not
-    has("observable/obs_empty.md", "## Values", "observable with no entries")
-    if "quantity/q_unused.md" in p:
+    has("observable_obs_empty.md", "## Values", "observable with no entries")
+    if "quantity_q_unused.md" in p:
         bad.append("an unused quantity got an empty page")
     has("index.md", "- q_unused", "unused quantity listed on the index")
     has("unfiled.md", "e_unfiled", "entry with no subject")
     # revision (1): the grade in words AND the grade and source as recorded
-    has("device/dev_a.md", "calibrated on this instrument; a calibration on this instrument", "grade in words")
-    has("device/dev_a.md", "| E2" + MIDDOT + "calibration:c1 |", "grade code and source as recorded")
+    has("device_dev_a.md", "calibrated on this instrument; a calibration on this instrument", "grade in words")
+    has("device_dev_a.md", "| E2" + MIDDOT + "calibration:c1 |", "grade code and source as recorded")
     # revision (2): the footer, one fixed line, no <sub>
     line = footer(d.version)
     for name, text in p.items():
@@ -435,7 +438,7 @@ def _self_test() -> int:
     for name, text in p.items():
         if raw_html(text):
             bad.append(f"{name}: raw HTML")
-    has("device/dev_c.md", "> conditions of e_refuted, line one line two", "conditions as a blockquote")
+    has("device_dev_c.md", "> conditions of e_refuted, line one line two", "conditions as a blockquote")
     # revision (4): ASCII file names, and every link stays inside kb/
     for name, text in p.items():
         if not all(ord(ch) < 128 for ch in name):
@@ -452,8 +455,8 @@ def _self_test() -> int:
         bad.append("a non-ASCII subject id was rendered to a file name instead of refused")
     except SystemExit:
         pass
-    has("device/dev_a.md", "(../../guides/safety_dev_a.md)", "the device's guide, inside kb/")
-    has("device/dev_a.md", "(../../distilled/note_dev_a.md)", "reading, inside kb/")
+    has("device_dev_a.md", "(../guides/safety_dev_a.md)", "the device's guide, inside kb/")
+    has("device_dev_a.md", "(../distilled/note_dev_a.md)", "reading, inside kb/")
     # deterministic
     if render_all(_synthetic()) != p:
         bad.append("two renders of one store differ")
@@ -490,7 +493,7 @@ def main(argv=None) -> int:
             fh.write(t)
     for n in sorted(on_disk - set(pages)):
         (WIKI / n).unlink()
-    counts = {s: sum(1 for n in pages if n.startswith(s + "/")) for s in SECTIONS}
+    counts = {s: sum(1 for n in pages if n.startswith(s + "_")) for s in SECTIONS}
     print(f"wrote {len(pages)} pages to {WIKI} from {d.version}: {counts}, index, unfiled")
     return 0
 
