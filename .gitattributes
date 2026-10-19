@@ -3,3 +3,12 @@
 # byte-exact against the microscope computer's originals: no end-of-line
 # conversion on checkout or commit. Landed before the import commit.
 microscope_agent/autofocus/configs/micromanager/*.cfg -text
+
+# The person's files in the runtime (2026-10-19, the person, on the microscope
+# computer). The live-view list is approved by the sha256 of its bytes, so a
+# checkout that rewrites line endings gives the same approved file a different
+# hash on each computer: on the microscope computer, with core.autocrlf true,
+# the list read 1498acb5... on disk against the 82c7b36c... the person approved.
+# No end-of-line conversion for any of them, so disk bytes equal committed bytes.
+microscope_runtime/approvals/** -text
+microscope_runtime/envelope/safety.json -text
