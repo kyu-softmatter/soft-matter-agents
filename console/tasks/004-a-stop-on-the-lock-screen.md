@@ -69,7 +69,11 @@ light or move anything.
    - Pressing it sends the one request and shows each run's outcome in
      plain words, or that nothing was running.
    - No confirmation step, because a stop that waits for a second click is
-     slower to stop. It cannot be pressed twice in flight.
+     slower to stop. It cannot be pressed twice in flight. The person
+     settled this, committed at `27029ddc` under Q-20261018-03, verbatim:
+     "잠금 화면 정지 버튼은 확인 단계 없이 바로 멈추게 둬." ("Leave the
+     lock-screen stop button to stop at once, with no confirmation step.")
+     So adding one later is a change to the person's decision, not a polish.
    - With the mock store, it says it is not connected and sends nothing.
 4. **Tests, each watched failing first:**
    - Without a login, on loopback, two fake followed runs, one ended: two
