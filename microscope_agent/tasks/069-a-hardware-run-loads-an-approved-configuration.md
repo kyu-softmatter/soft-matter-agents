@@ -4,19 +4,70 @@ Written by `manager-microscope-20261013-1` on the person's yes in this seat's
 window on 2026-10-13, from the bench seat's report of the same day. You read
 this; you do not edit it.
 
-**Assigned to `microscope-office-20261015-1` (Microscope 3)**, from
-2026-10-17. The person said in architecture-20261007-1's window that day,
-verbatim: "Microscope 3에 설정 파일 카드 맡겨" (give the configuration-file
-card to Microscope 3). That was relayed to manager-microscope-office-20261016-1,
-which made the assignment on it. Card 064 passes `src/`, `tests/` and
-`failures.jsonl` to you for this card alone, under "Card 069, Microscope 3",
-and they go back when it lands. It was first assigned to
-`microscope-20261007-1`, which holds the code otherwise. If you are not
-`microscope-office-20261015-1`, take nothing from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat**, from
+2026-10-19, by manager-microscope-office-20261016-1. The person said in the
+intake seat's window, committed verbatim at a1f3feca (Q-20261019-05):
+"카드 069는 현미경 실행 폴더 세션이 맡는다. Microscope 3의 설계 메모를
+이어받아서 해." ("Card 069 is the microscope runtime folder session's. Do it
+building on Microscope 3's design notes.") If you are not
+`microscope-office-20261017-1`, take nothing from this card and report up.
+Questions for the person go to the intake seat, `architecture-office-20261017-2`.
 
-**The freeze this card waited on has ended.** The bench seat's findings file
-says, as its item 8 of 2026-10-13: "Instrument work for this visit is done
-as of this item; the src/ and tests/ freeze may end."
+Before that, the card was Microscope 3's (`microscope-office-20261015-1`,
+from 2026-10-17). It paused before writing any code when the move to
+`microscope_runtime/` was decided, and Microscope 3 is not re-seated. Before
+that it was `microscope-20261007-1`'s, which is now closed.
+
+## Revised 2026-10-19 -- read this first
+
+**Start after card 080 lands.** The code this card changes moves to
+`microscope_runtime/` in card 080. From then on, every file named below
+(`operator.py`, `live_view.py`, the orchestrator, `devices/`, `session_036_*`
+if it moves, and the tests) is under `microscope_runtime/src/` and
+`microscope_runtime/tests/`, and the person's approvals are read at
+`microscope_runtime/approvals/`. Where this card says `src/`, `tests/`,
+`runs/` or `approvals/`, read the runtime folder's.
+
+**Begin from Microscope 3's design notes**, its failures line at c6f0be0. In
+short: one standard-library module for the configuration gate; sha256
+checked against the person's approvals, read and never written; the load,
+its event and the AutoShutter stop at the start of `_run_body`; the derived
+copy, without System/Startup, written into the run folder; and an injectable
+loader, so tests use a fake core on a non-mock backend.
+
+**A hardware load without `--write` is refused.** There is no run folder to
+hold the derived copy. A copy written anywhere else is evidence that no run
+record keeps, so the load does not happen.
+
+**The FocusDirection rule is now final, and it replaces the blanket refusal
+in "until the store holds the encoding" below.** The entry landed:
+`kb:micromanager_focus_direction_encoding_mmcore_12_5_0`, spec, E3. Only the
+sign of the value counts, and a positive value means increasing position
+brings objective and sample closer. Cite it, together with
+`z_retract_direction_is_measured` (smaller Z is retracted): together they
+make "increasing Z moves toward the sample", so an agreeing `ZDrive` value
+is positive. That derivation is this card's, not the store's. On hardware,
+before anything is loaded:
+
+- **A `ZDrive` line must be present, and its value must be a positive
+  integer.** 0, a negative value, a non-integer token, an unparseable line,
+  or no `ZDrive` line at all is refused, with the reason named. A missing
+  line is refused too. The store does not hold what the NikonTi2 adapter
+  reports without one (the entry names that gap), and ambiguity stops. The
+  entry that records the adapter's default would be what relaxes this.
+- **A `FocusDirection` line whose label is not the configured focus stage
+  is refused.** Micro-Manager ignores such a line without a word, so a
+  typo there would leave the stand on the adapter's unknown default.
+- `PFSOffset`: as below. Recorded beside the hashes, and refused by name to
+  software.
+
+**Tests**, on mock, each watched failing first: one per refused case above,
+an agreeing positive value that passes, and the existing list under "Tests".
+The section "For the revision after plan.md section 15" below is now this
+section; read it as history.
+
+**What comes back** goes to manager-microscope-office-20261016-1, as listed
+at the end, and the intake seat gets the commit for the person's record.
 
 ## What was found
 

@@ -141,6 +141,13 @@ intake seat. Until the answer is committed there, card 069 stays paused, and
 Microscope 3's design so far is its failures line at c6f0be0. Card 076 has
 gone to the runtime seat (8fcef40e).
 
+**Settled 2026-10-19, at a1f3feca: card 069 is the runtime seat's**, building
+on Microscope 3's notes, and Microscope 3 is not re-seated. **The grant in
+"Card 069, Microscope 3" is withdrawn**: `src/`, `tests/` and `failures.jsonl`
+were never written under it, and they are not Microscope 3's. After card 080
+lands, the runtime's code is written only by `microscope-office-20261017-1`,
+in `microscope_runtime/`.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2, or whichever registered Office microscope seat is running
