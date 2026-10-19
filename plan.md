@@ -2447,6 +2447,12 @@ rebuild/
                                       into atomic entries at M3, when the query method is settled (§11.1)
     kb/index.json                   generated. `kb_version` = a content hash over all entries
     kb/exports/snapshot_<agent>.json  the publication point. Each agent session copies it into its own envelope (§4.3.2)
+    kb/wiki/                        **generated Markdown pages over the store, for people to read** (2026-10-18; librarian task 054,
+                                      `10fd338e`): `index.md`, `{device,quantity,observable,sample,configuration}/<id>.md` and
+                                      `unfiled.md`, each footed with the `kb_version` it was rendered from. **Generated, never edited**:
+                                      the entries are the record and a page is a view of them (P3), so a fact goes into `kb/entries/`
+                                      and the page is rendered again. The person's order is wiki, then ontology, then retrieval (11-28,
+                                      `42e66bad`). `ALLOWED_PATHS` and check 87's extension are manager-librarian's
     queries/log.jsonl               who asked what and why. **Outside `kb/`** -- it is a record, not knowledge (§4.3.2)
     src/kb_index.py                 index regeneration (store maintenance, from M0)
     src/mcp_server.py               the read-only, caller-isolated MCP server (§4.3.1, M3)
