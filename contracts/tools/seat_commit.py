@@ -102,7 +102,14 @@ HOLDS_NAME = "sma-seat-holds.jsonl"
 # of its gate, and one pass of the gate took 3 min 58 s on the Office computer
 # on 2026-10-16, so a wait shorter than that refuses ordinary work.
 DEFAULT_LOCK_WAIT = 600.0
+# The person's choice, not an arbitrary limit: "the commit tool's rebuild count
+# stays at five as it is", said in the intake seat's window and committed
+# verbatim at 51feb21b (Q-20261017-03). A refusal after the fifth rebuild is
+# the seat's cue to run the same command again.
 DEFAULT_RETRIES = 5
+# The message a refusal at that limit carries.
+AT_THE_LIMIT = ("nothing was committed. The limit is the person's choice (51feb21b); "
+                "run the same command again")
 GATE_TAIL = 30
 # What '@' becomes in a message delivered by session id (root CLAUDE.md, 2026-09-23).
 FULLWIDTH_AT = chr(0xFF20)
@@ -718,7 +725,7 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
                 attempt += 1
                 rec.row["retries"]["head_moved"] += 1
                 if attempt > args.retries:
-                    raise Refused(f"HEAD moved under the gate {attempt} times; nothing was committed")
+                    raise Refused(f"HEAD moved under the gate {attempt} times; {AT_THE_LIMIT}")
                 say(f"seat_commit: the gate refused, and HEAD moved to {git.rev('HEAD')[:9]} while it ran, so "
                     f"it judged a tree built on {base[:9]} against a newer HEAD. Not a verdict: rebuilt on the "
                     "new HEAD and judged again")
@@ -750,7 +757,7 @@ def commit(git: Git, args, row: dict, reg: dict, boundary_of, rec: Record) -> st
             attempt += 1
             rec.row["retries"]["head_moved"] += 1
             if attempt > args.retries:
-                raise Refused(f"HEAD moved under the gate {attempt} times; nothing was committed")
+                raise Refused(f"HEAD moved under the gate {attempt} times; {AT_THE_LIMIT}")
             say(f"seat_commit: HEAD moved to {git.rev('HEAD')[:9]} while the gate ran, so the tree built "
                 f"on {base[:9]} is discarded and rebuilt on the new HEAD")
         rec.row["commit"] = new
