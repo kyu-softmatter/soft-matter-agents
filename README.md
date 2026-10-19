@@ -51,7 +51,7 @@ their axis list differs.
 | `microscope_agent/` · `simulation_agent/` | the two that execute. Same pipeline, seven axes vs six |
 | `librarian_agent/` | the only knowledge store. Answers read-only, and records what it could **not** answer |
 | `bridge/` | carries cards between the two executing agents. Reads their `questions/`, writes their `inbox/`, and touches no number |
-| `microscope_runtime/` | the microscope's execution, split from `microscope_agent/` on 2026-10-17: operator, orchestrator, devices, live view, the run-time watcher, and the person's safety policy, approvals and run records. One execution path, one session (`plan.md` §15) |
+| `microscope_runtime/` | the microscope's execution, split from `microscope_agent/` on 2026-10-17, its code, tests and run records moved in on 2026-10-19: operator, orchestrator, devices, live view, the run-time watcher, and the person's safety policy, approvals and run records. One execution path, one session (`plan.md` §15) |
 | `console/` | the operator console: shows runs and the agents' records, drafts plans the person approves, and commands nothing itself (`plan.md` §15, §11-25) |
 | `contracts/` | the only shared code: card schemas, units, the observable vocabulary, `validate.py` |
 
@@ -116,6 +116,7 @@ Design and tooling around it:
 | [agent-layer](https://github.com/kyu-softmatter/agent-layer) | checks the `.claude` layer a session boots with; its `agent-layer-check.sh` is the SessionStart hook `CLAUDE.md` names |
 | [autofocus-jev](https://github.com/kyu-softmatter/autofocus-jev) | the Jev autofocus trial (`plan.md`, and `microscope_agent/tasks/026`) |
 | [dino-autofocus](https://github.com/kyu-softmatter/dino-autofocus) | focus finding and sample mapping on the same stand, plus the operator console. Imported whole with its history into this repository on 2026-10-15 and frozen there as a read-only record at `95eee95` (`plan.md` §10.2); its console now lives in `console/` |
+| [harness2](https://github.com/google-research/harness2) | Google Research's agent harness, public, Apache-2.0. Opened on 2026-10-19 as read-only design material for the meta-harness: nothing copied, nothing installed (`plan.md` §10.2) |
 
 Related by topic only -- nothing here references their code:
 [psf-autofocus](https://github.com/kyu-softmatter/psf-autofocus),
