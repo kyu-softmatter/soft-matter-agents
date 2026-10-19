@@ -2,24 +2,9 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to the seat holding `src/` and `tests/` under card 064**, which
-is `microscope-20261007-1` today. **Start after card 069 lands.** Both cards
-touch the orchestrator and the operator, and one seat writes code at a time.
-If the person seats a different session for this card, card 064 changes
-first. If you are not the seat holding `src/`, take nothing from this card
-and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. Start now** (re-pointed 2026-10-19). It was written for the seat then holding `src/` under card 064, `microscope-20261007-1`, which the person closed on 2026-10-19 (intake `b9bf1ea3`). Card 080 moved the runtime's code into `microscope_runtime/` (`a36e49d0`), and card 069, the configuration gate in `operator.py` and `live_view.py`, has landed (`19f4c1d8`). **Every path this card names under `src/` and `tests/` means `microscope_runtime/src/` and `microscope_runtime/tests/`.** Run folders are `microscope_runtime/runs/<run_id>/`. The knowledge snapshot stays at `microscope_agent/envelope/snapshot.json`. The person's policy and approvals move to `microscope_runtime/` at plan.md 15 step 6, so until then the tests that read the real policy stay skipped, as card 080 left them. Build and test on mock with scratch policies, as the parts below say. Card 081 follows this card, and it builds on this card's backend interface. If you are not `microscope-office-20261017-1`, take nothing from this card and report up.
 
-**Reassigned 2026-10-19 to `microscope-office-20261017-1`, the runtime seat.** `microscope-20261007-1` was closed by the person that day (intake `b9bf1ea3`), and this card's code lives in `microscope_runtime/` from card 080 on. Start after card 080 lands and this card's paths are re-pointed to `microscope_runtime/src/` and `tests/` (plan.md 15 step 8). Until then, the hold below stands.
-
-## Hold: wait for plan.md section 15 (added 2026-10-17)
-
-**Start nothing under this card until plan.md section 15 lands and this card
-is revised to match it.** On 2026-10-17 the person decided, in
-architecture-office-20261017-1's window, to split the microscope execution
-layer and the watcher into a new top-level `microscope_runtime/`, and
-architecture-20261003-1 relayed that section 15 specifies the move. The paths
-this card names under `microscope_agent/src/` and `tests/` are likely to
-change. Nothing in this card has started, so nothing is to be undone.
+The hold this card carried from 2026-10-17 to 2026-10-19, waiting on plan.md section 15, is lifted: section 15 has landed and this card now follows it.
 
 ## Reduced images may go to the backend (added 2026-10-19)
 
@@ -86,7 +71,7 @@ architecture-office-20261017-1's window: "다음 장비 방문 전에 모의 장
 next instrument visit, on mock only, and at the visit measure only the stop
 delay.
 
-- **Done means done on mock, before the next bench visit**, after card 069.
+- **Done means done on mock, before the next bench visit.** Card 069 has landed.
 - **At that visit, one instrument item only**: on each device, how long a
   read already in progress delays an abort. The bench step for it goes in
   the visit's card when that card is written, not in this one.
@@ -155,7 +140,7 @@ specification, and this card only divides it into work.
 
 ## What to build
 
-All of it goes in flat files in `microscope_agent/src/`, and none of them
+All of it goes in flat files in `microscope_runtime/src/`, and none of them
 imports `devices/`. The one exception is part E.
 
 **A. The renderer**, one pure function with a version string, standard
@@ -270,8 +255,9 @@ what part C's "never wait" stands on.
 
 ## Boundaries
 
-- Write `microscope_agent/src/`, `microscope_agent/tests/` and one flat
-  test plan per case under a `questions/` folder you create. Nothing else.
+- Write `microscope_runtime/src/` and `microscope_runtime/tests/`. Test plans
+  live in your scratch root or under the tests, not in `microscope_agent/questions/`,
+  which is the design's. Nothing else.
 - No change to `contracts/`. If a schema field is wrong or missing, report
   it up with the file and the field.
 - Never `envelope/`, `approvals/` or `inbox/`. No change to
