@@ -119,6 +119,28 @@ the one above. The revision of 069 says where the code lives after the
 move and who holds it, and this section is rewritten to match in the same
 commit.
 
+## After the move to microscope_runtime/ (added 2026-10-19)
+
+**`microscope-20261007-1` (Microscope 2) is closed.** The person confirmed it
+in the intake seat's window, committed at b9bf1ea3. So the code no longer has
+anywhere to return to under "While Microscope 1 is closed" above: those rows
+name a seat that is closed, and nothing in them grants anything now.
+
+**Card 080 (8fcef40e) moves the runtime's code, tests and runs into
+`microscope_runtime/`**, which only `microscope-office-20261017-1` (the
+runtime seat) writes. Until 080 lands, the pause above holds: no seat edits
+`src/` or `tests/` in this tree. Once it lands, the code card 069 touches
+(operator.py, live_view.py, the orchestrator, devices/) lives there, and
+**the code holder is the runtime seat under card 080, not any seat in this
+card**. The grant in "Card 069, Microscope 3" then has nothing left to grant
+here, because Microscope 3 writes `microscope_agent/` only.
+
+**Who carries card 069 after the move is the person's call**: the runtime
+seat, or Microscope 3 seated in that folder. It has been asked through the
+intake seat. Until the answer is committed there, card 069 stays paused, and
+Microscope 3's design so far is its failures line at c6f0be0. Card 076 has
+gone to the runtime seat (8fcef40e).
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2, or whichever registered Office microscope seat is running
