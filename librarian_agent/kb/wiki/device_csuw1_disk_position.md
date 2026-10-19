@@ -38,6 +38,8 @@ None.
 
 The element the configuration calls csuw1_bright, offered as confocal or bright field, and the element it calls csuw1_disk_position, offered as in or out, are one mechanism recorded twice under two names. Moving the disk in or out is the only thing either name selects.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -47,6 +49,8 @@ Conditions, verbatim:
 ### [csuw1_disk_position_states](../entries/csuw1_disk_position_states.json)
 
 With the spinning disk in, the path is confocal. With the disk out, the same hardware serves both widefield fluorescence and brightfield. Disk-out is therefore not a configuration of its own but a required selector value on configurations that already exist, and one selector position serves two different configurations.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 

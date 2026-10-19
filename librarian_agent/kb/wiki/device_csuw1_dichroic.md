@@ -30,6 +30,8 @@ None.
 
 The unit's excitation dichroic turret carries three slots. One dichroic is fitted, in slot 1; slots 2 and 3 are empty. The fitted dichroic stays in the path whatever the disk does, which is why this instrument has no unfiltered white-light path.
 
+Identifiers: fitted_slot: 1
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:

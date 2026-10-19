@@ -33,6 +33,8 @@ None.
 
 In Ti2 Control, each nosepiece address can be set to move the objective to its escape position before that address passes when the nosepiece rotates, and the escape distance used when changing the specimen is also a setting there.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
 Conditions, verbatim:
@@ -42,6 +44,8 @@ Conditions, verbatim:
 ### [tweez_calibration_photodiode_needs_the_laser_off](../entries/tweez_calibration_photodiode_needs_the_laser_off.json)
 
 Before setting up the calibration photodiode the laser must be switched off, or it can injure eyes or skin and damage the photodiode. The objective must be fully retracted before the photodiode is placed on the sample holder, and its position adjusted with great care, so as not to damage the objective's front lens.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300UserManual).
 

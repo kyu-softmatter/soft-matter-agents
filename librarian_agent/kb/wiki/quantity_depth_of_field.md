@@ -23,6 +23,8 @@ None.
 
 The total depth of field of a microscope objective imaging onto a detector is the sum of a wave-optical term, the wavelength times the medium's refractive index over the numerical aperture squared, and a geometric term, the refractive index times the detector's smallest resolvable distance over the lateral magnification times the numerical aperture; it is the full axial distance between the nearest and farthest planes in focus.
 
+Identifiers: none
+
 How it is known: computed; computed from other values (E4 · computed:depth_of_field_total).
 
 Conditions, verbatim:

@@ -30,15 +30,17 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | binning: 1x1; model: Kinetix 22; port: Dynamic Range; readout_rate: 100MHz 16bit | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
 
 ## Claims
 
 ### [camera_bodies_are_told_apart_by_serial](../entries/camera_bodies_are_told_apart_by_serial.json)
 
 The two camera bodies are distinguished by serial number rather than by label: A23H723003 is the blue arm and A24M723015 is the red arm.
+
+Identifiers: model: Kinetix 22; serial: A23H723003
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -50,6 +52,8 @@ Conditions, verbatim:
 
 Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.
 
+Identifiers: model: Kinetix 22
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -60,6 +64,8 @@ Conditions, verbatim:
 
 The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both cameras in different bands, and one holds a 100/0 mirror and sends light to the blue camera only. Two of the three states therefore send zero light to one camera. Which physical slot is at which position number is not known.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -69,6 +75,8 @@ Conditions, verbatim:
 ### [emission_wheel_camera_mapping](../entries/emission_wheel_camera_mapping.json)
 
 The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half of the same recalled claim.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260917).
 

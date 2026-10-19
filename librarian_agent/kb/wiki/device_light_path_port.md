@@ -25,6 +25,8 @@ None.
 
 On 2026-09-24, with the 20x placed by hand, the stand read: Nosepiece state 2, label '3-Plan Apo LmbdD0.8 20x'; LightPath state 3, '4-L100'; FilterTurret1 state 0, '1-MXR00724 -Empty'; FilterTurret2 state 0, '1-Empty'; LappMainBranch1 state 1, 'mirror_in'; CondenserTurret state 0, '1-ND'.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -35,6 +37,8 @@ Conditions, verbatim:
 
 On the Ti2-E the light path has four addresses: 1 is the eyepiece observation port; 2 the right side port; 3, with the optical-path split prism, sends 80 per cent to the left side port and 20 per cent to the eyepieces, or is the bottom port on the Ti2-E/B; and 4 is the left side port. So two addresses can put light into the eyepieces. The position the path takes at start-up is a Ti2 Control setting.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
 Conditions, verbatim:
@@ -44,6 +48,8 @@ Conditions, verbatim:
 ### [tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces](../entries/tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces.json)
 
 The Nikon Ti2's own interlock switch is triggered whenever light could enter the eyepieces -- when the light path selector is set to the eyepieces -- and it is wired to the tweezers' optical unit, so that laser operation is disabled in that position. The manufacturer calls it an additional measure: an infrared filter already keeps the laser out of the eyepiece path. If the interlock cable is disconnected, laser operation is disabled. The Ti2's interlock works only while the microscope is powered, and with the microscope off, tweezers laser operation is disabled too.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 

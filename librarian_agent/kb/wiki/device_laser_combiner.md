@@ -54,32 +54,34 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| illumination_power | 7.0 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_10x_full_level](../entries/confocal_power_at_sample_488nm_10x_full_level.json) |
-| illumination_power | 6.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_20x_full_level](../entries/confocal_power_at_sample_488nm_20x_full_level.json) |
-| illumination_power | 7.0 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_4x_full_level](../entries/confocal_power_at_sample_488nm_4x_full_level.json) |
-| illumination_power | 6.7 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_10x_full_level](../entries/confocal_power_at_sample_561nm_10x_full_level.json) |
-| illumination_power | 6.5 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_20x_full_level](../entries/confocal_power_at_sample_561nm_20x_full_level.json) |
-| illumination_power | 6.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_4x_full_level](../entries/confocal_power_at_sample_561nm_4x_full_level.json) |
-| illumination_power | 10.3 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_10x_full_level](../entries/confocal_power_at_sample_640nm_10x_full_level.json) |
-| illumination_power | 9.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_20x_full_level](../entries/confocal_power_at_sample_640nm_20x_full_level.json) |
-| illumination_power | 10.6 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_4x_full_level](../entries/confocal_power_at_sample_640nm_4x_full_level.json) |
-| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_100x_full_level_rough](../entries/confocal_power_at_sample_488nm_100x_full_level_rough.json) |
-| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_40x_full_level_rough](../entries/confocal_power_at_sample_488nm_40x_full_level_rough.json) |
-| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_60x_full_level_rough](../entries/confocal_power_at_sample_488nm_60x_full_level_rough.json) |
-| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_100x_full_level_rough](../entries/confocal_power_at_sample_561nm_100x_full_level_rough.json) |
-| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_40x_full_level_rough](../entries/confocal_power_at_sample_561nm_40x_full_level_rough.json) |
-| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_60x_full_level_rough](../entries/confocal_power_at_sample_561nm_60x_full_level_rough.json) |
-| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_100x_full_level_rough](../entries/confocal_power_at_sample_640nm_100x_full_level_rough.json) |
-| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_40x_full_level_rough](../entries/confocal_power_at_sample_640nm_40x_full_level_rough.json) |
-| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_60x_full_level_rough](../entries/confocal_power_at_sample_640nm_60x_full_level_rough.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| illumination_power | 7.0 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 10x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_10x_full_level](../entries/confocal_power_at_sample_488nm_10x_full_level.json) |
+| illumination_power | 6.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 20x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_20x_full_level](../entries/confocal_power_at_sample_488nm_20x_full_level.json) |
+| illumination_power | 7.0 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 4x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_4x_full_level](../entries/confocal_power_at_sample_488nm_4x_full_level.json) |
+| illumination_power | 6.7 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 10x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_10x_full_level](../entries/confocal_power_at_sample_561nm_10x_full_level.json) |
+| illumination_power | 6.5 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 20x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_20x_full_level](../entries/confocal_power_at_sample_561nm_20x_full_level.json) |
+| illumination_power | 6.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 4x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_4x_full_level](../entries/confocal_power_at_sample_561nm_4x_full_level.json) |
+| illumination_power | 10.3 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 10x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_10x_full_level](../entries/confocal_power_at_sample_640nm_10x_full_level.json) |
+| illumination_power | 9.9 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 20x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_20x_full_level](../entries/confocal_power_at_sample_640nm_20x_full_level.json) |
+| illumination_power | 10.6 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 4x | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_4x_full_level](../entries/confocal_power_at_sample_640nm_4x_full_level.json) |
+| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 100x; part_number: MRD71970 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_100x_full_level_rough](../entries/confocal_power_at_sample_488nm_100x_full_level_rough.json) |
+| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 40x; part_number: MRD77400 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_40x_full_level_rough](../entries/confocal_power_at_sample_488nm_40x_full_level_rough.json) |
+| illumination_power | 7 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 488 nm; level_percent: 100; light_source: confocal; nominal_magnification: 60x; part_number: MRD71670 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_488nm_60x_full_level_rough](../entries/confocal_power_at_sample_488nm_60x_full_level_rough.json) |
+| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 100x; part_number: MRD71970 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_100x_full_level_rough](../entries/confocal_power_at_sample_561nm_100x_full_level_rough.json) |
+| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 40x; part_number: MRD77400 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_40x_full_level_rough](../entries/confocal_power_at_sample_561nm_40x_full_level_rough.json) |
+| illumination_power | 6 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 561 nm; level_percent: 100; light_source: confocal; nominal_magnification: 60x; part_number: MRD71670 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_561nm_60x_full_level_rough](../entries/confocal_power_at_sample_561nm_60x_full_level_rough.json) |
+| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 100x; part_number: MRD71970 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_100x_full_level_rough](../entries/confocal_power_at_sample_640nm_100x_full_level_rough.json) |
+| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 40x; part_number: MRD77400 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_40x_full_level_rough](../entries/confocal_power_at_sample_640nm_40x_full_level_rough.json) |
+| illumination_power | 10 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 1 1 | laser_line: 640 nm; level_percent: 100; light_source: confocal; nominal_magnification: 60x; part_number: MRD71670 | device laser_combiner, quantity illumination_power | [confocal_power_at_sample_640nm_60x_full_level_rough](../entries/confocal_power_at_sample_640nm_60x_full_level_rough.json) |
 
 ## Claims
 
 ### [lunf_blanking_lines_reservable_right_after_nis_kill](../entries/lunf_blanking_lines_reservable_right_after_nis_kill.json)
 
 On the microscope computer, within about 1.6 s of NIS-Elements being force-killed, all four of the laser combiner's blanking lines (Dev1/port0 lines 2, 4, 6 and 8) could be reserved from Python through NI-DAQmx, and level-0 writes to each returned without error. The writes were not read back and no light was produced, so what the lines actually did is not established.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-009).
 
@@ -91,6 +93,8 @@ Conditions, verbatim:
 
 On the confocal path, 488 nm excitation produced signal in the red camera arm about as strongly as 561 nm did, and the red arm's signal was additive across the two lines. So assigning species on the red arm requires the lines to be strobed, not run together.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -100,6 +104,8 @@ Conditions, verbatim:
 ### [laser_shutter_on_the_combiner](../entries/laser_shutter_on_the_combiner.json)
 
 A second shutter exists on the laser combiner, distinct from the shutter inside the confocal unit. Two shutters sit in the confocal excitation chain: one at the source and one at the unit's entrance.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
@@ -111,6 +117,8 @@ Conditions, verbatim:
 
 The DAQ's four analog outputs are not cabled to the combiner's power inputs. Driving them, together and one at a time, stepped and at speed, with the blanking line held open, changed nothing in the emitted light.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -120,6 +128,8 @@ Conditions, verbatim:
 ### [lunf_blanking_port_is_held_by_one_program](../entries/lunf_blanking_port_is_held_by_one_program.json)
 
 While the vendor acquisition program runs, it holds exclusively the DAQ port that carries the combiner's blanking lines, and the combiner's SPI interfaces. Another program asking for a blanking line is refused by the DAQ driver with error -200587 (lines reserved by another task). So the blanking lines and the per-line levels, which only the vendor program reaches, cannot be held by two programs at once.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
@@ -131,6 +141,8 @@ Conditions, verbatim:
 
 The laser combiner's fiber shutter stays open when the vendor acquisition program that opened it is force-killed: only that program's clean shutdown closes it, and the combiner has no watchdog that shuts the fiber when its controlling link drops. After a kill, a line driven from other software still emitted.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -140,6 +152,8 @@ Conditions, verbatim:
 ### [lunf_line_map_and_blanking_polarity](../entries/lunf_line_map_and_blanking_polarity.json)
 
 The combiner's four lines are blanked on DAQ Dev1 port 0 as 405 nm on line2, 488 on line4, 561 on line6 and 640 on line8, with DAC indices 0 to 3 in the same order. Blanking is active-high: writing 1 opens a line and 0 closes it.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/config/lunf).
 
@@ -151,6 +165,8 @@ Conditions, verbatim:
 
 The confocal combiner's lines are reachable only as blanking, on digital lines through the acquisition software's line-select group. Per-line power is deliberately not transmitted: the vendor does not document the word format the power interface expects, and the transport was left complete but disabled rather than guessing a byte into a laser driver.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -160,6 +176,8 @@ Conditions, verbatim:
 ### [lunf_reports_nothing_back](../entries/lunf_reports_nothing_back.json)
 
 Nothing about the laser combiner can be read back. Its DAC is write-only; reading back a blanking line returns the writer's own output, not the shutter's state; no combiner monitor signal is wired to any of the DAQ's analog inputs, which float; and the vendor library exports no shutter or status entry point.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
@@ -171,6 +189,8 @@ Conditions, verbatim:
 
 The prior project's Micro-Manager configuration dualcam_noDMD.cfg declares the combiner's blanking lines as a Micro-Manager device, LUNF-Blanking, an NIDAQ digital-output device on Dev1 port 0 under an NIDAQHub. A session that loads a configuration carrying that declaration has a route to switch a confocal laser line that does not pass through any wrapper written here.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/config/micromanager/dualcam_noDMD.cfg).
 
 Conditions, verbatim:
@@ -181,6 +201,8 @@ Conditions, verbatim:
 
 The configuration single_cam_red_noDMD_nocom10.cfg declares the confocal combiner's blanking lines as the Micro-Manager device LUNF-Blanking and defines a LaserLine group whose presets 405, 488, 561 and 640 each set one blanking line to 1 -- line2, line4, line6 and line8 respectively -- and whose AllOff preset sets all four to 0. So a session that loads it can switch a confocal laser line with an ordinary Micro-Manager group call.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/config/micromanager/single_cam_red_noDMD_nocom10.cfg).
 
 Conditions, verbatim:
@@ -190,6 +212,8 @@ Conditions, verbatim:
 ### [lunf_killed_writer_may_leave_a_line_open](../entries/lunf_killed_writer_may_leave_a_line_open.json)
 
 If a program that opened a combiner blanking line is killed rather than closed, that line may stay open, with the fiber shutter also open. Unmeasured: this is an inference from two prior observations -- a blanking line kept its level after the task that wrote it was cleared (a blink that created and cleared a task per write still blinked), and the fiber shutter survives a kill -- and whether a line's level survives the writing process dying has not been tested.
+
+Identifiers: none
 
 How it is known: recalled or assumed; an assumption (E5 · assumed:inference_from_prior_lunf_blink_and_shutter_kill).
 

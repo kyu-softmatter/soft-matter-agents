@@ -15,12 +15,17 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| storage_temperature_min | 275 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:invitrogen_f8801 | none stated | quantity storage_temperature_min | [f8801_storage_conditions](../entries/f8801_storage_conditions.json) |
-| storage_temperature_max | 281 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:invitrogen_f8801 | none stated | quantity storage_temperature_min | [f8801_storage_conditions](../entries/f8801_storage_conditions.json) |
-| storage_temperature_min | 275 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:abvigen_red_ps_cooh | none stated | quantity storage_temperature_min | [tracer_storage_conditions](../entries/tracer_storage_conditions.json) |
-| storage_temperature_max | 281 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:abvigen_red_ps_cooh | none stated | quantity storage_temperature_min | [tracer_storage_conditions](../entries/tracer_storage_conditions.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| storage_temperature_min | 275 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:invitrogen_f8801 | none stated | catalog_number: F8801; product: FluoSpheres Carboxylate-Modified Microspheres, 0.1 um, red fluorescent (580/605); supplier: Invitrogen (Thermo Fisher Scientific) | quantity storage_temperature_min | [f8801_storage_conditions](../entries/f8801_storage_conditions.json) |
+| storage_temperature_max | 281 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:invitrogen_f8801 | none stated | catalog_number: F8801; product: FluoSpheres Carboxylate-Modified Microspheres, 0.1 um, red fluorescent (580/605); supplier: Invitrogen (Thermo Fisher Scientific) | quantity storage_temperature_min | [f8801_storage_conditions](../entries/f8801_storage_conditions.json) |
+| storage_temperature_min | 275 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:abvigen_red_ps_cooh | none stated | catalog_number: AFR-0500-COOH | quantity storage_temperature_min | [tracer_storage_conditions](../entries/tracer_storage_conditions.json) |
+| storage_temperature_max | 281 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:abvigen_red_ps_cooh | none stated | catalog_number: AFR-0500-COOH | quantity storage_temperature_min | [tracer_storage_conditions](../entries/tracer_storage_conditions.json) |
+
+Applies to, verbatim, for the entries above that say:
+
+- [f8801_storage_conditions](../entries/f8801_storage_conditions.json): the type F8801. Applying it to the beads on this bench goes through the E5 linking claim particle_suspension_b_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8
+- [tracer_storage_conditions](../entries/tracer_storage_conditions.json): the type AFR-0500-COOH. Applying it to the bottle on this bench goes through the E5 linking claim particle_suspension_a_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8
 
 ## Claims
 

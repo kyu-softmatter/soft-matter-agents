@@ -196,6 +196,8 @@ None.
 
 In the Micro-Manager NikonTi2 adapter, IntermediateMagnification is not a state device: asking it for a state raises 'is of the wrong type for the requested operation'. Its value has to be read as a property.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -205,6 +207,8 @@ Conditions, verbatim:
 ### [mm_config_load_did_not_return_after_nis_force_kill](../entries/mm_config_load_did_not_return_after_nis_force_kill.json)
 
 On the microscope computer, after NIS-Elements was force-killed, Micro-Manager's configuration load did not return, twice: in run-20260924-009 for about six minutes, and in run-20260924-010, loading a configuration named ti2_only.cfg, until the seat stopped the process after about two minutes. In run-20260924-008, with NIS closed normally, a configuration holding the same stand devices loaded in about 3 s.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-010).
 
@@ -216,6 +220,8 @@ Conditions, verbatim:
 
 Loading single_cam_red_noDMD_nocom10.cfg moves the Lapp main-branch mirror: its System/Startup preset sets LappMainBranch1 State to 1, and after the load LappMainBranch1 reads State 1 (mirror_in).
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -225,6 +231,8 @@ Conditions, verbatim:
 ### [stand_state_read_20260924_20x_in_place](../entries/stand_state_read_20260924_20x_in_place.json)
 
 On 2026-09-24, with the 20x placed by hand, the stand read: Nosepiece state 2, label '3-Plan Apo LmbdD0.8 20x'; LightPath state 3, '4-L100'; FilterTurret1 state 0, '1-MXR00724 -Empty'; FilterTurret2 state 0, '1-Empty'; LappMainBranch1 state 1, 'mirror_in'; CondenserTurret state 0, '1-ND'.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -236,6 +244,8 @@ Conditions, verbatim:
 
 Ti2 Control must be installed before the microscope is connected to the computer by USB, or the driver may not install and the microscope may not be recognised; and the USB cable to the microscope must not be unplugged once Ti2 Control is running.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
 Conditions, verbatim:
@@ -245,6 +255,8 @@ Conditions, verbatim:
 ### [ti2e_filter_shutter_state_at_startup_is_a_setting](../entries/ti2e_filter_shutter_state_at_startup_is_a_setting.json)
 
 In Ti2 Control, whether the fluorescence turret's shutter is open or closed when the microscope starts is a setting.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
@@ -256,6 +268,8 @@ Conditions, verbatim:
 
 In Ti2 Control, each nosepiece address can be set to move the objective to its escape position before that address passes when the nosepiece rotates, and the escape distance used when changing the specimen is also a setting there.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
 Conditions, verbatim:
@@ -265,6 +279,8 @@ Conditions, verbatim:
 ### [ti2e_optical_path_addresses](../entries/ti2e_optical_path_addresses.json)
 
 On the Ti2-E the light path has four addresses: 1 is the eyepiece observation port; 2 the right side port; 3, with the optical-path split prism, sends 80 per cent to the left side port and 20 per cent to the eyepieces, or is the bottom port on the Ti2-E/B; and 4 is the left side port. So two addresses can put light into the eyepieces. The position the path takes at start-up is a Ti2 Control setting.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
@@ -276,6 +292,8 @@ Conditions, verbatim:
 
 Before setting up the calibration photodiode the laser must be switched off, or it can injure eyes or skin and damage the photodiode. The objective must be fully retracted before the photodiode is placed on the sample holder, and its position adjusted with great care, so as not to damage the objective's front lens.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300UserManual).
 
 Conditions, verbatim:
@@ -285,6 +303,8 @@ Conditions, verbatim:
 ### [tweez_filter_cube_shutter_and_blocking_filter](../entries/tweez_filter_cube_shutter_and_blocking_filter.json)
 
 The tweezers are meant to be used with an Aresis-supplied filter cube in the microscope's epi-fluorescence turret. That turret's mechanically actuated shutter blocks the laser from the objective and the eyepieces, and the cube's dichroic and blocking filters attenuate infrared that could reach the eyepiece path to well below the Class 1 limit.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -296,6 +316,8 @@ Conditions, verbatim:
 
 The Nikon Ti2's own interlock switch is triggered whenever light could enter the eyepieces -- when the light path selector is set to the eyepieces -- and it is wired to the tweezers' optical unit, so that laser operation is disabled in that position. The manufacturer calls it an additional measure: an infrared filter already keeps the laser out of the eyepiece path. If the interlock cable is disconnected, laser operation is disabled. The Ti2's interlock works only while the microscope is powered, and with the microscope off, tweezers laser operation is disabled too.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -305,6 +327,8 @@ Conditions, verbatim:
 ### [filter_turret_1_state_0_blocked_the_confocal_path](../entries/filter_turret_1_state_0_blocked_the_confocal_path.json)
 
 On 2026-09-07 in the prior project, filter turret 1 at state 0 held the multiband cube MXR00724 and blocked the confocal path, while states 1, 2 and 3 were empty and passed it.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/config/lunf).
 
@@ -316,6 +340,8 @@ Conditions, verbatim:
 
 On this stand, with the Lapp main branch at State 1 -- where the device reports the label 'mirror_in' -- the Aura III light engine's light reaches the sample: the person saw particles lit by the Aura in that state and said the position is the Aura's.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_lapp_aura).
 
 Conditions, verbatim:
@@ -325,6 +351,8 @@ Conditions, verbatim:
 ### [mm_label_zdrive_is_the_focus_axis](../entries/mm_label_zdrive_is_the_focus_axis.json)
 
 On the prior project's configuration the focus axis is the MMCore device label `ZDrive`, moved with setPosition and read with getPosition. Its position is the focus coordinate on this stand.
+
+Identifiers: mm_label: ZDrive; parent_stand: Ti2-E
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
@@ -336,6 +364,8 @@ Conditions, verbatim:
 
 The stand runs no objective escape when the nosepiece is rotated by a Micro-Manager write: Z does not move, so whatever height the outgoing objective was at is where the incoming one arrives. Rotating at the stand or in NIS does run the Ti2's own escape; the software path does not.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -346,6 +376,8 @@ Conditions, verbatim:
 
 The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stage lock group, because the piezo rides on the motor stage. One channel therefore carries two lock groups, and a lock group is a property of an element rather than only of a channel.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -355,6 +387,8 @@ Conditions, verbatim:
 ### [z_retract_direction_is_measured](../entries/z_retract_direction_is_measured.json)
 
 Smaller Z is retracted on this stand -- measured, not inferred. Micro-Manager now carries the same convention in its configurations, so the instrument can answer which way retract is rather than requiring a reader of a memo.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 

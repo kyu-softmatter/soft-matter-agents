@@ -26,6 +26,8 @@ None.
 
 Loading single_cam_red_noDMD_nocom10.cfg moves the Lapp main-branch mirror: its System/Startup preset sets LappMainBranch1 State to 1, and after the load LappMainBranch1 reads State 1 (mirror_in).
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -36,6 +38,8 @@ Conditions, verbatim:
 
 On 2026-09-24, with the 20x placed by hand, the stand read: Nosepiece state 2, label '3-Plan Apo LmbdD0.8 20x'; LightPath state 3, '4-L100'; FilterTurret1 state 0, '1-MXR00724 -Empty'; FilterTurret2 state 0, '1-Empty'; LappMainBranch1 state 1, 'mirror_in'; CondenserTurret state 0, '1-ND'.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -45,6 +49,8 @@ Conditions, verbatim:
 ### [lapp_state_1_brings_the_aura_to_the_sample](../entries/lapp_state_1_brings_the_aura_to_the_sample.json)
 
 On this stand, with the Lapp main branch at State 1 -- where the device reports the label 'mirror_in' -- the Aura III light engine's light reaches the sample: the person saw particles lit by the Aura in that state and said the position is the Aura's.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_lapp_aura).
 

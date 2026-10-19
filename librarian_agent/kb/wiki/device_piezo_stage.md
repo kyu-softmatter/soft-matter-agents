@@ -46,21 +46,23 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| piezo_calibrated_range_min | 0 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | device piezo_stage | [piezo_calibrated_range](../entries/piezo_calibrated_range.json) |
-| piezo_calibrated_range_max | 600 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | device piezo_stage | [piezo_calibrated_range](../entries/piezo_calibrated_range.json) |
-| piezo_rest_position_ch1 | 0.02531508 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
-| piezo_rest_position_ch2 | 0.00607026 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
-| piezo_rest_position_ch3 | -0.00172179 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
-| piezo_device_range_min | -100 | um | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260924_piezo_range | none stated | device piezo_stage | [piezo_device_range_as_stated_by_the_person](../entries/piezo_device_range_as_stated_by_the_person.json) |
-| piezo_device_range_max | 600 | um | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260924_piezo_range | none stated | device piezo_stage | [piezo_device_range_as_stated_by_the_person](../entries/piezo_device_range_as_stated_by_the_person.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| piezo_calibrated_range_min | 0 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | none | device piezo_stage | [piezo_calibrated_range](../entries/piezo_calibrated_range.json) |
+| piezo_calibrated_range_max | 600 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | none | device piezo_stage | [piezo_calibrated_range](../entries/piezo_calibrated_range.json) |
+| piezo_rest_position_ch1 | 0.02531508 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | none | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
+| piezo_rest_position_ch2 | 0.00607026 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | none | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
+| piezo_rest_position_ch3 | -0.00172179 | um | measured on this instrument; a recorded run of this system | E1 · measured:run-20260924-004 | none stated | none | device piezo_stage | [piezo_rest_position_as_found_20260924](../entries/piezo_rest_position_as_found_20260924.json) |
+| piezo_device_range_min | -100 | um | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260924_piezo_range | none stated | none | device piezo_stage | [piezo_device_range_as_stated_by_the_person](../entries/piezo_device_range_as_stated_by_the_person.json) |
+| piezo_device_range_max | 600 | um | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260924_piezo_range | none stated | none | device piezo_stage | [piezo_device_range_as_stated_by_the_person](../entries/piezo_device_range_as_stated_by_the_person.json) |
 
 ## Claims
 
 ### [piezo_command_path_as_found_20260924](../entries/piezo_command_path_as_found_20260924.json)
 
 On 2026-09-24 the piezo controller reported, on each of channels 1, 2 and 3: analogue command input disabled, digital command input enabled, and closed-loop operation on. Its raw mode words were 0x0327 on channel 1 and 0x0323 on channels 2 and 3, and its status word 0x0B17 on all three.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
@@ -72,6 +74,8 @@ Conditions, verbatim:
 
 The piezo controller labels its channels as axes: channel 1 is x, channel 2 is y and channel 3 is z. These are the controller's own labels, not an observation of which way the image or the sample moves.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
 Conditions, verbatim:
@@ -81,6 +85,8 @@ Conditions, verbatim:
 ### [piezo_controller_identity](../entries/piezo_controller_identity.json)
 
 The piezo stage's controller, on COM4, reports itself as hardware part NPC-6330, serial 108564.
+
+Identifiers: part_number: NPC-6330; serial: 108564
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
@@ -92,6 +98,8 @@ Conditions, verbatim:
 
 The piezo controller reports its software version as code 101122056, the raw code as reported and not decoded into a release number.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
 Conditions, verbatim:
@@ -101,6 +109,8 @@ Conditions, verbatim:
 ### [piezo_interface_library_version_on_this_computer](../entries/piezo_interface_library_version_on_this_computer.json)
 
 The piezo controller's vendor interface library installed on this computer, loaded from the NanoBench 6000 install, reports version 2.8.1.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
@@ -112,6 +122,8 @@ Conditions, verbatim:
 
 On 2026-09-24 the piezo controller was at security level 'None' -- locked -- and at that level it lists 184 commands. The read-only run left the level where it found it.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
 Conditions, verbatim:
@@ -121,6 +133,8 @@ Conditions, verbatim:
 ### [piezo_stage_identity](../entries/piezo_stage_identity.json)
 
 The piezo controller reports the same stage on all three of its channels: part SP-XYZ-600, serial 107866. So the three axes are one three-axis stage, not three stages.
+
+Identifiers: part_number: SP-XYZ-600; serial: 107866
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-004).
 
@@ -132,6 +146,8 @@ Conditions, verbatim:
 
 The piezo controller gives only limited protection against settings that would damage a connected stage; configuring it is for engineers or technicians with enough expertise to do it safely.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19).
 
 Conditions, verbatim:
@@ -141,6 +157,8 @@ Conditions, verbatim:
 ### [nanobench_controller_shuts_down_when_hot](../entries/nanobench_controller_shuts_down_when_hot.json)
 
 The piezo controller performs a safety shutdown if parts of its circuit board get hot enough to be damaged, and shows it on an over-temperature light. The first thing to check is that its air vents are not covered; if it recurs with the vents clear, the manufacturer asks to be contacted.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19).
 
@@ -152,6 +170,8 @@ Conditions, verbatim:
 
 Raising the piezo controller's security level exposes settings that can damage the stage or the controller -- for example, too small an integrator time constant makes the loop unstable and damages the stage. NanoBench warns when a higher level is entered.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19).
 
 Conditions, verbatim:
@@ -161,6 +181,8 @@ Conditions, verbatim:
 ### [nanobench_stage_presets_can_be_overwritten_or_lost](../entries/nanobench_stage_presets_can_be_overwritten_or_lost.json)
 
 In NanoBench, storing a stage calibration preset overwrites the settings held in it, and deleting a preset from the stage's memory cannot be undone.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19).
 
@@ -172,6 +194,8 @@ Conditions, verbatim:
 
 Wrong control-loop settings -- the position, velocity and acceleration loop gains and time constants, and the trajectory limits -- can make the piezo stage unstable and damage it mechanically, and such damage is not covered by the manufacturer's warranty.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19).
 
 Conditions, verbatim:
@@ -181,6 +205,8 @@ Conditions, verbatim:
 ### [nanoflash_interrupted_reprogramming_is_recoverable](../entries/nanoflash_interrupted_reprogramming_is_recoverable.json)
 
 Reprogramming the piezo controller's firmware with NanoFlash cannot damage it even if interrupted, since programming can always be resumed; but the wrong firmware version, while harmless to the controller, may leave it unable to drive stages or missing key features until the right one is loaded.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanoflash_user_manual).
 
@@ -192,6 +218,8 @@ Conditions, verbatim:
 
 The piezo controller takes its commanded position from the analogue input, from digital commands from the host, or from both at once, and when both are enabled the two commands are summed.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nanobench_6000_user_manual_v1_0_19_s1_2).
 
 Conditions, verbatim:
@@ -201,6 +229,8 @@ Conditions, verbatim:
 ### [npcd_connectors_are_static_sensitive](../entries/npcd_connectors_are_static_sensitive.json)
 
 The piezo controller's stage and interface connectors are sensitive to electrostatic discharge, so connector covers should be removed and cables connected only with static-safe handling.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
@@ -212,6 +242,8 @@ Conditions, verbatim:
 
 The piezo controller's covers must not be removed: there are no user-serviceable parts inside, and opening it exposes high-voltage hazards and voids the warranty.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
 Conditions, verbatim:
@@ -221,6 +253,8 @@ Conditions, verbatim:
 ### [npcd_controller_generates_hazardous_voltages](../entries/npcd_controller_generates_hazardous_voltages.json)
 
 The piezo controller generates high voltages to drive the piezo actuators and relies on a protective earth, provided through its approved external power supply, to keep accessible parts safe if insulation fails. Only approved stages and cables may be used with it, and it must not be used if it shows any damage or seems faulty.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
@@ -232,6 +266,8 @@ Conditions, verbatim:
 
 The piezo controller's interface library can emulate a controller when none is fitted, addressed as sim:/NPC followed by the controller part number (optionally with a firmware version), and every command sent to the emulator returns zero. It is for testing that an application runs, not for testing what a controller would answer.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9_s4_3_7).
 
 Conditions, verbatim:
@@ -241,6 +277,8 @@ Conditions, verbatim:
 ### [npcd_network_must_stay_off_wider_networks](../entries/npcd_network_must_stay_off_wider_networks.json)
 
 If the piezo controller is reached over Ethernet through a hub, that hub must connect only to computers meant to talk to the controller, and never to a wider corporate network or the internet.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
@@ -252,6 +290,8 @@ Conditions, verbatim:
 
 The piezo controller is meant for dry, climate-controlled indoor rooms. Significant dust or acoustic or mechanical vibration can cause faults or damage, its fan vents must not be restricted, and humidity is best kept low during long operation.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
 Conditions, verbatim:
@@ -262,6 +302,8 @@ Conditions, verbatim:
 
 The manufacturer says to read the manual before using the piezo controller, because incorrect use can cause injury or damage, and to switch it off and remove the mains plug whenever it is not in use.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:npcd_interface_library_rev6_dll_2_7_9).
 
 Conditions, verbatim:
@@ -271,6 +313,8 @@ Conditions, verbatim:
 ### [piezo_waveform_generator_does_not_read_picometres](../entries/piezo_waveform_generator_does_not_read_picometres.json)
 
 The piezo controller's hardware waveform generator does not read its samples in the picometres that the ordinary position command takes. In the prior project a small sine written in picometres and played back swung the axis over a large part of its travel, many times the amplitude asked for, and oscillated far faster than its programmed period; every sample had read back identical to what was written, so the samples were stored correctly and their unit was wrong. What unit the generator does read is not settled.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-08-27-piezo-first-light).
 

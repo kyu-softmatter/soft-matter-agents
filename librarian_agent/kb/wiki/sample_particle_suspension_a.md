@@ -59,18 +59,20 @@ From the sample table, kb/staging/samples.v0.json, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| path_excitation_band_nominal_centre | 555 | nm | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_path_compat_20260919 | path_emission_band_nominal_centre 605 nm; path_excitation_band_nominal_centre 555 nm | sample particle_suspension_a | [particles_show_on_the_green_605_path](../entries/particles_show_on_the_green_605_path.json) |
-| path_emission_band_nominal_centre | 605 | nm | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_path_compat_20260919 | path_emission_band_nominal_centre 605 nm; path_excitation_band_nominal_centre 555 nm | sample particle_suspension_a | [particles_show_on_the_green_605_path](../entries/particles_show_on_the_green_605_path.json) |
-| tracer_diameter | 5 | um | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_diameter_20260919 | none stated | sample particle_suspension_a | [tracer_diameter_measured](../entries/tracer_diameter_measured.json) |
-| tracer_diameter_cv_upper_bound | 0.02 | 1 | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_diameter_20260919 | none stated | sample particle_suspension_a | [tracer_diameter_measured](../entries/tracer_diameter_measured.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| path_excitation_band_nominal_centre | 555 | nm | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_path_compat_20260919 | path_emission_band_nominal_centre 605 nm; path_excitation_band_nominal_centre 555 nm | none | sample particle_suspension_a | [particles_show_on_the_green_605_path](../entries/particles_show_on_the_green_605_path.json) |
+| path_emission_band_nominal_centre | 605 | nm | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_path_compat_20260919 | path_emission_band_nominal_centre 605 nm; path_excitation_band_nominal_centre 555 nm | none | sample particle_suspension_a | [particles_show_on_the_green_605_path](../entries/particles_show_on_the_green_605_path.json) |
+| tracer_diameter | 5 | um | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_diameter_20260919 | none stated | none | sample particle_suspension_a | [tracer_diameter_measured](../entries/tracer_diameter_measured.json) |
+| tracer_diameter_cv_upper_bound | 0.02 | 1 | calibrated on this instrument; a calibration on this instrument | E2 · calibration:tracer_diameter_20260919 | none stated | none | sample particle_suspension_a | [tracer_diameter_measured](../entries/tracer_diameter_measured.json) |
 
 ## Claims
 
 ### [bottle_label_states_no_product](../entries/bottle_label_states_no_product.json)
 
 The label on the particle bottle in use does not state a product identity. The operator examined it on 2026-09-19 and reported that it does not say.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260919_bottle).
 
@@ -81,6 +83,8 @@ Conditions, verbatim:
 ### [particle_suspension_a_identity](../entries/particle_suspension_a_identity.json)
 
 The particle suspension in use on this bench, instance particle_suspension_a, is the Abvigen product AFR-0500-COOH. This is the person's ruling of 2026-09-19 from evidence on record, not a reading of the container.
+
+Identifiers: catalog_number: AFR-0500-COOH; instance: particle_suspension_a; supplier: Abvigen Inc; what_it_joins: the instance in kb/staging/samples.v0.json to the type facts filed as tracer_particle_material_and_shape, tracer_particle_density, tracer_stock_concentration, tracer_storage_conditions, tracer_number_density_from_diameter, tracer_emission_peak and tracer_excitation_peak
 
 How it is known: recalled or assumed; an assumption (E5 · assumed:person_ruling_20260919).
 

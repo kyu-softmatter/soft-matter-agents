@@ -23,6 +23,8 @@ None.
 
 Temperature enters the two sides differently, and the difference is not symmetric. In the `bd_overdamped` simulation the declared temperature is realised by construction -- it is a parameter of the noise amplitude and there is no mechanism that could fail to realise it -- so citing a temperature there records WHY the number was chosen and is not evidence about the model's temperature. In the experiment nothing actuates the sample and the only thermometer reads the room, so a temperature used there is INFERRED, and citing the same entry is a claim about the sample. The uncertainty therefore sits entirely on the experiment side.
 
+Identifiers: none
+
 How it is known: computed; computed from other values (E4 · computed:temperature_asymmetry).
 
 Conditions, verbatim:

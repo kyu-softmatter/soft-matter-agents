@@ -15,15 +15,17 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| hexatic_correlation_exponent | 0.25 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_vyas_2026_nonequilibrium_melting | none stated | quantity hexatic_correlation_exponent, quantity hexatic_order_parameter | [driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation](../entries/driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| hexatic_correlation_exponent | 0.25 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_vyas_2026_nonequilibrium_melting | none stated | none | quantity hexatic_correlation_exponent, quantity hexatic_order_parameter | [driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation](../entries/driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation.json) |
 
 ## Claims
 
 ### [charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment](../entries/charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment.json)
 
 In experiment, a two-dimensional crystal of charged PMMA microspheres at an oil-water interface, melted either thermally by changing the density or by spinning magnetic TPM-haematite particles held beneath a fraction of the sites, loses hexatic order as a function of isolated disclination density along one curve for both routes and loses translational order as isolated dislocations appear, as the simulations do.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; published literature (E3 · literature:src_vyas_2026_nonequilibrium_melting).
 
@@ -34,6 +36,8 @@ Conditions, verbatim:
 ### [driven_2d_dipolar_crystal_has_no_single_effective_temperature](../entries/driven_2d_dipolar_crystal_has_no_single_effective_temperature.json)
 
 In the same simulations, no single effective temperature describes the driven crystal: its fluid is superdiffusive where the thermal fluid is diffusive, and hexatic order and disclination density plotted against dislocation density give separate curves for driven and thermal melting, so each transition is predicted by its own defect density but the two are not tied together by one temperature.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; published literature (E3 · literature:src_vyas_2026_nonequilibrium_melting).
 

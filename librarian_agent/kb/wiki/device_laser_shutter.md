@@ -28,6 +28,8 @@ None.
 
 A second shutter exists on the laser combiner, distinct from the shutter inside the confocal unit. Two shutters sit in the confocal excitation chain: one at the source and one at the unit's entrance.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -37,6 +39,8 @@ Conditions, verbatim:
 ### [lunf_fiber_shutter_survives_a_controller_kill](../entries/lunf_fiber_shutter_survives_a_controller_kill.json)
 
 The laser combiner's fiber shutter stays open when the vendor acquisition program that opened it is force-killed: only that program's clean shutdown closes it, and the combiner has no watchdog that shuts the fiber when its controlling link drops. After a kill, a line driven from other software still emitted.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
@@ -48,6 +52,8 @@ Conditions, verbatim:
 
 Nothing about the laser combiner can be read back. Its DAC is write-only; reading back a blanking line returns the writer's own output, not the shutter's state; no combiner monitor signal is wired to any of the DAQ's analog inputs, which float; and the vendor library exports no shutter or status entry point.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -57,6 +63,8 @@ Conditions, verbatim:
 ### [lunf_killed_writer_may_leave_a_line_open](../entries/lunf_killed_writer_may_leave_a_line_open.json)
 
 If a program that opened a combiner blanking line is killed rather than closed, that line may stay open, with the fiber shutter also open. Unmeasured: this is an inference from two prior observations -- a blanking line kept its level after the task that wrote it was cleared (a blink that created and cleared a task per write still blinked), and the fiber shutter survives a kill -- and whether a line's level survives the writing process dying has not been tested.
+
+Identifiers: none
 
 How it is known: recalled or assumed; an assumption (E5 · assumed:inference_from_prior_lunf_blink_and_shutter_kill).
 

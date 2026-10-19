@@ -15,10 +15,10 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| depletant_volume_fraction | 0.05 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_kim_2026_depletion_colloidal_diamond | depletant_to_colloid_radius_ratio 0.02 1; lobe_compression_ratio 0.6 1; patch_protrusion_ratio 1.21 1 | quantity lobe_compression_ratio, quantity patch_protrusion_ratio, quantity depletant_to_colloid_radius_ratio, quantity depletant_volume_fraction | [lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier](../entries/lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier.json) |
-| depletant_volume_fraction | 0.03 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_kim_2026_depletion_colloidal_diamond | none stated | quantity depletant_volume_fraction | [lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03](../entries/lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| depletant_volume_fraction | 0.05 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_kim_2026_depletion_colloidal_diamond | depletant_to_colloid_radius_ratio 0.02 1; lobe_compression_ratio 0.6 1; patch_protrusion_ratio 1.21 1 | none | quantity lobe_compression_ratio, quantity patch_protrusion_ratio, quantity depletant_to_colloid_radius_ratio, quantity depletant_volume_fraction | [lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier](../entries/lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier.json) |
+| depletant_volume_fraction | 0.03 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_kim_2026_depletion_colloidal_diamond | none stated | none | quantity depletant_volume_fraction | [lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03](../entries/lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03.json) |
 
 ## Claims
 

@@ -15,9 +15,9 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| viscosity | 0.001 | Pa*s | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_water_properties | temperature 288 to 298 K | quantity viscosity | [water_viscosity_293k](../entries/water_viscosity_293k.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| viscosity | 0.001 | Pa*s | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_water_properties | temperature 288 to 298 K | none | quantity viscosity | [water_viscosity_293k](../entries/water_viscosity_293k.json) |
 
 ## Claims
 

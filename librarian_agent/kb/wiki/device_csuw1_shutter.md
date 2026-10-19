@@ -28,6 +28,8 @@ None.
 
 The confocal unit's shutter, Micro-Manager device CSUW1-Shutter, reports its State property as a label rather than a position: it read "Open" on 2026-09-24, and asking the core for its numeric state failed because the device is of the wrong type for that call. No closed value has been recorded.
 
+Identifiers: mm_device: CSUW1-Shutter; property: State; reported_label: Open
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-008).
 
 Conditions, verbatim:
@@ -37,6 +39,8 @@ Conditions, verbatim:
 ### [csuw1_shutter_gates_confocal_excitation](../entries/csuw1_shutter_gates_confocal_excitation.json)
 
 The shutter inside the confocal unit gates the confocal laser into the unit, and it must be open while the confocal laser is in use for excitation to reach the sample.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 

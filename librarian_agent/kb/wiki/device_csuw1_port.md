@@ -69,6 +69,8 @@ None.
 
 The port/splitter is drivable and readable through micromanager: it can be set without a human and its position can be read back. It is an element of a channel that is automatable in full with read-back, and the earlier record of a manual-only splitter with no programming interface was wrong on every field it asserted.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -79,6 +81,8 @@ Conditions, verbatim:
 
 The element the configuration calls csuw1_port and the emission splitter that sends light to one camera or the other are one mechanism inside the CSU-W1 unit, not two devices. The splitter is the port. There is no standalone camera_splitter device on this instrument.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -88,6 +92,8 @@ Conditions, verbatim:
 ### [csuw1_port_slots](../entries/csuw1_port_slots.json)
 
 The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both cameras in different bands, and one holds a 100/0 mirror and sends light to the blue camera only. Two of the three states therefore send zero light to one camera. Which physical slot is at which position number is not known.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 

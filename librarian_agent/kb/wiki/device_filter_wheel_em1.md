@@ -29,6 +29,8 @@ None.
 
 The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half of the same recalled claim.
 
+Identifiers: none
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260917).
 
 Conditions, verbatim:

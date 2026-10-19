@@ -15,12 +15,12 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| read_noise | 1.6 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_dynamicrange](../entries/camera_read_noise_dynamicrange.json) |
-| read_noise | 1.2 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_sensitivity](../entries/camera_read_noise_sensitivity.json) |
-| read_noise | 2.0 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_speed](../entries/camera_read_noise_speed.json) |
-| read_noise | 0.7 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_subelectron](../entries/camera_read_noise_subelectron.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| read_noise | 1.6 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 16-bit; camera_mode: DynamicRange; model: Kinetix 22 | device camera_red | [camera_read_noise_dynamicrange](../entries/camera_read_noise_dynamicrange.json) |
+| read_noise | 1.2 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 12-bit; camera_mode: Sensitivity; model: Kinetix 22 | device camera_red | [camera_read_noise_sensitivity](../entries/camera_read_noise_sensitivity.json) |
+| read_noise | 2.0 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 8-bit; camera_mode: Speed; model: Kinetix 22 | device camera_red | [camera_read_noise_speed](../entries/camera_read_noise_speed.json) |
+| read_noise | 0.7 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 16-bit, 8x CMS; camera_mode: SubElectron; model: Kinetix 22 | device camera_red | [camera_read_noise_subelectron](../entries/camera_read_noise_subelectron.json) |
 
 ## Claims
 

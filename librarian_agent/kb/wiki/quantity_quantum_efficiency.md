@@ -15,10 +15,10 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| quantum_efficiency | 0.95 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_qe_peak](../entries/camera_qe_peak.json) |
-| quantum_efficiency | 0.96 | 1 | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@34a432c | wavelength 600.0 nm | device camera_red | [camera_qe_at_600nm_from_the_kinetix_graph](../entries/camera_qe_at_600nm_from_the_kinetix_graph.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| quantum_efficiency | 0.95 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | model: Kinetix 22 | device camera_red | [camera_qe_peak](../entries/camera_qe_peak.json) |
+| quantum_efficiency | 0.96 | 1 | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@34a432c | wavelength 600.0 nm | model: Kinetix 22 | device camera_red | [camera_qe_at_600nm_from_the_kinetix_graph](../entries/camera_qe_at_600nm_from_the_kinetix_graph.json) |
 
 ## Claims
 

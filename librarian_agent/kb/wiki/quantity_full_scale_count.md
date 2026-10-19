@@ -15,10 +15,10 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| full_scale_count | 65535 | ADU | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20261013_bench_readings | none stated | quantity full_scale_count | [kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit](../entries/kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit.json) |
-| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| full_scale_count | 65535 | ADU | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20261013_bench_readings | none stated | binning: 1x1; mm_configuration: DMD_dualcam_LUNF.cfg; model: Kinetix 22; port: Dynamic Range; readout_rate: 100MHz 16bit | quantity full_scale_count | [kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit](../entries/kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit.json) |
+| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | binning: 1x1; model: Kinetix 22; port: Dynamic Range; readout_rate: 100MHz 16bit | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
 
 ## Claims
 

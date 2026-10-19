@@ -30,24 +30,26 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| quantum_efficiency | 0.95 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_qe_peak](../entries/camera_qe_peak.json) |
-| read_noise | 1.6 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_dynamicrange](../entries/camera_read_noise_dynamicrange.json) |
-| read_noise | 1.2 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_sensitivity](../entries/camera_read_noise_sensitivity.json) |
-| read_noise | 2.0 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_speed](../entries/camera_read_noise_speed.json) |
-| read_noise | 0.7 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_read_noise_subelectron](../entries/camera_read_noise_subelectron.json) |
-| sensor_pixels_x | 2400 | count | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
-| sensor_pixels_y | 2400 | count | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
-| pixel_size | 6.5 | um | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
-| quantum_efficiency | 0.96 | 1 | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@34a432c | wavelength 600.0 nm | device camera_red | [camera_qe_at_600nm_from_the_kinetix_graph](../entries/camera_qe_at_600nm_from_the_kinetix_graph.json) |
-| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| quantum_efficiency | 0.95 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | model: Kinetix 22 | device camera_red | [camera_qe_peak](../entries/camera_qe_peak.json) |
+| read_noise | 1.6 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 16-bit; camera_mode: DynamicRange; model: Kinetix 22 | device camera_red | [camera_read_noise_dynamicrange](../entries/camera_read_noise_dynamicrange.json) |
+| read_noise | 1.2 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 12-bit; camera_mode: Sensitivity; model: Kinetix 22 | device camera_red | [camera_read_noise_sensitivity](../entries/camera_read_noise_sensitivity.json) |
+| read_noise | 2.0 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 8-bit; camera_mode: Speed; model: Kinetix 22 | device camera_red | [camera_read_noise_speed](../entries/camera_read_noise_speed.json) |
+| read_noise | 0.7 | e | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | bit_depth_designation: 16-bit, 8x CMS; camera_mode: SubElectron; model: Kinetix 22 | device camera_red | [camera_read_noise_subelectron](../entries/camera_read_noise_subelectron.json) |
+| sensor_pixels_x | 2400 | count | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | chip: GPixel GSense GSENSE6510 CMOS; model: Kinetix 22 | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
+| sensor_pixels_y | 2400 | count | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | chip: GPixel GSense GSENSE6510 CMOS; model: Kinetix 22 | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
+| pixel_size | 6.5 | um | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Kinetix22 | none stated | chip: GPixel GSense GSENSE6510 CMOS; model: Kinetix 22 | device camera_red | [camera_sensor_geometry](../entries/camera_sensor_geometry.json) |
+| quantum_efficiency | 0.96 | 1 | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@34a432c | wavelength 600.0 nm | model: Kinetix 22 | device camera_red | [camera_qe_at_600nm_from_the_kinetix_graph](../entries/camera_qe_at_600nm_from_the_kinetix_graph.json) |
+| full_scale_count | 65535 | ADU | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20261013_cameras_read_the_same | none stated | binning: 1x1; model: Kinetix 22; port: Dynamic Range; readout_rate: 100MHz 16bit | device camera_red, device camera_blue, quantity full_scale_count | [kinetix22_both_bodies_saturate_alike_per_the_person](../entries/kinetix22_both_bodies_saturate_alike_per_the_person.json) |
 
 ## Claims
 
 ### [kinetix_red_adapter_properties_as_reported_20260924](../entries/kinetix_red_adapter_properties_as_reported_20260924.json)
 
 At load, the PVCAM adapter describes Kinetix_red as BitDepth 16, PixelType 16bit, ReadoutRate '100MHz 16bit' and Binning 1x1. These are the adapter's self-descriptions and not a measurement of the camera's bit depth.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -59,6 +61,8 @@ Conditions, verbatim:
 
 On Kinetix_red, exposure written as 100 ms read back as 100.0 and 500 ms as 500.0, and binning written as 1x1 read back as 1x1.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -68,6 +72,8 @@ Conditions, verbatim:
 ### [kinetix_red_label_opens_serial_a24m723015](../entries/kinetix_red_label_opens_serial_a24m723015.json)
 
 With the configuration single_cam_red_noDMD_nocom10.cfg loaded, the camera opened as Micro-Manager label Kinetix_red reports serial number A24M723015, chip TMP-Kinetix, firmware 30.48. That is the serial camera_bodies_are_told_apart_by_serial gives for the red arm, so in this configuration the label Kinetix_red opens the red-arm body.
+
+Identifiers: model: Kinetix 22; serial: A24M723015
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -79,6 +85,8 @@ Conditions, verbatim:
 
 On 2026-09-24, single snaps on Kinetix_red scheduled at one per second from an integer frame index -- 100 ms exposure, the full 2400 by 2400 frame saved to disk each time, the Aura on throughout -- all ran: 300 of 300 frames, none starting more than 50 ms late, the latest 16 ms late.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-006).
 
 Conditions, verbatim:
@@ -88,6 +96,8 @@ Conditions, verbatim:
 ### [kinetix_red_sequences_delivered_every_frame_20260924](../entries/kinetix_red_sequences_delivered_every_frame_20260924.json)
 
 Two sequence acquisitions on Kinetix_red on 2026-09-24 -- 20 dark frames and 600 frames of particles, at 100 ms, 2400 by 2400 uint16 -- delivered every frame, with contiguous ImageNumber from first to last and no circular-buffer overflow.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -99,6 +109,8 @@ Conditions, verbatim:
 
 The two camera bodies are distinguished by serial number rather than by label: A23H723003 is the blue arm and A24M723015 is the red arm.
 
+Identifiers: model: Kinetix 22; serial: A23H723003
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -108,6 +120,8 @@ Conditions, verbatim:
 ### [camera_red_mm_control_path](../entries/camera_red_mm_control_path.json)
 
 On the prior project's configuration the red Kinetix is the MMCore device label `Kinetix_red`, mapped to the PVCAM camera `Camera-2`. Binning is reached as a device property named `Binning`; exposure and ROI are not device properties at all but core-level calls, setExposure and setROI.
+
+Identifiers: mm_label: Kinetix_red; model: Kinetix 22
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
@@ -119,6 +133,8 @@ Conditions, verbatim:
 
 Both cameras are Kinetix 22. They are the same model, so pixel size, quantum efficiency, read noise and full-well capacity are the same on both arms, and the two arms of the splitter are photometrically comparable without a cross-calibration term. The names red and blue, and the roles primary and second detector, are wiring and naming rather than a hardware difference: neither camera is the better one.
 
+Identifiers: model: Kinetix 22
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -128,6 +144,8 @@ Conditions, verbatim:
 ### [confocal_488_excites_the_red_arm](../entries/confocal_488_excites_the_red_arm.json)
 
 On the confocal path, 488 nm excitation produced signal in the red camera arm about as strongly as 561 nm did, and the red arm's signal was additive across the two lines. So assigning species on the red arm requires the lines to be strobed, not run together.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
@@ -139,6 +157,8 @@ Conditions, verbatim:
 
 The port/splitter carries three slots, and the split is spectral rather than by intensity: one slot is empty and sends light to the red camera only, one holds a 561 nm dichroic and sends light to both cameras in different bands, and one holds a 100/0 mirror and sends light to the blue camera only. Two of the three states therefore send zero light to one camera. Which physical slot is at which position number is not known.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:
@@ -148,6 +168,8 @@ Conditions, verbatim:
 ### [emission_wheel_camera_mapping](../entries/emission_wheel_camera_mapping.json)
 
 The first emission filter wheel serves the red camera and the second serves the blue camera. The operator stated this from memory, with the word probably, and the blue half is the complementary half of the same recalled claim.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260917).
 
@@ -159,6 +181,8 @@ Conditions, verbatim:
 
 The person states that in this lab's use the camera is always released from the Tweez 300 software, so nothing can be seen in the tweezers software; frames of a trapped bead come from Micro-Manager after the tweezers software has let the camera go.
 
+Identifiers: none
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260924_tweezers_camera).
 
 Conditions, verbatim:
@@ -168,6 +192,8 @@ Conditions, verbatim:
 ### [tweez300_software_opens_the_red_arm_camera](../entries/tweez300_software_opens_the_red_arm_camera.json)
 
 The person states that the Tweez 300 software, when it starts, opens the red-arm Kinetix camera -- the body Micro-Manager reads as serial A24M723015 under the label Kinetix_red.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260924_tweezers_camera).
 

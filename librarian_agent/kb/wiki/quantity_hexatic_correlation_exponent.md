@@ -15,9 +15,9 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| hexatic_correlation_exponent | 0.25 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_vyas_2026_nonequilibrium_melting | none stated | quantity hexatic_correlation_exponent, quantity hexatic_order_parameter | [driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation](../entries/driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| hexatic_correlation_exponent | 0.25 | 1 | from a document, a reading off the instrument, or another project's record; published literature | E3 · literature:src_vyas_2026_nonequilibrium_melting | none stated | none | quantity hexatic_correlation_exponent, quantity hexatic_order_parameter | [driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation](../entries/driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation.json) |
 
 ## Claims
 

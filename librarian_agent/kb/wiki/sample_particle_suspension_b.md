@@ -37,6 +37,8 @@ None.
 
 The 100 nm fluorescent beads on this bench, instance particle_suspension_b, are Invitrogen FluoSpheres carboxylate-modified microspheres, catalogue F8801. This is the person's statement of 2026-09-30, made by pasting the vendor's product page, not a reading of the container.
 
+Identifiers: catalog_number: F8801; instance: particle_suspension_b; supplier: Invitrogen (Thermo Fisher Scientific); what_it_joins: the instance in kb/staging/samples.v0.json to the type facts filed as f8801_nominal_diameter, f8801_excitation_peak, f8801_emission_peak, f8801_material_and_surface and f8801_storage_conditions
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:person_statement_f8801_20260930).
 
 Conditions, verbatim:

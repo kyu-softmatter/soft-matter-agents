@@ -29,6 +29,8 @@ None.
 
 In the Micro-Manager NikonTi2 adapter, IntermediateMagnification is not a state device: asking it for a state raises 'is of the wrong type for the requested operation'. Its value has to be read as a property.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:

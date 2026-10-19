@@ -29,6 +29,8 @@ None.
 
 The coarse motorised xy stage is an element of the microscope body channel, on the body hub. The body's optical elements belong to the optical_path lock group while the motor stage belongs to the stage lock group, because the piezo rides on the motor stage. One channel therefore carries two lock groups, and a lock group is a property of an element rather than only of a channel.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
 Conditions, verbatim:

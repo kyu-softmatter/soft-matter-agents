@@ -33,6 +33,8 @@ None.
 
 The DAQ's four analog outputs are not cabled to the combiner's power inputs. Driving them, together and one at a time, stepped and at speed, with the blanking line held open, changed nothing in the emitted light.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -43,6 +45,8 @@ Conditions, verbatim:
 
 The confocal combiner's lines are reachable only as blanking, on digital lines through the acquisition software's line-select group. Per-line power is deliberately not transmitted: the vendor does not document the word format the power interface expects, and the transport was left complete but disabled rather than guessing a byte into a laser driver.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -52,6 +56,8 @@ Conditions, verbatim:
 ### [lunf_reports_nothing_back](../entries/lunf_reports_nothing_back.json)
 
 Nothing about the laser combiner can be read back. Its DAC is write-only; reading back a blanking line returns the writer's own output, not the shutter's state; no combiner monitor signal is wired to any of the DAQ's analog inputs, which float; and the vendor library exports no shutter or status entry point.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 

@@ -24,38 +24,40 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| illumination_power | 1050 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_10x_80pct](../entries/trap_laser_power_at_sample_1064nm_10x_80pct.json) |
-| illumination_power | 1020 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_80pct](../entries/trap_laser_power_at_sample_1064nm_20x_80pct.json) |
-| illumination_power | 64 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
-| illumination_power | 126 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
-| illumination_power | 380 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
-| illumination_power | 633 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
-| illumination_power | 890 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_4x_80pct](../entries/trap_laser_power_at_sample_1064nm_4x_80pct.json) |
-| tweez_power_setting_max | 1 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300UserManual | none stated | device optical_tweezers | [tweez_laser_power_is_set_as_a_fraction_of_maximum](../entries/tweez_laser_power_is_set_as_a_fraction_of_maximum.json) |
-| tweez_laser_wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
-| tweez_305_rated_output | 5 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
-| tweez_310_rated_output | 10 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
-| tweez_operating_temperature_min | 293.15 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
-| tweez_operating_temperature_max | 301.15 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
-| tweez_operating_humidity_min | 0.2 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
-| tweez_operating_humidity_max | 0.8 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
-| tweez_hibernation_delay | 10 | min | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_standby_then_hibernation](../entries/tweez_standby_then_hibernation.json) |
-| tweez_power_supply_rated_power | 255 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | device optical_tweezers | [tweez_use_only_the_original_power_supply](../entries/tweez_use_only_the_original_power_supply.json) |
-| wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
-| rated_max_power | 5 | W | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
-| busy_fraction_at_zero_gap | 16 | count | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@fbedef0 | none stated | device optical_tweezers | [tweez300_back_to_back_sends_come_back_busy](../entries/tweez300_back_to_back_sends_come_back_busy.json) |
-| smallest_gap_with_no_busy_probe | 2 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@fbedef0 | none stated | device optical_tweezers | [tweez300_back_to_back_sends_come_back_busy](../entries/tweez300_back_to_back_sends_come_back_busy.json) |
-| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_100x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_100x_80pct_rough.json) |
-| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_40x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_40x_80pct_rough.json) |
-| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_60x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_60x_80pct_rough.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| illumination_power | 1050 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 10x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_10x_80pct](../entries/trap_laser_power_at_sample_1064nm_10x_80pct.json) |
+| illumination_power | 1020 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 20x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_80pct](../entries/trap_laser_power_at_sample_1064nm_20x_80pct.json) |
+| illumination_power | 64 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | laser_line: 1064 nm; light_source: optical_tweezers; nominal_magnification: 20x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
+| illumination_power | 126 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | laser_line: 1064 nm; light_source: optical_tweezers; nominal_magnification: 20x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
+| illumination_power | 380 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | laser_line: 1064 nm; light_source: optical_tweezers; nominal_magnification: 20x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
+| illumination_power | 633 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.05 to 0.5 1 | laser_line: 1064 nm; light_source: optical_tweezers; nominal_magnification: 20x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) |
+| illumination_power | 890 | mW | calibrated on this instrument; a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 4x | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_4x_80pct](../entries/trap_laser_power_at_sample_1064nm_4x_80pct.json) |
+| tweez_power_setting_max | 1 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300UserManual | none stated | none | device optical_tweezers | [tweez_laser_power_is_set_as_a_fraction_of_maximum](../entries/tweez_laser_power_is_set_as_a_fraction_of_maximum.json) |
+| tweez_laser_wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
+| tweez_305_rated_output | 5 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
+| tweez_310_rated_output | 10 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_laser_source_is_a_1064nm_fiber_laser](../entries/tweez_laser_source_is_a_1064nm_fiber_laser.json) |
+| tweez_operating_temperature_min | 293.15 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
+| tweez_operating_temperature_max | 301.15 | K | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
+| tweez_operating_humidity_min | 0.2 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
+| tweez_operating_humidity_max | 0.8 | 1 | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_operating_environment](../entries/tweez_operating_environment.json) |
+| tweez_hibernation_delay | 10 | min | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_standby_then_hibernation](../entries/tweez_standby_then_hibernation.json) |
+| tweez_power_supply_rated_power | 255 | W | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | none stated | none | device optical_tweezers | [tweez_use_only_the_original_power_supply](../entries/tweez_use_only_the_original_power_supply.json) |
+| wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | model: Aresis Tweez 300 | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
+| rated_max_power | 5 | W | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | model: Aresis Tweez 300 | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
+| busy_fraction_at_zero_gap | 16 | count | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@fbedef0 | none stated | none | device optical_tweezers | [tweez300_back_to_back_sends_come_back_busy](../entries/tweez300_back_to_back_sends_come_back_busy.json) |
+| smallest_gap_with_no_busy_probe | 2 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@fbedef0 | none stated | none | device optical_tweezers | [tweez300_back_to_back_sends_come_back_busy](../entries/tweez300_back_to_back_sends_come_back_busy.json) |
+| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 100x; part_number: MRD71970 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_100x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_100x_80pct_rough.json) |
+| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 40x; part_number: MRD77400 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_40x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_40x_80pct_rough.json) |
+| illumination_power | 1000 | mW | computed; computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | illumination_level 0.8 1 | laser_line: 1064 nm; level_percent: 80; light_source: optical_tweezers; nominal_magnification: 60x; part_number: MRD71670 | device optical_tweezers, quantity illumination_power | [trap_laser_power_at_sample_1064nm_60x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_60x_80pct_rough.json) |
 
 ## Claims
 
 ### [trap_laser_emission_is_switchable_over_tcp](../entries/trap_laser_emission_is_switchable_over_tcp.json)
 
 The optical tweezers' trapping laser can be switched on and off from software: the Tweez 300 TCP/IP command set includes LASER_ON (activates the laser) and LASER_OFF (deactivates it). The command set holds no command that sets or reads the laser's power.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300UserManual).
 
@@ -67,6 +69,8 @@ Conditions, verbatim:
 
 Two back-panel inputs have absolute maximum ratings, and exceeding them can permanently damage the input: the 10 MHz reference clock input, 5 volts peak to peak, and the general-purpose GPIO A and B connectors, 5 volts.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -76,6 +80,8 @@ Conditions, verbatim:
 ### [tweez_calibration_photodiode_needs_the_laser_off](../entries/tweez_calibration_photodiode_needs_the_laser_off.json)
 
 Before setting up the calibration photodiode the laser must be switched off, or it can injure eyes or skin and damage the photodiode. The objective must be fully retracted before the photodiode is placed on the sample holder, and its position adjusted with great care, so as not to damage the objective's front lens.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300UserManual).
 
@@ -87,6 +93,8 @@ Conditions, verbatim:
 
 The manufacturer warns that the product can expose users to nickel and other chemicals listed by the State of California as causing cancer, and that it must go to electronic-waste recycling at end of life.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -96,6 +104,8 @@ Conditions, verbatim:
 ### [tweez_fibre_is_enclosed_end_to_end](../entries/tweez_fibre_is_enclosed_end_to_end.json)
 
 Between the control laser unit and the optical unit the beam travels in an optical fibre inside a flexible stainless-steel tube, inside a non-removable stainless-steel umbilical, which the manufacturer describes as protection against damage to the fibre and against any leak of laser light.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -107,6 +117,8 @@ Conditions, verbatim:
 
 The tweezers are meant to be used with an Aresis-supplied filter cube in the microscope's epi-fluorescence turret. That turret's mechanically actuated shutter blocks the laser from the objective and the eyepieces, and the cube's dichroic and blocking filters attenuate infrared that could reach the eyepiece path to well below the Class 1 limit.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -116,6 +128,8 @@ Conditions, verbatim:
 ### [tweez_has_no_user_serviceable_parts](../entries/tweez_has_no_user_serviceable_parts.json)
 
 The tweezers contain no user-serviceable parts; servicing is for qualified personnel only, and the system must not be operated with covers or panels removed. Exposed connections must not be touched while power is on.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
@@ -127,6 +141,8 @@ Conditions, verbatim:
 
 The 2021 System Installation Guide says the laser safety switch, once pressed, stays in the disabled position until released by turning it counter-clockwise.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300SystemInstallationGuide_2021).
 
 Conditions, verbatim:
@@ -136,6 +152,8 @@ Conditions, verbatim:
 ### [tweez_installation_needs_qualified_personnel](../entries/tweez_installation_needs_qualified_personnel.json)
 
 The tweezers must be installed, or the installation supervised, by qualified personnel; an unauthorised installation voids the warranty and may cause serious injury or damage. The shipping crate is large and heavy and must be handled with care.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
@@ -147,6 +165,8 @@ Conditions, verbatim:
 
 The tweezers' interlocks are built into low-level electronics hardware, independent of the computer and its software, and wherever possible a safety measure is mechanical, such as the shutter, so that it does not depend on electrical power.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -156,6 +176,8 @@ Conditions, verbatim:
 ### [tweez_internal_shutter_closes_by_spring](../entries/tweez_internal_shutter_closes_by_spring.json)
 
 In the optical unit the fibre ends in a fixed collimator followed immediately by a mechanical shutter, which isolates the beam from the exit aperture during start-up and emergency shutdown, and which is spring-loaded to close by itself if the control electronics fail.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -167,6 +189,8 @@ Conditions, verbatim:
 
 The manufacturer classifies the laser tweezers as a Class 4 laser device under IEC 60825-1:2014: used inappropriately, it can be a severe hazard to eyes and skin.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -176,6 +200,8 @@ Conditions, verbatim:
 ### [tweez_key_switch_cuts_all_power](../entries/tweez_key_switch_cuts_all_power.json)
 
 A key switch on the front of the control laser unit controls the system's main power. With the key removed the system and the laser are shut down and no emission is possible; the key can be removed only in the OFF position.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -187,6 +213,8 @@ Conditions, verbatim:
 
 The tweezers are built so that laser light leaves only through one marked exit aperture on the optical unit; every other point where the beam could be reached is covered by the interlocks.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -196,6 +224,8 @@ Conditions, verbatim:
 ### [tweez_laser_safety_glasses_must_be_worn](../entries/tweez_laser_safety_glasses_must_be_worn.json)
 
 The supplied laser safety glasses must be worn during laser operation. One set ships with the system; everyone present where stray laser light could be must wear a pair, and providing the extra sets is the operator's responsibility.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -207,6 +237,8 @@ Conditions, verbatim:
 
 The laser safety switch, cabled to the optical unit so it sits near the work, is the quick way to shut the laser down. Once pressed it stays engaged and must be released by turning its knob -- clockwise, in this 2022 manual -- before the laser can run again. If it is engaged, or its cable is disconnected or broken, laser operation is disabled and the internal shutter blocks the beam.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -216,6 +248,8 @@ Conditions, verbatim:
 ### [tweez_laser_safety_training_is_part_of_safety](../entries/tweez_laser_safety_training_is_part_of_safety.json)
 
 The manufacturer treats training as a safety measure: it covers the nature of infrared laser radiation, the hazards, what Class 4 means, the tweezers' safety system, and safe installation and operation.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -227,6 +261,8 @@ Conditions, verbatim:
 
 The Nikon Ti2's own interlock switch is triggered whenever light could enter the eyepieces -- when the light path selector is set to the eyepieces -- and it is wired to the tweezers' optical unit, so that laser operation is disabled in that position. The manufacturer calls it an additional measure: an infrared filter already keeps the laser out of the eyepiece path. If the interlock cable is disconnected, laser operation is disabled. The Ti2's interlock works only while the microscope is powered, and with the microscope off, tweezers laser operation is disabled too.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -236,6 +272,8 @@ Conditions, verbatim:
 ### [tweez_must_be_grounded_through_its_power_cord](../entries/tweez_must_be_grounded_through_its_power_cord.json)
 
 The tweezers must be earthed through the grounding conductor of the specified, certified power cord before anything else is connected or power applied. The back-panel grounding post is only for additional earthing or equalising potential with the table or microscope.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
@@ -247,6 +285,8 @@ Conditions, verbatim:
 
 Users should never remove the optical unit's cover: inside, the invisible 1064 nm beam runs through open optics. Removing the cover trips an internal interlock that disables the laser and closes the shutter.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -256,6 +296,8 @@ Conditions, verbatim:
 ### [tweez_proprietary_connectors_take_only_aresis_equipment](../entries/tweez_proprietary_connectors_take_only_aresis_equipment.json)
 
 Several tweezers connectors are proprietary and take only Aresis equipment: the LEMO trigger connector only the original Aresis camera cable; the DisplayPort-shaped expansion connector must never go to a monitor or TV, or the tweezers or the monitor may be permanently damaged; and the RJ45 interlock connector only the Aresis laser warning sign.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
@@ -267,6 +309,8 @@ Conditions, verbatim:
 
 The sample safety shield blocks laser light scattered off the sample and is to be placed around the sample before the laser is activated. If it gets in the way of other equipment on the stage, the operator must provide a replacement or other protection at least as good.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300SystemInstallationGuide_2021).
 
 Conditions, verbatim:
@@ -276,6 +320,8 @@ Conditions, verbatim:
 ### [tweez_software_shows_laser_power_and_interlocks](../entries/tweez_software_shows_laser_power_and_interlocks.json)
 
 The tweezers software keeps the laser control panel visible, shows whether the laser is on and at what power, gives quick access to an emergency shutdown, and shows the connection and state of every interlock. The laser can be switched on there only if every safety component is connected and every interlock is enabled; its status reads Standby when enabled but off, and Locking or Locked once on.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -287,6 +333,8 @@ Conditions, verbatim:
 
 The tweezers show laser status the same way on the laser safety switch, the laser warning sign and the control laser unit's front panel: a steady red light means the laser is powered but not emitting, and a flashing red light means it is emitting. A blue light on the front panel means system power is on.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -296,6 +344,8 @@ Conditions, verbatim:
 ### [tweez_three_independent_ways_to_stop_emission](../entries/tweez_three_independent_ways_to_stop_emission.json)
 
 The manufacturer builds in three independent ways to keep the beam from leaving the exit aperture if one interlock fails: the internal mechanical shutter, an interlock on the laser module that stops emission, and switching off the radio-frequency drive to the acousto-optic deflectors, which then act as a second shutter in series.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -307,6 +357,8 @@ Conditions, verbatim:
 
 The ventilation openings on the back panel and underside of the tweezers must not be obstructed, to avoid fire or permanent damage.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022).
 
 Conditions, verbatim:
@@ -316,6 +368,8 @@ Conditions, verbatim:
 ### [tweez_warning_sign_carries_a_remote_interlock](../entries/tweez_warning_sign_carries_a_remote_interlock.json)
 
 The laser warning sign shows the laser's status to people who would not otherwise know it, such as anyone entering the room, and should be placed where it is clearly visible. It carries a remote interlock connector, meant for a switch or chain of switches -- a door switch, for example -- that disables the laser; disconnecting the sign also disables the laser and closes the internal shutter.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:Tweez300LaserSafetyManual_v3_0_2022).
 
@@ -327,6 +381,8 @@ Conditions, verbatim:
 
 Changing the objective silently invalidates both of the optical tweezers' calibrations -- the GUI's pixel-to-micrometre magnification and the AOD's trapping-field response -- and neither is readable over TCP. Afterwards every commanded trap position in micrometres lands somewhere else and nothing reports it.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -336,6 +392,8 @@ Conditions, verbatim:
 ### [trap_laser_power_has_no_software_path](../entries/trap_laser_power_has_no_software_path.json)
 
 The trapping laser's power is neither readable nor settable from software. The level is set by a hand control and nothing reads it back, so a level used in a run leaves no record unless someone writes it down.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -347,6 +405,8 @@ Conditions, verbatim:
 
 Absolute TRAP_POSITION commands streamed from the host at 10 Hz move a Tweez 300 trap smoothly by eye.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
 Conditions, verbatim:
@@ -356,6 +416,8 @@ Conditions, verbatim:
 ### [tweez300_load_pattern_name_first](../entries/tweez300_load_pattern_name_first.json)
 
 LOAD_PATTERN takes the pattern name first and then the file's absolute path, quoted when it contains a space, and the pattern then appears in the Tweez 300 GUI's pattern list.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
@@ -367,6 +429,8 @@ Conditions, verbatim:
 
 A trap newly created in the Tweez 300 GUI starts at relative strength 0, so switching it on alone leaves it active and delivering nothing until a strength is set.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
 Conditions, verbatim:
@@ -376,6 +440,8 @@ Conditions, verbatim:
 ### [tweez300_pattern_runs_on_assignment](../entries/tweez300_pattern_runs_on_assignment.json)
 
 TRAP_ASSIGN_PATTERN starts the pattern at once: the trap moves along it with no separate start command.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
@@ -387,6 +453,8 @@ Conditions, verbatim:
 
 In the Tweez 300 GUI, TRAP_POSITION with coordinates 0 0 places the trap at the centre of the image.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
 Conditions, verbatim:
@@ -396,6 +464,8 @@ Conditions, verbatim:
 ### [tweez300_positive_x_is_right_on_screen](../entries/tweez300_positive_x_is_right_on_screen.json)
 
 In the Tweez 300 GUI, a positive x step moves the trap to the right on screen.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
@@ -407,6 +477,8 @@ Conditions, verbatim:
 
 On this bench, TRAP_DELETE of a trap name that does not exist answers -22 ('no resource selected') from a working Tweez 300 GUI, not the -25 the Command Reference implies -- so -22 must count as ready in a readiness probe.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0).
 
 Conditions, verbatim:
@@ -416,6 +488,8 @@ Conditions, verbatim:
 ### [tweez300_reports_nothing_back](../entries/tweez300_reports_nothing_back.json)
 
 The Tweez 300's TCP interface has no readback of any kind -- no position, no force, no trap list, no calibration -- and a return code of 0 means the GUI accepted the command, not that anything happened. Six distinct ways a command can be ignored all return 0: a breakpoint whose enable bits are unset, release bits that do not cover the value, repeat left disabled, a pattern that overruns the calibrated range and is silently clipped to the edge, a GUI calibrated at a different objective so every commanded micrometre is wrong by that ratio, and a named trap that holds no bead.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -427,6 +501,8 @@ Conditions, verbatim:
 
 TRAP_ON over TCP switches a trap to active as the Tweez 300 GUI displays it.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
 Conditions, verbatim:
@@ -436,6 +512,8 @@ Conditions, verbatim:
 ### [tweez300_trap_strength_takes_the_last_value](../entries/tweez300_trap_strength_takes_the_last_value.json)
 
 When TRAP_STRENGTH is sent twice to one trap, the Tweez 300 GUI shows the second value; each strength command also shows as sent.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260924_tweezers).
 
@@ -447,6 +525,8 @@ Conditions, verbatim:
 
 The person states that on this instrument the optical tweezers work with the 40x, 60x and 100x objectives: "OT is working in 40x, 60x, and 100x." (2026-09-25).
 
+Identifiers: none
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:person_statement_tweezers_objectives_20260925).
 
 Conditions, verbatim:
@@ -456,6 +536,8 @@ Conditions, verbatim:
 ### [trap_heating_detection_bound](../entries/trap_heating_detection_bound.json)
 
 The operator recalls not noticing a temperature change in the sample unless the infrared trapping laser was driven above roughly 20 percent on its dial. This records where noticing stopped, by means that were not recorded.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260919).
 
@@ -467,6 +549,8 @@ Conditions, verbatim:
 
 The person states that in this lab's use the camera is always released from the Tweez 300 software, so nothing can be seen in the tweezers software; frames of a trapped bead come from Micro-Manager after the tweezers software has let the camera go.
 
+Identifiers: none
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260924_tweezers_camera).
 
 Conditions, verbatim:
@@ -477,6 +561,8 @@ Conditions, verbatim:
 
 The Tweez 300 program does not reload its last project when it starts, so traps, strengths and patterns left active when it was closed do not come back on their own at the next start.
 
+Identifiers: none
+
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260924).
 
 Conditions, verbatim:
@@ -486,6 +572,8 @@ Conditions, verbatim:
 ### [tweez300_software_opens_the_red_arm_camera](../entries/tweez300_software_opens_the_red_arm_camera.json)
 
 The person states that the Tweez 300 software, when it starts, opens the red-arm Kinetix camera -- the body Micro-Manager reads as serial A24M723015 under the label Kinetix_red.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260924_tweezers_camera).
 

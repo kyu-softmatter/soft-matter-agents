@@ -10,25 +10,27 @@ Not a registry subject: these entries carry no subject field.
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| filter_centre_wavelength | 432 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-432/36-32 | wavelength 414.0 to 450.0 nm | none named | [filter_ff01_432_36_32_passband](../entries/filter_ff01_432_36_32_passband.json) |
-| filter_fwhm | 36 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-432/36-32 | wavelength 414.0 to 450.0 nm | none named | [filter_ff01_432_36_32_passband](../entries/filter_ff01_432_36_32_passband.json) |
-| filter_centre_wavelength | 515 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-515/30-32 | wavelength 500.0 to 530.0 nm | none named | [filter_ff01_515_30_32_passband](../entries/filter_ff01_515_30_32_passband.json) |
-| filter_fwhm | 30 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-515/30-32 | wavelength 500.0 to 530.0 nm | none named | [filter_ff01_515_30_32_passband](../entries/filter_ff01_515_30_32_passband.json) |
-| filter_centre_wavelength | 595 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-595/31-32 | wavelength 579.5 to 610.5 nm | none named | [filter_ff01_595_31_32_passband](../entries/filter_ff01_595_31_32_passband.json) |
-| filter_fwhm | 31 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-595/31-32 | wavelength 579.5 to 610.5 nm | none named | [filter_ff01_595_31_32_passband](../entries/filter_ff01_595_31_32_passband.json) |
-| filter_centre_wavelength | 680 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-680/42-32 | wavelength 659.0 to 701.0 nm | none named | [filter_ff01_680_42_32_passband](../entries/filter_ff01_680_42_32_passband.json) |
-| filter_fwhm | 42 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-680/42-32 | wavelength 659.0 to 701.0 nm | none named | [filter_ff01_680_42_32_passband](../entries/filter_ff01_680_42_32_passband.json) |
-| elapsed_time_resolution | 1 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | none named | [elapsed_time_is_quantised_to_one_ms](../entries/elapsed_time_is_quantised_to_one_ms.json) |
-| command_round_trip_quiet | 2.93 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | none named | [live_view_degrades_timing](../entries/live_view_degrades_timing.json) |
-| command_round_trip_with_live_view | 51.4 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | none named | [live_view_degrades_timing](../entries/live_view_degrades_timing.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| filter_centre_wavelength | 432 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-432/36-32 | wavelength 414.0 to 450.0 nm | designation: 432/36; part_number: FF01-432/36-32; vendor: Semrock | none named | [filter_ff01_432_36_32_passband](../entries/filter_ff01_432_36_32_passband.json) |
+| filter_fwhm | 36 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-432/36-32 | wavelength 414.0 to 450.0 nm | designation: 432/36; part_number: FF01-432/36-32; vendor: Semrock | none named | [filter_ff01_432_36_32_passband](../entries/filter_ff01_432_36_32_passband.json) |
+| filter_centre_wavelength | 515 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-515/30-32 | wavelength 500.0 to 530.0 nm | designation: 515/30; part_number: FF01-515/30-32; vendor: Semrock | none named | [filter_ff01_515_30_32_passband](../entries/filter_ff01_515_30_32_passband.json) |
+| filter_fwhm | 30 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-515/30-32 | wavelength 500.0 to 530.0 nm | designation: 515/30; part_number: FF01-515/30-32; vendor: Semrock | none named | [filter_ff01_515_30_32_passband](../entries/filter_ff01_515_30_32_passband.json) |
+| filter_centre_wavelength | 595 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-595/31-32 | wavelength 579.5 to 610.5 nm | designation: 595/31; part_number: FF01-595/31-32; vendor: Semrock | none named | [filter_ff01_595_31_32_passband](../entries/filter_ff01_595_31_32_passband.json) |
+| filter_fwhm | 31 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-595/31-32 | wavelength 579.5 to 610.5 nm | designation: 595/31; part_number: FF01-595/31-32; vendor: Semrock | none named | [filter_ff01_595_31_32_passband](../entries/filter_ff01_595_31_32_passband.json) |
+| filter_centre_wavelength | 680 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-680/42-32 | wavelength 659.0 to 701.0 nm | designation: 680/42; part_number: FF01-680/42-32; vendor: Semrock | none named | [filter_ff01_680_42_32_passband](../entries/filter_ff01_680_42_32_passband.json) |
+| filter_fwhm | 42 | nm | from a document, a reading off the instrument, or another project's record; manufacturer's specification | E3 · spec:FF01-680/42-32 | wavelength 659.0 to 701.0 nm | designation: 680/42; part_number: FF01-680/42-32; vendor: Semrock | none named | [filter_ff01_680_42_32_passband](../entries/filter_ff01_680_42_32_passband.json) |
+| elapsed_time_resolution | 1 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | field: ElapsedTime-ms | none named | [elapsed_time_is_quantised_to_one_ms](../entries/elapsed_time_is_quantised_to_one_ms.json) |
+| command_round_trip_quiet | 2.93 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | none | none named | [live_view_degrades_timing](../entries/live_view_degrades_timing.json) |
+| command_round_trip_with_live_view | 51.4 | ms | from a document, a reading off the instrument, or another project's record; another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | none stated | none | none named | [live_view_degrades_timing](../entries/live_view_degrades_timing.json) |
 
 ## Claims
 
 ### [aura_green_intensity_runs_to_1000](../entries/aura_green_intensity_runs_to_1000.json)
 
 The Aura's GREEN_Intensity property has limits, with upper limit 1000, and the value 100 written to it read back as 100.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -40,6 +42,8 @@ Conditions, verbatim:
 
 With the Aura's master State at 0, turning GREEN on at intensity 1000 left the red camera's frame dark: it was indistinguishable from dark frames taken with the line off, within the frame-to-frame noise, at 100 ms exposure through the 20x with the Lapp mirror in.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -49,6 +53,8 @@ Conditions, verbatim:
 ### [aura_reports_five_named_lines](../entries/aura_reports_five_named_lines.json)
 
 The Aura III light engine, opened as Micro-Manager label Aura, exposes five lines named UV, CYAN, GREEN, RED and NIR, each as an on/off property NAME and an intensity property NAME_Intensity, plus a master State property and the descriptive properties Connection, Description, FirmwareVersion, LEModel, Model, Name and SerialNumber.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -60,6 +66,8 @@ Conditions, verbatim:
 
 The Micro-Manager copy that pymmcore-plus installs, Micro-Manager_2.0.3_20260806 (MMCore 12.5.0, device API 75), loads single_cam_red_noDMD_nocom10.cfg with all 21 of its devices: the stand and its elements, the LightEngine and Aura light engines, Kinetix_red, NIDAQHub and LUNF-Blanking, and the Core.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -69,6 +77,8 @@ Conditions, verbatim:
 ### [single_cam_red_config_arms_autoshutter_on_the_lightengine](../entries/single_cam_red_config_arms_autoshutter_on_the_lightengine.json)
 
 The configuration single_cam_red_noDMD_nocom10.cfg sets the Micro-Manager core shutter to LightEngine and turns AutoShutter on. After the load, setting AutoShutter to 0 as the first call took effect: getAutoShutter returned False and the core AutoShutter property read 0.
+
+Identifiers: none
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
@@ -80,6 +90,8 @@ Conditions, verbatim:
 
 The configuration single_cam_red_noDMD_nocom10.cfg loads no NIDAQ analogue-output device: its NIDAQ devices are NIDAQHub and the digital-output LUNF-Blanking only, so nothing in it addresses an analogue line such as Dev1/ao2.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -89,6 +101,8 @@ Conditions, verbatim:
 ### [hoomd_blue_6_1_0_documents_a_contact_friction_pair_module](../entries/hoomd_blue_6_1_0_documents_a_contact_friction_pair_module.json)
 
 Hofmann et al. state that their frictional-contact force, with its thermodynamically consistent noise, was merged into HOOMD-blue and is documented in HOOMD-blue version 6.1.0 as the module hoomd.md.pair.friction.
+
+Identifiers: module: hoomd.md.pair.friction; product: HOOMD-blue; version: 6.1.0
 
 How it is known: from a document, a reading off the instrument, or another project's record; published literature (E3 · literature:src_hofmann_2026_frictional_contacts).
 
@@ -100,6 +114,8 @@ Conditions, verbatim:
 
 Lee and Park ran their Rotne-Prager-Yamakawa Brownian dynamics through the Positively Split Ewald HOOMD-blue plugin of Fiore et al. under HOOMD 2.4.0 with CUDA 9.2, at about 1,500 time steps per hour for 10,648 particles on one NVIDIA GeForce GTX 1070, and report that the plugin has compatibility problems across HOOMD releases and fails unless modified, the current HOOMD release when they wrote being 5.4.0.
 
+Identifiers: plugin: Positively Split Ewald (Fiore et al.); product: HOOMD-blue; version: 2.4.0
+
 How it is known: from a document, a reading off the instrument, or another project's record; published literature (E3 · literature:src_lee_park_2026_gel_normal_stress).
 
 Conditions, verbatim:
@@ -109,6 +125,8 @@ Conditions, verbatim:
 ### [bangs_flash_red_plain_ps_material](../entries/bangs_flash_red_plain_ps_material.json)
 
 Bangs Laboratories FSFR004 and FSFR005 are polystyrene microspheres with the Flash Red fluorophore embedded within the bead matrix and a plain (non-functionalised) surface.
+
+Identifiers: catalog_numbers_listed: FSFR004, FSFR005; product: Fluorescent Plain Polystyrene; supplier: Bangs Laboratories, Inc.
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:bangs_flash_red_plain_ps).
 
@@ -120,6 +138,8 @@ Conditions, verbatim:
 
 Bangs fluorescent microsphere suspensions covered by PDS 731 contain sodium azide.
 
+Identifiers: catalog_numbers_listed: FSFR004, FSFR005 (stated line-wide in PDS 731); product: Fluorescent Microspheres; supplier: Bangs Laboratories, Inc.
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:bangs_pds731).
 
 Conditions, verbatim:
@@ -129,6 +149,8 @@ Conditions, verbatim:
 ### [bangs_fluorescent_ps_storage](../entries/bangs_fluorescent_ps_storage.json)
 
 PDS 731 specifies storage at 2-8 C in the supplied opaque bottle, warns that freezing, drying or centrifuging may cause irreversible aggregation, and states stability of 12 months from purchase under the manufacturer's handling.
+
+Identifiers: catalog_numbers_listed: FSFR004, FSFR005 (stated line-wide in PDS 731); product: Fluorescent Microspheres; supplier: Bangs Laboratories, Inc.
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:bangs_pds731).
 
@@ -140,6 +162,10 @@ Conditions, verbatim:
 
 Invitrogen F8801 microspheres are polystyrene, carboxylate-modified on the surface, and loaded with a red fluorescent dye.
 
+Applies to: the type F8801. Applying it to the beads on this bench goes through the E5 linking claim particle_suspension_b_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8
+
+Identifiers: catalog_number: F8801; product: FluoSpheres Carboxylate-Modified Microspheres, 0.1 um, red fluorescent (580/605); supplier: Invitrogen (Thermo Fisher Scientific)
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:invitrogen_f8801).
 
 Conditions, verbatim:
@@ -149,6 +175,8 @@ Conditions, verbatim:
 ### [micromanager_focus_direction_encoding_mmcore_12_5_0](../entries/micromanager_focus_direction_encoding_mmcore_12_5_0.json)
 
 In Micro-Manager with MMCore 12.5.0, a configuration file line 'FocusDirection,\<stage\>,\<n\>' sets that stage's focus direction from the integer n by its sign: any positive n means increasing position brings the objective closer to the sample, any negative n means increasing position moves the objective away from the sample, and n = 0 means the direction is unknown. A value set this way replaces whatever the device adapter reports.
+
+Identifiers: config_command: FocusDirection; device_interface_version: 75; mmcore_version: 12.5.0; negative_n: away from sample: increasing position moves the objective away (MM::FocusDirectionAwayFromSample, -1); positive_n: toward sample: increasing position brings objective and sample closer (MM::FocusDirectionTowardSample, +1); product: Micro-Manager; source_commit: micro-manager/mmCoreAndDevices@bf906ad7c853f6cadf0f75740972e654083947c1; zero_n: unknown (MM::FocusDirectionUnknown, 0)
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:micromanager_mmcore_12_5_0).
 
@@ -160,6 +188,8 @@ Conditions, verbatim:
 
 In pymmcore-plus 0.18.1, CMMCorePlus.instance() keeps its global singleton through a weak reference. When the last strong reference to a loaded core is dropped the core can be destroyed, which unloads its devices, and a later instance() call returns a new, empty core. Code that loads a configuration has to keep its own strong reference to the core.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:pymmcore_plus_0_18_1_core_mmcore_plus_py).
 
 Conditions, verbatim:
@@ -169,6 +199,10 @@ Conditions, verbatim:
 ### [tracer_number_density_from_diameter](../entries/tracer_number_density_from_diameter.json)
 
 The number of Abvigen AFR-0500-COOH particles per millilitre of the as-supplied 10 mg/ml suspension is 6*C/(pi*rho*d**3), where C is the mass concentration, rho the particle density 1.03 g/cm3 and d the particle diameter.
+
+Applies to: the type AFR-0500-COOH. Applying it to the bottle on this bench goes through the E5 linking claim particle_suspension_a_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8
+
+Identifiers: catalog_number: AFR-0500-COOH
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:abvigen_red_ps_cooh).
 
@@ -180,6 +214,10 @@ Conditions, verbatim:
 
 The Abvigen AFR-0500-COOH particles are spherical polystyrene, surface-functionalised with carboxyl (-COOH) groups, supplied as a suspension in deionised water.
 
+Applies to: the type AFR-0500-COOH. Applying it to the bottle on this bench goes through the E5 linking claim particle_suspension_a_identity, which a card applying this to the bench must cite alongside it and which fixes the grade at E5 by 5.8
+
+Identifiers: catalog_number: AFR-0500-COOH; product: Red PS Fluorescent Particles-COOH; supplier: Abvigen Inc
+
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:abvigen_red_ps_cooh).
 
 Conditions, verbatim:
@@ -189,6 +227,8 @@ Conditions, verbatim:
 ### [abvigen_published_data_is_unreliable](../entries/abvigen_published_data_is_unreliable.json)
 
 Abvigen's published product data for the Red PS Fluorescent Particles-COOH line carries documented errors, including a monoclonal-antibody filing and the product name printed in the Particle Size field, in addition to excitation and emission figures that instrument testing has disproved. Nothing on that page should be treated as load-bearing without independent confirmation.
+
+Identifiers: catalog_number: AFR-0500-COOH; supplier: Abvigen Inc
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@abvigen-verification-2026-09-06).
 
@@ -200,6 +240,8 @@ Conditions, verbatim:
 
 On the prior project's bench the Lapp branch selector's enum names were false and its integer state was true: the configuration declared the label-to-position mapping inverted, so every label the device reported was the wrong name for the position it was in. The discipline that follows is to select that branch by integer and never by name.
 
+Identifiers: prior_label: LappMainBranch1; selector: lapp_branch
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
 Conditions, verbatim:
@@ -209,6 +251,8 @@ Conditions, verbatim:
 ### [dropped_frames_raise_nothing](../entries/dropped_frames_raise_nothing.json)
 
 MMCore raises no error and writes no record when it drops a frame. Gaps in the ImageNumber sequence are the only evidence, and MicroManager's own metadata files do not record the loss.
+
+Identifiers: component: MMCore; only_evidence: ImageNumber gaps
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -220,6 +264,8 @@ Conditions, verbatim:
 
 The emission filter wheel holds single-band filters in positions 1 to 4 -- FF01-432/36-32 at 1, FF01-515/30-32 at 2, FF01-595/31-32 at 3, FF01-680/42-32 at 4 -- with a quad-band filter at position 0 whose part number was never supplied. Positions 5 to 8 are blocked by a metal plate.
 
+Identifiers: nikon_order_codes: 77015975 / 77015964 / 77015965 / 77015891; position_0: quad-band, part number not recorded; position_1: FF01-432/36-32; position_2: FF01-515/30-32; position_3: FF01-595/31-32; position_4: FF01-680/42-32; vendor: Semrock BrightLine
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@filters-2026-09-06).
 
 Conditions, verbatim:
@@ -229,6 +275,8 @@ Conditions, verbatim:
 ### [emission_wheel_red_arm_is_position_3](../entries/emission_wheel_red_arm_is_position_3.json)
 
 On the prior project's instrument the red particle's emission was strongest through emission wheel position 3, measured by running the same particle through all four single-band positions on 2026-09-06.
+
+Identifiers: part_at_that_position: FF01-595/31-32; red_arm_position: 3; wheel_label: 555
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@filters-2026-09-06).
 
@@ -240,6 +288,8 @@ Conditions, verbatim:
 
 The cube in the Ti2 filter turret is a Nikon MXR00724, LED-DA/FI/TR/Cy5/Cy7-A, a FIVE-band cube, and it sits in FilterTurret1 position 0. Its emitter passes bands centred at 440, 520.5, 606, 694 and 808.5 nm.
 
+Identifiers: dichroic_bands_nm: 432/36, 514.5/31, 595.5/31, 681/40, 808.5/81; emitter_bands_nm: 440/40, 520.5/21, 606/34, 694/34, 808.5/81; exciter_bands_nm: 378/50, 474/24, 554.5/21, 635/16, 735/26; part_number: MXR00724; product: LED-DA/FI/TR/Cy5/Cy7-A; turret_position: 0
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@filters-2026-09-06).
 
 Conditions, verbatim:
@@ -249,6 +299,8 @@ Conditions, verbatim:
 ### [focus_frames_over_the_clip_limit_are_not_readable](../entries/focus_frames_over_the_clip_limit_are_not_readable.json)
 
 In dino-autofocus's focus core the metrics read pixels as they come and do not mask clipped ones, so a frame with clipped particle cores under-reads its own sharpness and can move the peak; each frame's clipped-pixel fraction is therefore kept beside its score, and frames whose fraction exceeds the caller's limit are dropped from the sweep as not readable.
+
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: saturated_fraction; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -260,6 +312,8 @@ Conditions, verbatim:
 
 In dino-autofocus's focus core, `brenner` is a scale-invariant Brenner sharpness: after the same normalisation as `vollath4`, the mean squared difference between pixels two apart is taken on each image axis and the two are summed; its source notes that it rises on dim, noisy frames.
 
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: brenner; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -269,6 +323,8 @@ Conditions, verbatim:
 ### [focus_metric_peak_brightness_definition](../entries/focus_metric_peak_brightness_definition.json)
 
 In dino-autofocus's focus core, `peak_brightness` (registered as `peak`) is the brightest spot of the block-binned frame minus the median of the binned frame, in raw counts; it is deliberately not scale-invariant, being meant for sparse particle fields at high magnification where a whole-frame sharpness barely moves.
+
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: peak_brightness; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -280,6 +336,8 @@ Conditions, verbatim:
 
 In dino-autofocus's focus core, `tenengrad` is Sobel gradient energy -- the mean over the frame's valid interior, with no border padding, of the squared horizontal plus squared vertical Sobel responses -- computed after the same normalisation as `vollath4` and `brenner`.
 
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: tenengrad; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -289,6 +347,8 @@ Conditions, verbatim:
 ### [focus_metric_vollath4_definition](../entries/focus_metric_vollath4_definition.json)
 
 In dino-autofocus's focus core, `vollath4` is a scale-invariant Vollath F-four sharpness of one frame: the frame is median-subtracted and divided by its mean absolute deviation, then on each image axis the mean lag-one product minus the mean lag-two product is taken and the two axes are summed, so that a brighter exposure does not read as sharper and uncorrelated noise cancels.
+
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: vollath4; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -300,6 +360,8 @@ Conditions, verbatim:
 
 dino-autofocus's focus search is a coarse sweep around a centre; only when the coarse maximum lies inside the span does a fine sweep follow, around the readback z of that maximum, and a maximum at either end gets no fine pass.
 
+Identifiers: body_sha256: 7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_search.py; name: coarse_span / fine_span / peak_at; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -309,6 +371,8 @@ Conditions, verbatim:
 ### [focus_search_top_end_extension_layout](../entries/focus_search_top_end_extension_layout.json)
 
 When a coarse maximum sits at the top end of its span, dino-autofocus's focus search lays out the next span centred at the old top with a half-width equal to the old span's full width, swept upward from its low end so that z never jumps upward, and stops extending when the ceiling leaves nothing above the old top; a maximum at the low end is reported as re-centre lower.
+
+Identifiers: body_sha256: 7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_search.py; name: extension_span / room_above; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -320,6 +384,8 @@ Conditions, verbatim:
 
 dino-autofocus's focus search file yields spans and ascending z points only: the floor and ceiling are arguments, the points are clipped to them and a span lying wholly outside them is refused, nothing in the file moves anything, and no model value takes part.
 
+Identifiers: body_sha256: 7ffaf28f014ffdd87587f803f2481e3d9eff47219fde15432d97932483655bc6; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_search.py; name: sweep_z; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -329,6 +395,8 @@ Conditions, verbatim:
 ### [focus_sweep_light_dropouts_are_not_focus_changes](../entries/focus_sweep_light_dropouts_are_not_focus_changes.json)
 
 In dino-autofocus's focus sweep, a frame whose mean brightness departs from the sweep's median frame mean by more than the caller's tolerance, taken as a fraction of that median, is treated as a light dropout rather than a focus change: it is dropped before the peak is located and cannot be chosen.
+
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: dropout_mask; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -340,6 +408,8 @@ Conditions, verbatim:
 
 From a classical sweep dino-autofocus decides its focus verdict in this order: if no frame's high-percentile brightness rises above its median by more than the caller's dark-level floor, `no_sample_here`; otherwise, after light-dropout and over-clipped frames are dropped, too few readable frames or a flat curve gives `unsure`; a maximum at the top of the span gives `step_up` and at the bottom `step_down`, each pointing at the frame of the maximum; a maximum inside gives `in_focus`, pointing at the readable frame nearest the vertex of the parabola through the maximum and its neighbours.
 
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: from_sweep; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -349,6 +419,8 @@ Conditions, verbatim:
 ### [focus_verdict_returns_a_branch_never_a_z](../entries/focus_verdict_returns_a_branch_never_a_z.json)
 
 A dino-autofocus focus verdict returns a branch and the index of the frame it chose, never a z to move to; it can refuse and cannot permit, carrying no limit, no target and no command.
+
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: FocusVerdict; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -360,6 +432,8 @@ Conditions, verbatim:
 
 In dino-autofocus's focus verdict, `step_up` means best focus lies above the current stage z, so the focus drive would move toward larger z readings, and `step_down` means the opposite.
 
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: step_up / step_down; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -369,6 +443,8 @@ Conditions, verbatim:
 ### [focus_verdict_thresholds_are_all_the_callers](../entries/focus_verdict_thresholds_are_all_the_callers.json)
 
 Every threshold dino-autofocus's focus verdict uses is a keyword argument its caller must supply, with no default in the file and no bench number held there.
+
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: from_sweep / from_reading; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -380,6 +456,8 @@ Conditions, verbatim:
 
 In dino-autofocus's focus verdict `unsure` is an abstention, not a direction: from a classical sweep it is returned when the sweep is empty, when fewer frames than the caller's minimum remain readable, or when the readable curve's contrast is below the caller's floor.
 
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: unsure; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -389,6 +467,8 @@ Conditions, verbatim:
 ### [focus_verdict_vocabulary](../entries/focus_verdict_vocabulary.json)
 
 dino-autofocus's focus verdict takes exactly one of five values: `in_focus`, `step_up`, `step_down`, `no_sample_here` and `unsure`.
+
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: Verdict; repository: kyu-softmatter/dino-autofocus
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
@@ -400,6 +480,8 @@ Conditions, verbatim:
 
 The z a dino-autofocus focus verdict carries is the encoder readback of a frame that was actually taken, as handed in by its caller, never a model output and never an interpolated z; a parabola vertex or any model number appears only among the verdict's evidence, tagged with the source's own grade word -- measured, computed or model.
 
+Identifiers: body_sha256: 07bc1342a4c868e5856b549bc8bc6a8c3a5af8fd8bd6dd83cc6c6970d01be099; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_verdict.py; name: FocusVerdict.z_um; repository: kyu-softmatter/dino-autofocus
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 
 Conditions, verbatim:
@@ -409,6 +491,8 @@ Conditions, verbatim:
 ### [host_clock_is_not_the_experiment_clock](../entries/host_clock_is_not_the_experiment_clock.json)
 
 The host clock and MicroManager's frame timestamp series are separate clocks. Mapping host timestamps onto the frame series after the fact is a correlation between two clocks, not a synchronisation of them.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -420,6 +504,8 @@ Conditions, verbatim:
 
 The immersion oil on this bench is Nikon Type F Non-Fluorescing Immersion Oil, 30 ml, PCB-free, as the person read it off the bottle's label at the bench on 2026-10-13.
 
+Identifiers: immersion: oil; label_also_reads: PCB-free; product: Nikon Type F Non-Fluorescing Immersion Oil; volume_on_label: 30 ml; what_it_joins: this bench's oil to the type facts nikon_type_f_oil_refractive_index_nd_23c and nikon_type_f_oil_refractive_index_ne_23c, which are about the product and say nothing about a bottle
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20261013_immersion_oil).
 
 Conditions, verbatim:
@@ -429,6 +515,8 @@ Conditions, verbatim:
 ### [interval_ms_is_ignored_and_frame_period_equals_exposure](../entries/interval_ms_is_ignored_and_frame_period_equals_exposure.json)
 
 startSequenceAcquisition's intervalMs argument is ignored: the frame period equals the exposure exactly, because readout is pipelined. A frame rate cannot be obtained by asking for it.
+
+Identifiers: call: startSequenceAcquisition; ignored_argument: intervalMs
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -440,6 +528,8 @@ Conditions, verbatim:
 
 On both Lumencor engines each light line is exposed as two MMCore properties, `\<NAME\>` taking 0 or 1 and `\<NAME\>_Intensity` taking 0 to 1000. The intensity scale is per-mille, not per cent: an operator's 10 per cent is 100, and writing 10 sets one per cent.
 
+Identifiers: intensity_property_suffix: _Intensity; vendor: Lumencor
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
 Conditions, verbatim:
@@ -449,6 +539,8 @@ Conditions, verbatim:
 ### [light_engine_master_state_gates_every_line](../entries/light_engine_master_state_gates_every_line.json)
 
 Both Lumencor engines carry a master property `State`, taking 0 or 1, which gates the whole device. With State at 0 no light leaves the engine however a line and its intensity are set, and nothing reports an error or reads back wrongly.
+
+Identifiers: master_property: State; vendor: Lumencor
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
@@ -460,6 +552,8 @@ Conditions, verbatim:
 
 On the prior project's configuration the MMCore device label `Aura` is the Lumencor Aura III 5-NII-WA on COM7, serial 30859, firmware 3.14.7. The label is not `AuraIII`; that is the product name.
 
+Identifiers: mm_label: Aura; model: Aura III 5-NII-WA; serial: 30859
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
 Conditions, verbatim:
@@ -469,6 +563,8 @@ Conditions, verbatim:
 ### [mm_label_lightengine_is_the_spectra_iii](../entries/mm_label_lightengine_is_the_spectra_iii.json)
 
 On the prior project's configuration the MMCore device label `LightEngine` is the Lumencor Spectra III 8-NII-XS on COM3, serial 28145, firmware 3.5.4. The label is not `SpectraIII`; that is the product name.
+
+Identifiers: mm_label: LightEngine; model: Spectra III 8-NII-XS; serial: 28145
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@34a432c).
 
@@ -480,6 +576,8 @@ Conditions, verbatim:
 
 MicroManager's PixelType property reports 12bit while the data delivered is 16-bit, so trusting the property scales every count by a factor of sixteen.
 
+Identifiers: actual: 16-bit; property: PixelType; reported: 12bit
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -489,6 +587,8 @@ Conditions, verbatim:
 ### [trapped_bead_is_the_one_that_does_not_translate](../entries/trapped_bead_is_the_one_that_does_not_translate.json)
 
 In a crowded field, brightness does not identify the trapped bead. The discriminator that works is motion relative to the stage: the trapped bead is the only object that does not translate when the stage moves.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -500,6 +600,8 @@ Conditions, verbatim:
 
 The expected translational diffusivity of a tracer sphere in a bulk fluid is the Stokes-Einstein value, k_B T over 3 pi eta d. It is a prediction from the viscosity, the temperature and the diameter, not a measurement of how the particles actually move.
 
+Identifiers: none
+
 How it is known: computed; computed from other values (E4 · computed:stokes_einstein).
 
 Conditions, verbatim:
@@ -509,6 +611,8 @@ Conditions, verbatim:
 ### [focus_metrics_peak_at_best_focus](../entries/focus_metrics_peak_at_best_focus.json)
 
 Each of dino-autofocus's classical focus metrics -- `vollath4`, `brenner`, `tenengrad` and `peak_brightness` -- reaches its maximum over a z sweep at the plane of best focus.
+
+Identifiers: body_sha256: 2fa776faeb2b366f5dd1892345715d087e63a702cc168e179e81cb0bfd3f2af3; commit: fa9790378ea3f06e94b933a2fb65219322f6702a; file: microscope_agent/src/focus_classical.py; name: every metric; repository: kyu-softmatter/dino-autofocus
 
 How it is known: recalled or assumed; an assumption (E5 · assumed:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a).
 

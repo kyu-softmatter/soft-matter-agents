@@ -15,10 +15,10 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| coverslip_thickness | 170 | um | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260917 | coverslip_um 170 um | quantity coverslip_thickness | [coverslip_thickness_in_use](../entries/coverslip_thickness_in_use.json) |
-| coverslip_thickness | 170 | um | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260922 | coverslip_um 170 um | device nosepiece | [objective_40x_collar_setting](../entries/objective_40x_collar_setting.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| coverslip_thickness | 170 | um | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260917 | coverslip_um 170 um | none | quantity coverslip_thickness | [coverslip_thickness_in_use](../entries/coverslip_thickness_in_use.json) |
+| coverslip_thickness | 170 | um | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260922 | coverslip_um 170 um | immersion: water; nominal_magnification: 40x; part_number: MRD77400; product: CFI Apo Lambda S 40XC WI | device nosepiece | [objective_40x_collar_setting](../entries/objective_40x_collar_setting.json) |
 
 ## Claims
 

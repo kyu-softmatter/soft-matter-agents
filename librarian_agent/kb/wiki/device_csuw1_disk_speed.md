@@ -28,6 +28,8 @@ None.
 
 Loaded through Micro-Manager on the microscope computer, the CSU-W1's seven devices (Hub, Shutter, Bright Field, Port, Dichroic and both filter wheels) expose no property that reports the spinning disk's speed. The only Speed properties are the two filter wheels', which is wheel speed.
 
+Identifiers: configuration: dualcam_noDMD_nolaser_nostartup.cfg; micromanager: Micro-Manager 2.0.3 20260806, MMCore 12.5.0, Device API 75
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-008).
 
 Conditions, verbatim:
@@ -37,6 +39,8 @@ Conditions, verbatim:
 ### [csuw1_disk_speed_exposure_constraint](../entries/csuw1_disk_speed_exposure_constraint.json)
 
 An exposure taken through the spinning disk must last an integer multiple of the disk period, or stripes remain in the image, and nothing may be acquired while the disk is still spinning up to speed.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260917).
 
@@ -48,6 +52,8 @@ Conditions, verbatim:
 
 In the prior project's Micro-Manager configurations, the spinning-disk unit is reached as Hub, Filter_Red, Filter_Blue, Dichroic, Shutter, Bright Field and Port. No device there reports or sets the disk's rotation, so the disk period cannot be read from Micro-Manager with those configurations.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 
 Conditions, verbatim:
@@ -57,6 +63,8 @@ Conditions, verbatim:
 ### [stopped_disk_frame_looks_bright](../entries/stopped_disk_frame_looks_bright.json)
 
 A confocal frame taken with the spinning disk stopped is a stationary pinhole grid at full brightness, so brightness and contrast look normal and nothing seems wrong. The texture gives it away: on the difference of a lit and an unlit frame, the largest off-centre term of the power spectrum over its median is orders of magnitude higher with a stationary grid than with smooth illumination, and a frame with no signal stays low.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light).
 

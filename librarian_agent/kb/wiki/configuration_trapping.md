@@ -10,16 +10,18 @@ No registry text: configurations have no table of their own in the store.
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
-| rated_max_power | 5 | W | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| wavelength | 1064 | nm | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | model: Aresis Tweez 300 | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
+| rated_max_power | 5 | W | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | none stated | model: Aresis Tweez 300 | device optical_tweezers, configuration trapping | [trapping_laser_identity](../entries/trapping_laser_identity.json) |
 
 ## Claims
 
 ### [objective_change_invalidates_trap_calibration](../entries/objective_change_invalidates_trap_calibration.json)
 
 Changing the objective silently invalidates both of the optical tweezers' calibrations -- the GUI's pixel-to-micrometre magnification and the AOD's trapping-field response -- and neither is readable over TCP. Afterwards every commanded trap position in micrometres lands somewhere else and nothing reports it.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
@@ -31,6 +33,8 @@ Conditions, verbatim:
 
 The Tweez 300's TCP interface has no readback of any kind -- no position, no force, no trap list, no calibration -- and a return code of 0 means the GUI accepted the command, not that anything happened. Six distinct ways a command can be ignored all return 0: a breakpoint whose enable bits are unset, release bits that do not cover the value, repeat left disabled, a pattern that overruns the calibrated range and is silently clipped to the edge, a GUI calibrated at a different objective so every commanded micrometre is wrong by that ratio, and a named trap that holds no bead.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@safety-2026-09-03).
 
 Conditions, verbatim:
@@ -40,6 +44,8 @@ Conditions, verbatim:
 ### [trap_heating_detection_bound](../entries/trap_heating_detection_bound.json)
 
 The operator recalls not noticing a temperature change in the sample unless the infrared trapping laser was driven above roughly 20 percent on its dial. This records where noticing stopped, by means that were not recorded.
+
+Identifiers: none
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20260919).
 

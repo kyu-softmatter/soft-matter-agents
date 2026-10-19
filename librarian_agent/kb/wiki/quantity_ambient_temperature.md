@@ -15,17 +15,19 @@ From the managers' registry, contracts/quantities.json:
 
 ## Values
 
-| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |
-|---|---|---|---|---|---|---|---|
-| ambient_temperature | 293 | K | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260917 | none stated | quantity ambient_temperature, quantity temperature | [lab_ambient_temperature](../entries/lab_ambient_temperature.json) |
-| temperature_stability | 1 | K | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260923 | none stated | quantity temperature_stability, quantity ambient_temperature, quantity temperature | [room_temperature_hold_band](../entries/room_temperature_hold_band.json) |
-| temperature_resolution | 1 | K | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260923 | none stated | quantity temperature_resolution, quantity ambient_temperature, quantity temperature | [room_thermometer_reads_in_one_kelvin_steps](../entries/room_thermometer_reads_in_one_kelvin_steps.json) |
+| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |
+|---|---|---|---|---|---|---|---|---|
+| ambient_temperature | 293 | K | from a document, a reading off the instrument, or another project's record; the person read it off the instrument | E3 · operator_read:kyuhwan_20260917 | none stated | none | quantity ambient_temperature, quantity temperature | [lab_ambient_temperature](../entries/lab_ambient_temperature.json) |
+| temperature_stability | 1 | K | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260923 | none stated | none | quantity temperature_stability, quantity ambient_temperature, quantity temperature | [room_temperature_hold_band](../entries/room_temperature_hold_band.json) |
+| temperature_resolution | 1 | K | recalled or assumed; the person's recollection | E5 · operator_recall:kyuhwan_20260923 | none stated | none | quantity temperature_resolution, quantity ambient_temperature, quantity temperature | [room_thermometer_reads_in_one_kelvin_steps](../entries/room_thermometer_reads_in_one_kelvin_steps.json) |
 
 ## Claims
 
 ### [no_thermometer_at_the_sample](../entries/no_thermometer_at_the_sample.json)
 
 There is no thermometer beside the sample. The only thermometer in the laboratory reads the room, so any temperature attributed to the sample is a room reading applied to it.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260919).
 
@@ -36,6 +38,8 @@ Conditions, verbatim:
 ### [room_temperature_is_controlled](../entries/room_temperature_is_controlled.json)
 
 The room is held continuously by air conditioning. There is a setpoint on this instrument's environment -- it is the room's, not the sample's.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20260919).
 

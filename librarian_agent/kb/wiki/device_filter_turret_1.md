@@ -24,6 +24,8 @@ None.
 
 On 2026-09-24, with the 20x placed by hand, the stand read: Nosepiece state 2, label '3-Plan Apo LmbdD0.8 20x'; LightPath state 3, '4-L100'; FilterTurret1 state 0, '1-MXR00724 -Empty'; FilterTurret2 state 0, '1-Empty'; LappMainBranch1 state 1, 'mirror_in'; CondenserTurret state 0, '1-ND'.
 
+Identifiers: none
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
@@ -33,6 +35,8 @@ Conditions, verbatim:
 ### [ti2e_filter_shutter_state_at_startup_is_a_setting](../entries/ti2e_filter_shutter_state_at_startup_is_a_setting.json)
 
 In Ti2 Control, whether the fluorescence turret's shutter is open or closed when the microscope starts is a setting.
+
+Identifiers: none
 
 How it is known: from a document, a reading off the instrument, or another project's record; manufacturer's specification (E3 · spec:nikon_ti2_control_v2_90_m706_e15).
 
@@ -44,6 +48,8 @@ Conditions, verbatim:
 
 On 2026-09-07 in the prior project, filter turret 1 at state 0 held the multiband cube MXR00724 and blocked the confocal path, while states 1, 2 and 3 were empty and passed it.
 
+Identifiers: none
+
 How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:agentic-microscope@fbedef0/config/lunf).
 
 Conditions, verbatim:
@@ -53,6 +59,8 @@ Conditions, verbatim:
 ### [filter_turret_shutters_close_at_state_0](../entries/filter_turret_shutters_close_at_state_0.json)
 
 The person stated on 2026-10-04 that the two filter-turret shutters, Micro-Manager devices Turret1Shutter and Turret2Shutter, are closed when their State property is "0".
+
+Identifiers: closed_value: 0; mm_device: Turret1Shutter, Turret2Shutter; property: State
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20261004).
 

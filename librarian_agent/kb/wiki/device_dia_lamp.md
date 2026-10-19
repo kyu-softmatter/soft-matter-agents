@@ -24,6 +24,8 @@ None.
 
 The transmitted-light lamp, Micro-Manager device DiaLamp, reports two properties, State and Intensity, both readable at load; on 2026-09-24, with no software having set them, they read State "0" and Intensity "2100".
 
+Identifiers: mm_device: DiaLamp; properties: State, Intensity
+
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-008).
 
 Conditions, verbatim:

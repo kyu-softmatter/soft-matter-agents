@@ -228,6 +228,13 @@ def how_known(n: dict, e: dict) -> str:
     return f"{GRADE_WORDS.get(grade, 'not graded')}; {SOURCE_WORDS.get(kind, 'source kind not recognised')}"
 
 
+def identifiers_text(e: dict) -> str:
+    """The entry's identifiers as `key: value`, verbatim, in key order, without applies_to (055)."""
+    ids = e.get("identifiers") or {}
+    pairs = [f"{k}: {fmt(ids[k]) if not isinstance(ids[k], str) else ids[k]}" for k in sorted(ids) if k != "applies_to"]
+    return "; ".join(pairs) if pairs else "none"
+
+
 def subjects_text(e: dict) -> str:
     s = e.get("subject") or []
     return ", ".join(f"{x.get('kind')} {x.get('id')}" for x in s) if s else "none named"
@@ -277,11 +284,17 @@ def render(d: Data, section: str, pid: str, on: dict) -> str:
                 cell(n.get("name")), cell(fmt(n.get("value"))), cell(n.get("unit")),
                 cell(how_known(n, e)),
                 cell(f"{n.get('grade') or e.get('grade')}{MIDDOT}{n.get('source') or e.get('source')}"),
-                cell(conditions(e)), cell(subjects_text(e)),
+                cell(conditions(e)), cell(identifiers_text(e)), cell(subjects_text(e)),
                 f"[{cell(eid)}]({rel(me, 'entries/' + eid + '.json')})"]) + " |")
     if rows:
-        out += ["| quantity | value | unit | how it is known | grade and source as recorded | conditions | subject | entry |",
-                "|---|---|---|---|---|---|---|---|"] + rows
+        out += ["| quantity | value | unit | how it is known | grade and source as recorded | conditions | identifiers | subject | entry |",
+                "|---|---|---|---|---|---|---|---|---|"] + rows
+        applies = [eid for eid in eids if d.entries[eid].get("numbers")
+                   and (d.entries[eid].get("identifiers") or {}).get("applies_to")]
+        if applies:
+            out += ["", "Applies to, verbatim, for the entries above that say:", ""]
+            out += [f"- [{cell(eid)}]({rel(me, 'entries/' + eid + '.json')}): "
+                    f"{quote(d.entries[eid]['identifiers']['applies_to'])}" for eid in applies]
     else:
         out.append(NONE)
     out.append("")
@@ -292,7 +305,10 @@ def render(d: Data, section: str, pid: str, on: dict) -> str:
         for eid in claims:
             e = d.entries[eid]
             out += [f"### [{cell(eid)}]({rel(me, 'entries/' + eid + '.json')})", "",
-                    quote(e.get("claim")), "",
+                    quote(e.get("claim")), ""]
+            if (e.get("identifiers") or {}).get("applies_to"):
+                out += [f"Applies to: {quote(e['identifiers']['applies_to'])}", ""]
+            out += [f"Identifiers: {quote(identifiers_text(e))}", "",
                     f"How it is known: {quote(GRADE_WORDS.get(e.get('grade'), 'not graded'))}; "
                     f"{quote(SOURCE_WORDS.get(str(e.get('source', '')).split(':', 1)[0], 'source kind not recognised'))} "
                     f"({quote(e.get('grade'))}{MIDDOT}{quote(e.get('source'))}).", "",
@@ -388,6 +404,13 @@ def _synthetic() -> Data:
         entry("e_old", [("device", "dev_c")]),
         entry("e_new", [("device", "dev_c")], supersedes="e_old"),
         entry("e_unfiled", []),
+        entry("e_pix_10x", [("quantity", "q_used")], [{"name": "q_used", "value": 0.65, "unit": "um",
+                                                         "source": "calibration:c1", "grade": "E2"}],
+              identifiers={"nominal_magnification": "10x", "intermediate_magnification": "1x",
+                           "applies_to": "only the bottle in use"}),
+        entry("e_pix_20x", [("quantity", "q_used")], [{"name": "q_used", "value": 0.65, "unit": "um",
+                                                         "source": "calibration:c1", "grade": "E2"}],
+              identifiers={"nominal_magnification": "20x", "intermediate_magnification": "1x"}),
     ]}
     for e in ents.values():
         if not e["subject"]:
@@ -448,6 +471,18 @@ def _self_test() -> int:
             ups = target.split("/").count("..")
             if target.startswith(("/", "http:", "https:")) or ":" in target.split("/")[0] or ups > depth:
                 bad.append(f"{name}: link {target} leaves kb/")
+    # 055: two entries that differ only in an identifier render two rows that differ in that column;
+    # applies_to stays out of the column and is shown verbatim beside the entry
+    qrows = [l for l in p.get("quantity_q_used.md", "").splitlines() if l.startswith("| q_used ")]
+    r10 = [l for l in qrows if "e_pix_10x" in l]
+    r20 = [l for l in qrows if "e_pix_20x" in l]
+    if not (r10 and r20 and "| intermediate_magnification: 1x; nominal_magnification: 10x |" in r10[0]
+            and "| intermediate_magnification: 1x; nominal_magnification: 20x |" in r20[0]):
+        bad.append("rows differing only in an identifier do not show it in an identifiers column")
+    if any("only the bottle in use" in l for l in qrows):
+        bad.append("applies_to was put in the identifiers column")
+    has("quantity_q_used.md", "only the bottle in use", "applies_to shown beside the entry")
+    has("device_dev_a.md", "| none |", "an entry with no identifiers shows none")
     odd = _synthetic()
     odd.entries["e_current"]["subject"] = [{"kind": "device", "id": "dev_" + chr(233)}]
     try:

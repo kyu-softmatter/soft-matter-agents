@@ -25,6 +25,8 @@ None.
 
 The focus hold, Micro-Manager device PFS on the NikonTi2 adapter, read three properties in three states on 2026-10-13: off and never switched on since load -- FocusMaintenance Off, PFS Status 0000000000000000, PFS in Range 'Out of Range'; on and locked -- FocusMaintenance On, PFS Status 0000001100001010, PFS in Range 'In Range'; off again after being on -- FocusMaintenance Off, PFS Status 0000000100000000, PFS in Range 'In Range'.
 
+Identifiers: mm_adapter: NikonTi2; mm_device: PFS; properties: FocusMaintenance, PFS Status, PFS in Range, PFS LEDIntensity
+
 How it is known: from a document, a reading off the instrument, or another project's record; the person read it off the instrument (E3 · operator_read:kyuhwan_20261013_bench_readings).
 
 Conditions, verbatim:
@@ -34,6 +36,8 @@ Conditions, verbatim:
 ### [pfs_status_differs_in_range_and_out_of_range_per_the_person](../entries/pfs_status_differs_in_range_and_out_of_range_per_the_person.json)
 
 The person stated on 2026-10-15 that both off readings of PFS Status taken on 2026-10-13, 0000000000000000 and 0000000100000000, are focus hold off, and that the codes differ because one was taken out of range and the other in range.
+
+Identifiers: mm_device: PFS; property: PFS Status
 
 How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20261015_pfs_off_codes).
 

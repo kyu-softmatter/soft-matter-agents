@@ -23,6 +23,8 @@ None.
 
 The diffusive time is the time a sphere needs to diffuse its own diameter, and it sets the shortest record length from which a mean squared displacement can be read.
 
+Identifiers: none
+
 How it is known: computed; computed from other values (E4 · computed:diffusive_time).
 
 Conditions, verbatim:
