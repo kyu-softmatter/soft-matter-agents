@@ -6,6 +6,9 @@ Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 Office computer the person seats next; `contracts/seats.json` names it. If you
 are neither, take nothing from this card and report up.
 
+
+**Done (closed 2026-10-19).** `microscope-office-20261015-2` took this card under its "whichever microscope seat on the Office computer" clause and committed `findings/microscope-office-20261015-2-20261015.json` at `aa7f0005`, with both items `for_store: true`. The librarian entered `kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit`, `kinetix22_both_bodies_saturate_alike_per_the_person` and `pfs_reports_focus_maintenance_status_and_range_in_three_states` at `62108cef`. The person's go (intake `077a99a2`) is satisfied by that, so no second findings file is written. Take nothing more from this card.
+
 ## Why
 
 The bench visit of 2026-10-13 was recorded by `microscope-20261013-1` on the
