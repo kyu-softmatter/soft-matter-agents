@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { LoginGate, useActivity, useAuth } from "./auth";
 import { type Client, ClientProvider, useClient, useReadOnly } from "./client";
 import { Shell } from "./Shell";
+import { StopAllRuns } from "./StopAllRuns";
 import { useAssistantStatus, useEngineStatus } from "./status";
 import { ShutdownNoticeView, StatusBarView, UserPart } from "./StatusBar";
 
@@ -56,7 +57,7 @@ function Connected() {
 export function App({ client }: { client: Client }) {
   return (
     <ClientProvider client={client}>
-      <LoginGate>
+      <LoginGate abort={<StopAllRuns />}>
         <Connected />
       </LoginGate>
     </ClientProvider>

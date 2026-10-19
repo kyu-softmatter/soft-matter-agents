@@ -68,6 +68,31 @@ announces a loopback stop channel and a frame tap in `run_started`, and keeps go
   for it; stop it at the instrument or in the operator terminal"`. Simulation runs have no Abort here.
 - Nothing is written in the soft-matter-agents tree (the audit line goes to the console's own folder).
 
+## Stop all runs, with no login (card 004)
+
+The person asked for a stop on the lock screen that works without a login (committed at `cee4f8c1`)
+and for it to stop at once, with no confirmation step (`27029ddc`). `POST /api/console/runs/stop`
+sends the one pinned stop line (`run_interface.schema.json`, `stop_request`) to every microscope
+run whose `events.jsonl` says it is running, each on the stop channel that run announced, all at
+once. It answers each run's id and outcome (`begun`, `refused`, `no_answer`, `unreachable`, or
+`no_channel` for a running run that announced none and so got nothing), or that nothing was running.
+The button, "Stop all runs", is on the lock screen and on the setup and logged-out screens; one
+press makes one request, and a second press while it is in flight does nothing. It lists nothing
+first: no read works without a login, and none was added.
+
+- **Who may ask.** From the microscope PC with no login, always. From another computer only with a
+  login and with remote abort on (D13), as for the per-run stop. A page from another origin is
+  refused before anything else.
+- **It does one thing.** POST only, and no body, no query, no run id and no reason: the server
+  composes the reason, "Stop all runs pressed (by <who>)", with "the microscope PC (no login)" when
+  there is no login. Anything else is 400 `stop_takes_nothing` and reaches no run.
+- **Every stop is audited**, one `sma_stop_all` line per run, and one with outcome `none_running`
+  when none ran. A failing audit log never holds a stop back: the answer then says `audited: false`.
+- **With the mock store** the server answers 409 `not_connected` and sends nothing; the lock screen
+  cannot know the store before it asks, because no read works there.
+- **The guard on the person's words**: a test lists every write the app mounts and fails if any one
+  other than the login and setup paths, the shutdown from this PC and the two stops works without a login.
+
 ## Microscope live view from the console (C-15, soft-matter-agents card 062)
 
 The person decided on 2026-10-07 that a live camera view is switched on and off from the console,

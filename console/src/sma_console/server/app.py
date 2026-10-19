@@ -78,6 +78,11 @@ LOOPBACK_HOSTS = ("127.0.0.1", "localhost")
 # the Abort of a run soft-matter-agents executes (plan.md 11-25): a stop, so it gets the stop
 # rules (loopback always; a logged-in remote viewer when remote abort is on, D13)
 SMA_STOP_PATH = re.compile(r"^/api/console/runs/[^/]+/[^/]+/stop$")
+# "Stop all runs", for the lock screen and the logged-out screens (console card 004, the person
+# at cee4f8c1): one write that stops every running followed microscope run. A stop, so the same
+# rules as the line above. It is the only new thing reachable without a login, and only from
+# the microscope PC; POST only, any other method is judged as an ordinary write.
+STOP_ALL_PATH = "/api/console/runs/stop"
 SHUTDOWN_PATH = "/api/shutdown"
 OPEN_READS = frozenset({"/api/health", "/api/auth/setup"})  # setup: first-run state (T-105)
 # reads a locked login still gets: the lock screen needs who is locked (T-105 `/me`)
@@ -147,7 +152,7 @@ def _http_refusal(request: Request) -> Refusal | None:
         return origin_refusal(request)
     if path == SHUTDOWN_PATH:
         return _shutdown_refusal(request)
-    if SMA_STOP_PATH.match(path):
+    if SMA_STOP_PATH.match(path) or (path == STOP_ALL_PATH and request.method == "POST"):
         return command_refusal(request, "abort")
     return command_refusal(request)  # any other write: loopback, logged in, unlocked
 

@@ -29,7 +29,14 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .sma_run import MAX_EVENTS_BYTES, NotFollowedError, RunStream, SmaRunError, read_stream
+from .sma_run import (
+    MAX_EVENTS_BYTES,
+    NotFollowedError,
+    RunStream,
+    SmaRunError,
+    read_stream,
+    read_stream_edges,
+)
 from .store import (
     AGENTS,
     Agent,
@@ -328,6 +335,25 @@ class SmaFiles:
         if not d.is_dir():
             raise NotFoundError(f"no {agent} run {run_id} in {self.source}")
         return read_stream(d, max_bytes=max(self.max_read_bytes, MAX_EVENTS_BYTES))
+
+    def running_microscope_runs(self) -> list[RunStream]:
+        """Every microscope run whose events.jsonl says it is still running, newest folder
+        first. It reads `<root>/microscope_agent/runs/*/events.jsonl`, the head and the tail of
+        each, and nothing else. A run that announced no stop channel is included: the caller
+        says it cannot be stopped from here."""
+        base = self._root / "microscope_agent" / "runs"
+        if not base.is_dir():
+            return []
+        out: list[RunStream] = []
+        for d in sorted((p for p in base.iterdir() if p.is_dir()), key=lambda p: p.name,
+                        reverse=True):
+            try:
+                stream = read_stream_edges(d)
+            except (NotFollowedError, SmaRunError):
+                continue
+            if stream.running:
+                out.append(stream)
+        return out
 
     def _followed(self, d: Path) -> RunStream | None:
         """The events stream of a run its orchestrator follows, or None."""

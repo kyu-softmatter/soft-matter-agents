@@ -4,8 +4,9 @@ and inbox, read from the AgentStore, and the one write, a question to the mock s
 A run that soft-matter-agents' orchestrator is executing is followed through what it offers a
 console (its plan.md 11-25; `agents/sma_run.py`): `GET .../stream` reads its events.jsonl,
 `GET .../frame` asks its frame tap for the latest frame (it holds no core and never snaps;
-OD-13), and `POST .../stop` is the console's Abort for that run, sent on the run's own
-loopback stop channel. The stop is a stop: the access middleware treats it as `abort` (from
+OD-13), `POST .../stop` is the console's Abort for that run, sent on the run's own loopback
+stop channel, and `POST /runs/stop` is "Stop all runs": the same stop to every running run, for
+a screen with no login (card 004). The stop is a stop: the access middleware treats it as `abort` (from
 the microscope PC always, from a logged-in remote viewer when remote abort is on, D13), and
 it is sent only when a person presses it. Closing the page stops nothing (OD-30). Nothing is
 written in the soft-matter-agents tree.
@@ -20,9 +21,12 @@ grades and `numbers` are not touched (PLAN.md §6 item 3).
 from __future__ import annotations
 
 import json
+import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Literal
 
 from fastapi import APIRouter, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
@@ -46,6 +50,7 @@ from . import (
     server_action_why,
 )
 
+log = logging.getLogger("dino_autofocus.server.api.console")
 router = APIRouter()
 
 AgentName = Literal["microscope", "simulation"]
@@ -200,6 +205,21 @@ class StopOut(BaseModel):
     run_id: str
     outcome: Literal["begun", "refused", "no_answer"]
     message: str
+
+
+class StopAllRunOut(BaseModel):
+    run_id: str
+    outcome: Literal["begun", "refused", "no_answer", "unreachable", "no_channel"] = Field(
+        description="the stop channel's answer; `unreachable`: nothing answered a connection "
+                    "(a run that crashed leaves a file that still says running); `no_channel`: "
+                    "running, but announced no stop channel, so nothing was sent")
+    message: str
+
+
+class StopAllOut(BaseModel):
+    message: str = Field(description="what happened, in words, for the lock screen")
+    runs: list[StopAllRunOut]
+    audited: bool = Field(description="every stop of this press was written to the audit log")
 
 
 class LiveListOut(BaseModel):
@@ -478,6 +498,83 @@ def stop_run(agent: AgentName, run_id: str, body: StopIn, request: Request, stor
                           outcome=result.outcome)
     return StopOut(run_id=st.run_id, outcome=result.outcome,  # type: ignore[arg-type]
                    message=result.message)
+
+
+STOP_ALL_REASON = "Stop all runs pressed"
+STOP_ALL_TAKES_NOTHING = ("stopping all runs takes no body and no query: the console decides "
+                          "what to send, so nothing the request carries reaches a run")
+STOP_ALL_WORKERS = 8
+
+
+def _stop_one(stream: sma_run.RunStream, reason: str) -> StopAllRunOut:
+    """One run's outcome. Never raises: a run that cannot be stopped is reported, not hidden."""
+    if stream.stop_channel is None:
+        return StopAllRunOut(
+            run_id=stream.run_id, outcome="no_channel",
+            message=f"run {stream.run_id} is running but announced no stop channel: nothing was "
+                    "sent; stop it at the instrument or in the operator terminal")
+    try:
+        result = sma_run.send_stop(stream, reason)
+    except sma_run.SmaRunError as e:
+        return StopAllRunOut(run_id=stream.run_id, outcome="unreachable", message=str(e))
+    return StopAllRunOut(run_id=stream.run_id, outcome=result.outcome,  # type: ignore[arg-type]
+                         message=result.message)
+
+
+def _stop_all(store: Any, reason: str) -> list[StopAllRunOut]:
+    """Every running microscope run gets the one line `send_stop` composes, all at once: a run
+    that crashed and answers nobody must not make a live run wait for its timeout."""
+    streams = store.running_microscope_runs()
+    if not streams:
+        return []
+    with ThreadPoolExecutor(max_workers=min(STOP_ALL_WORKERS, len(streams))) as pool:
+        return list(pool.map(lambda s: _stop_one(s, reason), streams))
+
+
+def _stop_all_message(runs: list[StopAllRunOut]) -> str:
+    if not runs:
+        return "No run is running. Nothing was sent."
+    begun = sum(r.outcome == "begun" for r in runs)
+    rest = len(runs) - begun
+    head = f"{len(runs)} running run{'s' if len(runs) != 1 else ''} found: {begun} began to abort"
+    return head + (f", {rest} did not (see each run)." if rest else ".")
+
+
+@router.post(
+    "/runs/stop",
+    response_model=StopAllOut,
+    responses={400: {"description": "the request carried a body or a query"},
+               401: {"description": "remote, or a remote viewer who is logged out"},
+               403: {"description": "remote view with remote abort off (D13)"},
+               409: {"description": "the console is not connected to the agents' files"}},
+)
+async def stop_all_runs(request: Request, store: AgentStoreDep, me: Login, seat: Auth) -> StopAllOut:
+    """Stop every run soft-matter-agents is executing: the one stop line, on each running
+    microscope run's own stop channel (card 004). From the microscope PC it needs no login, so a
+    locked or logged-out console can stop; a remote viewer keeps D13. It takes nothing from the
+    request: no body, no query, no run id and no reason, because the reason is composed here, and
+    it opens no read. Every stop is written to the audit log."""
+    remote_abort = getattr(request.app.state, "remote_abort", True)
+    if why := command_why(me, "abort", remote_abort=remote_abort):
+        raise why.http()
+    if request.url.query or await request.body():
+        raise Refusal(400, "stop_takes_nothing", STOP_ALL_TAKES_NOTHING).http()
+    if getattr(store, "running_microscope_runs", None) is None:
+        raise Refusal(409, "not_connected", NOT_SMA).http()
+    who = me.user_id or "the microscope PC (no login)"
+    runs = await run_in_threadpool(_stop_all, store, f"{STOP_ALL_REASON} (by {who})")
+    audited = True
+    if seat.audit is not None:
+        try:
+            for r in runs or [None]:
+                seat.audit.append(AuditKind.COMMAND_EXECUTED, me.user_id, origin="console",
+                                  command="sma_stop_all", run_id=r.run_id if r else None,
+                                  local=me.local, who=who,
+                                  outcome=r.outcome if r else "none_running")
+        except Exception:
+            log.exception("the audit log did not take a stop-all entry")
+            audited = False
+    return StopAllOut(message=_stop_all_message(runs), runs=runs, audited=audited)
 
 
 # -- live view from the console (soft-matter-agents card 062) ----------------------------------

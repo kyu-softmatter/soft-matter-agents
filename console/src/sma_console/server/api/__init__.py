@@ -16,9 +16,12 @@ Dependencies for handlers (`Annotated`, so `def handler(eng: Engine, me: Login):
 Access (PLAN.md 5, D13, D16; manager's T-009b contract), one place for REST and WebSocket:
 - Without a live login only these work: `GET /api/health` and `/api/auth/setup`, the login
   routes, first-run `POST /api/auth/setup/admin` (loopback, own page only), `POST
-  /api/shutdown` (loopback), and the stops `abort` / `lights_off` from loopback. Everything
+  /api/shutdown` (loopback), and the stops `abort` / `lights_off` from loopback, which now
+  means two writes: the per-run `POST /api/console/runs/{agent}/{run_id}/stop` and `POST
+  /api/console/runs/stop`, "Stop all runs" for the lock screen (console card 004). Everything
   else under `/api/*` and `/ws/*` is 401 `login_required`; a locked login gets 423 `locked`
-  except for stops and the login routes.
+  except for stops and the login routes. A test lists every write the app mounts and fails if
+  any other one works without a login.
 - A remote viewer reads, and may send `abort` (logged in, D13) and nothing else: 403
   `remote_view`, the one code that switches the web client to read-only.
 - Refusals carry `detail = {code, message}` and the header `X-DinoAF-Refusal: <code>`.

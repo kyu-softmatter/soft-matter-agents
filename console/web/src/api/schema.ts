@@ -722,6 +722,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/console/runs/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop All Runs
+         * @description Stop every run soft-matter-agents is executing: the one stop line, on each running
+         *     microscope run's own stop channel (card 004). From the microscope PC it needs no login, so a
+         *     locked or logged-out console can stop; a remote viewer keeps D13. It takes nothing from the
+         *     request: no body, no query, no run id and no reason, because the reason is composed here, and
+         *     it opens no read. Every stop is written to the audit log.
+         */
+        post: operations["stop_all_runs_api_console_runs_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/console/live": {
         parameters: {
             query?: never;
@@ -1979,6 +2003,34 @@ export interface components {
             requires?: unknown;
         } & {
             [key: string]: unknown;
+        };
+        /** StopAllOut */
+        StopAllOut: {
+            /**
+             * Message
+             * @description what happened, in words, for the lock screen
+             */
+            message: string;
+            /** Runs */
+            runs: components["schemas"]["StopAllRunOut"][];
+            /**
+             * Audited
+             * @description every stop of this press was written to the audit log
+             */
+            audited: boolean;
+        };
+        /** StopAllRunOut */
+        StopAllRunOut: {
+            /** Run Id */
+            run_id: string;
+            /**
+             * Outcome
+             * @description the stop channel's answer; `unreachable`: nothing answered a connection (a run that crashed leaves a file that still says running); `no_channel`: running, but announced no stop channel, so nothing was sent
+             * @enum {string}
+             */
+            outcome: "begun" | "refused" | "no_answer" | "unreachable" | "no_channel";
+            /** Message */
+            message: string;
         };
         /** StopIn */
         StopIn: {
@@ -3879,6 +3931,54 @@ export interface operations {
             };
             /** @description the stop channel did not answer a connection */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    stop_all_runs_api_console_runs_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StopAllOut"];
+                };
+            };
+            /** @description the request carried a body or a query */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description remote, or a remote viewer who is logged out */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description remote view with remote abort off (D13) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the console is not connected to the agents' files */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import socket
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -44,6 +45,8 @@ STOP_LINE_PREFIX = "the dino console: "
 #: the one request the frame tap answers, sent as one line
 FRAME_REQUEST = b'{"get": "latest_frame"}\n'
 MAX_EVENTS_BYTES = 16_000_000  # a followed run's events file larger than this is not opened
+HEAD_BYTES = 65_536  # `run_started` is the first line; read_stream_edges reads at most this
+TAIL_BYTES = 65_536  # `run_ended` is the last line; read_stream_edges reads this much of the end
 MAX_HEADER_BYTES = 65_536
 MAX_FRAME_BYTES = 128_000_000  # 3200 x 3200 uint16 is 20.5 MB
 # abort() runs on the channel's thread before the reply (lights, shutters): give it time
@@ -139,6 +142,30 @@ def read_stream(run_dir: str | Path, *, max_bytes: int = MAX_EVENTS_BYTES) -> Ru
         raw = path.read_bytes()
     except OSError as e:
         raise SmaRunError(f"cannot read {EVENTS_FILE} of {path.parent.name}: {e}") from e
+    return parse_stream(raw, path.parent.name)
+
+
+def read_stream_edges(run_dir: str | Path, *, tail_bytes: int = TAIL_BYTES) -> RunStream:
+    """Whether a run is running and where it announced its stop channel, from the head and the
+    tail of `<run_dir>/events.jsonl` only. `read_stream` refuses a file over MAX_EVENTS_BYTES,
+    and a stop must still reach a run whose file grew that big: it needs `run_started`, the
+    first line, and `run_ended`, the last. `events` holds only the tail's complete lines.
+    Raises NotFollowedError as `read_stream` does."""
+    path = Path(run_dir) / EVENTS_FILE
+    try:
+        with path.open("rb") as f:
+            head = f.readline(HEAD_BYTES)
+            size = f.seek(0, os.SEEK_END)
+            if size <= len(head) + tail_bytes:
+                f.seek(0)
+                raw = f.read()
+            else:
+                f.seek(size - tail_bytes)
+                tail = f.read()
+                cut = tail.find(b"\n")  # the tail starts mid-line: drop that line
+                raw = head + (tail[cut + 1:] if cut >= 0 else b"")
+    except OSError as e:
+        raise NotFollowedError(f"{path.parent.name} has no {EVENTS_FILE}") from e
     return parse_stream(raw, path.parent.name)
 
 

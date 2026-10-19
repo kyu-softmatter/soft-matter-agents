@@ -183,6 +183,21 @@ body {
   background: var(--panel);
 }
 
+.stop-all-result {
+  max-width: 320px;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 0.9em;
+}
+
+.stop-all-result ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
 .abort-button {
   padding: 6px 14px;
   border: 1px solid var(--warn);

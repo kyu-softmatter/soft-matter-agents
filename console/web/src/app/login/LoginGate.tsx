@@ -37,7 +37,8 @@ type Phase =
 /**
  * The shell wraps the app in this (docs/screens/login.md 5.4). Without a login it shows the
  * setup, login or sign-up screens instead of the app. While the login is locked it keeps the
- * app mounted (work and guards go on) under the lock screen, with the shell's Abort control.
+ * app mounted (work and guards go on) under the lock screen. The shell's stop control (`abort`) is
+ * on the lock screen and on the setup and logged-out screens, because a stop needs no login (card 004).
  */
 function GateWith({
   api,
@@ -128,6 +129,7 @@ function GateWith({
   if (phase.kind === "setup")
     return (
       <div className="login-page">
+        {abort && <div className="login-lock-stop">{abort}</div>}
         <SetupForm
           needsEmail={phase.state === "needs_admin_email"}
           local={phase.local}
@@ -138,6 +140,7 @@ function GateWith({
   if (phase.kind === "out")
     return (
       <div className="login-page">
+        {abort && <div className="login-lock-stop">{abort}</div>}
         {phase.view === "login" && (
           <LoginForm
             onSignup={() => out("signup")}
