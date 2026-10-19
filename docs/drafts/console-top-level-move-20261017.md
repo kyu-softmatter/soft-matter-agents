@@ -181,30 +181,14 @@ it), which is why the cut is a card and not a `git mv`.
 | `tests/server` with its `conftest`, fixtures and `server_fakes` (after the cut), `tests/assistant`, `tests/auth`, `tests/e2e`, `tests/agents` | `records/` **to look**: "experiment sessions and the local records store" on the microscope PC -- a record of the instrument's sessions, not a screen |
 | `docs/screens/`, `docs/ui-spec.md` and the console's runbooks | `docs/integration-sma.md`, `docs/integration-sma-workplan.md` -- dino's own record, frozen; stays where it was imported |
 
-Target:
-
-```
-console/
-  CLAUDE.md          role / what it does not do / permissions   (design seat's, like every agent's)
-  README.md          what it is and what it becomes today       (design seat's)
-  tasks/             downward instructions, if option A         (manager's)
-  web/
-  server/            the FastAPI application; its own pyproject or the root's pixi tables -- open (section 7)
-  tests/
-  docs/
-  failures.jsonl     dead ends, per seat, as every seat has
-```
-
-**The dependency rule for 7**: `console/` imports `contracts/` (the schemas, to read cards) and
-nothing from any agent's `src/`; it reads `<agent>/questions/`, `<agent>/approvals/`, `<agent>/runs/`
-and `bridge/threads/` as data; no agent imports anything from `console/`. The run interface it
-consumes is pinned in `contracts/` (step 3 below), so a change to the writer and a change to the
-reader are two commits that meet at a fixture rather than one commit across two boundaries.
-
-The count of agents does not change: **the console is not a fifth agent.** It designs nothing, runs
-nothing and knows nothing; it shows. D11 and D12 keep "four agents" and add one more directory the
-same way `bridge/` is one -- the bridge carries cards without owning knowledge, the console shows
-cards without owning anything.
+**The target layout, the dependency rule and "not a fifth agent" are in the record now and no longer
+carried here.** Section 7's tree has `console/` at `cd44d250` (architecture-20261003-1): a boundary of
+its own, a leaf above the four agents, with its own environment and no `pymmcore` or `torch`, and a
+line that nothing under `console/` can open a Micro-Manager core and that its mock is the placeholder
+engine plus the mock store, not dino's executing mock backend; the separation path names `console/`
+if the console runs on the microscope PC. Section 15 at `a8995280` has "the console is not a fifth
+agent: it designs nothing, runs nothing and knows nothing, it shows". The per-file list above stays
+here until the cut card carries it; 7 and 14 do not repeat it.
 
 ## 5. Ownership -- the options
 
@@ -276,67 +260,37 @@ step 5). A with an existing manager holding `console/tasks/` would have been the
 nothing of (a)-(d); the person chose the dedicated manager (section 8). B is right until the build
 starts and wrong after; C and D are not recommended.
 
-## 6. The move, in order, with owners (if A)
+## 6. The move, in order -- now in the record; what this section still holds
 
-1. **The person**: the three decisions -- timing (section 3, in this seat's window), folder name and
-   ownership (section 5, in architecture-20261003-1's window, relayed) -- are made. What is left is
-   the person's act that no session can do for them: opening and seating the console execution
-   seat(s) and the `manager-console`, each in its own window, before their first commit
-   (14, "How to work here"; `a_seat_is_minted_only_on_a_statement`). [the person]
-2. **The record first**: 7 (layout, the dependency rule, "not a fifth agent"), 11-25 (one more
-   "where it now sits" paragraph), 14 (a step after the import's after-work), 6 if the boundary list
-   is enumerated there, `contracts/seats.json` (rows, `boundaries` note), root `CLAUDE.md` one
-   paragraph. [architecture, by section holder]
-3. **The run interface pinned in `contracts/`**: the `run_started` keys, the stop channel's request
-   and reply, the frame tap's request -- as a schema or an examples fixture that both the
-   orchestrator's tests and the console's tests read. This replaces 14's "same commit" bullet and is
-   needed *before* the split, because after it the two sides are in two boundaries. **Section 15's
-   step 2 already asks manager-microscope for exactly this pin** (section 8), so this step is 15's
-   and not a second one. [manager-microscope specifies; a microscope seat lands it]
-4. **The validator and the fixtures**: `AGENT_OF_PATH`, `DESIGN_OWNED`, `ALLOWED_PATHS`, what remains
-   in `IMPORTED_SUBTREES` after the split (the remainder, or nothing once 14's re-placements are
-   done), fixtures for 35 and 41 that show the new boundary refuses and admits correctly.
-   **Done for `console/` at `07b62a86`** (manager-console-office-20261017-1, "console/ is a boundary
-   of its own", 15 step 3's console half; read here): `AGENT_OF_PATH` has `(^console/, "console")`,
-   `DESIGN_OWNED` covers `console/(CLAUDE.md|README.md|.claude/|tasks/)`, `ALLOWED_PATHS` declares
-   the root files, `tasks/`, `.claude/` and `(src|web|tests|docs)/` by folder, the 35/41 history
-   fixtures cover the boundary, and `console/src/<package>/agents/mock_data/` is the one place under
-   `console/` the card checks do not read -- every card-shaped file there is a mock by construction,
-   and the rest of `console/` is this repository's own code, judged as such. `IMPORTED_SUBTREES`
-   keeps `autofocus/`. [manager-console for `console/`; manager-microscope for the rest]
-5. **The move, as two commits.** A `git mv` by path list would be one commit whose deletions are in
-   the microscope boundary and whose additions are in the console boundary, and **the gate refuses
-   that whoever commits it**: check 35 fails any commit whose paths classify into two boundaries
-   ("one commit writes into [...]; a session writes inside one agent", `validate.py` line 3222-3223,
-   read here on 2026-10-17), and check 41 is a second refusal, not the only one. So a seat owning both
-   boundaries -- this draft's first version proposed one, minted for the move alone -- does not get
-   through; **manager-microscope-20261003-1 corrected that the same day**, and this step is its
-   correction. Three ways, and its recommendation taken:
-   - (a) **Two commits**: the additions under `console/` first, by the console seat; the deletions
-     under `microscope_agent/autofocus/` second, by a microscope seat; each message carrying the full
-     old→new path list. Rename detection across the two is lost, so `git log --follow` starts over at
-     the first commit -- but every old path still resolves at the first commit's parent, and the path
-     list in both messages is the join, so a citation by old path keeps working. Nothing in the gate
-     changes. **Recommended.**
-   - (b) A declared exception in check 35 for a pure-rename commit between two named boundaries,
-     listed in a move manifest. It loosens the gate, so it lands only on the person's word (8.3 rule
-     1), and it grows a permanent hole for one move.
-   - (c) The import's route: build the move outside the working copy as a merge and fast-forward it in
-     -- check 35 skips merges and check 41 judges them via `--cc`. It works and makes a move look like
-     a merge, which misleads a later reader.
-   **The cut comes first** (section 4's correction; 15 at `e77ebc9a`): a microscope seat, on
-   manager-microscope's card, severs the console-facing server from the engine so that what moves
-   imports nothing that can open a core. Then the first commit carries the console-facing part and
-   dino's tests at their new paths, green, and nothing else; the second removes the old copies and
-   nothing else. The console's seats are registered in `seats.json` by architecture before the first
-   of the two (done: `b32aa416`). [the console seat, then a microscope seat, each on
-   manager-microscope's card]
-6. **After**: `console/CLAUDE.md` and `console/.claude/settings.json` -- **done at `d2a7c3ad`**;
-   `console/README.md` still to write (design seat's); the first `console/tasks/` card is the
-   console's connection to this repository's store, which today refuses with 409 "not connected yet"
-   -- the mockup's screens are what that card builds toward. The screens' card (the command buttons'
-   replacement, section 7) lands in `console/tasks/` when the cut is close. [manager-console, then the
-   console seat]
+**The order is section 14's and section 15's now, not this draft's.** 14's next-steps line at
+`9a05bf40` (architecture-20261003-1) puts the split first, in 15's steps: the cut by a microscope seat
+first, then the two move commits with the old→new path list and open cards repointed in the first, the
+engine-commanding screens replaced before their buttons go, and dino's engine command path retired.
+15's steps (`a8995280`) carry the registry before the first move commit, the run-interface pin in
+`contracts/` before any move, and the validator's mapping; what landed of those is cited in section 8
+(`b32aa416`, `07b62a86`, `d2a7c3ad`).
+
+What this section keeps, because no record carries it yet:
+
+- **Why two commits and not one** -- for the move card to cite. A `git mv` by path list would be one
+  commit with deletions in the microscope boundary and additions in the console boundary, and the
+  gate refuses that whoever commits it: check 35 fails any commit whose paths classify into two
+  boundaries (`validate.py` line 3222-3223, read here on 2026-10-17), and check 41 is a second refusal,
+  not the only one. So a seat owning both boundaries -- this draft's first version proposed one -- does
+  not get through; manager-microscope-20261003-1 corrected that, and its recommendation is taken:
+  additions under `console/` first by the console seat, deletions under `microscope_agent/autofocus/`
+  second by a microscope seat, each message carrying the full old→new path list. Rename detection
+  across the two is lost, so `git log --follow` starts over at the first commit, but every old path
+  still resolves at the first commit's parent and the path list in both messages is the join. The two
+  ways not taken: a declared check 35 exception for a pure-rename commit listed in a move manifest
+  (loosens the gate, lands only on the person's word under 8.3 rule 1, and grows a permanent hole for
+  one move), and the import's route of building the move outside as a merge and fast-forwarding it in
+  (check 35 skips merges, check 41 judges them via `--cc`; it makes a move look like a merge).
+- **Still to do, and whose**: `console/README.md` (design seat's); the first `console/tasks/` card --
+  the console's connection to this repository's store, which today refuses with 409 "not connected
+  yet", and which the mockup's screens build toward; and the screens' card (the command buttons'
+  replacement, section 7), which lands in `console/tasks/` when the cut is close. [manager-console,
+  then the console seat]
 
 ## 7. Open, for the section holders
 
@@ -488,6 +442,13 @@ and the tool denials are in `console/CLAUDE.md` and `console/.claude/settings.js
 sections 5 and 7 now only point there. The split line is card 077's and section 15's, not the console
 manager's; the screens' card is not written yet and stays in the draft until it lands in
 `console/tasks/`.
+
+**Second content out (2026-10-17, architecture-20261003-1; both commits read here):** section 7's
+tree carries `console/` at `cd44d250` -- a leaf above the four agents with its own environment, nothing
+under it able to open a core, its mock the placeholder engine plus the mock store -- and section 14's
+next-steps line carries the order at `9a05bf40`. Sections 4 and 6 of this draft now point there; what
+they keep is the per-file list (until the cut card) and the reasoning for two commits (for the move
+card). The per-file detail stays with 15 and the cut card, not with 7 or 14.
 
 ## 9. What does not change
 
