@@ -1,0 +1,92 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-19",
+  "trigger": "daily",
+  "tree": "c9b18f00 plus 3 uncommitted paths [dirty 436514ac], which is nobody's commit -- the run before this pass's record was written",
+  "verdict": "verdict: 224 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "the commit tool's record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-17T19:30Z to 2026-10-19T18:30Z, 382 lines",
+      "found": "141 commit attempts: 137 committed, 4 refused. Three of the refusals were at the rebuild limit, all already recorded (INC-20261018-02 to -04); the fourth was 'nothing differs from HEAD', which is benign. HEAD moves during the gate, per attempt: 0: 73, 1: 28, 2: 16, 3: 10, 4: 7, 5: 4, 6: 3. 83 push lines: 46 pushed, 35 refused, 2 already-published. Most refusals were the tool listing other seats' commits before any yes, which is HP-009 working, and two refused a bare or inexact --push-includes-others. Of the 31 pushes that record what they published, 22 carried another seat's commit, each named. The holds file does not exist yet: nobody has used --hold."
+    },
+    {
+      "source": "commits made around the tool",
+      "path": null,
+      "window": "git log --first-parent 58883ed5..HEAD against the tool's committed hashes",
+      "found": "8 of 154 first-parent commits since the warning landed went around the tool, 7 of them by manager-microscope-20261003-1 and 1 by microscope-office-20261015-2. The last was b21ffb4b at 2026-10-18T03:14Z. All 103 first-parent commits after it went through the tool. So the warning did not change the habit at once; it stopped about a day later."
+    },
+    {
+      "source": "commits touching contracts/harness/ by any other seat",
+      "path": "contracts/harness/",
+      "window": "all history",
+      "found": "0 of 17. Watched because the person kept the folder's permissions as they are (HP-008 refused, 0cfd1d85)."
+    },
+    {
+      "source": "failures.jsonl in each agent, and the librarian's query log",
+      "path": null,
+      "window": "since 2026-10-17T19:30Z",
+      "found": "No new line in any failures.jsonl and no new query: the agents' own records are quiet while the work has been in the harness and the plan."
+    },
+    {
+      "source": "dates a check compares with today",
+      "path": "contracts/examples",
+      "window": "the tree at this pass",
+      "found": "None. Since HP-007 (a56c49df) an example is judged at the instant it declares, not by the wall clock, and no real permit exists in any approvals/. The list the daily pass keeps is empty."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261018-05",
+    "INC-20261018-06",
+    "INC-20261017-06",
+    "INC-20261018-07",
+    "INC-20261018-08",
+    "INC-20261018-09",
+    "INC-20261018-10"
+  ],
+  "measured": [
+    {
+      "class": "commit-around-the-tool",
+      "since": "58883ed5",
+      "recurrences": 8,
+      "method": "first-parent commits after 58883ed5 whose hash is not a committed line in the tool's log; none after b21ffb4b (2026-10-18T03:14Z), across 103 commits"
+    },
+    {
+      "class": "confirmation-pre-supplied",
+      "since": "a65d262e",
+      "recurrences": 0,
+      "method": "push lines after a65d262e that published another seat's commit without naming it: none; two pushes with a bare or inexact flag were refused"
+    },
+    {
+      "class": "limit-refuses-correct-work",
+      "since": "51feb21b",
+      "recurrences": 0,
+      "method": "refusals at the rebuild limit after the person kept the count at five; the three before it are INC-20261018-02 to -04"
+    },
+    {
+      "class": "boundary-narrows-one-side-only",
+      "since": "0cfd1d85",
+      "recurrences": 0,
+      "method": "commits touching contracts/harness/ by a seat other than this one"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-008",
+      "this_pass": "Refused by the person at 0cfd1d85, recorded at ea96c46f with its time corrected at a43e5cc4. Its hazard is watched (above)."
+    },
+    {
+      "id": "HP-012",
+      "this_pass": "Handed. The console's twins landed (950bff0c) and the probe confirmed that PowerShell(...) denials are honoured. The CLAUDE.md sentence landed (36416ebb). The check and the bridge twin are still open."
+    }
+  ],
+  "landed_today": [],
+  "next": [
+    "The person decided the rebuild count stays at five (51feb21b). There is no proposal file, because my format refuses a loosening that was never asked for (INC-20261018-05). Recorded here and passed to the tool's builder.",
+    "The harness2 trial the person approved (f7074765) is with architecture-20261003-1. This pass's figures are the baseline it is judged against.",
+    "Write proposals/HP-001.json to HP-004.json from plan.md 8.3, so HP-001's landing can be entered in the ledger."
+  ]
+}
