@@ -290,6 +290,9 @@ python3 librarian_agent/src/export_snapshot.py         # publish kb/exports/snap
 python3 librarian_agent/src/export_snapshot.py --check # fail if a published snapshot is stale
 python3 librarian_agent/src/safety_guides.py           # regenerate kb/guides/ -- with every publish
 python3 librarian_agent/src/safety_guides.py --check   # fail if any guide differs from what the store renders
+python3 librarian_agent/src/wiki.py                    # regenerate kb/wiki/ -- with every publish, beside the guides
+python3 librarian_agent/src/wiki.py --check            # fail if any page differs from what the store renders
+python3 librarian_agent/src/wiki.py --self-test        # the page rules, on a synthetic store
 python3 contracts/validate.py                          # entries are schema-checked here too
 ```
 
@@ -308,6 +311,17 @@ Guides left at the published version while entries are committed between
 publishes are correct, and they pass. Check 87 reads versions only: a page
 edited or deleted by hand is seen by `safety_guides.py --check`, not by the
 gate.
+
+**And every wiki page.** `kb/wiki/` is rendered from the store by `wiki.py`,
+one page per subject, and each page's last line names the store version it
+shows. Run it in the same sitting as `safety_guides.py`, and commit the pages
+in the same commit as the guides, with the publish or before it, never after.
+Check 87 judges the pages as it judges the guides, and it also requires the
+footer to be the page's whole last line in its one form. A page is read and
+never cited: `kb:` cites entries only, and a hand edit is drift that the next
+render overwrites. `--check` also fails on a page the store no longer
+renders, and rendering removes it. (Wording by librarian-20261007-1 for task
+054.)
 
 **COMMIT `queries/log.jsonl` OFTEN, AND BEFORE YOU GO IDLE.** The log is
 append-only and it is **the only thing that can back another agent's card.**

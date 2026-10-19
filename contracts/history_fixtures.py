@@ -1009,6 +1009,53 @@ def fixture_87_guides_regenerated_before_the_publish(repo: Path) -> str:
                         "entries and their guides, committed before the publish")
 
 
+def _wiki_repo(repo: Path, store: str, exports: str, footers: list[str], message: str) -> str:
+    """A store with an index, one export and one wiki page per footer line, for
+    check 87's wiki half (librarian task 054). No safety guide at all, so the
+    pages are judged on their own and a guide cannot satisfy a row.
+    `footers` are whole last lines, so a row can plant the wrong form."""
+    start = base(repo)
+    kb = "librarian_agent/kb"
+    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": store, "entry_count": 0,
+                                     "entries": {}, "handles": {}})
+    write(repo, f"{kb}/exports/snapshot_microscope_agent.json", {"agent": "microscope_agent", "kb_version": exports,
+                                                                 "entry_count": 0, "entries": {}})
+    for i, line in enumerate(footers):
+        write(repo, f"{kb}/wiki/device/device_{i}.md",
+              f"# Device {i}\n\nGenerated from the store; cite the entries, as `kb:<entry_id>`, not this page.\n\n"
+              f"{line}\n")
+    commit(repo, message, kb, seat="librarian")
+    return f"{start}..HEAD"
+
+
+def _wiki_footer(v: str) -> str:
+    return f"Generated from the knowledge store at {v}. Do not edit by hand: correct the store and regenerate."
+
+
+def fixture_87_a_publish_that_left_the_wiki_behind(repo: Path) -> str:
+    """The guides' 2026-09-29 shape, on a wiki page: the store and its export
+    moved, and one page of two was not regenerated."""
+    return _wiki_repo(repo, "kbv-bbbbbbbbbbbb", "kbv-bbbbbbbbbbbb",
+                      [_wiki_footer("kbv-bbbbbbbbbbbb"), _wiki_footer("kbv-aaaaaaaaaaaa")],
+                      "a publish that regenerated one wiki page of two")
+
+
+def fixture_87_a_wiki_page_footed_like_a_guide(repo: Path) -> str:
+    """The right version in the wrong form: the guides' footer, <sub> and all.
+    A guide may carry it; a wiki page may not, because the console reads the
+    last line and shows no HTML."""
+    return _wiki_repo(repo, "kbv-bbbbbbbbbbbb", "kbv-bbbbbbbbbbbb",
+                      [f"<sub>{_wiki_footer('kbv-bbbbbbbbbbbb')}</sub>"],
+                      "a wiki page footed the guides' way")
+
+
+def fixture_87_wiki_at_the_published_version_while_the_store_moved(repo: Path) -> str:
+    """Pages left at what was published while entries move the index: that is
+    publishing working, as for the guides, and it has to pass."""
+    return _wiki_repo(repo, "kbv-cccccccccccc", "kbv-bbbbbbbbbbbb", [_wiki_footer("kbv-bbbbbbbbbbbb")],
+                      "an entry committed after the last publish, with the wiki at the published version")
+
+
 def fixture_89_a_harness_log_line_rewritten(repo: Path) -> str:
     """A committed line of the meta-harness ledger, edited in a later commit.
 
@@ -1141,6 +1188,14 @@ FIXTURES = [
      fixture_87_guides_at_the_published_version_while_the_store_moved),
     (87, "PASS", "at kbv-cccccccccccc, the store's own version",
      fixture_87_guides_regenerated_before_the_publish),
+    # The wiki half of 87 (librarian task 054), matched on the branch's words
+    # and the page's path, for the same reason as the guide rows above.
+    (87, "FAIL", "commit the pages with the publish or before it [librarian_agent/kb/wiki/device/device_1.md]",
+     fixture_87_a_publish_that_left_the_wiki_behind),
+    (87, "FAIL", "a page is never edited by hand [librarian_agent/kb/wiki/device/device_0.md]",
+     fixture_87_a_wiki_page_footed_like_a_guide),
+    (87, "PASS", "1 wiki pages at kbv-bbbbbbbbbbbb, the published version",
+     fixture_87_wiki_at_the_published_version_while_the_store_moved),
     (89, "FAIL", "rewrote lines its parent held; this log is append-only",
      fixture_89_a_harness_log_line_rewritten),
     # HP-007: an example is judged at its own instant, a real permit by the

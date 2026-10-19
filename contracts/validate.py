@@ -1755,6 +1755,12 @@ ALLOWED_PATHS = [
     # kb_version's hash, which covers kb/entries/ only. Allowed here before
     # 7 names it -- check 55 is one-way, so this side goes first.
     r"^librarian_agent/kb/(index\.json|(sources|distilled|entries|lessons|staging|exports|guides)/[A-Za-z0-9_.-]+)$",
+    # kb/wiki/: the same kind of thing as kb/guides/ -- generated pages over
+    # the store, read and never cited, outside kb_version (librarian task 054,
+    # plan.md 7 and 11-28). The page set is fixed, so the shape is too: an
+    # index, an unfiled page, and one page per id in five sections, ids being
+    # the lowercase snake case the store already uses.
+    r"^librarian_agent/kb/wiki/(index\.md|unfiled\.md|(device|quantity|observable|sample|configuration)/[a-z0-9_]+\.md)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^bridge/tasks/[A-Za-z0-9_.-]+$",
@@ -8325,6 +8331,13 @@ def check_86_operation_plan(b: Bundle) -> list[Finding]:
 
 
 GUIDE_FOOTER = re.compile(r"Generated from the knowledge store at (kbv-[0-9a-f]+)\.")
+# A wiki page's footer is stricter than a guide's, because a second reader
+# depends on it: the console, which would show a page as it stands, reads
+# the last line to say which store the page shows (manager-console's
+# constraint of 2026-10-18, librarian task 054). So it is the whole last
+# line, in one form, with no markup around it.
+WIKI_FOOTER = re.compile(r"Generated from the knowledge store at (kbv-[0-9a-f]{12})\. Do not edit by hand: "
+                         r"correct the store and regenerate\.")
 
 
 def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
@@ -8380,8 +8393,14 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
     """
     guides_dir = KB_DIR / "guides"
     guides = sorted(guides_dir.glob("safety_*.md")) if guides_dir.is_dir() else []
-    if not guides:
-        return [Finding(87, NA, "no safety guide has been rendered, so none can trail the store")]
+    # THE WIKI PAGES ARE JUDGED THE SAME WAY (2026-10-18, librarian task 054):
+    # generated from the store, footed with the version they show, and
+    # regenerated at every publish beside the guides -- so behind both is the
+    # same defect. Their footer must be the page's whole last line.
+    wiki_dir = KB_DIR / "wiki"
+    pages = sorted(p for p in wiki_dir.rglob("*.md")) if wiki_dir.is_dir() else []
+    if not guides and not pages:
+        return [Finding(87, NA, "no safety guide or wiki page has been rendered, so none can trail the store")]
 
     try:
         store = json.loads(KB_INDEX_PATH.read_text(encoding="utf-8")).get("kb_version")
@@ -8397,9 +8416,9 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
             published.add(v)
     allowed = ({store} if store else set()) | published
     if not allowed:
-        return [Finding(87, PENDING, f"{len(guides)} safety guides exist and neither kb/index.json nor any "
-                                     f"export names a store version, so none of them can be judged",
-                        _rel(guides_dir))]
+        return [Finding(87, PENDING, f"{len(guides)} safety guides and {len(pages)} wiki pages exist and neither "
+                                     f"kb/index.json nor any export names a store version, so none of them can be "
+                                     f"judged", _rel(guides_dir))]
 
     where = (f"the store is at {store or 'no readable version'} and the exports at "
              f"{', '.join(sorted(published)) or 'nothing published'}")
@@ -8420,18 +8439,37 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
                                          f"touching the instrument could lack a safety fact the store holds. Run "
                                          f"librarian_agent/src/safety_guides.py and commit the guides with the "
                                          f"publish or before it", _rel(g)))
+    wiki_at: dict[str, int] = {}
+    for g in pages:
+        lines = [ln for ln in g.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        m = WIKI_FOOTER.fullmatch(lines[-1]) if lines else None
+        if m is None:
+            out.append(Finding(87, FAIL, "does not end with the wiki's footer line, alone and in its one form, so "
+                                         "which store it shows cannot be read. Regenerate it with "
+                                         "librarian_agent/src/wiki.py; a page is never edited by hand", _rel(g)))
+            continue
+        v = m.group(1)
+        wiki_at[v] = wiki_at.get(v, 0) + 1
+        if v not in allowed:
+            out.append(Finding(87, FAIL, f"was rendered from {v}, and {where} -- behind both, which is a publish "
+                                         f"that did not regenerate the wiki. Run librarian_agent/src/wiki.py and "
+                                         f"commit the pages with the publish or before it", _rel(g)))
     if out:
         return out
 
     parts = []
+    for v, n in sorted(wiki_at.items()):
+        role = " and ".join(r for r, ok in (("the store's own", v == store), ("the published", v in published)) if ok)
+        parts.append(f"{n} wiki pages at {v}, {role} version")
     for v, n in sorted(at.items()):
         role = " and ".join(r for r, ok in (("the store's own", v == store), ("the published", v in published)) if ok)
         parts.append(f"{n} at {v}, {role} version")
     note = ""
-    if store and store not in at and published:
+    if store and store not in at and store not in wiki_at and published:
         note = (f"; the store has moved to {store} since, and the guides follow at the next publish, which is "
                 f"when they have to")
-    return [Finding(87, PASS, f"{len(guides)} safety guides name the store they show: " + "; ".join(parts) + note)]
+    return [Finding(87, PASS, f"{len(guides)} safety guides and {len(pages)} wiki pages name the store they show: "
+                              + "; ".join(parts) + note)]
 
 
 def _focus_fact(c, ref: dict, what: str, bad: list, *, unit_ok, unit_word: str, whole: bool,
