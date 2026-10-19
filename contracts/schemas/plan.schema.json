@@ -1651,6 +1651,21 @@
       },
       "minProperties": 1,
       "additionalProperties": false
+    },
+    "pre_stop_buffer": {
+      "type": "object",
+      "description": "The rolling pre-stop buffer (plan.md 4.6.1 at 578a20ee, the person's Q5 at 04e3985f): a stop keeps the last `length_s` seconds before it and saves them, with lamps off and shutters closed first as the abort order says, and nothing emits light after a stop. A top-level block because it binds for every plan whose run can stop; the judgements block reads it and does not own it. NO DEFAULT: a plan that can reach a device and has no block is refused by the operator (2.1 rule 2: unstated is a stop), naming 4.6.1; a simulation or replay plan that reaches no device is exempt. The schema cannot tell those apart or an old record from a new plan, so the refusal lives in the operator, where a plan reaches a device, and the plans committed before this block keep their hashes and approvals and refuse to run until revised. Zero is allowed only if written: the person may choose to keep nothing, and the plan then says so. THERE IS NO RATE FIELD: the buffer holds only copies of frames the run already acquires, taken from the frame tap's tee, never triggers an acquisition or light, and records its own rate. Its raw frames stay whole in the run folder; a model is given only reduced copies (13.4 item 4). A METHOD CHOICE: no source, no grade.",
+      "properties": {
+        "length_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "seconds of frames kept before a stop; 0 written means the person chose to keep none"
+        }
+      },
+      "required": [
+        "length_s"
+      ],
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false,
