@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mm_config_approval.schema.json",
+  "title": "mm_config_approval -- a Micro-Manager configuration file the person approves for a hardware run (card 069)",
+  "description": "The PERSON writes this file in microscope_runtime/approvals/. A hardware run, or a live view on hardware, loads a Micro-Manager configuration only when the file's sha256, taken over its raw bytes, equals the sha256 named here (microscope_runtime/src/mm_config_gate.py). A configuration is a program the stand runs on load, so what is approved is its bytes, never its name. The shape is the smallest that works, as the runtime seat proposed when it built card 069 (19f4c1d8). Closed on purpose: an approval carries no focus direction, no preset and no device setting of its own, because the gate reads and checks those from the file and never takes them from anywhere else. An artifact and not a card: it answers no question and carries no qid or revision.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "mm_config_approval"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "written_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the person who approved the file"
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date",
+      "description": "the day it was approved"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "what the configuration is for, in the person's words, e.g. the single red camera without the DMD"
+    },
+    "configuration": {
+      "type": "object",
+      "description": "the approved file",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the file's name, for a reader; informational only, since the bytes are what is approved"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^\\s*[0-9a-fA-F]{64}\\s*$",
+          "description": "sha256 of the configuration file's raw bytes, 64 hex digits. The runtime compares it in lower case with surrounding space stripped, and this pattern accepts exactly what the runtime accepts, so a harmless difference in case or a trailing space never fails the validator for every seat"
+        }
+      },
+      "required": [
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "written_by",
+    "written_at",
+    "configuration"
+  ],
+  "additionalProperties": false
+}

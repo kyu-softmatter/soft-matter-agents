@@ -1,0 +1,11 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-19",
+  "configuration": {
+    "file": "single_cam_red_noDMD_nocom10.cfg",
+    "sha256": "000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "label": "REJECTED FIXTURE. A hash one digit short names no file's bytes, so it approves nothing and must not read as an approval."
+}

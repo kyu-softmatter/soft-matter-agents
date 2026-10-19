@@ -1,0 +1,12 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-19",
+  "configuration": {
+    "file": "single_cam_red_noDMD_nocom10.cfg",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "focus_direction": 1
+  },
+  "label": "REJECTED FIXTURE. An approval that carries a focus direction would let a direction reach the stand without the gate's check, which reads it from the file and never takes it from anywhere else."
+}
