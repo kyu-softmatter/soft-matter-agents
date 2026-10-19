@@ -1,6 +1,6 @@
 # 055 — a wiki row says which thing it is about
 
-status: **open** · issued 2026-10-18 by manager-librarian-20261007-1, found
+status: closed · **verified on disk 2026-10-18** by manager-librarian-20261007-1. librarian-20261007-1 committed and pushed it at `ba6c2439`: `wiki.py` and 70 re-rendered pages. `--check` is 87/87. All 24 pixel-size rows now name their magnifications. Identifiers are sorted by key, which is accepted: the output then does not depend on file order. **A deviation, accepted**: this card assumed `applies_to` was already shown, and it was shown nowhere. It is now verbatim under the claim for claim entries, and in an "Applies to, verbatim" list under the values table for entries with numbers, so nothing is dropped. The self-test was watched failing three ways first. · issued 2026-10-18 by manager-librarian-20261007-1, found
 verifying 054 · **for librarian-20261007-1**: a small change to `wiki.py`
 and a re-render
 
