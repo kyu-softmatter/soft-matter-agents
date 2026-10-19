@@ -97,7 +97,8 @@ def _answers(port) -> bool:
 class LiveHost:
     def __init__(self, approvals_dir: Path, runs_root: Path, address_file: Path | None = None,
                  log_path: Path | None = None, backend: str = "mock",
-                 run_lock_path: Path | None = None, on_orchestrator=None) -> None:
+                 run_lock_path: Path | None = None, on_orchestrator=None,
+                 mm_config: Path | None = None, config_loader=None) -> None:
         self.approvals_dir = Path(approvals_dir)
         self.runs_root = Path(runs_root)
         self.address_file = Path(address_file) if address_file else app_dir() / "live_host.json"
@@ -105,6 +106,9 @@ class LiveHost:
         self.backend = backend
         self.run_lock_path = run_lock_path
         self.on_orchestrator = on_orchestrator
+        self.mm_config = Path(mm_config) if mm_config else None
+        self.config_loader = config_loader
+        self._mm_state: dict = {}                               # what this host loaded, if it did
         self._sock = None
         self._thread = None
         self._closed = threading.Event()
@@ -128,6 +132,13 @@ class LiveHost:
         """Bind, write the address file atomically, and serve. Refuses if a host already answers."""
         if self._sock is not None:
             raise RuntimeError("this host is already started")
+        if self.mm_config is not None:
+            # Judged before the host binds or answers anything (card 069): a configuration that is
+            # not approved, or whose focus direction is wrong, never starts a host that would load it.
+            if self.backend == "mock":
+                raise op.Refusal("a configuration is refused with the mock backend, not ignored: "
+                                 "the mock loads none")
+            op._check_mm_config(self.mm_config, self.approvals_dir)
         try:
             existing = json.loads(self.address_file.read_text(encoding="utf-8"))
         except (OSError, ValueError):
@@ -259,7 +270,9 @@ class LiveHost:
         def go():
             try:
                 op.run_live_view(path, run_id, runs_root=self.runs_root, backend=self.backend,
-                                 lock=lock, started=started, on_orchestrator=self.on_orchestrator)
+                                 lock=lock, started=started, on_orchestrator=self.on_orchestrator,
+                                 mm_config=self.mm_config, mm_approvals=self.approvals_dir,
+                                 mm_state=self._mm_state, config_loader=self.config_loader)
             except Exception as exc:                            # noqa: BLE001 - reported below
                 box["error"] = f"{type(exc).__name__}: {exc}"
                 started.set()
@@ -292,6 +305,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--approvals", type=Path, default=AGENT / "approvals")
     parser.add_argument("--runs-root", type=Path, default=AGENT / "runs")
     parser.add_argument("--address-file", type=Path, default=None)
+    parser.add_argument("--mm-config", type=Path, default=None,
+                        help="hardware only: a Micro-Manager configuration the person approved by "
+                             "sha256 under --approvals, loaded at the first live view (card 069)")
     # MOCK ONLY: what the mock's frames look like and how fast they come, so a
     # person can watch a live view on mock. Refused with any other backend.
     parser.add_argument("--mock-frame-shape", default=None,
@@ -300,6 +316,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="seconds between mock frames")
     args = parser.parse_args(argv)
     mock_flags = args.mock_frame_shape is not None or args.mock_frame_delay is not None
+    if args.mm_config is not None and args.backend == "mock":
+        parser.error("--mm-config is refused with --backend mock, not ignored: the mock loads "
+                     "no configuration")
     if mock_flags and args.backend != "mock":
         parser.error("--mock-frame-shape and --mock-frame-delay work only with --backend mock: "
                      "they shape synthetic frames, and no real camera takes them")
@@ -319,8 +338,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.mock_frame_delay is not None:
             camera.FRAME_DELAY_S = args.mock_frame_delay
     host = LiveHost(args.approvals, args.runs_root, address_file=args.address_file,
-                    backend=args.backend, on_orchestrator=configure_mock if mock_flags else None)
-    addr = host.start()
+                    backend=args.backend, on_orchestrator=configure_mock if mock_flags else None,
+                    mm_config=args.mm_config)
+    try:
+        addr = host.start()
+    except op.Refusal as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
     print(f"live-view host on {addr['host']}:{addr['port']}, address in {host.address_file}. "
           "Ctrl-C stops it.", flush=True)
     try:

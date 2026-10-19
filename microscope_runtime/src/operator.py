@@ -81,6 +81,8 @@ def _load(name: str, path: Path):
 
 orch = _load("_mic_orchestrator", Path(__file__).resolve().parent / "orchestrator.py")
 run_lock = _load("_mic_run_lock", Path(__file__).resolve().parent / "run_lock.py")
+#: The configuration gate (card 069): what a hardware run may load.
+mm_gate = _load("_mic_mm_config_gate", Path(__file__).resolve().parent / "mm_config_gate.py")
 
 #: Where the one-run-at-a-time lock lives (card 062). None means
 #: run_lock.default_path(), outside this tree. Tests point it elsewhere.
@@ -1119,7 +1121,8 @@ def compile_monitors(plan: dict) -> list[Monitor]:
 def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
-        root: Path | None = None) -> dict:
+        root: Path | None = None, mm_config: Path | None = None,
+        config_loader=None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1138,6 +1141,13 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     if root is not None and backend != "mock":
         raise Refusal(f"a scratch root ({root}) is for the mock backend only, and this run asks "
                       f"for {backend!r}. TEST values never reach the instrument")
+    # A CONFIGURATION IS LOADED ONLY BY A HARDWARE RUN (card 069). The mock loads none, so the
+    # option is refused with it, not ignored: a command line that names a file and gets a run
+    # that never touched it would say something false about what ran.
+    if mm_config is not None and backend == "mock":
+        raise Refusal(f"--mm-config {mm_config} is refused with the mock backend, not ignored: "
+                      "the mock loads no Micro-Manager configuration, so a run that names one "
+                      "would say it ran against a file it never touched")
     agent = agent_root(root)
     if root is not None and runs_root is None:
         runs_root = agent / "runs"
@@ -1176,6 +1186,17 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         focus_from = f"actions[{plan['focus_search'].get('action')}]"
         commands = [c for c in commands if c.from_field != focus_from]
 
+    # THE CONFIGURATION IS JUDGED BEFORE ANYTHING IS HELD OR LOADED (card 069): approved by
+    # hash, its focus direction checked. With no run folder there is nowhere to keep the
+    # derived copy, so the load does not happen.
+    mm_checked = None
+    if mm_config is not None:
+        if runs_root is None:
+            raise Refusal("a hardware load of a configuration needs --write: the derived copy of "
+                          "the file is evidence and no run record would keep it anywhere else. "
+                          "Nothing is loaded")
+        mm_checked = _check_mm_config(mm_config)
+
     # ONE RUN AT A TIME (card 062): taken after the gate, so a refused plan
     # holds nothing, and before the orchestrator exists, so no run starts
     # beside another. Released however the run ends.
@@ -1189,6 +1210,9 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                 raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
                         revision=plan.get("revision"))
+        mm_load = None
+        if mm_checked is not None:
+            mm_load = lambda: _load_mm_config(o, mm_checked, folder, config_loader)    # noqa: E731
         how = "failed"
         refusal = None
         try:
@@ -1196,7 +1220,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                 o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent))
             record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
                                tweezers_link, safety, decision, monitors, commands,
-                               agent=None if root is None else agent)
+                               agent=None if root is None else agent, mm_load=mm_load)
             monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
             how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
                    else "aborted_by_monitor" if monitor_abort
@@ -1244,10 +1268,48 @@ def _refused_record(o, plan: dict, run_id: str, decision, safety: dict, refusal:
     }
 
 
+def _check_mm_config(mm_config: Path, approvals_dir: Path | None = None) -> dict:
+    """The configuration judged against the person's approvals in the runtime's folder."""
+    try:
+        return mm_gate.check(Path(mm_config), AGENT / "approvals" if approvals_dir is None
+                             else Path(approvals_dir))
+    except mm_gate.ConfigRefused as exc:
+        raise Refusal(str(exc)) from None
+
+
+def _load_mm_config(o, checked: dict, folder: Path, config_loader=None) -> dict:
+    """Load the checked configuration through the micromanager module THIS run holds.
+
+    The module is the orchestrator's own, so the core the loader opens is the core every later
+    read goes to. `config_loader(mm, path)` is for tests: they hand in a fake core and no real
+    Micro-Manager is needed. The event is recorded whether or not AutoShutter verified.
+    """
+    mm = o._device_module("micromanager", needed_by="the approved configuration's load")
+    if config_loader is None:
+        loader = mm.load_configuration
+    else:
+        def loader(path):
+            return config_loader(mm, path)
+    try:
+        event = mm_gate.load(checked, folder, loader)
+    except mm_gate.AutoShutterNotVerified as exc:
+        o.record(**exc.event)
+        raise Refusal(str(exc)) from None
+    except mm_gate.ConfigRefused as exc:
+        raise Refusal(str(exc)) from None
+    o.record(**event)
+    return event
+
+
 def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
               tweezers_link, safety: dict, decision, monitors, commands,
-              agent: Path | None = None) -> dict:
+              agent: Path | None = None, mm_load=None) -> dict:
     """run()'s body from the hand-over on, so run() can close the stream however it ends."""
+    # The approved configuration is loaded first, and its event is the first thing the run
+    # records: before the hand-over, before any preflight or focus read, so nothing is asked of
+    # a core that has no configuration (card 069). AutoShutter not read back as 0 stops here.
+    if mm_load is not None:
+        mm_load()
     o.handover = dict(handover or {})
     if o.handover:
         o.record(event="handover", **o.handover)
@@ -1512,7 +1574,9 @@ def check_live_view_list(doc: dict) -> dict:
 
 
 def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
-                  backend: str = "mock", lock=None, started=None, on_orchestrator=None) -> dict:
+                  backend: str = "mock", lock=None, started=None, on_orchestrator=None,
+                  mm_config: Path | None = None, mm_approvals: Path | None = None,
+                  mm_state: dict | None = None, config_loader=None) -> dict:
     """One live view: lamp on at the person's intensity, one sequence to the ceiling, lamp off.
 
     A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and
@@ -1527,6 +1591,12 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
     released when the run ends, however it ends. `started` is a
     threading.Event set once `run_started` is written; `on_orchestrator` is a
     hook tests use to configure the mock.
+
+    `mm_config` (card 069) is a configuration the person approved by sha256 under
+    `mm_approvals`, loaded on hardware at the start of the host's first live view, into
+    that run's own folder. `mm_state` is the host's memory of it: the core keeps the
+    configuration for as long as the host runs, so a later live view records that it is
+    already loaded and loads nothing again. The file is judged afresh at every live view.
     """
     import hashlib
     list_path = Path(list_path)
@@ -1535,6 +1605,19 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
     lock = lock or _take_run_lock({"kind": "live_view", "run_id": run_id})
     try:
         values = check_live_view_list(json.loads(data.decode("utf-8-sig")))
+        mm_checked = None
+        if mm_config is not None:
+            if backend == "mock":
+                raise Refusal(f"a configuration ({mm_config}) is refused with the mock backend, "
+                              "not ignored: the mock loads none")
+            mm_checked = _check_mm_config(mm_config, mm_approvals)
+            held = (mm_state or {}).get("loaded")
+            if held is not None and held["sha256"] != mm_checked["sha256"]:
+                # The core holds the file this host loaded. What is on disk now is another approved
+                # file, and loading it over a running host is a decision for a restart, not a live view.
+                raise Refusal(f"the approved configuration on disk (sha256 {mm_checked['sha256']}) is "
+                              f"not the one this host loaded in {held['run_id']} ({held['sha256']}). "
+                              "Restart the host to load it")
         root = AGENT / "runs" if runs_root is None else Path(runs_root)
         folder = root / run_id
         if folder.exists():
@@ -1547,6 +1630,8 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
             started.set()
         how = "failed"
         try:
+            if mm_checked is not None:
+                _live_view_mm_config(o, mm_checked, folder, config_loader, mm_state, run_id)
             _live_view_body(o, values)
             how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
                    else "failed" if o._aborted.is_set() else "completed")
@@ -1574,6 +1659,24 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
         return record
     finally:
         lock.release()
+
+
+def _live_view_mm_config(o, checked: dict, folder: Path, config_loader, state: dict | None,
+                         run_id: str) -> None:
+    """Load the approved configuration once for this host, or record that it is already loaded.
+
+    A file on disk that is not the one this host loaded was refused before the run began.
+    """
+    state = {} if state is None else state
+    held = state.get("loaded")
+    if held is None:
+        event = _load_mm_config(o, checked, folder, config_loader)
+        state["loaded"] = {"sha256": checked["sha256"], "loaded_sha256": event.get("loaded_sha256"),
+                           "run_id": run_id}
+    else:
+        o.record(event="mm_config_already_loaded",
+                 original={"path": checked["path"], "sha256": checked["sha256"]},
+                 loaded_sha256=held["loaded_sha256"], loaded_in_run=held["run_id"])
 
 
 def _live_view_lamp(o, prop: str, value, from_field: str) -> None:
@@ -1683,13 +1786,24 @@ def main(argv: list[str] | None = None) -> int:
                         help="mock is a first-class backend, not a test double (4.6.5)")
     parser.add_argument("--write", action="store_true",
                         help="write runs/<run_id>/; without it the record is printed and dropped")
+    parser.add_argument("--mm-config", type=Path, default=None,
+                        help="hardware only, with --write: a Micro-Manager configuration file the "
+                             "person approved by sha256 under approvals/ (card 069)")
+    parser.add_argument("--handover-objective", default=None,
+                        help="the lens the person states is in place, passed exactly and never "
+                             "inferred or defaulted (card 069)")
     args = parser.parse_args(argv)
+    # What the person states on the command line is logged as theirs, in the hand-over event.
+    handover = None if args.handover_objective is None else {
+        "objective": args.handover_objective,
+        "stated_by": "the person, on the command line (--handover-objective)"}
 
     try:
         # With --write the run is followed as it happens (card 057): its folder
         # and events.jsonl exist from the start, beside the stop channel.
         record = run(args.plan, run_id=args.run_id, backend=args.backend,
-                     runs_root=AGENT / "runs" if args.write else None)
+                     runs_root=AGENT / "runs" if args.write else None,
+                     handover=handover, mm_config=args.mm_config)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
