@@ -1021,7 +1021,7 @@ def _wiki_repo(repo: Path, store: str, exports: str, footers: list[str], message
     write(repo, f"{kb}/exports/snapshot_microscope_agent.json", {"agent": "microscope_agent", "kb_version": exports,
                                                                  "entry_count": 0, "entries": {}})
     for i, line in enumerate(footers):
-        write(repo, f"{kb}/wiki/device/device_{i}.md",
+        write(repo, f"{kb}/wiki/device_dev{i}.md",
               f"# Device {i}\n\nGenerated from the store; cite the entries, as `kb:<entry_id>`, not this page.\n\n"
               f"{line}\n")
     commit(repo, message, kb, seat="librarian")
@@ -1190,9 +1190,9 @@ FIXTURES = [
      fixture_87_guides_regenerated_before_the_publish),
     # The wiki half of 87 (librarian task 054), matched on the branch's words
     # and the page's path, for the same reason as the guide rows above.
-    (87, "FAIL", "commit the pages with the publish or before it [librarian_agent/kb/wiki/device/device_1.md]",
+    (87, "FAIL", "commit the pages with the publish or before it [librarian_agent/kb/wiki/device_dev1.md]",
      fixture_87_a_publish_that_left_the_wiki_behind),
-    (87, "FAIL", "a page is never edited by hand [librarian_agent/kb/wiki/device/device_0.md]",
+    (87, "FAIL", "a page is never edited by hand [librarian_agent/kb/wiki/device_dev0.md]",
      fixture_87_a_wiki_page_footed_like_a_guide),
     (87, "PASS", "1 wiki pages at kbv-bbbbbbbbbbbb, the published version",
      fixture_87_wiki_at_the_published_version_while_the_store_moved),

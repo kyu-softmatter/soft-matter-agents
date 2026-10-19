@@ -31,13 +31,18 @@ subject. Re-derive the counts; do not trust these.
 | page | path | one per |
 |---|---|---|
 | index | `kb/wiki/index.md` | the store: its version, counts, and every page by section |
-| device | `kb/wiki/device/<id>.md` | device id named as a subject in any entry |
-| quantity | `kb/wiki/quantity/<id>.md` | id in `contracts/quantities.json` that any entry names, as subject or in `numbers[].name` |
-| observable | `kb/wiki/observable/<id>.md` | **every** id in `contracts/observables.json`, with or without entries |
-| sample | `kb/wiki/sample/<id>.md` | sample id named as a subject |
-| configuration | `kb/wiki/configuration/<id>.md` | configuration id named as a subject |
+| device | `kb/wiki/device_<id>.md` | device id named as a subject in any entry |
+| quantity | `kb/wiki/quantity_<id>.md` | id in `contracts/quantities.json` that any entry names, as subject or in `numbers[].name` |
+| observable | `kb/wiki/observable_<id>.md` | **every** id in `contracts/observables.json`, with or without entries |
+| sample | `kb/wiki/sample_<id>.md` | sample id named as a subject |
+| configuration | `kb/wiki/configuration_<id>.md` | configuration id named as a subject |
 | unfiled | `kb/wiki/unfiled.md` | the entries with no subject, so that nothing is invisible |
 
+- **Flat, with the section as a prefix** (changed 2026-10-18, before any page
+  was committed). A folder per section put every page at depth 5, which
+  `plan.md` 7.1 rule 6 refuses inside an agent tree (check 13, the 85
+  failures librarian-20261007-1 hit on the first render). The prefix also keeps
+  a quantity and an observable with the same id apart.
 - **An observable gets a page even with no entries.** That a registered
   observable has no value in the store is worth reading.
 - **A quantity gets a page only when something uses it.** A registered name
