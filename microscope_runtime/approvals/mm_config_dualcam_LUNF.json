@@ -1,0 +1,11 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "configuration": {
+    "sha256": "80135a4e4613dfe3dfb34af0b81f9f0ace6d6d5209322e45ddb37d026d324243",
+    "file": "DMD_dualcam_LUNF.cfg"
+  },
+  "written_by": "kyuhwan",
+  "written_at": "2026-10-19",
+  "label": "DMD_dualcam_LUNF.cfg, the dual-camera configuration the 2026-10-13 Micro-Manager readings were taken on, approved for hardware runs and live view; its System/Startup preset is removed before loading by the gate."
+}
