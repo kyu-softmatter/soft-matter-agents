@@ -1,6 +1,6 @@
 # 054 — the wiki: one generated page per subject, read and never cited
 
-status: **open** · issued 2026-10-18 by manager-librarian-20261007-1. **The
+status: closed · **verified on disk 2026-10-18** by manager-librarian-20261007-1. librarian-20261007-1 committed and pushed it at `3d167ea1`: 87 pages and `wiki.py` together, flat as ruled at `e275ab39`. The pages are device 28, quantity 37, observable 17, sample 2, configuration 1, plus index and unfiled. `wiki.py --check`: 87 of 87 current. Check 87: 87 wiki pages at `kbv-37b1958fb73d`. Every footer is the fixed last line; no page holds raw HTML (the `<` seen is `kb:<entry_id>` in code spans and escaped `\<`); and every link stays inside `kb/`. The self-test was watched failing on eleven one-rule mutants. The ALLOWED_PATHS and check 87 halves are this seat's, at `44b5f24b` and `e275ab39`. **One gap in this card's own layout, carried to 055**: the values table shows `validity` and not `identifiers`, so a reader of the pixel-size page cannot tell which objective a row belongs to. · issued 2026-10-18 by manager-librarian-20261007-1. **The
 person's go**: "사서 위키·온톨로지 작업을 권한 순서대로 시작해" ("start the
 librarian wiki and ontology work in the recommended order"), said in the
 intake seat's window and committed verbatim at `42e66bad`
