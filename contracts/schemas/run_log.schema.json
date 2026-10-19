@@ -910,6 +910,11 @@
             ],
             "additionalProperties": false
           }
+        },
+        "images_not_given_because": {
+          "type": "string",
+          "minLength": 3,
+          "description": "when the plan gives images and none were made for this state, why: the conversion's refusal, verbatim. Absent when images were made or the plan gives none"
         }
       },
       "required": [
@@ -1059,8 +1064,10 @@
           "enum": [
             "time_budget",
             "backend_failed",
-            "run_ended"
-          ]
+            "run_ended",
+            "image_conversion_refused"
+          ],
+          "description": "image_conversion_refused: the plan gives images and this tick's conversion refused (a gap camera ceiling, for one), so the question is NOT asked text-only. A text-only answer under a plan that gives images would land in the wrong column of the text-only versus text-plus-images comparison that decides whether the picture adds anything (plan.md 13.4 item 9; architecture-office-20261017-1, 2026-10-19)"
         },
         "detail": {
           "type": "string"

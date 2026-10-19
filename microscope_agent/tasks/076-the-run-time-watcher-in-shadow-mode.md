@@ -47,6 +47,14 @@ below; it replaces nothing in them.
   - with the camera ceiling a gap, the conversion refuses rather than
     marking against an assumed count. The state then records why no image
     was given.
+  - **when a plan gives images and a tick's conversion refuses, that tick's
+    question is not asked text-only.** It is recorded as
+    `watcher_unanswered`, why `image_conversion_refused`, and the state
+    carries `images_not_given_because` with the refusal. A text-only answer
+    under a plan that gives images would land in the wrong column of the
+    text-only versus text-plus-images comparison, and that column decides
+    whether seeing the picture adds anything (architecture-office-20261017-1,
+    2026-10-19).
 - **Part B writes each image whole into the run folder** as
   `watcher_image_<seq, 6 digits>_<role>.png`, flat beside the state text.
   Its sha256 is of exactly those bytes, so a decision replays with what the
@@ -63,7 +71,8 @@ below; it replaces nothing in them.
   - the conversion is deterministic: the same frame and the same
     parameters give the same bytes and the same sha256;
   - the recorded stretch limits reproduce the image from the raw frame;
-  - a gap ceiling refuses the conversion and records why.
+  - a gap ceiling refuses the conversion and records why, and that tick
+    is unanswered with `image_conversion_refused`, never asked text-only.
 - **Not in this card:** the replay and count tool over past runs, plan.md
   13.4 item 9's test set. That is the later card.
 
