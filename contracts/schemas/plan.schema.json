@@ -1396,13 +1396,118 @@
                 "arguments"
               ],
               "additionalProperties": false
+            },
+            "frames": {
+              "type": "object",
+              "description": "WHETHER THE BACKEND IS GIVEN IMAGES, and how they are made (plan.md 13.4 items 4 and 5, the person's change of 2026-10-19 at 2fde65b1). A plan field, not a run argument, because what leaves the building is the approval's to cover. When `given` is true the backend receives two images beside the text: the current frame and the run's reference frame, the first frame after the light settles (intensity.settle_after_s). Both are made by one versioned conversion to an ordinary 8-bit image with these parameters: a downscale, a contrast stretch whose limits are recorded per frame, and saturated pixels marked against the camera ceiling. THE RAW 16-BIT FRAME NEVER LEAVES THE RENDERER. A local and a hosted model get the same images. `given` has no default: a watcher block says true or false. With the camera ceiling a gap, saturated pixels cannot be marked, and the conversion refuses rather than marking against an assumed count",
+              "properties": {
+                "given": {
+                  "type": "boolean"
+                },
+                "conversion": {
+                  "type": "object",
+                  "properties": {
+                    "downscale": {
+                      "type": "object",
+                      "properties": {
+                        "longest_side_px": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "method": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        }
+                      },
+                      "required": [
+                        "longest_side_px",
+                        "method"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "stretch": {
+                      "type": "object",
+                      "description": "the contrast stretch; the limits it computes are recorded for each frame in watcher_state",
+                      "properties": {
+                        "method": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        },
+                        "low_percentile": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "high_percentile": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        }
+                      },
+                      "required": [
+                        "method",
+                        "low_percentile",
+                        "high_percentile"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "saturated": {
+                      "type": "object",
+                      "description": "how a pixel at or above the camera ceiling is marked in the 8-bit image",
+                      "properties": {
+                        "marked_as": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        }
+                      },
+                      "required": [
+                        "marked_as"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "downscale",
+                    "stretch",
+                    "saturated"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "given"
+              ],
+              "additionalProperties": false,
+              "if": {
+                "properties": {
+                  "given": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "given"
+                ]
+              },
+              "then": {
+                "required": [
+                  "conversion"
+                ]
+              },
+              "else": {
+                "not": {
+                  "required": [
+                    "conversion"
+                  ]
+                }
+              }
             }
           },
           "required": [
             "frame_stats",
             "intensity",
             "drift",
-            "particles"
+            "particles",
+            "frames"
           ],
           "additionalProperties": false
         }

@@ -135,6 +135,23 @@
       "particles": {
         "detector": "log_blob",
         "arguments": {}
+      },
+      "frames": {
+        "given": true,
+        "conversion": {
+          "downscale": {
+            "longest_side_px": 512,
+            "method": "area_mean"
+          },
+          "stretch": {
+            "method": "percentile",
+            "low_percentile": 0.5,
+            "high_percentile": 99.5
+          },
+          "saturated": {
+            "marked_as": "red"
+          }
+        }
       }
     }
   }

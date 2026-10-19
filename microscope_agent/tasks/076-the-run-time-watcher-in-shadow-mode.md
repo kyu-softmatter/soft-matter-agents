@@ -19,6 +19,54 @@ architecture-20261003-1 relayed that section 15 specifies the move. The paths
 this card names under `microscope_agent/src/` and `tests/` are likely to
 change. Nothing in this card has started, so nothing is to be undone.
 
+## Reduced images may go to the backend (added 2026-10-19)
+
+On 2026-10-19 the person, through the intake seat (`2fde65b1`, `ff8235e0`),
+changed plan.md 13.4 at `c9b18f00`. **When the plan asks, the backend
+receives two reduced images beside the state text.** This adds to the parts
+below; it replaces nothing in them.
+
+- **The contract** is in the schemas at the commit that adds this section:
+  - the plan's `watcher.image.frames` has `given`, a boolean with no
+    default, and, when `given` is true, `conversion`. That conversion has
+    `downscale` (`longest_side_px`, `method`), `stretch` (`method`,
+    `low_percentile`, `high_percentile`) and `saturated` (`marked_as`);
+  - `watcher_state` gains `images`: one entry per image given, with `role`
+    (`current` or `reference`), `frame_index`, `sha256`, `path`,
+    `conversion_version`, `shape`, `stretch_limits` (`low`, `high`, in ADU
+    of the raw frame) and `saturated_pixels`.
+- **Part A, the renderer, gains one versioned conversion**, pure, standard
+  library and numpy only:
+  - a downscale, a contrast stretch whose limits it records for each
+    frame, and saturated pixels marked against the camera ceiling, giving
+    an ordinary 8-bit image;
+  - the two images are the current frame and the run's reference frame,
+    the first frame after the light settles (`intensity.settle_after_s`);
+  - **the raw 16-bit frame never leaves the renderer**, and nothing else
+    that stays inside today goes with it;
+  - with the camera ceiling a gap, the conversion refuses rather than
+    marking against an assumed count. The state then records why no image
+    was given.
+- **Part B writes each image whole into the run folder** as
+  `watcher_image_<seq, 6 digits>_<role>.png`, flat beside the state text.
+  Its sha256 is of exactly those bytes, so a decision replays with what the
+  backend saw.
+- **Part D: the backend interface takes the images when the plan gives
+  them.** `none` and the test double are otherwise unchanged; the double
+  may take the images and ignore them. The images are the same whichever
+  backend answers. **What leaves the building is the plan's field, never a
+  run argument.**
+- **Tests, each watched failing first:**
+  - with `given: false`, no image is made or passed;
+  - with `given: true`, exactly two 8-bit images reach the backend, and no
+    16-bit array ever does;
+  - the conversion is deterministic: the same frame and the same
+    parameters give the same bytes and the same sha256;
+  - the recorded stretch limits reproduce the image from the raw frame;
+  - a gap ceiling refuses the conversion and records why.
+- **Not in this card:** the replay and count tool over past runs, plan.md
+  13.4 item 9's test set. That is the later card.
+
 ## When, and the instrument (added 2026-10-17)
 
 The person set the timing on 2026-10-17, directly in

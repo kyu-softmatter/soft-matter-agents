@@ -837,6 +837,79 @@
         "skipped_so_far": {
           "type": "integer",
           "minimum": 0
+        },
+        "images": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "the reduced images given with this state, when the plan's frames.given is true (plan.md 13.4 item 6): each kept whole in the run folder beside the state text, so a decision replays with exactly what the model saw. Absent or empty when no image was given",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "enum": [
+                  "current",
+                  "reference"
+                ]
+              },
+              "frame_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "conversion_version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shape": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "stretch_limits": {
+                "type": "object",
+                "description": "the stretch's limits for this frame, in ADU of the raw frame",
+                "properties": {
+                  "low": {
+                    "type": "number"
+                  },
+                  "high": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "low",
+                  "high"
+                ],
+                "additionalProperties": false
+              },
+              "saturated_pixels": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "role",
+              "frame_index",
+              "sha256",
+              "path",
+              "conversion_version",
+              "shape",
+              "stretch_limits",
+              "saturated_pixels"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [
