@@ -161,7 +161,7 @@ def test_switching_writes_nothing_in_the_tree_but_the_runs_own_files(client, roo
     c.post(f"/api/console/runs/microscope/{run_id}/stop", json={})
     after = tree_state(root)
     new = set(after) - set(before)
-    assert all(p.replace("\\", "/").startswith(f"microscope_agent/runs/{run_id}/") for p in new)
+    assert all(p.replace("\\", "/").startswith(f"microscope_runtime/runs/{run_id}/") for p in new)
     assert {k: after[k] for k in before} == before
 
 

@@ -156,6 +156,25 @@ describe("Stop all runs, on the screens a login does not reach (console card 004
     expect((await screen.findByRole("alert")).textContent).toContain("log in first");
   });
 
+  it("says the runs folder was not found, and never that nothing was running (card 005)", async () => {
+    const why =
+      "This project's runs folder was not found, so nothing was sent and it is not known whether a run is " +
+      "running. Stop the run at the instrument or in the operator terminal.";
+    const fake = gate(createFakeAuthApi({ users: USERS }), () => ({
+      status: 404,
+      body: { detail: { code: "runs_not_found", message: why } },
+    }));
+    await screen.findByRole("form", { name: "Log in" });
+    fireEvent.click(screen.getByRole("button", { name: "Stop all runs" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe(why);
+    expect(screen.queryByTestId("stop-all-result")).toBeNull();
+    expect(screen.queryByText(/No run is running/)).toBeNull();
+    expect(stops(fake.calls)).toHaveLength(1);
+    // the button is free again: the person may press it once the folder is back
+    expect((screen.getByRole("button", { name: "Stop all runs" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
   it("cannot be pressed twice while the first press is in flight", async () => {
     const calls: { path: string; init?: RequestInit }[] = [];
     let release: (r: Response) => void = () => undefined;

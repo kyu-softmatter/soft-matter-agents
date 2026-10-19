@@ -278,3 +278,31 @@ describe("ask a question", () => {
     expect(await screen.findByText("sim-20261001-901")).toBeTruthy();
   });
 });
+
+describe("the runs folder was not found (console card 005)", () => {
+  it("says so in words, and does not show an empty list of runs", async () => {
+    const why =
+      "this project's microscope runs folder was not found in soft-matter-agents: neither " +
+      "microscope_runtime/runs/ nor microscope_agent/runs/ is there. The console cannot see the runs, " +
+      "which is not the same as there being none.";
+    window.location.hash = "#/console/runs";
+    const { routes } = consoleRoutes(FAKE_DATA);
+    const fake = fakeTransport({
+      ...routes,
+      "/api/console/runs": () => ({ status: 404, body: { detail: { code: "runs_not_found", message: why } } }),
+    });
+    const client = new Client(fake.transport, "127.0.0.1");
+    clients.push(client);
+    render(
+      <ClientProvider client={client}>
+        <ScreenContextProvider area="console">
+          <ConsoleScreen />
+        </ScreenContextProvider>
+      </ClientProvider>,
+    );
+    const alert = await screen.findByText(/runs folder was not found/);
+    expect(alert.textContent).toBe(why);
+    expect(alert.getAttribute("role")).toBe("alert");
+    expect(screen.queryByText(/no runs/i)).toBeNull();
+  });
+});

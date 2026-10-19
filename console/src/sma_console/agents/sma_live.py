@@ -3,7 +3,8 @@
 The person decided on 2026-10-07 that a live camera view is switched on and off from the
 console, outside a plan too, because it helps find the sample. On the soft-matter-agents side
 a live view is an ordinary preparatory run: the person starts a live-view host, and the host
-runs a live-view command list the person wrote and approved in `<seat>_agent/approvals/`.
+runs a live-view command list the person wrote and approved in the seat's approvals folder
+(`layout.run_side_folder`).
 The console can only name such a list by its sha256. It cannot send a list, a path or a value.
 
 What this module speaks (proposed by the console, adopted unchanged in card 062 at
@@ -15,7 +16,7 @@ at 48242a2):
   stops: `{"host": "127.0.0.1", "port": N, "pid": P, "started_at": "<iso>"}`. Only 127.0.0.1
   is accepted. A missing file or a port that does not answer means the host is not running
   (a file left by a crash reads that way). `--live-host 127.0.0.1:N` is the manual fallback.
-- A list is a JSON file in `<seat>_agent/approvals/` with `"artifact": "live_view_list"`
+- A list is a JSON file in the seat's approvals folder with `"artifact": "live_view_list"`
   (an artifact, not a card: no qid, identified by its bytes). Its sha256 is of the raw file
   bytes. The console shows the person's values (label, lamp intensity, exposure, frame
   ceiling, any excitation block) and sends only the sha256; the host checks the list itself.
@@ -89,7 +90,7 @@ def host_address(path: str | os.PathLike[str] | None = None) -> tuple[Address | 
 
 @dataclass(frozen=True)
 class LiveList:
-    """A live-view command list the person approved, as a file in `<seat>_agent/approvals/`."""
+    """A live-view command list the person approved, as a file in the seat's approvals folder."""
 
     name: str
     sha256: str  # of the file's bytes, the value the console names
@@ -101,11 +102,14 @@ def is_sha256(value: str) -> bool:
 
 
 def live_lists(sma_root: str | os.PathLike[str], seat: str = "microscope") -> list[LiveList]:
-    """Every JSON file in `<seat>_agent/approvals/` marked `"artifact": "live_view_list"`."""
+    """Every JSON file in the seat's approvals folder (`layout.run_side_folder`: the microscope's
+    is `microscope_runtime/approvals/` once the person has moved it, else
+    `microscope_agent/approvals/`) marked `"artifact": "live_view_list"`."""
+    from .layout import run_side_folder
     from .sma_files import long_path
 
-    base = long_path(Path(sma_root) / f"{seat}_agent" / "approvals")
-    if not base.is_dir():
+    base = run_side_folder(long_path(Path(sma_root)), seat, "approvals")
+    if base is None:
         return []
     out = []
     for p in sorted(base.iterdir()):

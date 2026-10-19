@@ -35,6 +35,7 @@ from ...agents import (
     MockStore,
     NotFoundError,
     ReadOnlyStoreError,
+    RunsFolderNotFoundError,
     StoreError,
     sma_live,
     sma_run,
@@ -327,6 +328,8 @@ def get_question(qid: str, store: AgentStoreDep, version: int | None = None) -> 
 def list_runs(store: AgentStoreDep, agent: AgentName | None = None) -> list[RunSummaryOut]:
     try:
         found = [r for a in _agents(agent) for r in store.list_runs(a)]
+    except RunsFolderNotFoundError as e:  # the runs cannot be seen: not an empty list (card 005)
+        raise Refusal(404, "runs_not_found", str(e)).http() from e
     except StoreError as e:
         raise _store_error(e).http() from e
     return [RunSummaryOut.model_validate(r.to_dict()) for r in _newest_first(found)]
@@ -504,6 +507,9 @@ STOP_ALL_REASON = "Stop all runs pressed"
 STOP_ALL_TAKES_NOTHING = ("stopping all runs takes no body and no query: the console decides "
                           "what to send, so nothing the request carries reaches a run")
 STOP_ALL_WORKERS = 8
+STOP_ALL_NO_RUNS_FOLDER = ("This project's runs folder was not found, so nothing was sent and it is "
+                           "not known whether a run is running. Stop the run at the instrument or "
+                           "in the operator terminal.")
 
 
 def _stop_one(stream: sma_run.RunStream, reason: str) -> StopAllRunOut:
@@ -546,6 +552,7 @@ def _stop_all_message(runs: list[StopAllRunOut]) -> str:
     responses={400: {"description": "the request carried a body or a query"},
                401: {"description": "remote, or a remote viewer who is logged out"},
                403: {"description": "remote view with remote abort off (D13)"},
+               404: {"description": "this project's runs folder was not found: not \"nothing running\""},
                409: {"description": "the console is not connected to the agents' files"}},
 )
 async def stop_all_runs(request: Request, store: AgentStoreDep, me: Login, seat: Auth) -> StopAllOut:
@@ -562,19 +569,32 @@ async def stop_all_runs(request: Request, store: AgentStoreDep, me: Login, seat:
     if getattr(store, "running_microscope_runs", None) is None:
         raise Refusal(409, "not_connected", NOT_SMA).http()
     who = me.user_id or "the microscope PC (no login)"
-    runs = await run_in_threadpool(_stop_all, store, f"{STOP_ALL_REASON} (by {who})")
-    audited = True
-    if seat.audit is not None:
-        try:
-            for r in runs or [None]:
-                seat.audit.append(AuditKind.COMMAND_EXECUTED, me.user_id, origin="console",
-                                  command="sma_stop_all", run_id=r.run_id if r else None,
-                                  local=me.local, who=who,
-                                  outcome=r.outcome if r else "none_running")
-        except Exception:
-            log.exception("the audit log did not take a stop-all entry")
-            audited = False
+    try:
+        runs = await run_in_threadpool(_stop_all, store, f"{STOP_ALL_REASON} (by {who})")
+    except RunsFolderNotFoundError as e:
+        # The one answer a stop must never give is "nothing is running" when the runs cannot be
+        # seen (card 005). It is its own outcome, in words, and the press is still written down.
+        _audit_stop_all(seat, me, who, [(None, "runs_folder_not_found")])
+        raise Refusal(404, "runs_not_found", STOP_ALL_NO_RUNS_FOLDER).http() from e
+    audited = _audit_stop_all(seat, me, who, [(r.run_id, r.outcome) for r in runs]
+                              or [(None, "none_running")])
     return StopAllOut(message=_stop_all_message(runs), runs=runs, audited=audited)
+
+
+def _audit_stop_all(seat: Any, me: Any, who: str, rows: list[tuple[str | None, str]]) -> bool:
+    """One `sma_stop_all` line per row. False when the log did not take them; that never holds
+    a stop back."""
+    if seat.audit is None:
+        return True
+    try:
+        for run_id, outcome in rows:
+            seat.audit.append(AuditKind.COMMAND_EXECUTED, me.user_id, origin="console",
+                              command="sma_stop_all", run_id=run_id, local=me.local, who=who,
+                              outcome=outcome)
+    except Exception:
+        log.exception("the audit log did not take a stop-all entry")
+        return False
+    return True
 
 
 # -- live view from the console (soft-matter-agents card 062) ----------------------------------
@@ -606,7 +626,7 @@ def live_state(request: Request, store: AgentStoreDep) -> LiveOut:
     if root is None:
         why = NOT_SMA
     elif why is None and not lists:
-        why = "no approved live-view list in microscope_agent/approvals/ (the person writes it)"
+        why = "no approved live-view list in the microscope's approvals/ folder (the person writes it)"
     return LiveOut(available=why is None, why_not=why,
                    host=None if addr is None else f"{addr.host}:{addr.port}",
                    lists=[LiveListOut(name=x.name, sha256=x.sha256, data=x.data) for x in lists])

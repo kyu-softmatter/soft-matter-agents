@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 from server_fakes import OPERATOR, VIEWER
-from sma_fake_run import FakeSmaRun, sma_tree
+from sma_fake_run import FakeSmaRun, runs_dir, sma_tree
 
 import sma_console.server.app as app_module
 from sma_console.agents import SmaFiles, sma_run
@@ -198,7 +198,7 @@ def test_the_stops_go_out_together_not_one_after_another(client, root):
 
 
 def test_a_run_that_announced_no_stop_channel_is_named_and_nothing_is_sent(client, root):
-    folder = root / "microscope_agent" / "runs" / "run-20261005-009"
+    folder = runs_dir(root) / "run-20261005-009"
     folder.mkdir()
     (folder / "events.jsonl").write_text(json.dumps(
         {"event": "run_started", "run_id": "run-20261005-009", "plan_id": "p", "revision": 1,
@@ -379,7 +379,7 @@ def test_the_store_lists_only_running_runs_from_the_head_and_tail_of_the_file(ro
     a = RecordingRun(root, run_id="run-20261005-001")
     done = RecordingRun(root, run_id="run-20261005-002")
     done.end("failed")
-    (root / "microscope_agent" / "runs" / "run-20261005-005").mkdir()  # no events.jsonl
+    (runs_dir(root) / "run-20261005-005").mkdir()  # no events.jsonl
     try:
         found = SmaFiles(root).running_microscope_runs()
         assert [s.run_id for s in found] == [a.run_id]

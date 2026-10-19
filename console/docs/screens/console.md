@@ -68,6 +68,23 @@ announces a loopback stop channel and a frame tap in `run_started`, and keeps go
   for it; stop it at the instrument or in the operator terminal"`. Simulation runs have no Abort here.
 - Nothing is written in the soft-matter-agents tree (the audit line goes to the console's own folder).
 
+## Where the microscope's runs and approvals are (card 005, plan.md 15)
+
+The microscope's `runs/` moved to `microscope_runtime/runs/` in card 080, and its `approvals/` moves to
+`microscope_runtime/approvals/` later, in the person's own commit. The shapes did not change. One rule,
+`agents/layout.py` `run_side_folder`, says where each is read from, and every reader asks it: the run
+list, run following, both stops, the approvals and the live-view lists. **Each folder is read from
+`microscope_runtime/<folder>/` when that folder exists, else from `microscope_agent/<folder>/`, each
+decided on its own**, so runs moved with approvals not yet reads correctly. One place is read, never both
+merged. The old place is for a tree from before the move (a scratch copy, the mock sample); a later card
+removes it after the person's step. The simulation seat keeps `simulation_agent/`, and the questions, the
+inbox and the plan cards stay in `microscope_agent/`.
+
+**A runs folder in neither place is not "no runs".** The run list, a run's detail and "Stop all runs" say
+that the project's runs folder was not found (404 `runs_not_found` for the list and the stop), and the
+lock screen shows it in words: the stop was not sent, and it is not known whether a run is running. An
+empty runs folder that exists is still "No run is running".
+
 ## Stop all runs, with no login (card 004)
 
 The person asked for a stop on the lock screen that works without a login (committed at `cee4f8c1`)

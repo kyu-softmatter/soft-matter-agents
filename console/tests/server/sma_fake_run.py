@@ -20,10 +20,19 @@ STOP_MAX_BYTES = 1024
 T0_WALL = "2026-10-05T10:00:00-07:00"
 
 
-def sma_tree(root: Path) -> Path:
-    """An empty soft-matter-agents layout: the two seats' runs/ folders."""
-    for seat in ("microscope", "simulation"):
-        (root / f"{seat}_agent" / "runs").mkdir(parents=True, exist_ok=True)
+def runs_dir(root: Path, layout: str = "runtime") -> Path:
+    """Where the microscope's runs are written: `microscope_runtime/runs/` (card 080, plan.md 15)
+    or, for a tree from before the move, `microscope_agent/runs/`."""
+    assert layout in ("runtime", "agent"), layout
+    return Path(root) / ("microscope_runtime" if layout == "runtime" else "microscope_agent") / "runs"
+
+
+def sma_tree(root: Path, layout: str = "runtime") -> Path:
+    """An empty soft-matter-agents layout: the microscope's runs/ folder where `layout` says, the
+    simulation seat's, and microscope_agent/ itself, where the questions stay."""
+    (root / "microscope_agent").mkdir(parents=True, exist_ok=True)
+    runs_dir(root, layout).mkdir(parents=True, exist_ok=True)
+    (root / "simulation_agent" / "runs").mkdir(parents=True, exist_ok=True)
     return root
 
 
@@ -82,9 +91,9 @@ class FakeSmaRun:
 
     def __init__(self, root: Path, run_id: str = "run-20261005-001",
                  plan_id: str = "plan_microscope_mic-20261005-001", *, tap: bool = True,
-                 stop_reply_delay_s: float = 0.0) -> None:
+                 stop_reply_delay_s: float = 0.0, layout: str = "runtime") -> None:
         self.run_id = run_id
-        self.folder = Path(root) / "microscope_agent" / "runs" / run_id
+        self.folder = runs_dir(root, layout) / run_id
         self.folder.mkdir(parents=True)
         self.stops: list[str] = []  # reasons of the valid stops received
         self.refused: list[str] = []
@@ -186,11 +195,12 @@ LIVE_LIST = {"artifact": "live_view_list", "schema_version": "0.1", "written_by"
 
 
 def write_live_list(root: Path, name: str = "live-view-brightfield.json",
-                    data: dict[str, Any] | None = None) -> str:
-    """A live-view list as the person would leave it in approvals/; returns its sha256."""
+                    data: dict[str, Any] | None = None, *, place: str = "microscope_agent") -> str:
+    """A live-view list as the person would leave it in approvals/; returns its sha256. `place`
+    is `microscope_agent` until the person's step 6 moves approvals/, then `microscope_runtime`."""
     import hashlib
 
-    folder = Path(root) / "microscope_agent" / "approvals"
+    folder = Path(root) / place / "approvals"
     folder.mkdir(parents=True, exist_ok=True)
     raw = json.dumps(data or LIVE_LIST, indent=2).encode()
     (folder / name).write_bytes(raw)

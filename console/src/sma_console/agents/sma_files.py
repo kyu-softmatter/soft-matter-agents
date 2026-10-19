@@ -11,6 +11,10 @@ Layout read (the soft-matter-agents repository, or a copy with the same layout):
                                         (read by `sma_run`, plan.md 11-25)
     <seat>_agent/inbox/<thread>/        rN_<kind>.json | .md, what the seat received
     <seat>_agent/approvals/             appr-<qid>-r<N>.json, the person's plan_approval cards
+
+For the microscope seat `runs/` and `approvals/` have moved, or are moving, to
+`microscope_runtime/` (plan.md 15): `layout.run_side_folder` is the one rule that says which
+place each is read from, and every reader here asks it.
     bridge/threads/<thread>/status.json the bridge's view of the thread
 
 `contracts/schemas/*.schema.json` is what the cards follow; it is not loaded here. A card
@@ -29,6 +33,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+from .layout import run_side_folder
 from .sma_run import (
     MAX_EVENTS_BYTES,
     NotFollowedError,
@@ -50,6 +55,7 @@ from .store import (
     QuestionDetail,
     QuestionSummary,
     ReadOnlyStoreError,
+    RunsFolderNotFoundError,
     RunDetail,
     RunSummary,
     agent_of_qid,
@@ -293,13 +299,29 @@ class SmaFiles:
 
     # -- runs ------------------------------------------------------------------------------
 
+    def _runs_base(self, agent: Agent) -> Path:
+        """The seat's runs folder by the one rule. For the microscope a folder that is in
+        neither place is `RunsFolderNotFoundError`, never an empty list: a console that cannot
+        see the runs must not report that none is running. The simulation seat keeps its
+        folder, and a missing one stays "no runs"."""
+        agent = check_agent(agent)
+        found = run_side_folder(self._root, agent, "runs")
+        if found is not None:
+            return found
+        if agent == "microscope":
+            raise RunsFolderNotFoundError(
+                f"this project's microscope runs folder was not found in {self.source}: "
+                "neither microscope_runtime/runs/ nor microscope_agent/runs/ is there. The "
+                "console cannot see the runs, which is not the same as there being none.")
+        return self._root / f"{agent}_agent" / "runs"
+
     def _run_dir(self, agent: Agent, run_id: str) -> Path:
         if not run_id or "/" in run_id or "\\" in run_id or run_id in (".", ".."):
             raise NotFoundError(f"not a run id: {run_id!r}")
-        return self._root / f"{check_agent(agent)}_agent" / "runs" / run_id
+        return self._runs_base(agent) / run_id
 
     def list_runs(self, agent: Agent) -> list[RunSummary]:
-        base = self._root / f"{check_agent(agent)}_agent" / "runs"
+        base = self._runs_base(agent)
         if not base.is_dir():
             return []
         out = [self._run_summary(agent, d) for d in base.iterdir() if d.is_dir()]
@@ -338,12 +360,11 @@ class SmaFiles:
 
     def running_microscope_runs(self) -> list[RunStream]:
         """Every microscope run whose events.jsonl says it is still running, newest folder
-        first. It reads `<root>/microscope_agent/runs/*/events.jsonl`, the head and the tail of
-        each, and nothing else. A run that announced no stop channel is included: the caller
-        says it cannot be stopped from here."""
-        base = self._root / "microscope_agent" / "runs"
-        if not base.is_dir():
-            return []
+        first. It reads `<runs folder>/*/events.jsonl`, the head and the tail of each, and
+        nothing else; the folder is the one `layout.run_side_folder` names. A run that announced
+        no stop channel is included: the caller says it cannot be stopped from here. Raises
+        `RunsFolderNotFoundError` when there is no runs folder: that is not "nothing running"."""
+        base = self._runs_base("microscope")
         out: list[RunStream] = []
         for d in sorted((p for p in base.iterdir() if p.is_dir()), key=lambda p: p.name,
                         reverse=True):
@@ -411,10 +432,10 @@ class SmaFiles:
     # -- approvals -------------------------------------------------------------------------
 
     def list_approvals(self, agent: Agent) -> list[Approval]:
-        """`<seat>_agent/approvals/*.json`, newest first, each checked against the plan cards
+        """The seat's `approvals/*.json` (`layout.run_side_folder`), newest first, each checked against the plan cards
         of its question (`plan_found`). An unreadable file is listed with its name only."""
-        base = self._root / f"{check_agent(agent)}_agent" / "approvals"
-        if not base.is_dir():
+        base = run_side_folder(self._root, check_agent(agent), "approvals")
+        if base is None:
             return []
         hashes: dict[str, set[str]] = {}
         out = []

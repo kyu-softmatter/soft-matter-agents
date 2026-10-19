@@ -40,6 +40,12 @@ class NotFoundError(StoreError, KeyError):
         return str(self.args[0]) if self.args else ""
 
 
+class RunsFolderNotFoundError(NotFoundError):
+    """A seat's runs folder is in neither place the console looks (`agents/layout.py`). This is
+    not "no runs": the console cannot see the runs, and says so, because a screen or a stop that
+    took it for an empty list would answer "nothing is running" while a run might be."""
+
+
 def agent_of_qid(qid: str) -> Agent:
     """`mic-...` -> microscope, `sim-...` -> simulation."""
     m = QID_RE.match(qid)

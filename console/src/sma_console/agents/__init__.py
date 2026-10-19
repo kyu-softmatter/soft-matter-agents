@@ -28,6 +28,7 @@ from .store import (
     QuestionSummary,
     ReadOnlyStoreError,
     RunDetail,
+    RunsFolderNotFoundError,
     RunSummary,
     StoreError,
 )
@@ -44,6 +45,7 @@ __all__ = [
     "InboxThread",
     "MockStore",
     "NotFoundError",
+    "RunsFolderNotFoundError",
     "QuestionDetail",
     "QuestionSummary",
     "ReadOnlyStoreError",
