@@ -9,6 +9,8 @@ If the person seats a different session for this card, card 064 changes
 first. If you are not the seat holding `src/`, take nothing from this card
 and report up.
 
+**Reassigned 2026-10-19 to `microscope-office-20261017-1`, the runtime seat.** `microscope-20261007-1` was closed by the person that day (intake `b9bf1ea3`), and this card's code lives in `microscope_runtime/` from card 080 on. Start after card 080 lands and this card's paths are re-pointed to `microscope_runtime/src/` and `tests/` (plan.md 15 step 8). Until then, the hold below stands.
+
 ## Hold: wait for plan.md section 15 (added 2026-10-17)
 
 **Start nothing under this card until plan.md section 15 lands and this card
