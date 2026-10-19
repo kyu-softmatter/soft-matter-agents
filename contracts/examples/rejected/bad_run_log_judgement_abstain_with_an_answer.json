@@ -1,0 +1,273 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20261019-931",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "Rejected fixture: an answer is given only when the status is OK. ACCEPTED EXAMPLE of a preparatory run, which check 85 passes. Its approved list lies outside the tree, so its hash is recorded and not checked. A preparatory run: no plan fitted it, because the only plan for this measurement was written for another objective and its axis ranges were computed for that configuration, so citing them would launder them (11-21).",
+  "approved_commands": {
+    "path": "D:/soft-matter-agents-frames/run-20260924-901/commands.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "software offsets order the log and nothing else (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.1,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "GREEN_Intensity": {
+          "value": "50",
+          "from": "approved_commands[1]"
+        }
+      },
+      "verification": "readback"
+    },
+    {
+      "t_mono": 0.2,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "watcher_started",
+      "from": "watcher",
+      "watcher": {
+        "backend": {
+          "name": "test_double",
+          "version": "0.1",
+          "kind": "test_double"
+        },
+        "renderer_version": "0.1",
+        "options": [
+          "as_planned",
+          "particles_lost",
+          "drifting",
+          "focus_lost",
+          "unsure"
+        ],
+        "cadence_s": 5,
+        "question_budget_s": 2
+      }
+    },
+    {
+      "t_mono": 0.31,
+      "time_base": "software",
+      "event": "snapshot",
+      "label": "watcher",
+      "states": {
+        "Aura": {
+          "GREEN_Intensity": "50"
+        },
+        "optical_tweezers": {
+          "unreadable": true,
+          "commanded": null
+        }
+      }
+    },
+    {
+      "t_mono": 0.32,
+      "time_base": "software",
+      "event": "watcher_state",
+      "from": "watcher",
+      "watcher": {
+        "seq": 0,
+        "frame_index": 0,
+        "frame_t_mono": 0.2,
+        "snapshot_t_mono": 0.31,
+        "image": {
+          "mean": {
+            "value": 120.5,
+            "unit": "ADU",
+            "method": "frame_stats",
+            "arguments": {
+              "metric": "vollath4",
+              "bin_px": 4
+            },
+            "frame_index": 0
+          },
+          "saturated_fraction": {
+            "value": null,
+            "unit": "1",
+            "method": "frame_stats",
+            "arguments": {
+              "metric": "vollath4",
+              "bin_px": 4
+            },
+            "frame_index": 0,
+            "absent_because": "the camera ceiling is the gap full_scale_count_dynamic_range_100mhz_16bit"
+          },
+          "intensity_normalised": {
+            "value": null,
+            "unit": "1",
+            "method": "whole_frame_total",
+            "arguments": {
+              "settle_after_s": 5
+            },
+            "frame_index": 0,
+            "absent_because": "settling: 0.1 s since the light's read-back, before 5 s"
+          }
+        },
+        "state_sha256": "sha256:4ba69735ca53765ed6a709edb56c6ea236b7193a3b29a6b390c346f0f4340e4e",
+        "state_path": "watcher_state_000000.txt",
+        "renderer_version": "0.1",
+        "asked": true,
+        "skipped_so_far": 0,
+        "images_not_given_because": "the camera ceiling is the gap full_scale_count_dynamic_range_100mhz_16bit, so saturated pixels cannot be marked"
+      }
+    },
+    {
+      "t_mono": 0.4,
+      "time_base": "software",
+      "event": "watcher_flag",
+      "from": "watcher",
+      "watcher": {
+        "seq": 0,
+        "state_seq": 0,
+        "state_sha256": "sha256:4ba69735ca53765ed6a709edb56c6ea236b7193a3b29a6b390c346f0f4340e4e",
+        "asked_t_mono": 0.32,
+        "answered_t_mono": 0.4,
+        "options": [
+          "as_planned",
+          "particles_lost",
+          "drifting",
+          "focus_lost",
+          "unsure"
+        ],
+        "signals": {
+          "probabilities": {
+            "as_planned": 0.9,
+            "particles_lost": 0.0,
+            "drifting": 0.05,
+            "focus_lost": 0.0,
+            "unsure": 0.05
+          },
+          "choice": "as_planned",
+          "confidence": 0.9
+        },
+        "backend": {
+          "name": "test_double",
+          "version": "0.1",
+          "kind": "test_double"
+        },
+        "renderer_version": "0.1",
+        "judgement": {
+          "judgement": "DM-3",
+          "status": "OK",
+          "answer": "NO"
+        },
+        "prompt_version": "dm3-plan-mic-20261017-901-r1-v1"
+      }
+    },
+    {
+      "t_mono": 0.5,
+      "time_base": "software",
+      "event": "watcher_unanswered",
+      "from": "watcher",
+      "watcher": {
+        "seq": 1,
+        "state_seq": 1,
+        "state_sha256": "sha256:4ba69735ca53765ed6a709edb56c6ea236b7193a3b29a6b390c346f0f4340e4e",
+        "asked_t_mono": 0.45,
+        "why": "run_ended"
+      }
+    },
+    {
+      "t_mono": 0.7,
+      "time_base": "software",
+      "event": "judgement_asked",
+      "from": "judgements.dm4",
+      "judgement": {
+        "judgement": "DM-4",
+        "seq": 0,
+        "point": "after_stop",
+        "prompt_version": "dm4-v1",
+        "allowed_answers": [
+          "YES",
+          "NO"
+        ],
+        "allowed_codes": [
+          "focus_drift",
+          "particle_lost",
+          "aggregation_or_interaction",
+          "stage_or_sample_drift",
+          "illumination_or_signal_issue",
+          "camera_or_acquisition_issue",
+          "unknown"
+        ],
+        "images": [],
+        "context_sha256": "sha256:0230c6b1d833c51cc426492022677b74c60d82891931221a42db9e7bb06205e9",
+        "context_path": "judgement_000000_context.txt",
+        "asked_t_mono": 0.7
+      }
+    },
+    {
+      "t_mono": 0.8,
+      "time_base": "software",
+      "event": "judgement_answered",
+      "from": "judgements.dm4",
+      "judgement": {
+        "judgement": "DM-4",
+        "seq": 0,
+        "status": "OK",
+        "answer": "YES",
+        "cause_label": "focus_drift",
+        "model": {
+          "name": "test_double",
+          "version": "0.1",
+          "kind": "test_double"
+        },
+        "prompt_version": "dm4-v1",
+        "answered_t_mono": 0.8
+      }
+    },
+    {
+      "t_mono": 0.9,
+      "time_base": "software",
+      "event": "judgement_answered",
+      "from": "judgements.dm1",
+      "judgement": {
+        "judgement": "DM-1",
+        "seq": 1,
+        "status": "ABSTAIN",
+        "reason_codes": [],
+        "model": {
+          "name": "test_double",
+          "version": "0.1",
+          "kind": "test_double"
+        },
+        "prompt_version": "dm1-v1",
+        "answered_t_mono": 0.9,
+        "answer": "NO"
+      }
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00"
+}

@@ -1,0 +1,425 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "judgement.schema.json",
+  "title": "judgement -- the one request and answer shape for plan.md 13.5's four judgements",
+  "description": "plan.md 13.5 (1cb437d5), on the person's answers of 2026-10-19 (04e3985f, a1f3feca). Four judgements: DM-1 (are the detected particles suitable, after detection), DM-2 (is this field suitable, before a measurement), DM-3 (is an anomaly visible that the fixed checks cannot settle: this IS 13.4's watcher, recorded through the watcher events), DM-4 (can the failure's cause be identified, after a stop, on the saved evidence). EVERY ONE RECORDS ONLY until the person chooses its threshold from the record; nothing here names a threshold, an action or a stop. Written by manager-microscope-20261003-1 on 2026-10-19. The response shape: status OK, ABSTAIN or ERROR; an answer YES or NO only when OK; a score only if the model gives one, never compared across models and never cut at a level nobody chose; reason codes, or for DM-4 a cause label, from a list the plan declares. DM-4's `unknown` is a NO, never a cause. The raw frame never leaves: images are the reduced copies of 13.4 item 4, named by sha256. Named judgement, not decision: a `decision` event already records the person's own decisions in bench logs.",
+  "$defs": {
+    "model": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "none",
+            "test_double",
+            "model"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "image_ref": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "frame_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "role",
+        "sha256",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "judgement": {
+          "enum": [
+            "DM-1",
+            "DM-2",
+            "DM-4"
+          ],
+          "description": "DM-3 is asked through the watcher (watcher_state and watcher_flag), not here"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "point": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the moment the plan names that this request is asked at, as the plan names it"
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "versioned by judgement and plan, so each answer replays"
+        },
+        "allowed_answers": {
+          "const": [
+            "YES",
+            "NO"
+          ]
+        },
+        "allowed_codes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "description": "the plan's reason codes, or for DM-4 its cause labels, in the plan's order"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/image_ref"
+          }
+        },
+        "context_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "context_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the text context, kept whole in the run folder"
+        },
+        "asked_t_mono": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "judgement",
+        "seq",
+        "point",
+        "prompt_version",
+        "allowed_answers",
+        "allowed_codes",
+        "images",
+        "context_sha256",
+        "context_path",
+        "asked_t_mono"
+      ],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "judgement": {
+          "enum": [
+            "DM-1",
+            "DM-2",
+            "DM-4"
+          ]
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "OK",
+            "ABSTAIN",
+            "ERROR"
+          ]
+        },
+        "answer": {
+          "enum": [
+            "YES",
+            "NO"
+          ]
+        },
+        "score": {
+          "type": "object",
+          "description": "only if the model gives one; ungraded, never in numbers[], never compared across models, never cut",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "cause_label": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 3
+        },
+        "model": {
+          "$ref": "#/$defs/model"
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "answered_t_mono": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "judgement",
+        "seq",
+        "status",
+        "model",
+        "prompt_version",
+        "answered_t_mono"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "OK"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "answer"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "answer"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "ERROR"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "error"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "judgement": {
+                "const": "DM-4"
+              }
+            },
+            "required": [
+              "judgement"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason_codes": false
+            }
+          },
+          "else": {
+            "properties": {
+              "cause_label": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cause_label": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "cause_label"
+            ]
+          },
+          "then": {
+            "properties": {
+              "answer": {
+                "const": "NO"
+              }
+            }
+          },
+          "$comment": "unknown is a NO, never a cause (13.5)"
+        },
+        {
+          "if": {
+            "properties": {
+              "judgement": {
+                "const": "DM-4"
+              },
+              "answer": {
+                "const": "YES"
+              }
+            },
+            "required": [
+              "judgement",
+              "answer"
+            ]
+          },
+          "then": {
+            "required": [
+              "cause_label"
+            ]
+          }
+        }
+      ]
+    },
+    "dm3": {
+      "type": "object",
+      "description": "DM-3 read off a watcher answer (13.5): NO is as_planned, YES carries one of the plan's other options as its class, ABSTAIN is unsure. ERROR is a watcher_unanswered, not a flag",
+      "properties": {
+        "judgement": {
+          "const": "DM-3"
+        },
+        "status": {
+          "enum": [
+            "OK",
+            "ABSTAIN"
+          ]
+        },
+        "answer": {
+          "enum": [
+            "YES",
+            "NO"
+          ]
+        },
+        "class": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      },
+      "required": [
+        "judgement",
+        "status"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "OK"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "answer"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "answer"
+                  ]
+                },
+                {
+                  "required": [
+                    "class"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "answer": {
+                "const": "YES"
+              }
+            },
+            "required": [
+              "answer"
+            ]
+          },
+          "then": {
+            "required": [
+              "class"
+            ],
+            "properties": {
+              "class": {
+                "not": {
+                  "enum": [
+                    "as_planned",
+                    "unsure"
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "class"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

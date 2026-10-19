@@ -1519,6 +1519,138 @@
         "image"
       ],
       "additionalProperties": false
+    },
+    "judgements": {
+      "type": "object",
+      "description": "plan.md 13.5's judgements DM-1, DM-2 and DM-4, which a plan that wants them declares here; DM-3 is the `watcher` block. EVERY ONE RECORDS ONLY: no field here is a threshold or an action, and none may be added until the person chooses a judgement's threshold from the record, in plan.md. The backend is a run argument, as the watcher's is. Whether images are given is each judgement's own `frames`, the watcher's shape, because what leaves the building is the approval's to cover. A METHOD CHOICE throughout: no source, no grade, no default.",
+      "properties": {
+        "dm1": {
+          "type": "object",
+          "description": "DM-1, are the particles the fixed code detected suitable for the planned measurement. Asked after detection, before a field is measured; nothing is moved or skipped on it",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "frames": {
+              "$ref": "#/properties/watcher/properties/image/properties/frames"
+            },
+            "reason_codes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "description": "the reason codes an answer may give, declared by the plan; a model adds none"
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version",
+            "frames",
+            "reason_codes"
+          ],
+          "additionalProperties": false
+        },
+        "dm2": {
+          "type": "object",
+          "description": "DM-2, is this field of view suitable. Asked before a measurement starts; it leads to no move, and cannot until the XY design exists and is bench-checked",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "frames": {
+              "$ref": "#/properties/watcher/properties/image/properties/frames"
+            },
+            "reason_codes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "description": "the reason codes an answer may give, declared by the plan; a model adds none"
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version",
+            "frames",
+            "reason_codes"
+          ],
+          "additionalProperties": false
+        },
+        "dm4": {
+          "type": "object",
+          "description": "DM-4, can the failure's cause be identified, and as what. Asked after a stop, on the saved evidence including the rolling pre-stop buffer of reduced frames (Q5); it starts no recovery",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "frames": {
+              "$ref": "#/properties/watcher/properties/image/properties/frames"
+            },
+            "cause_labels": {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "unknown"
+                  }
+                }
+              ],
+              "description": "the plan's cause labels, in order. The first list is 13.5's: focus_drift, particle_lost, aggregation_or_interaction, stage_or_sample_drift, illumination_or_signal_issue, camera_or_acquisition_issue, unknown. unknown is always present and is a NO"
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version",
+            "frames",
+            "cause_labels"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false,

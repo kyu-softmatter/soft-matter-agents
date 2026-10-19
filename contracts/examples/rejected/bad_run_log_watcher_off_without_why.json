@@ -176,7 +176,13 @@
           "version": "0.1",
           "kind": "test_double"
         },
-        "renderer_version": "0.1"
+        "renderer_version": "0.1",
+        "judgement": {
+          "judgement": "DM-3",
+          "status": "OK",
+          "answer": "NO"
+        },
+        "prompt_version": "dm3-plan-mic-20261017-901-r1-v1"
       }
     },
     {

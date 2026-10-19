@@ -364,6 +364,9 @@
         "watcher": {
           "type": "object",
           "description": "The run-time watcher's payload (plan.md 13.4, shadow mode; added 2026-10-17 by manager-microscope-20261003-1). Carried only by the five watcher_* events, each with its own shape below. A WATCHER EVENT IS NEVER A COMMAND: none carries channel, action, params or verification, so nothing reads one as a command (check 14). Its probabilities are SIGNALS, ungraded, and never enter numbers[] (13.1 item 2: a model's number is E6). No threshold turns an answer into an action, and there is no would-have-done field, because no threshold is chosen (11-2)."
+        },
+        "judgement": {
+          "description": "the payload of judgement_asked (a request) and judgement_answered (a response), plan.md 13.5; never a command. Named judgement, not decision, because a `decision` event already records the person's own decisions in bench logs"
         }
       },
       "required": [
@@ -628,6 +631,121 @@
             ]
           },
           "$comment": "a watcher-labelled snapshot is read() on every channel this run opened, recorded for every reader; a channel not read at that tick says why inside states, never its last value"
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "enum": [
+                  "judgement_asked",
+                  "judgement_answered"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "judgement",
+              "from"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "pattern": "^judgements\\.dm[124]$"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "a judgement event is never a command (plan.md 13.5)"
+        },
+        {
+          "if": {
+            "required": [
+              "judgement"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event": {
+                "enum": [
+                  "judgement_asked",
+                  "judgement_answered"
+                ]
+              }
+            },
+            "required": [
+              "event"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "judgement_asked"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "judgement": {
+                "$ref": "judgement.schema.json#/$defs/request"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "judgement_answered"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "properties": {
+              "judgement": {
+                "$ref": "judgement.schema.json#/$defs/response"
+              }
+            }
+          }
         }
       ]
     },
@@ -1027,6 +1145,14 @@
         "renderer_version": {
           "type": "string",
           "minLength": 1
+        },
+        "prompt_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "versioned by judgement and plan (13.5), so the answer replays"
+        },
+        "judgement": {
+          "$ref": "judgement.schema.json#/$defs/dm3"
         }
       },
       "required": [
@@ -1038,7 +1164,9 @@
         "options",
         "signals",
         "backend",
-        "renderer_version"
+        "renderer_version",
+        "judgement",
+        "prompt_version"
       ],
       "additionalProperties": false
     },
