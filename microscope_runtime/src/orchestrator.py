@@ -33,13 +33,16 @@ from pathlib import Path
 AGENT = Path(__file__).resolve().parent.parent
 REPO = AGENT.parent
 DEVICES = Path(__file__).resolve().parent / "devices"
+#: The knowledge snapshot stays in microscope_agent/envelope/, one copy read by both folders
+#: (plan.md 15). AGENT is microscope_runtime/ now, so the snapshot is not beside the policy.
+SNAPSHOT_PATH = REPO / "microscope_agent" / "envelope" / "snapshot.json"
 
 # The device registry is knowledge and the librarian owns it (4.3.2), so its
 # reading position moves as the librarian lands while its owner does not. The
 # microscope reads the store directly only until then, which 4.3.0 allows and
 # 11.1 records.
 REGISTRY_LOOKUP = [
-    AGENT / "envelope" / "snapshot.json",
+    SNAPSHOT_PATH,
     REPO / "librarian_agent" / "kb" / "exports" / "devices.json",
     REPO / "librarian_agent" / "kb" / "staging" / "devices.v0.json",
 ]

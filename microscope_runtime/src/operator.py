@@ -64,6 +64,11 @@ AGENT = Path(__file__).resolve().parent.parent
 REPO = AGENT.parent
 CONTRACTS = REPO / "contracts"
 
+#: The knowledge snapshot stays with the design and is read by both folders, so a plan and
+#: the run that executes it stand on the same store version (plan.md 15). AGENT is
+#: microscope_runtime/ now: policy, approvals and runs resolve from it, the snapshot only here.
+SNAPSHOT_PATH = REPO / "microscope_agent" / "envelope" / "snapshot.json"
+
 
 def _load(name: str, path: Path):
     """Import a module by path, registered under a name that collides with nothing."""
@@ -122,14 +127,27 @@ class Authorisation:
 
 
 def agent_root(root: Path | None) -> Path:
-    """This agent's folder, or the scratch copy of it under `root` (card 063).
+    """The runtime's folder, or the scratch copy of it under `root` (card 063).
 
-    `root` mirrors the repository: `<root>/microscope_agent/{envelope,approvals,runs}`.
+    `root` mirrors the repository: `<root>/microscope_runtime/{envelope,approvals,runs}`,
+    with the snapshot under `<root>/microscope_agent/envelope/` (plan.md 15).
     A scratch root is for mock only, and operator.run refuses it with any other
     backend before reading anything, so a TEST envelope can never reach the
     instrument.
     """
-    return AGENT if root is None else Path(root) / "microscope_agent"
+    return AGENT if root is None else Path(root) / "microscope_runtime"
+
+
+def snapshot_path(agent: Path | None = None) -> Path:
+    """Where the knowledge snapshot is read: the design's one copy, never beside the policy.
+
+    `agent` is the runtime's folder or a scratch copy of it, so a scratch root's snapshot
+    sits in that root's own microscope_agent/. Nothing falls back from one folder to the
+    other (plan.md 15).
+    """
+    if agent is None:
+        return SNAPSHOT_PATH
+    return Path(agent).parent / "microscope_agent" / "envelope" / "snapshot.json"
 
 
 def load_safety(agent: Path | None = None) -> dict:
@@ -273,7 +291,7 @@ def load_snapshot(agent: Path | None = None) -> dict:
     store holds at that moment, and afterwards the run could not say what it
     resolved against.
     """
-    path = (agent or AGENT) / "envelope" / "snapshot.json"
+    path = snapshot_path(agent)
     if not path.exists():
         raise Refusal(
             "envelope/snapshot.json does not exist, so a limit that resolves from the store has "

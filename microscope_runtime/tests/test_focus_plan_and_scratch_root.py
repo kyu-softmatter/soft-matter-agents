@@ -65,7 +65,7 @@ PLAN = {
 
 
 def _scratch(tmp: Path, approved: bool = True) -> Path:
-    agent = tmp / "microscope_agent"
+    agent = tmp / "microscope_runtime"
     (agent / "envelope").mkdir(parents=True)
     (agent / "approvals").mkdir()
     (agent / "envelope" / "safety.json").write_text(json.dumps({
@@ -109,7 +109,7 @@ class T1AGapCeilingRefusesWithNoZWrite(_Base):
         self.plan["focus_search"]["camera_ceiling"] = {"gap": "camera_full_scale_per_readout"}
         # Since card 066 the ceiling is checked only after every safety check
         # passes, so focus hold is declared and reads off (TEST values).
-        env = self.root / "microscope_agent" / "envelope" / "safety.json"
+        env = self.root / "microscope_runtime" / "envelope" / "safety.json"
         doc = json.loads(env.read_text())
         doc["targets"][0]["limits"]["pfs_not_engaged"] = {
             "device": "PFS", "property": "State", "values": ["Off"],

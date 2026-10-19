@@ -79,7 +79,7 @@ class _Base(unittest.TestCase):
         op.RUN_LOCK_PATH, op.authorise, orch.Orchestrator.__init__ = self._saved
 
     def envelope(self, limits=True, pfs=True):
-        env = self.root / "microscope_agent" / "envelope" / "safety.json"
+        env = self.root / "microscope_runtime" / "envelope" / "safety.json"
         doc = json.loads(env.read_text())
         lim = doc["targets"][0]["limits"]
         if not limits:
@@ -106,7 +106,7 @@ class _Base(unittest.TestCase):
             reason = str(exc)
         else:
             return None, None
-        ev = self.root / "microscope_agent" / "runs" / run_id / "events.jsonl"
+        ev = self.root / "microscope_runtime" / "runs" / run_id / "events.jsonl"
         lines = [json.loads(l) for l in ev.read_text(encoding="utf-8").splitlines()] if ev.exists() else []
         refused = [e for e in lines if e.get("event") == "focus_search_refused"]
         self.assertFalse([e for e in lines if e.get("event") == "focus_search_command"],
@@ -190,7 +190,7 @@ class TheOrderIsFixed(_Base):
         path = Path(self.tmp.name) / "plan-go.json"
         path.write_text(json.dumps(self.plan))
         op.run(path, "run-test-066-go", backend="mock", handover={"objective": "40x"}, root=self.root)
-        ev = self.root / "microscope_agent" / "runs" / "run-test-066-go" / "events.jsonl"
+        ev = self.root / "microscope_runtime" / "runs" / "run-test-066-go" / "events.jsonl"
         lines = [json.loads(l) for l in ev.read_text(encoding="utf-8").splitlines()]
         self.assertTrue([e for e in lines if e.get("event") == "focus_search_command"])
         dof = [e for e in lines if e.get("event") == "focus_success_not_judgeable"]

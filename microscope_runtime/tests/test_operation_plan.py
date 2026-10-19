@@ -34,6 +34,16 @@ orch = op.orch
 orch._OPERATOR = op                      # one copy: the gate uses the operator under test
 serial = _load("_serial_under_test", SRC / "devices" / "python_serial.py")
 
+# TEMPORARY (card 080, plan.md 15). These six tests read the person's real policy, which the
+# person moves into microscope_runtime/ themselves at step 6; until then the operator refuses
+# as designed. A skip on absence would also hide a policy that later goes missing, so it is
+# removed after step 6 and an absent policy fails again. Meanwhile the refusal itself is
+# asserted by test_policy_absent_at_new_path.py. Never point these at the old path.
+POLICY_NOT_MOVED = unittest.skipIf(
+    not (Path(__file__).resolve().parents[1] / "envelope" / "safety.json").exists(),
+    "the person's policy has not moved here yet (plan.md 15 step 6); this test reads the "
+    "real policy and must not be pointed elsewhere")
+
 
 def plan(moves=None, ppp=8, period=0.08, cycles=1, device="piezo_stage", status="inside"):
     """A small operation plan in the committed shape, fast enough to run in a test."""
@@ -112,6 +122,7 @@ class Derivation(Base):
         with self.assertRaises(op.Refusal):
             op.derive_commands(p)
 
+    @POLICY_NOT_MOVED
     def test_a_point_outside_the_envelope_refuses_and_names_the_disagreement(self):
         p = plan()
         p["operation"]["moves"][1]["amplitude_um"] = 350        # reaches -50 and 650
@@ -138,6 +149,7 @@ class ReadBack(Base):
     def rows(self, out):
         return [r for batch in out for rows in batch["results"].values() for r in rows]
 
+    @POLICY_NOT_MOVED
     def test_within_tolerance_is_readback_and_every_move_runs(self):
         o, out = self.run_dispatch(plan())
         rows = self.rows(out)
@@ -146,6 +158,7 @@ class ReadBack(Base):
         self.assertEqual(sine["points_sent"], 8)
         self.assertIn("measured_um", sine["samples"][0])
 
+    @POLICY_NOT_MOVED
     def test_the_log_keeps_where_the_stage_was(self):
         o, out = self.run_dispatch(plan())
         applies = [e for e in o.log if e.get("event") == "apply"
@@ -155,6 +168,7 @@ class ReadBack(Base):
         self.assertEqual(len(samples), 8)
         self.assertIn("measured_um", samples[0])
 
+    @POLICY_NOT_MOVED
     def test_outside_tolerance_stops_before_the_next_move(self):
         serial._HOLDER.link = Lagging()
         o, out = self.run_dispatch(plan())
@@ -186,6 +200,7 @@ class Exemption(Base):
         o.check_software_motion_for(p, cmds)
         return o
 
+    @POLICY_NOT_MOVED
     def test_approved_piezo_x_moves_are_exempt_and_logged(self):
         p = plan()
         op.approvals_on_disk = lambda: approve(p)
@@ -208,6 +223,7 @@ class Exemption(Base):
         with self.assertRaises(orch.InterlockError):
             self.check(p, cmds)
 
+    @POLICY_NOT_MOVED
     def test_a_micromanager_command_inside_an_operation_plan_meets_the_allow_list(self):
         p = plan()
         op.approvals_on_disk = lambda: approve(p)

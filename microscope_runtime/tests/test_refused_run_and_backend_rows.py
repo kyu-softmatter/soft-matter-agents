@@ -53,7 +53,7 @@ class _Run(unittest.TestCase):
         op.RUN_LOCK_PATH, op.authorise = self._saved
 
     def folder(self, run_id):
-        return self.root / "microscope_agent" / "runs" / run_id
+        return self.root / "microscope_runtime" / "runs" / run_id
 
     def refused_at_20x(self, run_id="run-test-065-refused"):
         plan = copy.deepcopy(PLAN)
@@ -106,7 +106,7 @@ class T1ARefusedRunLeavesALog(_Run):
         # The walk steps 95..110 and is refused at 115, above the TEST limit:
         # Z had moved, so the run did something, and calling it refused would
         # be a refused log with motion in it.
-        env = self.root / "microscope_agent" / "envelope" / "safety.json"
+        env = self.root / "microscope_runtime" / "envelope" / "safety.json"
         doc = json.loads(env.read_text())
         doc["targets"][0]["limits"]["pfs_not_engaged"] = {
             "device": "PFS", "property": "State", "values": ["Off"],
