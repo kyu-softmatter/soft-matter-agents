@@ -74,10 +74,15 @@ it says "None." rather than disappearing, as the safety guides do.
      - E5: recalled or assumed
    - Then the source kind in words, for example "manufacturer's
      specification" or "the person read it off the instrument".
-   - A seat that needs the code reads the entry.
+   - **Beside it, in its own column, the grade code and source exactly as
+     the entry records them** (for example `E3 · spec:Kinetix22`). The
+     console's rule is that a number it shows carries its source and grade
+     as the entry gives them, and adds nothing the page does not say. So
+     the words are for the person, and this column is the record.
 4. **Claims**: the entries with no numbers, with each claim sentence
-   verbatim. Each entry's `validity_conditions` goes in a collapsed
-   `<details>` block under it, verbatim and never shortened.
+   verbatim. Each entry's `validity_conditions` follows it in full, verbatim
+   and never shortened, as a Markdown blockquote. **No raw HTML**: no
+   `<details>`, no `<sub>`, no inline tags anywhere on a page.
 5. **Disputed and withdrawn**: every entry on the page whose status is
    refuted, superseded or in conflict, with the entry on the other side
    named and linked. **Both sides are shown and neither is preferred.** A
@@ -86,9 +91,12 @@ it says "None." rather than disappearing, as the safety guides do.
    as links. A link is reading, not a source.
 7. **Related**: the other pages that share entries with this one, and for
    a device its safety guide in `kb/guides/` if one exists.
-8. **Footer**, the same line the guides carry: *"Generated from the
-   knowledge store at kbv-…. Do not edit by hand: correct the store and
-   regenerate."*
+8. **Footer**: the last line of every page, in exactly one fixed,
+   machine-readable form and nothing else on that line:
+   `Generated from the knowledge store at kbv-<12 hex>. Do not edit by hand: correct the store and regenerate.`
+   It is the guides' sentence **without their `<sub>` tag**, so the
+   console can read which version a page shows and notice when
+   `kb/index.json` has moved past it.
 
 Rules that bind the generator:
 
@@ -102,6 +110,15 @@ Rules that bind the generator:
   conflict or current.
 - **Links are relative paths inside `kb/wiki/`**, plus the entry and guide
   files, so the pages read the same in the repository and in the console.
+  Nothing links outside `kb/`. The console shows such a link as text and
+  does not follow it.
+- **Plain Markdown, ASCII filenames, stable ids in paths.** The filename is
+  the id, which is already lowercase snake case.
+- These four rules (provenance as recorded, one footer form, no HTML,
+  links inside `kb/`) are **the console manager's constraints of
+  2026-10-18**, given so a page can be shown as it stands, without
+  rewriting, if store display is ever allowed. The console shows no store
+  content today, and that permission is open in `plan.md` 4.3.1.
 
 ## TASK
 
