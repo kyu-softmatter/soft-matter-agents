@@ -83,6 +83,14 @@ light or move anything.
      the login and setup paths that already work that way, `/api/shutdown`
      on loopback, and the two stop routes. A new write that works without a
      login then fails this test.
+   - **The route does one thing.** Without a login, any request on it other
+     than the stop is refused, and nothing reaches the stop channel: another
+     method, a body naming a run or a reason the server did not compose, or
+     any field beyond what the stop needs. Asked by section 15's holder,
+     architecture-office-20261017-1, on 2026-10-18, as the third of the
+     things this card is held to. The other two are that the route sends
+     only the pinned `stop_request`, and that it answers without a login
+     only on loopback.
    - Web: the locked and logged-out screens render the button, and a press
      makes exactly one request, to the new route.
 5. **Run everything and report the counts**: the Python tests, typecheck,
