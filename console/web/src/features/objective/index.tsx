@@ -1,6 +1,6 @@
-import { ObjectiveView } from "./ObjectiveView";
+import { Retired, RETIRED_AREAS } from "../../app/Retired";
 
-/** Area screen for `objective` (web/README.md: default export, no props). */
+/** Area screen for `objective`: its routes were retired with dino's engine command path (console card 003). */
 export default function ObjectiveScreen() {
-  return <ObjectiveView />;
+  return <Retired {...RETIRED_AREAS.objective} />;
 }

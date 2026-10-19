@@ -7,12 +7,12 @@ const ok = (body: unknown): Route => () => ({ status: 200, body });
 describe("fakeTransport", () => {
   it("answers from a Proxy routes table that has no own keys (map testWorld)", async () => {
     const routes = new Proxy({} as Record<string, Route>, {
-      get: (_t, path) => (String(path).startsWith("/api/map/") ? ok({ path: String(path) }) : undefined),
+      get: (_t, path) => (String(path).startsWith("/api/example/") ? ok({ path: String(path) }) : undefined),
     });
     const { transport } = fakeTransport(routes);
-    const r = await transport.fetch("/api/map/s1/flags");
+    const r = await transport.fetch("/api/example/s1/flags");
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ path: "/api/map/s1/flags" });
+    expect(await r.json()).toEqual({ path: "/api/example/s1/flags" });
     // the auth defaults still answer what the Proxy does not
     const me = await transport.fetch("/api/auth/me");
     expect(await me.json()).toEqual(TEST_ME);

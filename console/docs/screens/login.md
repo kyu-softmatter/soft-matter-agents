@@ -1,7 +1,7 @@
 # Login screen and auth API: contract (T-105 stage A)
 
 Design: PLAN.md §5 "Users and login", §7 D9, D12, D13, D16, design rule 12. Core logic:
-`src/dino_autofocus/auth/` (T-018). This file fixes the HTTP surface and the screen so that
+`src/sma_console/auth/` (T-018). This file fixes the HTTP surface and the screen so that
 stage B (`server/api/auth.py`, `web/src/app/login/`) and the shell (T-010) can be built against it.
 
 ## 1. Endpoints

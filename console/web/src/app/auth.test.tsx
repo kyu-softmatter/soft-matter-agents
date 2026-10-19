@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fakeTransport, type FakeOptions, type Route } from "../test/fakes";
 import {
-  AbortButton,
   ACTIVITY_MS,
   LoginGate,
   loginAvailable,
@@ -207,25 +206,6 @@ describe("activity", () => {
     t += 1;
     act(() => void fireEvent.keyDown(window));
     expect(posts()).toBe(2);
-  });
-});
-
-describe("abort", () => {
-  it("aborts every running operation, with no login needed", async () => {
-    const { calls } = withClient(<AbortButton />, {
-      "/api/state": () => ({ status: 200, body: { running: [{ op_id: "op-1", op: "scan_4x" }] } }),
-      "/api/commands": () => ({ status: 200, body: { op_id: "op-1" } }),
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Abort" }));
-    expect(await screen.findByText(/abort sent \(1\)/)).toBeTruthy();
-    const sent = calls.find((c) => c.path === "/api/commands");
-    expect(JSON.parse(String(sent?.init?.body))).toEqual({ kind: "abort", op_id: "op-1" });
-  });
-
-  it("says when nothing runs", async () => {
-    withClient(<AbortButton />, { "/api/state": () => ({ status: 200, body: { running: [] } }) });
-    fireEvent.click(screen.getByRole("button", { name: "Abort" }));
-    expect(await screen.findByText(/nothing running/)).toBeTruthy();
   });
 });
 

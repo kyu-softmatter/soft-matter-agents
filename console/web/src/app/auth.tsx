@@ -143,36 +143,3 @@ export function useControl(me: ShellMe | null) {
     release: () => post("/api/auth/control/release").catch(() => {}),
   };
 }
-
-// -- abort, reachable while logged out or locked ----------------------------------------
-
-/**
- * Stops whatever runs. Needs no login and no control (PLAN 5): the gate keeps
- * it on screen under the lock. Reads the running operations at click time.
- */
-export function AbortButton() {
-  const client = useClient();
-  const [msg, setMsg] = useState<string | null>(null);
-  const onClick = async () => {
-    try {
-      const snap = await client.get<{ running?: { op_id?: string }[] }>("/api/state");
-      const ids = (snap.running ?? []).map((o) => o.op_id).filter((x): x is string => !!x);
-      if (ids.length === 0) {
-        setMsg("nothing running");
-        return;
-      }
-      await Promise.all(ids.map((op_id) => client.command({ kind: "abort", op_id })));
-      setMsg(`abort sent (${ids.length})`);
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : String(e));
-    }
-  };
-  return (
-    <span className="abort">
-      <button type="button" className="abort-button" onClick={() => void onClick()}>
-        Abort
-      </button>
-      {msg && <span className="muted"> {msg}</span>}
-    </span>
-  );
-}

@@ -1,5 +1,7 @@
 # `sample` screen contract (T-103 stage A)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, a plan is drafted for the person to approve, and a running plan can be asked to stop. The plan names the sample it runs on. Everything below is kept as the record of what the screen did.
+
 Sample and loading-check screen (PLAN.md §2 F3, §9 WP-H). This file is the contract between the screen
 (`web/src/features/sample/`), its router (`server/api/sample.py`, mounted at `/api/sample` by T-009) and the
 engine operations. Layout and wording come from `docs/ui-spec.md` 7.0 and 7.3 (main); they are cited here,

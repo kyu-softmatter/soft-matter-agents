@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { AbortButton, LoginGate, useActivity, useAuth } from "./auth";
+import { LoginGate, useActivity, useAuth } from "./auth";
 import { type Client, ClientProvider, useClient, useReadOnly } from "./client";
 import { Shell } from "./Shell";
 import { useAssistantStatus, useEngineStatus } from "./status";
@@ -56,7 +56,7 @@ function Connected() {
 export function App({ client }: { client: Client }) {
   return (
     <ClientProvider client={client}>
-      <LoginGate abort={<AbortButton />}>
+      <LoginGate>
         <Connected />
       </LoginGate>
     </ClientProvider>

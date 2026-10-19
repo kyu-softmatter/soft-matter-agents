@@ -90,8 +90,8 @@ outside a plan too, to help find the sample. The Live area shows a "Microscope l
 
 ## Which store (C-03)
 
-`python -m dino_autofocus.server --store sma --sma-root DIR` (default root `$DINO_AF_SMA_ROOT`, else the
-desktop checkout) shows the soft-matter-agents files themselves: questions, runs, inbox and approvals of
+`python -m sma_console.server --store sma --sma-root DIR` (default root `$DINO_AF_SMA_ROOT`, else the
+repository this console sits in: the first folder above it that holds both `contracts/` and `console/`; with none found the start-up stops with that reason) shows the soft-matter-agents files themselves: questions, runs, inbox and approvals of
 both seats, read only. A root with no seat folder stops the start-up with the reason. Without `--store`
 the console shows the mock sample (`agents/mock_data`, pinned at baf6f1e). `GET /questions/{qid}` carries
 `plan_hash` (sha256 of that version's plan card with `status` left out, as soft-matter-agents computes it)

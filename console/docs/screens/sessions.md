@@ -1,5 +1,7 @@
 # Screen contract: `sessions` (F7 experiment sessions)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, the questions and runs in the Console area are read from the agents' files, and a running plan can be asked to stop there. Everything below is kept as the record of what the screen did.
+
 - Task: T-106 stage A. Owner: AF execution 2. Status: draft, 2026-10-01.
 - Plan: PLAN.md §2 F7, §5 "Experiment sessions and the record store", §6 rule 12, §7 D10, D11, D13.
 - Backed by `dino_autofocus.records` (T-019, branch `exec2/T-019-experiment-sessions`, in review).

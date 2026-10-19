@@ -1,5 +1,7 @@
 # `hardware` screen contract (T-101 stage A)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, a plan is drafted for the person to approve, and a running plan can be asked to stop. The run that executes it loads the configuration the person approved, by its hash. Everything below is kept as the record of what the screen did.
+
 Area `hardware` (PLAN.md §2 F2, §9 WP-G). This file gives the endpoints, commands and events the
 screen uses, and the engine piece behind each panel. Layout and wording: `docs/ui-spec.md` 7.0, 7.2 and
 5.2 (branch `exec5/T-004-ui-spec` 6fcd8a8). `hardware_scan` steps and profile fields:

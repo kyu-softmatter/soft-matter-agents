@@ -180,18 +180,7 @@ describe("LiveView", () => {
   });
 });
 
-describe("pattern overlay", () => {
-  const PATTERN = {
-    id: "square",
-    name: "Square",
-    version: 1,
-    loop: false,
-    notes: "",
-    meta: {},
-    duration_s: 4,
-    tracks: [{ target: "trap:0", points: [[0, 0, 0, 0], [4, 5, 5, 0]] }],
-  };
-
+describe("frame scale and the retired pattern overlay", () => {
   beforeEach(() => {
     let n = 0;
     URL.createObjectURL = vi.fn(() => `blob:frame-${++n}`);
@@ -203,12 +192,9 @@ describe("pattern overlay", () => {
     expect(frameScale({ ...META, binning: 3, meta: {} } as never)).toEqual({ umPerPx: ASSUMED_PIXEL_UM * 3, known: false });
   });
 
-  it("draws the pattern named in the route over the frame, with a time slider", async () => {
+  it("requests no pattern route and offers no pattern overlay, even when the route asks for one", async () => {
     window.location.hash = "#/live?pattern=square";
-    const t = fakeTransport({
-      "/api/patterns": () => ({ status: 200, body: [{ id: "square", name: "Square", duration_s: 4, targets: ["trap:0"] }] }),
-      "/api/patterns/square": () => ({ status: 200, body: PATTERN }),
-    });
+    const t = fakeTransport({});
     render(
       <ClientProvider client={new Client(t.transport, "127.0.0.1")}>
         <LiveScreen />
@@ -220,10 +206,11 @@ describe("pattern overlay", () => {
       ws.send(META);
       ws.onmessage?.(new MessageEvent("message", { data: jpeg() }));
     });
-    expect(await screen.findByRole("img", { name: "Pattern Square over the frame" })).toBeTruthy();
-    expect(screen.getByRole("slider", { name: "Pattern time" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Edit" }).getAttribute("href")).toBe("#/patterns/square");
-    expect((screen.getByRole("combobox", { name: "Pattern overlay" }) as HTMLSelectElement).value).toBe("square");
+    expect(await screen.findByRole("region", { name: "Live view" })).toBeTruthy();
+    expect(screen.queryByRole("combobox", { name: "Pattern overlay" })).toBeNull();
+    expect(screen.queryByRole("slider", { name: "Pattern time" })).toBeNull();
+    expect(t.calls.filter((c) => /^\/api\/(patterns|commands)/.test(c.path))).toEqual([]);
+    expect(t.calls.filter((c) => c.init?.method === "POST")).toEqual([]);
   });
 });
 
@@ -250,7 +237,7 @@ describe("focus panel", () => {
 
   it("shows each camera's focus score and the stage + piezo height beside the frames", () => {
     window.location.hash = "#/live";
-    const t = fakeTransport({ "/api/patterns": () => ({ status: 200, body: [] }) });
+    const t = fakeTransport({});
     render(
       <ClientProvider client={new Client(t.transport, "127.0.0.1")}>
         <LiveScreen />
@@ -314,7 +301,7 @@ describe("Z score gauge", () => {
 
   it("follows the newest frame that carries a reading, not the laser camera's", () => {
     window.location.hash = "#/live";
-    const t = fakeTransport({ "/api/patterns": () => ({ status: 200, body: [] }) });
+    const t = fakeTransport({});
     render(
       <ClientProvider client={new Client(t.transport, "127.0.0.1")}>
         <LiveScreen />

@@ -2,9 +2,6 @@ import { createContext, type ReactNode, useContext, useEffect, useState, useSync
 
 import type { components } from "../api/schema";
 
-export type CommandIn = components["schemas"]["CommandIn"];
-/** What a screen sends: `kind` and whatever differs from the server's defaults (op, op_id, args, origin). */
-export type CommandInput = Pick<CommandIn, "kind"> & Partial<Omit<CommandIn, "kind">>;
 export type EventOut = components["schemas"]["EventOut"];
 export type EventKind = EventOut["kind"];
 type WsEvent = components["schemas"]["WsEvent"];
@@ -219,12 +216,12 @@ export class Client {
   }
 
   /**
-   * POST JSON to an area's own route (console submit, map writes, sessions, auth...).
-   * The same rules as `command`: a 401 / 423 re-reads the login; a 403 marked
+   * POST JSON to an area's own route (console submit, auth...).
+   * The rules: a 401 / 423 re-reads the login; a 403 marked
    * `remote_view` switches the whole app to read-only. Any other 403 (D16, session
    * owner, role...) is only this action's refusal: it is thrown to the caller with
    * its reason and code and changes no global state. Returns the JSON reply, or
-   * null for an empty one (204). Engine commands go through `command`, not here.
+   * null for an empty one (204). The console has no engine command route: it sends none.
    */
   async post<T = unknown>(path: string, body?: unknown): Promise<T | null> {
     const r = await this.send(path, body, "application/json");
@@ -261,12 +258,6 @@ export class Client {
     return r;
   }
 
-  /** POST /api/commands (engine commands), with the rules of `post`. */
-  async command(cmd: CommandInput): Promise<string> {
-    const reply = await this.post<components["schemas"]["CommandAccepted"]>("/api/commands", cmd);
-    if (!reply) throw new CommandRefused(502, "the server accepted the command but gave no op_id");
-    return reply.op_id;
-  }
 }
 
 type ApiError = components["schemas"]["ApiError"];

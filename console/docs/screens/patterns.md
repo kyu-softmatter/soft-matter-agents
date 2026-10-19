@@ -1,5 +1,7 @@
 # Patterns: designer and live overlay (card T-20261002-2205, stage 2)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, a plan is drafted for the person to approve, and a running plan can be asked to stop. Everything below is kept as the record of what the screen did.
+
 A **pattern** says what the XYZ piezo stage and the tweezer traps do over time. Designing and
 showing one moves nothing; running one is stage 4 (an engine operation behind the guards and
 both bench locks).

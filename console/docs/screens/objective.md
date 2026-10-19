@@ -1,5 +1,7 @@
 # Objective screen contract (T-104, stage A)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, a plan is drafted for the person to approve, and a running plan can be asked to stop. A focus search is a plan the person approves. Everything below is kept as the record of what the screen did.
+
 Area `objective`: objective change with immersion loading (PLAN §2 F5) and the 100x focus sweep.
 Server: `src/dino_autofocus/server/api/objective.py`. Web: `web/src/features/objective/`.
 

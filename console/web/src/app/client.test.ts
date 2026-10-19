@@ -15,9 +15,9 @@ describe("read-only", () => {
     expect(new ReadOnlyStore("lab-pc").get()).toEqual({ readOnly: true, why: "remote view" });
   });
 
-  it("turns read-only on a command 403 marked remote_view in detail.code", async () => {
+  it("turns read-only on a 403 marked remote_view in detail.code", async () => {
     const { transport, calls } = fakeTransport({
-      "/api/commands": () => ({
+      "/api/console/questions": () => ({
         status: 403,
         body: { detail: { code: "remote_view", message: "remote viewers may send abort only" } },
       }),
@@ -25,7 +25,7 @@ describe("read-only", () => {
     const client = new Client(transport, "127.0.0.1");
     const seen = vi.fn();
     client.readOnly.subscribe(seen);
-    await expect(client.command({ kind: "start", op: "status" })).rejects.toMatchObject({
+    await expect(client.post("/api/console/questions", { text: "x" })).rejects.toMatchObject({
       status: 403,
       code: "remote_view",
       detail: "remote viewers may send abort only",
@@ -33,25 +33,25 @@ describe("read-only", () => {
     expect(client.readOnly.get()).toEqual({ readOnly: true, why: "remote viewers may send abort only" });
     expect(seen).toHaveBeenCalledTimes(1);
     expect(calls[0].init?.method).toBe("POST");
-    expect(JSON.parse(String(calls[0].init?.body))).toEqual({ kind: "start", op: "status" });
+    expect(JSON.parse(String(calls[0].init?.body))).toEqual({ text: "x" });
   });
 
   it("turns read-only on a 403 marked by the X-DinoAF-Refusal header only", async () => {
     const { transport } = fakeTransport({
-      "/api/commands": () => ({
+      "/api/console/questions": () => ({
         status: 403,
         body: { detail: "remote viewers may send abort only" },
         headers: { "X-DinoAF-Refusal": "remote_view" },
       }),
     });
     const client = new Client(transport, "127.0.0.1");
-    await expect(client.command({ kind: "start", op: "status" })).rejects.toMatchObject({ code: "remote_view" });
+    await expect(client.post("/api/console/questions", { text: "x" })).rejects.toMatchObject({ code: "remote_view" });
     expect(client.readOnly.get().readOnly).toBe(true);
   });
 
-  it("returns any other command 403 to the caller and keeps the app writable", async () => {
+  it("returns any other 403 to the caller and keeps the app writable", async () => {
     const { transport } = fakeTransport({
-      "/api/commands": () => ({
+      "/api/console/questions": () => ({
         status: 403,
         body: { detail: { code: "not_session_owner", message: "the session belongs to Bea" } },
       }),
@@ -59,16 +59,17 @@ describe("read-only", () => {
     const client = new Client(transport, "127.0.0.1");
     const seen = vi.fn();
     client.readOnly.subscribe(seen);
-    const err = await client.command({ kind: "start", op: "scan_4x" }).catch((e: unknown) => e);
+    const err = await client.post("/api/console/questions", { text: "x" }).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(CommandRefused);
     expect(err).toMatchObject({ status: 403, code: "not_session_owner", detail: "the session belongs to Bea" });
     expect(client.readOnly.get()).toEqual({ readOnly: false, why: null });
     expect(seen).not.toHaveBeenCalled();
   });
 
-  it("returns the op_id of an accepted command", async () => {
-    const { transport } = fakeTransport({ "/api/commands": () => ({ status: 200, body: { op_id: "op-1" } }) });
-    await expect(new Client(transport, "127.0.0.1").command({ kind: "lights_off" })).resolves.toBe("op-1");
+  it("has no engine command method: the console sends no command to the instrument", () => {
+    const { transport } = fakeTransport({});
+    const client = new Client(transport, "127.0.0.1") as unknown as Record<string, unknown>;
+    expect(client.command).toBeUndefined();
   });
 });
 
@@ -84,17 +85,17 @@ describe("post", () => {
   });
 
   it("returns null for 204 and sends no body when given none", async () => {
-    const { transport, calls } = fakeTransport({ "/api/sessions/s1/close": () => ({ status: 204 }) });
-    await expect(new Client(transport, "127.0.0.1").post("/api/sessions/s1/close")).resolves.toBeNull();
+    const { transport, calls } = fakeTransport({ "/api/example/s1/close": () => ({ status: 204 }) });
+    await expect(new Client(transport, "127.0.0.1").post("/api/example/s1/close")).resolves.toBeNull();
     expect(calls[0].init?.body).toBeUndefined();
   });
 
   it("keeps the app writable on a D16 403 and returns its reason", async () => {
     const { transport } = fakeTransport({
-      "/api/map/flags": () => ({ status: 403, body: { detail: { code: "d16_map_write", message: "map writes need control" } } }),
+      "/api/example/flags": () => ({ status: 403, body: { detail: { code: "d16_map_write", message: "map writes need control" } } }),
     });
     const client = new Client(transport, "127.0.0.1");
-    await expect(client.post("/api/map/flags", {})).rejects.toMatchObject({
+    await expect(client.post("/api/example/flags", {})).rejects.toMatchObject({
       status: 403,
       code: "d16_map_write",
       detail: "map writes need control",
@@ -104,23 +105,23 @@ describe("post", () => {
 
   it("turns read-only on a post 403 marked remote_view", async () => {
     const { transport } = fakeTransport({
-      "/api/map/flags": () => ({ status: 403, body: { detail: { code: "remote_view", message: "read only" } } }),
+      "/api/example/flags": () => ({ status: 403, body: { detail: { code: "remote_view", message: "read only" } } }),
     });
     const client = new Client(transport, "127.0.0.1");
-    await expect(client.post("/api/map/flags", {})).rejects.toMatchObject({ code: "remote_view" });
+    await expect(client.post("/api/example/flags", {})).rejects.toMatchObject({ code: "remote_view" });
     expect(client.readOnly.get()).toEqual({ readOnly: true, why: "read only" });
   });
 
   it("re-reads the login on 401 / 423, like command", async () => {
     const { transport } = fakeTransport({
-      "/api/sessions/open": () => ({ status: 401, body: { detail: "log in" } }),
-      "/api/sample/open-folder": () => ({ status: 423, body: { detail: "locked" } }),
+      "/api/example/open": () => ({ status: 401, body: { detail: "log in" } }),
+      "/api/example/open-folder": () => ({ status: 423, body: { detail: "locked" } }),
     });
     const client = new Client(transport, "127.0.0.1");
     const auth = vi.fn();
     client.onAuthFailure(auth);
-    await expect(client.post("/api/sessions/open", {})).rejects.toMatchObject({ status: 401 });
-    await expect(client.post("/api/sample/open-folder")).rejects.toMatchObject({ status: 423 });
+    await expect(client.post("/api/example/open", {})).rejects.toMatchObject({ status: 401 });
+    await expect(client.post("/api/example/open-folder")).rejects.toMatchObject({ status: 423 });
     expect(auth.mock.calls.map((c) => c[0])).toEqual([401, 423]);
     expect(client.readOnly.get().readOnly).toBe(false);
   });
@@ -142,14 +143,14 @@ describe("post", () => {
   it("reads FastAPI's own errors: a plain string (404) and a validation list (422), with no code", async () => {
     const { transport } = fakeTransport({
       "/api/x": () => ({ status: 404, body: { detail: "Not Found" } }),
-      "/api/commands": () => ({
+      "/api/console/questions": () => ({
         status: 422,
         body: { detail: [{ loc: ["body", "kind"], msg: "Input should be 'start' or 'abort'", type: "literal_error" }] },
       }),
     });
     const client = new Client(transport, "127.0.0.1");
     await expect(client.post("/api/x")).rejects.toMatchObject({ status: 404, code: null, detail: "Not Found" });
-    await expect(client.command({ kind: "start" })).rejects.toMatchObject({
+    await expect(client.post("/api/console/questions", {})).rejects.toMatchObject({
       status: 422,
       code: null,
       detail: "Input should be 'start' or 'abort'",

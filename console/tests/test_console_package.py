@@ -70,6 +70,19 @@ def test_a_given_root_is_used_as_given_even_when_no_repository_is_found(monkeypa
     assert sma_files.SmaFiles(tmp_path).root == tmp_path
 
 
+def test_the_app_reports_the_version_of_the_distribution_it_is_installed_as():
+    """`version("dino-autofocus")` looked up a distribution this environment never had (card 003)."""
+    from importlib.metadata import version
+
+    from sma_console.server.__main__ import PlaceholderEngine
+    from sma_console.server.app import _package_version, create_app
+
+    assert _package_version() == version("sma-console") != "0+unknown"
+    # create_app's default auth is a throwaway under a temporary path: the real accounts
+    # folder is never touched by this test
+    assert create_app(PlaceholderEngine(shape=(60, 80))).version == version("sma-console")
+
+
 def test_every_module_logger_stays_under_the_daily_log_logger():
     """`getLogger(__name__)` would follow the package name and drop out of the daily log."""
     stray = []

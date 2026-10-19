@@ -1,5 +1,7 @@
 # `map` screen contract (T-102 stage A)
 
+> **Retired at `0cd095c`** (soft-matter-agents card 077; console card 003). The routes this screen called were removed with dino's engine command path, so the area now shows a notice and requests nothing: it was for the things described below, it is not connected here because the console sends no command to the instrument, and instead, a plan is drafted for the person to approve, and a running plan can be asked to stop. A stage move is a step of a plan, not a click. Everything below is kept as the record of what the screen did.
+
 Sample map screen (PLAN.md §2 F4). This file is the contract between the screen
 (`web/src/features/map/`), its router (`server/api/map.py`, mounted at `/api/map` by T-009) and the
 engine operations. Behaviour and wording come from `docs/ui-spec.md` 5.1, 5.3, 7.0 and 7.4 (branch

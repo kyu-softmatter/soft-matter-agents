@@ -154,7 +154,7 @@ def _http_refusal(request: Request) -> Refusal | None:
 
 def _package_version() -> str:
     try:
-        return version("dino-autofocus")
+        return version("sma-console")
     except PackageNotFoundError:
         return "0+unknown"
 

@@ -4,7 +4,7 @@ import { useClient } from "../client";
 import { EncoderZ } from "../Verdict";
 import { FpsMeter, type FrameMeta, FramePairer } from "./frames";
 import { MergedView, mergeColor } from "./MergedView";
-import { frameScale } from "./PatternOverlay";
+import { frameScale } from "./scale";
 
 type Conn = "connecting" | "open" | "closed" | "unsupported";
 

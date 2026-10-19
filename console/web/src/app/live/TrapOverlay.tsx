@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import type { components } from "../../api/schema";
 import type { FrameMeta } from "./frames";
-import { frameScale } from "./PatternOverlay";
+import { frameScale } from "./scale";
 
 export type Trap = components["schemas"]["TrapOut"];
 
