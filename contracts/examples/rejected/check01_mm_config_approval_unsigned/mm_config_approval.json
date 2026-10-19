@@ -1,0 +1,10 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "written_at": "2026-10-19",
+  "configuration": {
+    "file": "single_cam_red_noDMD_nocom10.cfg",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "label": "REJECTED FIXTURE. No written_by: the record cannot say who approved the configuration."
+}

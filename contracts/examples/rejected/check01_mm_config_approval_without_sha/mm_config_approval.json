@@ -1,0 +1,10 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-19",
+  "configuration": {
+    "file": "single_cam_red_noDMD_nocom10.cfg"
+  },
+  "label": "REJECTED FIXTURE. A file name with no hash approves a name, and a name is not bytes: the file could change under it."
+}

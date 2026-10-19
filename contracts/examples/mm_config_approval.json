@@ -1,0 +1,11 @@
+{
+  "artifact": "mm_config_approval",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-19",
+  "label": "EXAMPLE. The single red camera without the DMD. The person writes the real approval in microscope_runtime/approvals/, with the sha256 of the file they approved.",
+  "configuration": {
+    "file": "single_cam_red_noDMD_nocom10.cfg",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

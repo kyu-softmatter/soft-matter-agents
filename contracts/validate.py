@@ -279,6 +279,11 @@ ARTIFACT_SCHEMA = {
     # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
     "harness_proposal": "harness_proposal.schema.json",
     "harness_retro": "harness_retro.schema.json",
+    # 2026-10-19, card 069 (19f4c1d8): the Micro-Manager configuration the
+    # person approves for a hardware run, by the sha256 of its bytes. Without
+    # this line the person's first approval would fail check 1 as an unknown
+    # artifact, which the runtime seat reported when it built the gate.
+    "mm_config_approval": "mm_config_approval.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
