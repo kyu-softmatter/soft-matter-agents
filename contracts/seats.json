@@ -728,8 +728,8 @@
       ]
     },
     {
-      "seat": "architecture-scope-20261019-2",
-      "committer_email": "architecture-scope-20261019-2@seat.invalid",
+      "seat": "architecture-20260925-1",
+      "committer_email": "architecture-20260925-1@seat.invalid",
       "owns": [
         "design"
       ],
@@ -747,7 +747,8 @@
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The architecture session on the person's OTHER machine, which works on its own working copy and syncs with the microscope computer through GitHub. Until 2026-09-25 it committed as `architecture <architecture@seat.invalid>`, the same email as the microscope computer's architecture session (committer name `seat:architecture`), so two sessions shared one identity and check 41 could not tell them apart -- one_identity_per_session broken across machines. Found when a push from the microscope computer was refused and the fetched merges (6cad23e, e61d2c3, 4a7f861, committer name `architecture`) turned out to be the other machine's. The person decided that session takes this new name and the microscope computer's keeps `architecture`. Its commits before this row stay under `architecture` and are told apart only by the committer NAME, `architecture` there against `seat:architecture` here -- a convention, not a check. It must pull this row before its first commit under the new name, because the registry is read at a commit's parent. owns, paths and excludes copied by code from `architecture`; n is 1. SUPERSEDED 2026-09-25, before any commit under it: the person renamed this machine's seat to architecture-kyuhwan-macbook-20260925-1. The row stays, because a name once held is never reissued, and exactly one commit is made under it -- the one registering its successor."
+      "note": "The architecture session on the person's OTHER machine, which works on its own working copy and syncs with the microscope computer through GitHub. Until 2026-09-25 it committed as `architecture <architecture@seat.invalid>`, the same email as the microscope computer's architecture session (committer name `seat:architecture`), so two sessions shared one identity and check 41 could not tell them apart -- one_identity_per_session broken across machines. Found when a push from the microscope computer was refused and the fetched merges (6cad23e, e61d2c3, 4a7f861, committer name `architecture`) turned out to be the other machine's. The person decided that session takes this new name and the microscope computer's keeps `architecture`. Its commits before this row stay under `architecture` and are told apart only by the committer NAME, `architecture` there against `seat:architecture` here -- a convention, not a check. It must pull this row before its first commit under the new name, because the registry is read at a commit's parent. owns, paths and excludes copied by code from `architecture`; n is 1. SUPERSEDED 2026-09-25, before any commit under it: the person renamed this machine's seat to architecture-kyuhwan-macbook-20260925-1. The row stays, because a name once held is never reissued, and exactly one commit is made under it -- the one registering its successor.",
+      "status": "closed 2026-10-19 -- the person, directly in architecture-scope-20261019-4's window on 2026-10-19, after saying there is no other architecture session on this computer: \"you can close those session\". This is the person's other machine's row (the MacBook), superseded on 2026-09-25 by architecture-kyuhwan-macbook-20260925-1, and never a microscope-computer seat: aed897f7 renamed it to architecture-scope-20261019-2 because its note mentions the microscope computer, the same mis-tag 6b4465f5 undid for nine Office rows. Its own name is restored and the transient one is retired. The identity is not reissued."
     },
     {
       "seat": "architecture-kyuhwan-macbook-20260925-1",
@@ -1368,7 +1369,8 @@
         "pixi.lock",
         ".gitignore"
       ],
-      "note": "The architecture session on the microscope computer seated by the person directly on 2026-10-01, rooted at the repository root. The person said 'architecture' and then asked for a seat to be set; n is 1, the first architecture seat for that date. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture."
+      "note": "The architecture session on the microscope computer seated by the person directly on 2026-10-01, rooted at the repository root. The person said 'architecture' and then asked for a seat to be set; n is 1, the first architecture seat for that date. Whether earlier architecture sessions on this machine are still running is not stated, so this is opened concurrently and closes none of them. owns and paths copied by code from architecture.",
+      "status": "closed 2026-10-19 -- the person, directly in architecture-scope-20261019-4's window on 2026-10-19, after saying there is no other architecture session on this computer: \"you can close those session\". The 2026-10-01 architecture session on this computer (formerly architecture-20261001-1) is no longer running; it had never been marked closed, so aed897f7 counted it as open. The identity is not reissued."
     },
     {
       "seat": "microscope-scope-20261019-4",
@@ -1542,8 +1544,8 @@
       "status": "closed 2026-10-12 -- the person, directly to architecture-20261007-1 in its window: \"기존 아키텍처 세션은 닫았다. 네가 아키텍처 자리를 이어받아라\" (the earlier architecture session is closed; architecture-20261007-1 takes over the architecture seat). Its last activity was 2026-10-09. The identity is not reissued. REOPENED 2026-10-15: the person, directly in architecture-20261003-1's own window, verbatim: \"이 세션 다시 연다, 설계 문서 장별로 나눠\" (this session is reopened; divide the design document by section), relayed verbatim by that session to architecture-20261007-1, which records it here and corrects it if the person says otherwise -- the shape of the 2026-09-20 entry under a_seat_is_minted_only_on_a_statement: the person said it in that session's window, and this row only records what they did. Between the closing word and this one the seat committed once, 3dd9bb7 (2026-10-15 09:51, plan.md 6, the seat-naming rule); it had not seen the closed row and stopped committing when told. The design boundary is held by two live architecture seats again, divided by section and not by path; the division is in architecture-20261007-1's note. Later the same day the person, in this session's window, returned plan.md section 14 (the handoff) to it: \"인계 문서는 이 세션이 다시 맡아\"; recorded in that note."
     },
     {
-      "seat": "manager-microscope-scope-20261019-4",
-      "committer_email": "manager-microscope-scope-20261019-4@seat.invalid",
+      "seat": "manager-microscope-20261003-1",
+      "committer_email": "manager-microscope-20261003-1@seat.invalid",
       "owns": [
         "design"
       ],
@@ -1574,8 +1576,8 @@
       "note": "A manager-microscope session on the Office computer (Windows, hostname Office -- not the microscope computer; corrected 2026-10-03), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-03 (\"I opened the two sessions, register the seats\"), after architecture wrote its first instruction. n is 1, the first manager-microscope seat for that date. Whether earlier manager-microscope sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-microscope-20261001-1. From 2026-10-18 its paths also cover microscope_runtime/'s CLAUDE.md, .claude/, tasks/ and README.md, which the validator classifies as design (df11b44b): plan.md 15, which the person approved, gives manager-microscope both folders, the runtime's instruction files as the agent's."
     },
     {
-      "seat": "microscope-scope-20261019-5",
-      "committer_email": "microscope-scope-20261019-5@seat.invalid",
+      "seat": "microscope-20261003-1",
+      "committer_email": "microscope-20261003-1@seat.invalid",
       "owns": [
         "microscope_agent"
       ],
@@ -1585,16 +1587,16 @@
       ]
     },
     {
-      "seat": "librarian-scope-20261019-4",
-      "committer_email": "librarian-scope-20261019-4@seat.invalid",
+      "seat": "librarian-20261004-1",
+      "committer_email": "librarian-20261004-1@seat.invalid",
       "owns": [
         "librarian_agent"
       ],
       "note": "A librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-04 (\"I opened the librarian session, register the seat\"). n is 1, the first librarian seat for that date. Whether earlier librarian sessions are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from librarian-20261001-1."
     },
     {
-      "seat": "manager-librarian-scope-20261019-3",
-      "committer_email": "manager-librarian-scope-20261019-3@seat.invalid",
+      "seat": "manager-librarian-20261007-1",
+      "committer_email": "manager-librarian-20261007-1@seat.invalid",
       "owns": [
         "design"
       ],
@@ -1621,32 +1623,32 @@
       "note": "A manager-librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), already running when registered. The person opened it and said so directly in architecture-20261003-1's window on 2026-10-07 (\"I opened the librarian manager session\"). n is 1, the first manager-librarian seat for that date. Whether earlier sessions of the role are still running is not stated, so this is opened concurrently and closes none of them. Every field except seat, committer_email and note copied by code from manager-librarian-20261001-1."
     },
     {
-      "seat": "librarian-scope-20261019-5",
-      "committer_email": "librarian-scope-20261019-5@seat.invalid",
+      "seat": "librarian-20261007-1",
+      "committer_email": "librarian-20261007-1@seat.invalid",
       "owns": [
         "librarian_agent"
       ],
       "note": "A librarian session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at librarian_agent/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first librarian seat for that date. It runs concurrently with librarian-20261004-1, which the person keeps running. Every field except seat, committer_email and note copied by code from librarian-20261004-1."
     },
     {
-      "seat": "simulation-scope-20261019-2",
-      "committer_email": "simulation-scope-20261019-2@seat.invalid",
+      "seat": "simulation-20261007-1",
+      "committer_email": "simulation-20261007-1@seat.invalid",
       "owns": [
         "simulation_agent"
       ],
       "note": "A simulation session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at simulation_agent/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first simulation seat for that date. It replaces simulation-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from simulation-20261001-1."
     },
     {
-      "seat": "bridge-scope-20261019-2",
-      "committer_email": "bridge-scope-20261019-2@seat.invalid",
+      "seat": "bridge-20261007-1",
+      "committer_email": "bridge-20261007-1@seat.invalid",
       "owns": [
         "bridge"
       ],
       "note": "A bridge session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at bridge/, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first bridge seat for that date. It replaces bridge-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from bridge-20261001-1."
     },
     {
-      "seat": "manager-simulation-scope-20261019-2",
-      "committer_email": "manager-simulation-scope-20261019-2@seat.invalid",
+      "seat": "manager-simulation-20261007-1",
+      "committer_email": "manager-simulation-20261007-1@seat.invalid",
       "owns": [
         "design"
       ],
@@ -1669,8 +1671,8 @@
       "note": "A manager-simulation session on the Office computer (Windows, hostname Office -- not the microscope computer), rooted at the repository root, already running when registered. The person opened it, set its role in its own window, and confirmed both directly in architecture-20261003-1's window on 2026-10-07, answering 'yes, I opened all five' to a question naming it. n is 1, the first manager-simulation seat for that date. It replaces manager-simulation-20261001-1: the person said in the same answer that the earlier simulation and bridge sessions are closed. Every field except seat, committer_email and note copied by code from manager-simulation-20261001-1."
     },
     {
-      "seat": "manager-bridge-scope-20261019-2",
-      "committer_email": "manager-bridge-scope-20261019-2@seat.invalid",
+      "seat": "manager-bridge-20261007-1",
+      "committer_email": "manager-bridge-20261007-1@seat.invalid",
       "owns": [
         "design"
       ],
@@ -2054,6 +2056,116 @@
         "contracts/seats.json"
       ],
       "note": "An architecture session on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root. The person asked it in its own window on 2026-10-19 to register the session for session management, and answered the seat question directly with \"Architecture\" (and \"Both\" to registering in the seat registry and in the app's session list). The machine tag is scope, the microscope computer; n is 1, the first architecture seat for scope on 2026-10-19, the machine's local date. owns and paths copied by code from architecture-20261013-1. Opened concurrently; closes nothing, since the person did not say any session ended."
+    },
+    {
+      "seat": "manager-microscope-scope-20261019-6",
+      "committer_email": "manager-microscope-scope-20261019-6@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md",
+        "microscope_runtime/CLAUDE.md",
+        "microscope_runtime/.claude/",
+        "microscope_runtime/tasks/",
+        "microscope_runtime/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring manager-microscope-20261003-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from manager-microscope-20261003-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "harness-scope-20261019-1",
+      "committer_email": "harness-scope-20261019-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/harness/"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring harness-office-20261016-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from harness-office-20261016-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "architecture-scope-20261019-5",
+      "committer_email": "architecture-scope-20261019-5@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring architecture-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from architecture-office-20261017-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "architecture-scope-20261019-6",
+      "committer_email": "architecture-scope-20261019-6@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "docs/ideas/"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring architecture-office-20261017-2 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from architecture-office-20261017-2. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "manager-console-scope-20261019-1",
+      "committer_email": "manager-console-scope-20261019-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "console/CLAUDE.md",
+        "console/.claude/",
+        "console/tasks/",
+        "console/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/harness/",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring manager-console-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from manager-console-office-20261017-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "console-scope-20261019-1",
+      "committer_email": "console-scope-20261019-1@seat.invalid",
+      "owns": [
+        "console"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring console-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from console-office-20261017-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "microscope-scope-20261019-7",
+      "committer_email": "microscope-scope-20261019-7@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_runtime/"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring microscope-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from microscope-office-20261017-1. Not yet seated: the person names this seat to its session in that session's own window. Opened concurrently; closes nothing."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
@@ -2064,9 +2176,19 @@
   "retired_names": [
     "manager-bridge-2",
     "manager-simulation-2",
-    "simulation-1"
+    "simulation-1",
+    "bridge-scope-20261019-2",
+    "librarian-scope-20261019-4",
+    "librarian-scope-20261019-5",
+    "manager-bridge-scope-20261019-2",
+    "manager-librarian-scope-20261019-3",
+    "manager-microscope-scope-20261019-4",
+    "manager-simulation-scope-20261019-2",
+    "microscope-scope-20261019-5",
+    "simulation-scope-20261019-2",
+    "architecture-scope-20261019-2"
   ],
-  "retired_names_note": "Names cited in the prose above that are deliberately dead. simulation-1 was never registered and its branch is gone; simulation-2's note records that, and recording it means writing the name. Check 47 refuses any seat-shaped name in the prose that is neither registered nor listed here. A name goes here when a correction has to cite it, not when a seat is vacated -- a vacated seat keeps its entry and is simply unoccupied. manager-bridge-2 and manager-simulation-2 were opened on 2026-09-19 and withdrawn with zero commits; they are listed because the prose above cites them as the examples that earned the minting rule, and a cited dead name is what this field is for.",
+  "retired_names_note": "Names cited in the prose above that are deliberately dead. simulation-1 was never registered and its branch is gone; simulation-2's note records that, and recording it means writing the name. Check 47 refuses any seat-shaped name in the prose that is neither registered nor listed here. A name goes here when a correction has to cite it, not when a seat is vacated -- a vacated seat keeps its entry and is simply unoccupied. manager-bridge-2 and manager-simulation-2 were opened on 2026-09-19 and withdrawn with zero commits; they are listed because the prose above cites them as the examples that earned the minting rule, and a cited dead name is what this field is for. The nine names ending -scope-20261019-<n> added on 2026-10-19 were held for one pushed commit (aed897f7), which renamed nine Office-computer seats as if they were the microscope computer's by matching \"microscope computer\" anywhere in a note; the next commit restored those seats' own names, and the nine are listed so they are never reissued.",
   "the_front_door_is_not_one_seats": "README.md is on the four manager seats and on the undivided `manager` as well as on architecture, decided 2026-09-20. It is an UN-NARROWING and not a widening: README.md was always inside the `design` boundary every manager owns, it was never in anyone's `excludes`, and only `paths` kept them out -- so CLAUDE.md's rule that this file narrows and cannot widen is not touched. manager-librarian-2 established the distinction by running check 41's classifier rather than reading the registry, after telling the person the file was outside its boundary, which it was not. WHY IT HAD TO MOVE: contracts/hooks/pre-push, landed the same evening, made README.md refuse a push when it stops naming a top-level entry. That turned the front door into an artifact that can block every seat's push and could be written by one live seat. The first refusal proved it -- the fix was four names, and the only session able to type them was the architecture one. A gate whose only remedy sits in another seat gets bypassed with --no-verify rather than satisfied, which is the failure pre-commit's own comment was written against. It is the variant of `dividing_a_boundary`: there the parts stopped covering the whole and .mcp.json was an orphan nobody owned; here the parts cover it and one seat is a bottleneck. Both come of splitting a boundary without checking afterwards that the split still works. WHAT IT COSTS: the front door is now a shared surface like contracts/, so check 41 gives attribution and not refusal, and five seats can collide on it with nothing refusing -- which on 2026-09-20 was not hypothetical, that window opened at least six times in one evening across validate.py, plan.md, README.md and this file. Review at merge is what guards it, the same honest answer the managers' shared_in_contracts gives. AND THE OPEN QUESTION IS NARROWER THAN IT WAS: 11-11 asks whether every section 7 path reaches a live seat, and README did reach one. The question this raises is HOW MANY it reaches, which nothing checks and which only bites for paths a gate can refuse on.",
   "microscope_runtime_narrowing": "2026-10-17, step 2 of plan.md section 15 (a8995280): the microscope boundary will hold two folders, microscope_agent/ for planning and microscope_runtime/ for the execution layer and the watcher, divided by paths and not by a new boundary. A row with no paths owns its whole boundary, so before the validator maps microscope_runtime/ into microscope_agent every open microscope row without paths was given paths [\"microscope_agent/\"] in one commit, 23 rows; otherwise each would have owned the runtime folder, the person's safety files included, the moment the mapping landed. The human seat keeps every boundary. The runtime seat, when the person seats it, gets paths [\"microscope_runtime/\"], plus the moving paths for the move commit only. The person approved handing this step to the registry's owner in architecture-office-20261017-1's window: \"분리 설계를 커밋하고 다음 단계(세션 등록 묶기, 검사 규칙)를 각 담당 세션에 넘겨줘\"."
 }
