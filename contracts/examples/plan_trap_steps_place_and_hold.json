@@ -105,5 +105,8 @@
         "statement": "the person confirms a bead is held in trap_1 at the centre"
       }
     ]
+  },
+  "pre_stop_buffer": {
+    "length_s": 10
   }
 }

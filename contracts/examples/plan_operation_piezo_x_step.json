@@ -90,5 +90,8 @@
   ],
   "open_risks": [
     "the piezo-Z direction is unmeasured; this plan commands no Z"
-  ]
+  ],
+  "pre_stop_buffer": {
+    "length_s": 10
+  }
 }

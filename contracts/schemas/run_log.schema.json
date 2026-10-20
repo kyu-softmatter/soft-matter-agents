@@ -367,6 +367,61 @@
         },
         "judgement": {
           "description": "the payload of judgement_asked (a request) and judgement_answered (a response), plan.md 13.5; never a command. Named judgement, not decision, because a `decision` event already records the person's own decisions in bench logs"
+        },
+        "buffer": {
+          "type": "object",
+          "description": "what a stop saved from the rolling pre-stop buffer (plan.md 4.6.1). Written after the abort completed, never before it",
+          "properties": {
+            "length_s": {
+              "type": "number",
+              "minimum": 0,
+              "description": "the plan's pre_stop_buffer.length_s"
+            },
+            "frames": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "recorded_rate_hz": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "the rate the run's own acquisition delivered, measured from the frames kept; null when fewer than two frames"
+            },
+            "first_frame_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "last_frame_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "description": "the saved raw frames, kept whole in the run folder"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "length_s",
+            "frames",
+            "recorded_rate_hz",
+            "first_frame_index",
+            "last_frame_index",
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -745,6 +800,76 @@
                 "$ref": "judgement.schema.json#/$defs/response"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "pre_stop_buffer_saved"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "buffer",
+              "from"
+            ],
+            "properties": {
+              "from": {
+                "const": "pre_stop_buffer"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "saving the buffer is a record, never a command (4.6.1)"
+        },
+        {
+          "if": {
+            "required": [
+              "buffer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event": {
+                "const": "pre_stop_buffer_saved"
+              }
+            },
+            "required": [
+              "event"
+            ]
           }
         }
       ]

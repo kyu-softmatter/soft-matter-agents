@@ -249,5 +249,8 @@
       "unit": "count",
       "note": "Carried from the goal and pinned to what it decided: a plan_approval fixes the plan and not the goal (5.3.1)."
     }
-  ]
+  ],
+  "pre_stop_buffer": {
+    "length_s": 10
+  }
 }
