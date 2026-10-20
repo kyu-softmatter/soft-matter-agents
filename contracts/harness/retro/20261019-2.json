@@ -1,0 +1,62 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-19",
+  "trigger": "daily",
+  "tree": "not re-run for this pass, which touched nothing in the working copy; the day's validator run is in retro/20261019.json (c9b18f00, 0 failed)",
+  "verdict": "verdict: 224 passed, 0 failed (from this day's first pass)",
+  "observed": [
+    {
+      "source": "the person's word for this step, in this seat's own window",
+      "path": null,
+      "window": "2026-10-19, about 23:30Z",
+      "found": "\"위 세 가지를 받아 harness2-trial 환경을 만들고, 격리를 확인한 뒤 harness2를 설치해도 된다. 모델 실행은 아직 하지 마.\" (Download the three items, make the harness2-trial environment, confirm the isolation, then install harness2; do not run a model yet.) The isolation choice itself is fc8be485 and the computer is bada849c."
+    },
+    {
+      "source": "the trial distribution",
+      "path": null,
+      "window": "made 2026-10-19T23:3xZ",
+      "found": "A WSL distribution named harness2-trial, made with wsl --install Ubuntu-24.04 --name harness2-trial --location D:\\sma-scratch\\harness2-trial\\vm --web-download. The image is Canonical's ubuntu-24.04.5-wsl-amd64.wsl (388,975,696 bytes), whose sha256 Microsoft's distribution list pins. It is outside the working copy and is not the default distribution; Ubuntu-20.04 is untouched. Its /etc/wsl.conf: [automount] enabled=false, mountFsTab=false; [interop] enabled=false, appendWindowsPath=false; [boot] systemd=false; [user] default=trial. The trial user has no password and there are no credentials inside."
+    },
+    {
+      "source": "the isolation check, run inside as the trial user, before anything of harness2 existed there and again after the install",
+      "path": null,
+      "window": "the final run",
+      "found": "Output, verbatim: when: 2026-10-19T23:56:48Z | who: trial uid=1000 | distro: Ubuntu 24.04.5 LTS | /mnt holds: wsl wslg  | /mnt/c absent -- ok | /mnt/d absent -- ok | no drive mount in /proc/mounts -- ok | no drvfs mount -- ok | cmd.exe not on PATH -- ok | powershell.exe not on PATH -- ok | pwsh.exe not on PATH -- ok | explorer.exe not on PATH -- ok | wsl.exe not on PATH -- ok | PATH holds no Windows directory -- ok | interop handler registered kernel-wide (enabled), not decisive -- see interop_test.out.txt | /mnt/c/Windows/System32/cmd.exe unreachable -- ok"
+    },
+    {
+      "source": "whether a Windows program can start from inside",
+      "path": null,
+      "window": "same evening",
+      "found": "A copy of C:\\Windows\\System32\\whoami.exe, which only prints a user name, was placed in the trial user's home and run with a 30 s timeout. Output, verbatim: copied program present: yes | exit code: 1, seconds: 10 | output: [<3>WSL (22 - ) ERROR: UtilAcceptVsock:281: accept4 failed 110] | no Windows user name printed -- the program did not run -- ok | copied program removed: yes. Control: the same program from Ubuntu-20.04, where interop is on, printed 'office\\kyu hwan' with exit 0. So Windows programs cannot start from inside the trial distribution. The kernel-wide binfmt registration that still reads 'enabled' is shared with the other distribution and is not what decides it."
+    },
+    {
+      "source": "what the first check got wrong, so the next reader does not repeat it",
+      "path": null,
+      "window": "-",
+      "found": "First boot had mounted /mnt/c and /mnt/d. After the change and a restart they were empty folders and not mount points, and they were removed. The first version of the check read the binfmt registration as the verdict; it is a proxy, and the execution test is the measurement. Turning systemd off was a precaution: the registration still read 'enabled' afterwards, so systemd was not what kept it, and the execution test was run after the change. One reading in between was garbled by PowerShell quoting a sh command, and was discarded. Every later step ran from a script file piped through cmd's type."
+    },
+    {
+      "source": "the install, inside as the trial user",
+      "path": null,
+      "window": "2026-10-19T23:4xZ",
+      "found": "uv 0.12.23: sha256 published = sha256 of file = 9167d72b3319674b6303c4cbe071854bba13ebdf3d76b1a7cbdc175471fb66d6. harness2 cloned and checked out at 1cfe254e8d25b15f37048c3730134686abe60335 (verified), 16 MB on disk. A venv on Ubuntu's own python3.12 (3.12.3), and the package installed editable with no extras; it imports, and `harness2 --help` prints its usage. Fetched beyond the three items named to the person: the build-only packages setuptools 84.2.0, wheel 0.48.0 and packaging 26.3 from PyPI, 5.3 MB of uv cache in all, which an editable install needs. They are reported to the person. Not installed: Node.js, the Google Cloud CLI, the bridge extra. Nothing called a model."
+    },
+    {
+      "source": "what harness2's own CLI confirms about the spec",
+      "path": null,
+      "window": "-",
+      "found": "--bench accepts only jb, wb and lab, and --substrate is oc or cx (OpenCode or Codex). This bears out the spec's need for a local adapter for mic-20260918-001 _a5."
+    }
+  ],
+  "new_incidents": [],
+  "measured": [],
+  "proposals": [],
+  "landed_today": [],
+  "next": [
+    "Do not run the executor or any model until the account and the model come through the intake seat.",
+    "Before the first executor run: re-run isolation_check.sh and interop_test.sh inside harness2-trial, and keep both outputs.",
+    "The local adapter for mic-20260918-001 v6 _a5, and the replay of its 7 pinned calls from queries/log.jsonl, are the next pieces of work; they are designed with architecture-20261003-1 before any of it is built."
+  ]
+}
