@@ -2107,9 +2107,13 @@
         "design"
       ],
       "paths": [
-        "plan.md"
+        "plan.md",
+        "docs/"
       ],
-      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring architecture-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from architecture-office-20261017-1. SEATED 2026-10-19: the desktop session titled \"설계 문서 담당 아키텍처\" (design-document architecture), rooted at the repository root; first message in its own window verbatim \"설계 문서 담당 아키텍처\". It asked the person which row it is and has written nothing; this row, plan.md only, is the one architecture-scope-20261019-4 had listed for that role. The person then said directly in architecture-scope-20261019-4's window: \"세 세션 열었다, 등록해 줘\" (I opened the three sessions, register them), after that seat had listed this row for the role. Opened concurrently; closes nothing."
+      "excludes": [
+        "docs/ideas/"
+      ],
+      "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring architecture-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from architecture-office-20261017-1. SEATED 2026-10-19: the desktop session titled \"설계 문서 담당 아키텍처\" (design-document architecture), rooted at the repository root; first message in its own window verbatim \"설계 문서 담당 아키텍처\". It asked the person which row it is and has written nothing; this row, plan.md only, is the one architecture-scope-20261019-4 had listed for that role. The person then said directly in architecture-scope-20261019-4's window: \"세 세션 열었다, 등록해 줘\" (I opened the three sessions, register them), after that seat had listed this row for the role. Opened concurrently; closes nothing. WIDENED 2026-10-19: the person, asked in architecture-scope-20261019-1's window what this seat may edit, chose \"plan.md + docs/\" (the design record and the docs/ folder, not the rule files or the registry). docs/ideas/ is excluded because plan.md 7 says only an intake seat writes there."
     },
     {
       "seat": "architecture-scope-20261019-6",
@@ -2166,6 +2170,17 @@
         "microscope_runtime/"
       ],
       "note": "A session on the microscope computer (Windows, hostname Takatori_lab), the computer that runs the system after the build, mirroring microscope-office-20261017-1 on the Office computer. The person said in architecture-scope-20261019-1's window on 2026-10-19 that this computer is the running computer after the system build and needs, separately from the Office computer, all the sessions that one has (\"this computer is the running computer after the system build. so, all the sessions we needed separately from the office computer.\"). Every field except seat, committer_email and note copied by code from microscope-office-20261017-1. SEATED 2026-10-19: the person opened the session in microscope_runtime/ on this computer (the desktop session titled \"Microscope · runtime\") and set its role in its own window, first message verbatim \"microscope_runtime\"; it answered as the runtime seat and took no card. The person then said directly in architecture-scope-20261019-4's window: \"런타임 세션 열었다, 등록해 줘\" (I opened the runtime session, register it). This row is that session's identity. It touches no device until the person hands it the bench in its window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "microscope-scope-20261019-8",
+      "committer_email": "microscope-scope-20261019-8@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_agent/"
+      ],
+      "note": "The microscope agent's planning session on the microscope computer (Windows, hostname Takatori_lab), rooted at microscope_agent/: the desktop session titled \"Microscope · planning\". It answered a role check on 2026-10-19 holding no seat and naming none. microscope-scope-20261019-6 is not given to it, because that row was the 2026-10-13 bench session's, archived on 2026-10-19 at the person's word, and a vacated identity is not inherited. The person, asked in architecture-scope-20261019-1's window to solve the open questions, had this row opened. Every field except seat, committer_email and note copied by code from microscope-scope-20261019-6. Not yet seated: the person names it to that session in its own window. Opened concurrently; closes nothing."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
