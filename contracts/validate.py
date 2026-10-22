@@ -676,8 +676,14 @@ def check_01_schema(b: Bundle) -> list[Finding]:
     for c in unreadable:
         out.append(Finding(1, FAIL, f"unreadable json: {c.data['__unreadable__']}", c.rel))
     cards = [c for c in b.cards if "__unreadable__" not in c.data]
-    if not cards:
-        return out or [Finding(1, NA, "no cards found")]
+    # N/A only when there is nothing to judge (HP-015, 2026-10-22). This said
+    # `if not cards`, which came before the artifact loop, so a tree holding a
+    # harness retro or proposal and no card had none of them judged, and the
+    # run read 0 failed. That is how HP-013's rejected group was taken to
+    # fail check 89 alone, from a run over that group by itself
+    # (INC-20261022-04).
+    if not cards and not b.artifacts:
+        return out or [Finding(1, NA, "no cards or artifacts found")]
     # The message names the import that failed. It said "jsonschema not
     # installed" for both, and on 2026-10-03 the interpreter on this machine
     # had jsonschema 4.16 and no `referencing`: the line pointed at the wrong

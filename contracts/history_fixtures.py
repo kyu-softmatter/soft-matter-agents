@@ -357,6 +357,32 @@ def fixture_01_a_card_beside_the_consoles_mock_data_is_read(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_01_an_artifact_in_a_tree_without_cards_is_judged(repo: Path) -> str:
+    """HP-015 (2026-10-22): check 1 judges an artifact when no card is present.
+
+    Check 1 returned N/A ("no cards found") before it reached its artifact
+    loop, so a tree holding a harness retro or proposal and no card had none of
+    them schema-checked. HP-013's rejected group was judged that way, from a
+    run over the group alone, and its three check 1 failures went unseen
+    (INC-20261022-04). The live tree always holds cards and a rejected group is
+    judged together with every other fixture, so neither can show the case.
+    Only a built tree with every card taken out can. The examples are removed
+    in a commit of their own, and then a retro missing `verdict` is added.
+    """
+    base(repo)
+    shutil.rmtree(repo / "contracts" / "examples")
+    start = commit(repo, "the copied examples, and every card with them, out", "contracts",
+                   seat="harness-office-20261016-1")
+    write(repo, "contracts/harness/retro/20261022.json", {
+        "artifact": "harness_retro", "schema_version": "0.1", "seat": "harness-office-20261016-1",
+        "on": "2026-10-22", "trigger": "daily", "tree": "the fixture's",
+        "observed": [{"source": "fixture", "path": None, "window": "-", "found": "nothing"}],
+        "new_incidents": [], "measured": [], "proposals": [], "landed_today": [], "next": []})
+    commit(repo, "a retro with no verdict, in a tree with no card", "contracts/harness",
+           seat="harness-office-20261016-1")
+    return f"{start}..HEAD"
+
+
 def fixture_26_snapshot_is_a_copy_of_another_commit(repo: Path) -> str:
     """An envelope snapshot whose embedded text belongs to a different commit.
 
@@ -1275,6 +1301,8 @@ FIXTURES = [
     (89, "PASS", "3 lines, 1 proposals and 2 retros", fixture_89_two_machines_record_on_one_day),
     (13, "PASS", "files sit in declared paths", fixture_89_two_machines_record_on_one_day),
     (1, "PASS", "conform to their schema", fixture_89_two_machines_record_on_one_day),
+    (1, "FAIL", "'verdict' is a required property [contracts/harness/retro/20261022.json]",
+     fixture_01_an_artifact_in_a_tree_without_cards_is_judged),
 ]
 
 
