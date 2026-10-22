@@ -1869,7 +1869,7 @@ No new number is chosen — §5.8's existing rule simply had not been applied to
 
 **A plan approval may be signed through the console's login (the person, 2026-10-22, in the intake seat's window, Q-20261022-office-02, committed verbatim at `d1068945`)**: "Q2: 승인까지. 콘솔 로그인으로 계획 승인도 하고, 승인마다 비밀번호를 다시 묻는 것을 받아들인다." (as far as approval: plan approval too is done through the console login, and the password asked again at every approval is accepted). The question carried three conditions, and the person accepted the first in words. An approval signed there counts only when all three hold:
 
-1. **The signing step is one no session can perform.** The console asks for the account's password again at each approval, and the person types it at the console. A click is not enough, because sessions here can drive a browser. So a password that has been typed into any session's window, or written into any file, cannot sign, because a session has seen it. The redesign's administrator account (I-20261022-office-04, same commit) had its password pasted into a chat window that day, and the intake seat withheld it from the record. That account signs nothing until the person has changed its password at the console itself.
+1. **The signing step is one no session can perform.** The console asks for the account's password again at each approval, and the person types it at the console. A click is not enough, because sessions here can drive a browser. So a password that has been typed into any session's window, or written into any file, cannot sign, because a session has seen it. The redesign's administrator account (I-20261022-office-04, same commit) had its password pasted into a chat window that day, and the intake seat withheld it from the record. That account signs nothing until the person has changed its password at the console itself. **And the condition has to hold for the file, not only for the screen.** Wherever the approval lands, a session that can write that folder must not be able to make one. In `approvals/` the person's guard does that (15's inward denials, and the gate). A folder a session writes is different. If the file lands in `console/`, as the console holder reads the route (manager-console-office-20261017-1, 2026-10-22), the console's own session could write an approval no person made. So it would have to carry a signature that only the typed password can produce. One way is a signing key that the password unlocks, checked by the runtime against a public half the person placed among the runtime's guarded files. The runtime reading `console/` would also be a read across folders, which 6.2 rule 3 would then name, the way it names the bridge's.
 2. **It binds the exact plan the screen showed.** The approval carries the `plan_hash` of the revision displayed, and check 7 refuses it against any other.
 3. **The file says how it was made**: through the console, under which login, and when. A test login binds nothing. No check reads these fields yet; their format is a manager's, designed with the route below.
 
@@ -1892,6 +1892,9 @@ What it does not change: only a person signs, and a login identifies that person
 | Situation | Result |
 |---|---|
 | A parameter of an irreversible action depends on E4/E5 | promoted to Tier 2, cannot be covered by a `scope_approval` (§2.1 rule 3) |
+| A plan covered by a `scope_approval` | its evidence must be **E1–E3 only** |
+| An E2 source's expiry has passed | plans using that value cannot execute; calibration has to come first |
+| A plan's E5 count exceeds the ceiling | validator failure (§8 check 3) |
 
 **Overfilling a safety field weakens the guard, and that had not been written down (2026-09-23).**
 `microscope-1` marked two PFS actions `reversible: false`, reasoning that reacquiring focus does not restore
@@ -1928,9 +1931,6 @@ rest of this document keeps concluding. It is named here so the next reader of t
 take r5 for a design change. The seat also made `displace()` **refuse** rather than overwrite an existing
 `v<N>_` copy whose contents differ: replacing it would rebuild, one directory across, the defect the
 convention exists to remove.
-| A plan covered by a `scope_approval` | its evidence must be **E1–E3 only** |
-| An E2 source's expiry has passed | plans using that value cannot execute; calibration has to come first |
-| A plan's E5 count exceeds the ceiling | validator failure (§8 check 3) |
 
 **Permission ceilings per component**: the system designer (S3–S5) is Tier 0, and **only the system operator (S6) holds Tier 1–2.** Backends hold no permissions and are called only through the operator (§4.6).
 
