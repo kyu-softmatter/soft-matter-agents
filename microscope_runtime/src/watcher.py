@@ -157,9 +157,12 @@ class Watcher:
         self._drift_ref_index = image["drift"]["reference_frame"] if image.get("drift") else None
         self._images_given = image["frames"]["given"]
         self._budget = float(self._block["question_budget_s"])
+        self.cadence_s = float(self._block["cadence_s"])        # the orchestrator ticks at this
         self._cv = threading.Condition()
         self._out: queue.Queue = queue.Queue()
         self._frames_seen = 0
+        self._unusable = 0             # frames that arrived and are not 2-D images
+        self.failure: str | None = None
         self._latest = None            # (frame copy, index, t_mono)
         self._drift_ref = None
         self._image_ref = None         # (frame copy, index) -- the first frame a tick saw after the light settled
@@ -183,12 +186,16 @@ class Watcher:
 
     def put_frame(self, image, metadata, t_mono: float) -> None:
         """Copy one frame in, replacing the last. Nothing queues."""
-        copy_ = np.array(image, copy=True)
+        usable = isinstance(image, np.ndarray) and image.ndim == 2 and image.dtype.kind in "uif"
+        copy_ = np.array(image, copy=True) if usable else None
         with self._cv:
             if self._closed:
                 return
             index = self._frames_seen
             self._frames_seen += 1
+            if not usable:
+                self._unusable += 1
+                return
             self._latest = (copy_, index, t_mono)
             if index == self._drift_ref_index:
                 self._drift_ref = copy_
@@ -255,7 +262,10 @@ class Watcher:
                 self._unanswered(payload["qseq"], payload["state_seq"], payload["state_sha"],
                                  payload["asked_t"], "time_budget")
             else:
-                self._process(*payload)
+                try:
+                    self._process(*payload)
+                except Exception as exc:                # noqa: BLE001 - kept for the orchestrator to say
+                    self.failure = f"{type(exc).__name__}: {exc}"
 
     def _emit(self, event: dict) -> None:
         self._out.put(event)
@@ -328,6 +338,10 @@ class Watcher:
             latest = self._latest
             drift_ref = self._drift_ref
         level, level_why = self._settle(events, latest)
+        no_frame_because = None
+        if latest is None and self._unusable:
+            no_frame_because = (f"{self._unusable} frame(s) arrived and none is a 2-D image "
+                                "(this run's frames are not images the renderer can read)")
         self._seq += 1
         seq = self._seq
         inp = {"seq": seq, "block": self._block, "ceiling": self._ceiling, "ceiling_gap": self._gap,
@@ -335,9 +349,16 @@ class Watcher:
                "frame_index": None if latest is None else latest[1],
                "frame_t_mono": None if latest is None else latest[2],
                "reference": drift_ref, "reference_frame_index": self._drift_ref_index,
-               "level": level, "level_absent_because": level_why,
+               "level": level, "level_absent_because": level_why, "no_frame_because": no_frame_because,
                "snapshot": snapshot, "tick_t_mono": t_mono, "events": events, "channels": channels}
-        text, values = R.render(inp)
+        try:
+            text, values = R.render(inp)
+        except Exception as exc:                        # noqa: BLE001 - the tick is still written, said so
+            inp.update(frame=None, frame_index=None, frame_t_mono=None, reference=None, level=None,
+                       no_frame_because=f"rendering this tick's frame failed: {type(exc).__name__}: {exc}",
+                       level_absent_because=f"rendering this tick's frame failed: {type(exc).__name__}: {exc}")
+            latest = None
+            text, values = R.render(inp)
         data = text.encode("utf-8")
         sha = "sha256:" + hashlib.sha256(data).hexdigest()       # the schema writes a hash with its algorithm
         path = f"watcher_state_{seq:06d}.txt"

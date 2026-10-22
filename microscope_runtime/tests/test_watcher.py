@@ -538,7 +538,7 @@ class T6TheReducedImages(_Base):
             data = (self.folder / image["path"]).read_bytes()
             self.assertEqual("sha256:" + hashlib.sha256(data).hexdigest(), image["sha256"])
             self.assertEqual(image["conversion_version"], R.CONVERSION_VERSION)
-            self.assertEqual(len(image["shape"]), 3)
+            self.assertEqual(len(image["shape"]), 2)         # height and width
             self.assertGreater(image["stretch_limits"]["high"], image["stretch_limits"]["low"])
             self.assertIsInstance(image["saturated_pixels"], int)
 
@@ -642,6 +642,20 @@ class T7TheLightAndTheLevel(_Base):
         self.tick(w, frames=1, seed=1)
         self.pump(w, lambda e: len(self.of("watcher_state")) == 2)
         self.assertAlmostEqual(self.of("watcher_state")[1]["watcher"]["image"]["intensity_normalised"]["value"], 1.0)
+
+    def test_a_later_matched_light_command_restarts_the_settled_level(self):
+        w = self.watcher(backend=W.make_backend("none", "mock"), light=lambda e: e.get("channel") == "widefield_source_a")
+        first = {"event": "apply", "t_mono": 0.0, "channel": "widefield_source_a", "verification": "readback"}
+        self.tick(w, frames=1, events=[first], seed=1)
+        self.pump(w, lambda e: len(self.of("watcher_state")) == 1)
+        second = {"event": "apply", "t_mono": self.clock(), "channel": "widefield_source_a",
+                  "verification": "readback"}
+        time.sleep(0.01)
+        w.put_frame(frame(1) // 2, {}, self.clock())                  # the light is now at half the level
+        w.tick({**SNAPSHOT, "t_mono": self.clock()}, [second], {}, self.clock())
+        self.pump(w, lambda e: len(self.of("watcher_state")) == 2)
+        v = self.of("watcher_state")[1]["watcher"]["image"]["intensity_normalised"]["value"]
+        self.assertAlmostEqual(v, 1.0, places=6)                      # normalised to the NEW settled level
 
     def test_the_drift_reference_is_the_frame_the_plan_names(self):
         w = self.watcher(backend=W.make_backend("none", "mock"))

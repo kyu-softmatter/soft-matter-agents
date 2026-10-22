@@ -260,7 +260,7 @@ def image_values(inp: dict) -> dict:
     frame, index = inp.get("frame"), inp.get("frame_index")
     ceiling, gap = inp.get("ceiling"), inp.get("ceiling_gap")
     names = {}
-    no_frame = "no frame has arrived in this run yet"
+    no_frame = inp.get("no_frame_because") or "no frame has arrived in this run yet"
     stat_args = {"metric": stats_args["metric"], "bin_px": stats_args["bin_px"], "ceiling": ceiling}
     if frame is None:
         for name in FRAME_VALUES:
