@@ -1,0 +1,62 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-015",
+  "title": "Check 1 judges every artifact it is given, whether or not the tree holds a card",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-22",
+  "kind": "tighten",
+  "class": "rule-reaches-less-than-written",
+  "answers": [
+    "INC-20261022-04"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261022-04"
+    ],
+    "looked_in": [
+      "contracts/validate.py check_01_schema at 6e74dbdc: 'if not cards: return ... N/A no cards found' comes before the artifact loop",
+      "a run over a scratch directory holding one harness_retro with four fields: check 1 N/A, 0 failed",
+      "the account of how HP-013's fixture was judged, from its builder"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/validate.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "check_01_schema returns N/A only when the tree holds neither a card nor an artifact. With artifacts and no cards it loads the registry and judges the artifacts, as it does now when cards exist. The missing-library PENDING path already covers artifacts."
+    },
+    {
+      "path": "contracts/examples/rejected/ or contracts/history_fixtures.py (builder's choice)",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "A tree holding one malformed harness retro and no card, which must fail check 1. Watched accepted with the change absent, and rejected with it."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "a tree holding one harness_retro missing required fields, and no card",
+        "reproduces": "INC-20261022-04",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every seat that runs the validator over a single fixture group, the harness seats and check 89's holders first"
+    ],
+    "how_they_learn": "The gate itself: a single-group run starts printing check 1 lines it used to skip. This seat tells the harness seats and check 89's holder when it lands.",
+    "use_site": "check 1, at a run over a tree with artifacts and no cards"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "A tightening: a tree that passed may now fail. The live repository always holds cards, so no commit's verdict should change; the replay is the builder's to show. Not proposed: validate.py's INCIDENT_ID regex is a fourth copy of the id shape, kept for its named groups and pointed at $defs/incident_id by a comment, with nothing comparing the two. Nothing has drifted, so no incident stands behind it; it is noted in the ledger, not proposed."
+}

@@ -47,10 +47,10 @@
   "proof": {
     "fixtures": [
       {
-        "path": "an accepted bundle: INC-20261022-scope-01 recorded by harness-scope-20261019-1 and named in retro/20261022-scope.json's new_incidents and in a proposal's answers",
+        "path": "contracts/history_fixtures.py, fixture_89_two_machines_record_on_one_day: a scope-seat proposal answering INC-20261022-scope-01 with both machine-word ids in members_found, its ledger line, and a row expecting check 1 PASS",
         "reproduces": "INC-20261022-03",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a copy of contracts/ with the three harness schemas at 8f34061f: the check 1 row BROKEN, five check 1 FAILs (proposal answers/0, members_found/0..1, new_incidents/0 on each retro), as manager-microscope-office-20261016-1 reports",
+        "watched_passing_after": "6e74dbdc: all three rows on the build hold, history_fixtures 49/49, as its builder reports"
       }
     ],
     "replay": {
@@ -59,8 +59,8 @@
       "run_line": null
     },
     "equivalence": {
-      "before": null,
-      "after": null
+      "before": "validator 0 failed at 8f34061f plus 6 uncommitted paths [dirty d14b662a]; --expect-fail 72/72 cards, 104/104 groups (builder's run)",
+      "after": "6e74dbdc: check89_harness_incident_machine_word_not_its_seats lost exactly its three check 1 lines and still fails check 89; no other check 1 line moved, 187 before and 184 after (builder's run)"
     }
   },
   "reach": {
