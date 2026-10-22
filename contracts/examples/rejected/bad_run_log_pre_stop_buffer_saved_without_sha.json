@@ -203,7 +203,7 @@
       "judgement": {
         "judgement": "DM-4",
         "seq": 0,
-        "point": "after_stop",
+        "point": "stop",
         "prompt_version": "dm4-v1",
         "allowed_answers": [
           "YES",

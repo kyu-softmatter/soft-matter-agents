@@ -1533,7 +1533,8 @@
               "minItems": 1,
               "items": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(run_start|(before|after)_measure:[a-z0-9_-]+)$",
+                "description": "run_start; before_measure:<id> or after_measure:<id>, where <id> is one of this plan's stop_criteria ids. These are the moments the orchestrator reaches and names (card 081, 99c02ddb). Any other name would be a point the run never reaches, so the judgement would never be asked and only run_ended's unreached list would show it; the schema refuses it instead. `stop` is DM-4's alone"
               },
               "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
             },
@@ -1572,7 +1573,8 @@
               "minItems": 1,
               "items": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(run_start|(before|after)_measure:[a-z0-9_-]+)$",
+                "description": "run_start; before_measure:<id> or after_measure:<id>, where <id> is one of this plan's stop_criteria ids. These are the moments the orchestrator reaches and names (card 081, 99c02ddb). Any other name would be a point the run never reaches, so the judgement would never be asked and only run_ended's unreached list would show it; the schema refuses it instead. `stop` is DM-4's alone"
               },
               "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
             },
@@ -1610,8 +1612,8 @@
               "type": "array",
               "minItems": 1,
               "items": {
-                "type": "string",
-                "minLength": 1
+                "const": "stop",
+                "description": "DM-4 is asked after a stop, on the saved evidence, and the orchestrator reaches that moment only as `stop`"
               },
               "description": "every moment the run reaches at which this judgement is asked; while it records only, it is asked at each of them, normal ones included"
             },

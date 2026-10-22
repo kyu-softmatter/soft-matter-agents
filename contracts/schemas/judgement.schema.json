@@ -80,7 +80,8 @@
         "point": {
           "type": "string",
           "minLength": 1,
-          "description": "the moment the plan names that this request is asked at, as the plan names it"
+          "description": "the moment the plan names that this request is asked at, as the plan names it: run_start, before_measure:<stop criterion id>, after_measure:<stop criterion id>, or stop (plan.schema.json judgements.*.points)",
+          "pattern": "^(run_start|stop|(before|after)_measure:[a-z0-9_-]+)$"
         },
         "prompt_version": {
           "type": "string",

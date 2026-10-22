@@ -162,7 +162,7 @@
   "judgements": {
     "dm1": {
       "points": [
-        "after_detection"
+        "after_measure:sc_readback"
       ],
       "prompt_version": "dm1-v1",
       "frames": {
@@ -176,7 +176,7 @@
     },
     "dm2": {
       "points": [
-        "before_measurement"
+        "before_measure:sc_readback"
       ],
       "prompt_version": "dm2-v1",
       "frames": {
@@ -190,7 +190,7 @@
     },
     "dm4": {
       "points": [
-        "after_stop"
+        "stop"
       ],
       "prompt_version": "dm4-v1",
       "frames": {
