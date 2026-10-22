@@ -1,0 +1,81 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-22",
+  "trigger": "daily",
+  "tree": "5467b5e8 plus 3 uncommitted paths [dirty f95c8f38], which is nobody's commit -- the run before this pass's records were written",
+  "verdict": "verdict: 224 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "this computer's commit tool record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-19T18:30Z to 2026-10-22T16:30Z, 141 lines",
+      "found": "52 commit attempts: 50 committed, 2 refused, both 'the patch does not apply' after HEAD moved (the tool's correct refusal of a stale patch). No refusal at the rebuild limit. HEAD moves per attempt: 0: 30, 1: 13, 2: 5, 3: 3, 4: 1. 44 push lines: 20 pushed, 24 refused, most of them listing others' commits or a branch behind origin, and 2 refusing an inexact --push-includes-others. No hold or release yet."
+    },
+    {
+      "source": "commits this computer's log cannot see",
+      "path": null,
+      "window": "git log --first-parent since 2026-10-19T18:30Z, 68 commits",
+      "found": "27 are not in this computer's log. 23 of them are the microscope computer's seats (architecture-scope-20261019-6: 13, -4: 6, -1: 3, manager-librarian-scope-20261019-4: 1), whose log is on that machine. 2 are the person's own (human). 2 are architecture-20261013-1's, which I cannot place on a computer. So 'commits around the tool' can be counted only per computer, and the second harness seat is the one that can count the microscope computer's."
+    },
+    {
+      "source": "commits touching contracts/harness/ by any other seat",
+      "path": "contracts/harness/",
+      "window": "origin/main, all history",
+      "found": "0 of 19. The second harness seat (harness-scope-20261019-1) has not committed."
+    },
+    {
+      "source": "failures.jsonl in each agent, and the librarian's query log",
+      "path": null,
+      "window": "since 2026-10-19T18:30Z",
+      "found": "No new lines and no new queries."
+    },
+    {
+      "source": "the harness2 trial",
+      "path": null,
+      "window": "-",
+      "found": "harness2-trial is made and contained (e63a364f). The design for the replay and the adapter is at e8a1751a (architecture-20261003-1). No word on the account or the model has come through the intake seat, so nothing has been built further and nothing has run."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261022-01",
+    "INC-20261022-02"
+  ],
+  "measured": [
+    {
+      "class": "limit-refuses-correct-work",
+      "since": "51feb21b",
+      "recurrences": 0,
+      "method": "refusals at the rebuild limit in this computer's tool log since the person kept the count at five"
+    },
+    {
+      "class": "confirmation-pre-supplied",
+      "since": "a65d262e",
+      "recurrences": 0,
+      "method": "push lines publishing another seat's commit without naming it: none; inexact flags were refused twice in this window"
+    },
+    {
+      "class": "boundary-narrows-one-side-only",
+      "since": "0cfd1d85",
+      "recurrences": 0,
+      "method": "commits touching contracts/harness/ by a seat other than this one, on origin/main"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-013",
+      "this_pass": "Drafted and handed: distinct record keys for the two harness seats, and each seat measuring its own computer."
+    },
+    {
+      "id": "HP-012",
+      "this_pass": "Still open: the check and the bridge twin."
+    }
+  ],
+  "landed_today": [],
+  "next": [
+    "Ask the person, through the intake seat, whether this seat's daily pass may be scheduled to run on its own. A standing schedule is a configuration, so the yes is given in this seat's window (INC-20261022-02).",
+    "Reach harness-scope-20261019-1 through the intake seats with the interim key convention, until HP-013 lands.",
+    "harness2 trial: wait for the account and the model."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-013",
+  "title": "Two meta-harness seats on two computers keep distinct record keys, and each measures its own computer's commit log",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-22",
+  "kind": "reshape",
+  "class": "two-writers-one-keyspace",
+  "answers": [
+    "INC-20261022-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261022-01"
+    ],
+    "looked_in": [
+      "contracts/seats.json: two harness seats, harness-office-20261016-1 (Office) and harness-scope-20261019-1 (microscope computer), both with paths contracts/harness/",
+      "the four harness schemas and check 89's ALLOWED_PATHS entry: every key is date-based with no seat in it",
+      "origin/main's history of contracts/harness/: no commit by the second seat yet"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/schemas/harness_incident.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "The incident id pattern also accepts INC-<YYYYMMDD>-<machine>-<nn>, where <machine> is the seat's machine word from its name (office, scope, ...). Existing ids stay valid. Check 89's duplicate rule then cannot fire across seats, and the on-date rule reads the date the same way."
+    },
+    {
+      "path": "contracts/validate.py",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "ALLOWED_PATHS also accepts retro/<YYYYMMDD>-<machine>(-<n>)?.json. Check 89 reads both forms. It may also check that a record's machine word matches the machine word of its recorded_by or seat, so a seat cannot write under the other's key."
+    },
+    {
+      "path": "contracts/schemas/harness_proposal.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "Proposal numbers are a single sequence and stay so. A seat takes the next free HP number only from HEAD after a fetch. The duplicate is caught by the file path at merge, which is loud, so no schema change is proposed for proposals."
+    },
+    {
+      "path": "contracts/harness/ (both seats' practice)",
+      "owner": "harness-office-20261016-1 and harness-scope-20261019-1",
+      "change": "Each seat measures its own computer's .git/sma-seat-commit.jsonl, which the other cannot read, and says so in its retro. Shared counts, such as commits touching contracts/harness/, are taken from origin."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "a rejected group with two incident lines of one date from two machines under the old pattern, and an accepted control with the machine word",
+        "reproduces": "INC-20261022-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": {
+      "before": null,
+      "after": null
+    }
+  },
+  "reach": {
+    "already_running": [
+      "harness-office-20261016-1 (this seat)",
+      "harness-scope-20261019-1, if its session has been seated; it has not committed yet"
+    ],
+    "how_they_learn": "This seat writes to the second seat through the intake seats of both computers, because no session message crosses computers here. Until HP-013 lands, this seat keeps to retro/<date>.json and incident numbers 01 to 49, and asks the other to use 50 to 99 and retro/<date>-2.json, as an interim convention.",
+    "use_site": "check 89, at the commit of a colliding record"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "A reshape: no rule changes, only the shape of the keys, so that two legitimate writers stop colliding. The interim convention in reach uses numbers only as a split, not as a threshold anything is compared against. The admitted paths widen no seat's write reach: both seats already own contracts/harness/."
+}
