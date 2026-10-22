@@ -1,0 +1,76 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-014",
+  "title": "Every harness schema that cites an incident id takes the incident record's own id pattern",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-22",
+  "kind": "reshape",
+  "class": "class-fixed-not-swept",
+  "answers": [
+    "INC-20261022-03"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261022-03"
+    ],
+    "looked_in": [
+      "grep for 'INC-' in contracts/schemas/harness_*.schema.json at 1c27af54: the id pattern appears in three schemas, and HP-013 widened one",
+      "the expect-fail run at 1c27af54: check89_harness_incident_machine_word_not_its_seats fails check 1 three times beside its check 89 line",
+      "a probe bundle outside the tree: a retro naming INC-20261022-scope-01 is refused by harness_retro.schema.json"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/schemas/harness_proposal.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "answers[] and classification.members_found[] take the pattern ^INC-([0-9]{8}|undated)-([a-z][a-z0-9]*(-[a-z][a-z0-9]*)*-)?[0-9]{2}$, the incident schema's own."
+    },
+    {
+      "path": "contracts/schemas/harness_retro.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "new_incidents[] takes the same pattern."
+    },
+    {
+      "path": "contracts/validate.py or the schemas (builder's choice)",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "So the three cannot drift again: either one definition the other two reference, or a check 89 line that the three patterns are equal. Either is a reshape; the builder picks what check 1's schema loading supports."
+    },
+    {
+      "path": "contracts/examples/rejected/check89_harness_incident_machine_word_not_its_seats/",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "It then fails check 89 alone; its three check 1 lines go. An accepted control beside it: a retro and a proposal naming a machine-word incident pass check 1."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "an accepted bundle: INC-20261022-scope-01 recorded by harness-scope-20261019-1 and named in retro/20261022-scope.json's new_incidents and in a proposal's answers",
+        "reproduces": "INC-20261022-03",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": {
+      "before": null,
+      "after": null
+    }
+  },
+  "reach": {
+    "already_running": [
+      "harness-office-20261016-1 (this seat)",
+      "harness-scope-20261019-1, which has not committed yet"
+    ],
+    "how_they_learn": "Until HP-014 lands, both seats keep the old id form and the interim number split (office 01-49, scope 50-99); a retro file may already carry the machine word. This seat says so to the scope seat through the intake seats of both computers.",
+    "use_site": "check 1, at the commit of a retro or proposal that cites a machine-word id"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "Completes HP-013: no rule changes, only the same key shape in the two schemas that cite the key. What this seat watched failing before is the probe bundle at 1c27af54, outside the tree; the builder watches its own committed fixture."
+}
