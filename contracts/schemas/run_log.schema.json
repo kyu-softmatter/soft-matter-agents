@@ -422,6 +422,9 @@
             "sha256"
           ],
           "additionalProperties": false
+        },
+        "judgements": {
+          "description": "the payload of judgements_started and judgements_off (plan.md 13.5), each with its own shape below: whether the run asks the plan's judgements at all, and by which backend. Never a command"
         }
       },
       "required": [
@@ -965,6 +968,118 @@
               "event"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "judgements_started"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "from",
+              "judgements"
+            ],
+            "properties": {
+              "from": {
+                "const": "judgements"
+              },
+              "judgements": {
+                "$ref": "#/$defs/judgements_started"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "added 2026-10-22 by manager-microscope-20261003-1 in the shape card 081 (99c02ddb) writes; a judgements record is never a command"
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "judgements_off"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "from",
+              "judgements"
+            ],
+            "properties": {
+              "from": {
+                "const": "judgements"
+              },
+              "judgements": {
+                "$ref": "#/$defs/judgements_off"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "added 2026-10-22 by manager-microscope-20261003-1 in the shape card 081 (99c02ddb) writes; a judgements record is never a command"
         }
       ]
     },
@@ -1426,6 +1541,129 @@
         "state_sha256",
         "asked_t_mono",
         "why"
+      ],
+      "additionalProperties": false
+    },
+    "judgements_started": {
+      "type": "object",
+      "description": "recorded right after run_started when the plan declares a judgements block that can be asked: who answers and at which points. A plan with no block records neither this nor judgements_off",
+      "properties": {
+        "backend": {
+          "$ref": "judgement.schema.json#/$defs/model"
+        },
+        "questions_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the version of the fixed question texts"
+        },
+        "dm1": {
+          "type": "object",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^(run_start|stop|(before|after)_measure:[a-z0-9_-]+)$"
+              }
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version"
+          ],
+          "additionalProperties": false
+        },
+        "dm2": {
+          "type": "object",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^(run_start|stop|(before|after)_measure:[a-z0-9_-]+)$"
+              }
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version"
+          ],
+          "additionalProperties": false
+        },
+        "dm4": {
+          "type": "object",
+          "properties": {
+            "points": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^(run_start|stop|(before|after)_measure:[a-z0-9_-]+)$"
+              }
+            },
+            "prompt_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "points",
+            "prompt_version"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "backend",
+        "questions_version"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "dm1"
+          ]
+        },
+        {
+          "required": [
+            "dm2"
+          ]
+        },
+        {
+          "required": [
+            "dm4"
+          ]
+        }
+      ]
+    },
+    "judgements_off": {
+      "type": "object",
+      "description": "the plan declared a judgements block and none of it is asked; the run goes on, because the judgements record only",
+      "properties": {
+        "why": {
+          "enum": [
+            "did_not_start"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 3,
+          "description": "what refused the block, naming the field"
+        }
+      },
+      "required": [
+        "why",
+        "detail"
       ],
       "additionalProperties": false
     }
