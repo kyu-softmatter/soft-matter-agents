@@ -857,6 +857,100 @@
         },
         {
           "if": {
+            "properties": {
+              "event": {
+                "const": "pre_stop_buffer_not_saved"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "from",
+              "why",
+              "length_s",
+              "frames"
+            ],
+            "properties": {
+              "from": {
+                "const": "pre_stop_buffer"
+              },
+              "why": {
+                "enum": [
+                  "length_zero",
+                  "no_frames",
+                  "no_run_folder",
+                  "save_failed"
+                ],
+                "description": "length_zero: the plan wrote length_s 0, so nothing was kept, by the plan's own word. no_frames: the ring was empty when the stop came. no_run_folder: the run had no folder to save into. save_failed: the write raised; recorded once, never retried, because a retry could only come after the abort and must reach no light"
+              },
+              "length_s": {
+                "type": "number",
+                "minimum": 0,
+                "description": "the plan's pre_stop_buffer.length_s"
+              },
+              "frames": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "frames saved: always 0 here. Top level and not under `buffer`, because `buffer` is the saved event's alone"
+              },
+              "detail": {
+                "type": "string",
+                "minLength": 1,
+                "description": "what the failed write raised"
+              }
+            },
+            "if": {
+              "properties": {
+                "why": {
+                  "const": "save_failed"
+                }
+              },
+              "required": [
+                "why"
+              ]
+            },
+            "then": {
+              "required": [
+                "detail"
+              ]
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "a stop that kept nothing says so and why (4.6.1: zero is allowed only if written, and an unsaved buffer must be told from a saved one). Added 2026-10-22 by manager-microscope-20261003-1 from the runtime seat's card 082 report, which needed the event and found none"
+        },
+        {
+          "if": {
             "required": [
               "buffer"
             ]
