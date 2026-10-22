@@ -209,7 +209,17 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
             "gaps": [], "overflowed": False, "aborted": _ABORTED}
 
 
-def read() -> dict:
+class ReadWouldWait(RuntimeError):
+    """A read asked not to wait found the device busy (card 076 part E, plan.md 13.4 item 2).
+
+    The caller records the channel as not read at that tick, with this reason, and never gives
+    it its last value.
+    """
+
+    would_wait = True
+
+
+def read(wait: bool = True) -> dict:
     """Return the state this backend was last told to hold.
 
     The real instrument is the authority on its own state and a device keeps no
@@ -217,8 +227,12 @@ def read() -> dict:
     stands in for one -- the one place the mock is not like the thing it stands
     for, and worth saying out loud.
     """
-    with _LOCK:
+    if not _LOCK.acquire(blocking=wait):
+        raise ReadWouldWait(f"mock: a command, a sequence or another read holds this device's lock, and this read was asked not to wait")
+    try:
         return {"state": dict(_STATE), "aborted": _ABORTED, "backend": "mock"}
+    finally:
+        _LOCK.release()
 
 
 def abort() -> dict:

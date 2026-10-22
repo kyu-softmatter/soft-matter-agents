@@ -415,10 +415,24 @@ def apply(params: dict) -> dict:
                          "nothing queried the lines after")}
 
 
-def read() -> dict:
+class ReadWouldWait(RuntimeError):
+    """A read asked not to wait found the device busy (card 076 part E, plan.md 13.4 item 2).
+
+    The caller records the channel as not read at that tick, with this reason, and never gives
+    it its last value.
+    """
+
+    would_wait = True
+
+
+def read(wait: bool = True) -> dict:
     """What was last commanded, labelled as commanded. There is no state to read."""
-    with _LOCK:
+    if not _LOCK.acquire(blocking=wait):
+        raise ReadWouldWait(f"lunf: a command, a sequence or another read holds this device's lock, and this read was asked not to wait")
+    try:
         commanded = dict(_COMMANDED) if _COMMANDED is not None else None
+    finally:
+        _LOCK.release()
     return {"state": None, "commanded": commanded, "verification": "none",
             "beam": ASSUMED_ON if commanded is not None else None, "barrier": None,
             "aborted": _ABORTED, "backend": BACKEND,

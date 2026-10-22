@@ -375,8 +375,21 @@ def apply(params: dict) -> dict:
             and all(e["outcome"] == "accepted" for e in sent)}
 
 
-def read() -> dict:
-    """There is nothing to read. Says so, and gives the last thing commanded."""
+class ReadWouldWait(RuntimeError):
+    """A read asked not to wait found the device busy (card 076 part E, plan.md 13.4 item 2).
+
+    The caller records the channel as not read at that tick, with this reason, and never gives
+    it its last value.
+    """
+
+    would_wait = True
+
+
+def read(wait: bool = True) -> dict:
+    """There is nothing to read. Says so, and gives the last thing commanded.
+
+    Takes `wait` like every module and ignores it: this module has no lock a read could wait on.
+    """
     return {"read_back": False, "verification": "none",
             "note": "the Tweez 300 interface has no query of any kind; this is not a state",
             "beam": dict(_LINK.beam) if _LINK else {"state": "assumed on", "shown_blocked_by": None},

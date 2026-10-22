@@ -513,7 +513,7 @@ def apply(params: dict) -> dict:
             "backend": BACKEND}
 
 
-def read() -> dict:
+def _read_state() -> dict:
     """Every settable property of the wrapped channels' loaded devices.
 
     Read from the instrument each time. This backend keeps no copy of the
@@ -532,6 +532,34 @@ def read() -> dict:
         if props:
             state[device] = props
     return {"state": state, "aborted": _ABORTED, "backend": BACKEND}
+
+
+class ReadWouldWait(RuntimeError):
+    """A read asked not to wait found the device busy (card 076 part E, plan.md 13.4 item 2).
+
+    The caller records the channel as not read at that tick, with this reason, and never gives
+    it its last value.
+    """
+
+    would_wait = True
+
+
+def read(wait: bool = True) -> dict:
+    """The state, read from the device. With `wait=False` it refuses rather than waits.
+
+    A read that may not wait takes the device lock without blocking and holds it for the length of
+    one read, so a command can be delayed by at most one read (card 076 part E). With the lock held
+    by a command, a sequence or another read it raises ReadWouldWait before touching the device.
+    `wait=True`, the default, is the read this module always had.
+    """
+    if wait:
+        return _read_state()
+    if not _LOCK.acquire(blocking=False):
+        raise ReadWouldWait(f"micromanager: a command, a sequence or another read holds this device's lock, and this read was asked not to wait")
+    try:
+        return _read_state()
+    finally:
+        _LOCK.release()
 
 
 def abort() -> dict:

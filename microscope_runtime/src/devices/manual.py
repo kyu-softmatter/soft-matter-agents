@@ -92,10 +92,24 @@ def open_sheets() -> list[dict]:
         return list(_OPEN.values())
 
 
-def read() -> dict:
+class ReadWouldWait(RuntimeError):
+    """A read asked not to wait found the device busy (card 076 part E, plan.md 13.4 item 2).
+
+    The caller records the channel as not read at that tick, with this reason, and never gives
+    it its last value.
+    """
+
+    would_wait = True
+
+
+def read(wait: bool = True) -> dict:
     """What is outstanding. There is no device state to report."""
-    with _LOCK:
+    if not _LOCK.acquire(blocking=wait):
+        raise ReadWouldWait(f"manual: a command, a sequence or another read holds this device's lock, and this read was asked not to wait")
+    try:
         return {"open_sheets": list(_OPEN), "completed": len(_HISTORY), "backend": "manual"}
+    finally:
+        _LOCK.release()
 
 
 def abort() -> dict:
