@@ -37,18 +37,21 @@
   "proof": {
     "fixtures": [
       {
-        "path": "a tree holding one harness_retro missing required fields, and no card",
+        "path": "contracts/history_fixtures.py, fixture_01_an_artifact_in_a_tree_without_cards_is_judged: a built repository with contracts/examples (every card) removed in a commit of its own, then a retro missing verdict; the row expects check 1 FAIL 'verdict' is a required property. A history row and not a rejected group, because --expect-fail judges every group in one bundle beside the other fixtures' cards, so a group cannot reach a tree without cards",
         "reproduces": "INC-20261022-04",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "HEAD's validator at 351aecf9 on a copy of contracts/: the row BROKEN, check 1 N/A no cards found (builder's run)",
+        "watched_passing_after": "7ca41a48: the row holds, the missing verdict the only check 1 line on the build (builder's run). Also read back by this seat: its scratch probe, a four-field retro and no card, gave check 1 N/A and 0 failed at 6e74dbdc and ten check 1 FAILs at 7ca41a48"
       }
     ],
     "replay": {
-      "range": null,
-      "new_fail_on_accepted": null,
-      "run_line": null
+      "range": "4734d8ae..351aecf9, every commit reachable from HEAD",
+      "new_fail_on_accepted": 0,
+      "run_line": "not a validator run: contracts/validate.py and the card contracts/examples/goal.json arrived together at 4734d8ae and goal.json was never deleted; of 3116 commits reachable, the 945 without goal.json carry no contracts/validate.py (dino-autofocus history from the subtree import, never gated here), so every tree this gate judged held a card (builder's count)"
     },
-    "equivalence": null
+    "equivalence": {
+      "before": "validator 0 failed at 351aecf9 plus 5 uncommitted paths [dirty d638e8d1], check 1 reading 417 cards and 195 thread ledgers (builder's run)",
+      "after": "--expect-fail 72/72 and 104/104 with check 1 lines identical to the run at HP-014; history_fixtures 50/50 (builder's run)"
+    }
   },
   "reach": {
     "already_running": [
