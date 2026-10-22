@@ -3,11 +3,17 @@
   "$id": "harness_incident.schema.json",
   "title": "contracts/harness/incidents.jsonl, one line -- one thing that happened to the harness, with what shows it",
   "description": "One incident, one line, append-only (plan.md 8.3, loop step 1). Before this file existed, incidents between sessions lived only in commit messages and in prose in the root CLAUDE.md and 8.2. Prose goes stale in both directions, and nothing counts it. One of the 2026-10-15 incidents, a commit left unmade by a lock race, is written down nowhere but one sentence of 8.3. A line names its class and not just the instance, so 8.3's measuring step can count recurrences of a class off this file rather than off prose. It also says what now enforces the class, which is what 8.3 rule 6 needs before a narrative can leave the instruction files. Every line carries at least one piece of evidence. When the only evidence is a sentence of prose, it says so as prose_only rather than borrowing a commit that does not show it. This is a line schema: the file is JSONL and is judged line by line, the way check 29 judges failures.jsonl.",
+  "$defs": {
+    "incident_id": {
+      "type": "string",
+      "pattern": "^INC-([0-9]{8}|undated)-([a-z][a-z0-9]*(-[a-z][a-z0-9]*)*-)?[0-9]{2}$",
+      "description": "An incident id, in either form. The one definition of it (HP-014, 2026-10-22): harness_proposal.schema.json and harness_retro.schema.json cite incidents by id and reference this, so the three schemas cannot drift apart. Until HP-014 they each held a copy, and HP-013 widened one of the three. contracts/validate.py's INCIDENT_ID is the same shape with named groups, because check 89 reads the date and the machine word out of it."
+    }
+  },
   "type": "object",
   "properties": {
     "id": {
-      "type": "string",
-      "pattern": "^INC-([0-9]{8}|undated)-([a-z][a-z0-9]*(-[a-z][a-z0-9]*)*-)?[0-9]{2}$",
+      "$ref": "#/$defs/incident_id",
       "description": "INC-<YYYYMMDD>-<nn>, the date it happened, nn in order of recording within that date. Unique in the file. 'undated' when the source gives no date, which is itself worth knowing. Or INC-<YYYYMMDD>-<machine>-<nn> (HP-013, 2026-10-22), for a harness seat on another machine, so that two seats recording on the same day never mint the same id; the machine word is the recording seat's own and check 89 requires it in recorded_by."
     },
     "on": {

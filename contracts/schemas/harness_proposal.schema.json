@@ -36,14 +36,14 @@
     "answers": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$" },
+      "items": { "$ref": "harness_incident.schema.json#/$defs/incident_id" },
       "description": "The incidents this change answers, by id in incidents.jsonl. A change that answers no recorded incident has nothing the replay or the measuring step can count it against."
     },
     "classification": {
       "type": "object",
       "description": "8.3 loop step 2: the commit that names a class is where its other members are missed, so the members found and where they were looked for are both written down.",
       "properties": {
-        "members_found": { "type": "array", "items": { "type": "string", "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$" } },
+        "members_found": { "type": "array", "items": { "$ref": "harness_incident.schema.json#/$defs/incident_id" } },
         "looked_in": { "type": "array", "minItems": 1, "items": { "type": "string" } }
       },
       "required": ["members_found", "looked_in"],

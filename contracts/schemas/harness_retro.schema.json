@@ -28,7 +28,7 @@
         "additionalProperties": false
       }
     },
-    "new_incidents": { "type": "array", "items": { "type": "string", "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$" } },
+    "new_incidents": { "type": "array", "items": { "$ref": "harness_incident.schema.json#/$defs/incident_id" } },
     "measured": {
       "type": "array",
       "description": "8.3 loop step 7: for each class whose answer has landed, whether it recurred since, counted off the record.",

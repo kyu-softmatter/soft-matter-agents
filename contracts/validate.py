@@ -8755,7 +8755,8 @@ def _harness_home(rel: str) -> str | None:
 # INC-<date>-<machine>-<nn> for a harness seat on another machine. A machine
 # word is lower-case letters and digits, starting with a letter, possibly in
 # hyphenated parts (kyuhwan-macbook); nn is two digits, so the two never blur.
-# The same shape is harness_incident.schema.json's id pattern.
+# The same shape is harness_incident.schema.json's $defs/incident_id, the one
+# definition the retro and proposal schemas reference (HP-014).
 INCIDENT_ID = re.compile(r"^INC-(?P<date>[0-9]{8}|undated)-"
                          r"(?:(?P<machine>[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*)*)-)?[0-9]{2}$")
 

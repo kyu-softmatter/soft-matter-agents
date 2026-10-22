@@ -1083,7 +1083,13 @@ def fixture_89_two_machines_record_on_one_day(repo: Path) -> str:
     paths, contracts/harness/. Under the date-only form both would mint
     INC-<date>-01 and both would write retro/<date>.json, and the second
     commit would be refused or conflict. With the machine word each mints its
-    own ids and writes its own retro, and the set passes. The live records
+    own ids and writes its own retro, and the set passes.
+
+    HP-014 (2026-10-22) added the proposal and the check 1 row. HP-013 widened
+    the id in the incident schema alone, and the retro and proposal schemas
+    kept the old form, so this build's two retros failed check 1 while the
+    rows here read only checks 89 and 13. Now a retro and a proposal each cite
+    a machine-word id, and check 1 has to pass over them. The live records
     every built repository copies are taken out in a commit of their own
     first, so the range judges only the two seats' records: their commit refs
     are the real repository's and resolve nowhere here.
@@ -1111,6 +1117,24 @@ def fixture_89_two_machines_record_on_one_day(repo: Path) -> str:
           + json.dumps(incident("INC-20261022-scope-01", scope)) + "\n")
     write(repo, "contracts/harness/retro/20261022-office.json", retro(office, ["INC-20261022-office-01"]))
     write(repo, "contracts/harness/retro/20261022-scope.json", retro(scope, ["INC-20261022-scope-01"]))
+    write(repo, "contracts/harness/proposals/HP-901.json", {
+        "artifact": "harness_proposal", "schema_version": "0.1", "id": "HP-901",
+        "title": "A proposal from the microscope computer's harness seat", "drafted_by": scope,
+        "drafted_on": "2026-10-22", "kind": "reshape", "class": "head-moves-between-read-and-write",
+        "answers": ["INC-20261022-scope-01"],
+        "classification": {"members_found": ["INC-20261022-office-01", "INC-20261022-scope-01"],
+                           "looked_in": ["the fixture's incidents.jsonl"]},
+        "changes": [{"path": "contracts/tools/seat_commit.py", "owner": "any manager",
+                     "change": "Nothing; the fixture needs a proposal that cites the ids."}],
+        "touches_core": [], "needs_threshold": False,
+        "proof": {"fixtures": [], "replay": {"range": None, "new_fail_on_accepted": None, "run_line": None},
+                  "equivalence": {"before": None, "after": None}},
+        "reach": {"already_running": [], "how_they_learn": "the fixture has no one running",
+                  "use_site": None},
+        "revert": "git revert <landing commit>"})
+    write(repo, "contracts/harness/ledger.jsonl",
+          json.dumps({"at": "2026-10-22T12:00:00Z", "proposal": "HP-901", "outcome": "drafted",
+                      "by_seat": scope}) + "\n")
     commit(repo, "two harness seats on two machines record on one day", "contracts/harness", seat=office)
     return f"{start}..HEAD"
 
@@ -1248,8 +1272,9 @@ FIXTURES = [
     # two_machines_one_id and machine_word_not_its_seats. Two rows on one
     # built repository: the records pass check 89, and the machine-word retro
     # names pass check 13, which a narrower ALLOWED_PATHS line would refuse.
-    (89, "PASS", "2 lines, 0 proposals and 2 retros", fixture_89_two_machines_record_on_one_day),
+    (89, "PASS", "3 lines, 1 proposals and 2 retros", fixture_89_two_machines_record_on_one_day),
     (13, "PASS", "files sit in declared paths", fixture_89_two_machines_record_on_one_day),
+    (1, "PASS", "conform to their schema", fixture_89_two_machines_record_on_one_day),
 ]
 
 
