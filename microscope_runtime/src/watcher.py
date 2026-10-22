@@ -67,12 +67,20 @@ class Backend:
     def ask(self, state_text: str, options: list[dict], images: list[dict] | None) -> dict:
         raise NotImplementedError
 
+    def judge(self, judgement: str, prompt: str, allowed_codes: list[str], images: list[dict] | None) -> dict:
+        """DM-1, DM-2 or DM-4 (plan.md 13.5, card 081): the prompt text, the plan's codes, the reduced images
+        or None in; `{"status", "answer", "reason_codes" | "cause_label", "score"?, "error"?}` out."""
+        raise NotImplementedError
+
 
 class NoneBackend(Backend):
     name, version, kind = "none", None, "none"
 
     def ask(self, state_text, options, images):
         raise RuntimeError("the none backend records states and asks nobody")
+
+    def judge(self, judgement, prompt, allowed_codes, images):
+        raise RuntimeError("the none backend asks nobody")
 
 
 class TestDoubleBackend(Backend):
@@ -91,6 +99,20 @@ class TestDoubleBackend(Backend):
         weights = [digest[i % len(digest)] + 1 for i in range(len(ids))]
         total = float(sum(weights))
         return {"probabilities": {i: w / total for i, w in zip(ids, weights)}}
+
+    def judge(self, judgement, prompt, allowed_codes, images):
+        """Deterministic from the prompt text: about one in six abstains, the rest answer. Not a model."""
+        digest = hashlib.sha256((judgement + "|" + prompt + "|" + ",".join(allowed_codes)).encode("utf-8")).digest()
+        if digest[0] % 6 == 0:
+            return {"status": "ABSTAIN"}
+        yes = digest[1] % 2 == 0
+        if judgement == "DM-4":
+            causes = [c for c in allowed_codes if c != "unknown"]
+            if yes and causes:
+                return {"status": "OK", "answer": "YES", "cause_label": causes[digest[2] % len(causes)]}
+            return {"status": "OK", "answer": "NO", "cause_label": "unknown"}
+        return {"status": "OK", "answer": "YES" if yes else "NO",
+                "reason_codes": [allowed_codes[digest[2] % len(allowed_codes)]]}
 
 
 def make_backend(name: str, device_backend: str) -> Backend:

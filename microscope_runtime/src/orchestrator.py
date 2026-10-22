@@ -919,7 +919,8 @@ class Orchestrator:
         self._stream.flush()
 
     def begin_run(self, folder: Path, run_id: str, plan_id, revision, watcher=None,
-                  watcher_event: dict | None = None) -> dict:
+                  watcher_event: dict | None = None, judgements=None,
+                  judgements_event: dict | None = None) -> dict:
         """Open runs/<run_id>/events.jsonl and the stop channel; announce both in one line.
 
         The first line is `run_started`, carrying the stop channel's address,
@@ -954,6 +955,13 @@ class Orchestrator:
             watcher.start()
             self._sampler = _WatcherSampler(self, watcher, watcher.cadence_s)
             self._sampler.start()
+        # THE JUDGEMENTS (plan.md 13.5, card 081) say they are on or off in the same breath: DM-1, DM-2 and
+        # DM-4 record only, and a block that cannot be asked never stops the run.
+        if judgements_event is not None:
+            self.record(**judgements_event)
+        if judgements is not None:
+            self._judgements = judgements
+            judgements.start()
         return addr
 
     def end_run(self, how: str, **detail) -> None:
@@ -975,6 +983,17 @@ class Orchestrator:
             if getattr(watcher, "failure", None):
                 detail["watcher_failure"] = watcher.failure
         self._sampler = self._watcher = None
+        judgements = getattr(self, "_judgements", None)
+        if judgements is not None:
+            try:
+                judgements.close()
+                self._drain_judgements()
+                detail["judgements"] = {"reached": dict(judgements.reached), "unreached": judgements.unreached()}
+            except Exception as exc:                    # noqa: BLE001 - said, never raised
+                self._judgements_failure = f"{type(exc).__name__}: {exc}"
+            if getattr(self, "_judgements_failure", None):
+                detail["judgements_failure"] = self._judgements_failure
+            self._judgements = None
         stop = getattr(self, "_stop", None)
         if stop is not None:
             stop.close()
@@ -1014,6 +1033,56 @@ class Orchestrator:
                 watcher.put_frame(image, metadata, self.clock.offset())
             except Exception:                           # noqa: BLE001 - the run never pays for the watcher
                 pass
+        judgements = getattr(self, "_judgements", None)
+        if judgements is not None:
+            try:
+                judgements.put_frame(image, metadata, self.clock.offset())
+            except Exception:                           # noqa: BLE001 - nor for a judgement
+                pass
+
+    def reach_point(self, point: str) -> None:
+        """The run is at `point` (card 081): the judgements the plan names there are asked. They record only.
+
+        Nothing here returns a value the run reads, and a failure inside is kept for run_ended's detail and
+        never raised: no answer reaches a move, a skip, a retry, the stop channel or the person.
+        """
+        judgements = getattr(self, "_judgements", None)
+        if judgements is None:
+            return
+        try:
+            judgements.reach(point, self.clock.offset())
+            self._drain_judgements()
+        except Exception as exc:                        # noqa: BLE001 - the run never pays for a judgement
+            self._judgements_failure = f"{type(exc).__name__}: {exc}"
+
+    def _drain_judgements(self) -> None:
+        judgements = getattr(self, "_judgements", None)
+        if judgements is not None:
+            for event in judgements.drain():
+                self.record(**event)
+
+    def _judge_stop(self, reason: str) -> None:
+        """DM-4, after the abort and the save, once per run. It reads the saved window and acts on nothing."""
+        judgements = getattr(self, "_judgements", None)
+        if judgements is None or getattr(self, "_judge_stopped", False):
+            return
+        self._judge_stopped = True
+        try:
+            ring = getattr(self, "_pre_stop", None)
+            window = [] if ring is None else ring.window()
+            saved = None
+            for event in reversed(list(self.log)):
+                if event.get("event") == "pre_stop_buffer_saved":
+                    saved = dict(event["buffer"])
+                    break
+                if event.get("event") == "pre_stop_buffer_not_saved":
+                    saved = {"why": event.get("why")}
+                    break
+            recent = [e.get("event") for e in list(self.log)[-20:]]
+            judgements.stopped(reason, window, saved, recent, self.clock.offset())
+            self._drain_judgements()
+        except Exception as exc:                        # noqa: BLE001 - the run never pays for a judgement
+            self._judgements_failure = f"{type(exc).__name__}: {exc}"
 
     def acquire_sequence(self, channel_id: str, n: int, sink, timeout_s: float | None = None):
         """The channel's own sequence(), with the run's sink teed into the frame tap.
@@ -2187,6 +2256,9 @@ class Orchestrator:
         # THE SAVE COMES LAST (plan.md 4.6.1, card 082): lamps off and shutters closed and read back are
         # already in the log above, and nothing here sends a command to anything.
         self._save_pre_stop()
+        # DM-4 comes after the save and nothing waits on it (plan.md 13.5): it is asked on a thread and
+        # recorded, and it starts no recovery.
+        self._judge_stop(reason)
         return report
 
     #: The saved window, one file in the run folder: one JSON line (this format, the plan's length, the

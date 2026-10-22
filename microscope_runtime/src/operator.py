@@ -85,6 +85,7 @@ run_lock = _load("_mic_run_lock", Path(__file__).resolve().parent / "run_lock.py
 mm_gate = _load("_mic_mm_config_gate", Path(__file__).resolve().parent / "mm_config_gate.py")
 #: The run-time watcher (card 076): it records and never acts, and holds nothing of this module.
 watcher_mod = _load("_mic_watcher", Path(__file__).resolve().parent / "watcher.py")
+judgements_mod = _load("_mic_judgements", Path(__file__).resolve().parent / "judgements.py")
 
 #: Where the one-run-at-a-time lock lives (card 062). None means
 #: run_lock.default_path(), outside this tree. Tests point it elsewhere.
@@ -1151,7 +1152,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
         root: Path | None = None, mm_config: Path | None = None,
-        config_loader=None, watcher_backend=None) -> dict:
+        config_loader=None, watcher_backend=None, judgement_backend=None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1189,6 +1190,18 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         else:
             watcher_obj = watcher_mod.make_backend(watcher_backend or "none", backend)
     except watcher_mod.BackendRefused as exc:
+        raise Refusal(str(exc)) from None
+    # THE JUDGEMENTS' BACKEND IS A RUN ARGUMENT TOO (plan.md 13.5, card 081), chosen the same way and refused
+    # the same way: the test double on mock only, named nowhere it is `none` and asks nobody.
+    try:
+        if callable(getattr(judgement_backend, "judge", None)):
+            if judgement_backend.kind == "test_double" and backend != "mock":
+                raise watcher_mod.BackendRefused("the test double is refused on every backend but mock, so "
+                                                 f"no instrument run ever carries its answer; this run's backend is {backend!r}")
+            judge_obj = judgement_backend
+        else:
+            judge_obj = judgements_mod.make_backend(judgement_backend or "none", backend)
+    except (watcher_mod.BackendRefused, judgements_mod.W.BackendRefused) as exc:
         raise Refusal(str(exc)) from None
     agent = agent_root(root)
     if root is not None and runs_root is None:
@@ -1255,14 +1268,20 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
             folder.mkdir(parents=True, exist_ok=True)
             watcher, watcher_event = watcher_mod.build(plan, watcher_obj, folder, o.clock.offset,
                                                        orch.is_light_command)
+            judgements, judgements_event = judgements_mod.build(plan, judge_obj, folder, o.clock.offset)
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
-                        revision=plan.get("revision"), watcher=watcher, watcher_event=watcher_event)
+                        revision=plan.get("revision"), watcher=watcher, watcher_event=watcher_event,
+                        judgements=judgements, judgements_event=judgements_event)
         elif plan.get("watcher") is not None:
             o.record(event="watcher_off", watcher={"why": "did_not_start", "detail": (
                 "no run folder (no --write): the watcher keeps each state whole in the run folder, so "
                 "it is not started")})
         else:
             o.record(event="watcher_off", watcher={"why": "plan_declares_no_watcher"})
+        if folder is None and plan.get("judgements") is not None:
+            o.record(event="judgements_off", **{"from": "judgements"}, judgements={"why": "did_not_start", "detail": (
+                "no run folder (no --write): each request's context is kept whole in the run folder, so "
+                "the judgements are not started")})
         mm_load = None
         if mm_checked is not None:
             mm_load = lambda: _load_mm_config(o, mm_checked, folder, config_loader)    # noqa: E731
@@ -1446,14 +1465,21 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
                                                  for r in failed)[:400]))
 
     if observe is not None:
+        # THE POINTS THE RUN REACHES (plan.md 13.5, card 081), which a plan's judgements name: `run_start`
+        # after the commands went out and before the first measurement, then around each measurement
+        # `before_measure:<stop criterion id>` and `after_measure:<id>`. Reaching one asks what the plan
+        # names there and records; nothing is read back from it.
+        o.reach_point("run_start")
         for monitor in monitors:
             if getattr(o, "stopped_from_outside", False):
                 # Stopped from outside: the abort has run, and no monitor is
                 # evaluated after it, so nothing more is decided on this run.
                 break
+            o.reach_point(f"before_measure:{monitor.id}")
             value = observe(monitor.metric)
             if getattr(o, "stopped_from_outside", False):
                 break
+            o.reach_point(f"after_measure:{monitor.id}")
             if value is None:
                 o.record(event="monitor_blind", criterion=monitor.id, metric=monitor.metric)
                 o.abort(reason=f"{monitor.metric} cannot be observed, so {monitor.id} cannot be evaluated")
@@ -1845,6 +1871,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--watcher-backend", default=None, choices=["none", "test_double"],
                         help="which backend answers the run-time watcher (card 076): none records states and "
                              "asks nobody; test_double is refused on every backend but mock. Never a plan field")
+    parser.add_argument("--judgement-backend", default=None, choices=["none", "test_double"],
+                        help="which backend answers DM-1, DM-2 and DM-4 (card 081): none asks nobody; test_double "
+                             "is refused on every backend but mock. Never a plan field")
     parser.add_argument("--handover-objective", default=None,
                         help="the lens the person states is in place, passed exactly and never "
                              "inferred or defaulted (card 069)")
@@ -1859,7 +1888,8 @@ def main(argv: list[str] | None = None) -> int:
         # and events.jsonl exist from the start, beside the stop channel.
         record = run(args.plan, run_id=args.run_id, backend=args.backend,
                      runs_root=AGENT / "runs" if args.write else None,
-                     handover=handover, mm_config=args.mm_config, watcher_backend=args.watcher_backend)
+                     handover=handover, mm_config=args.mm_config, watcher_backend=args.watcher_backend,
+                     judgement_backend=args.judgement_backend)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
