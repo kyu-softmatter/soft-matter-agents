@@ -19,13 +19,14 @@ produces quietly wrong data (4.6.8, 4.6.9).
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import socket
 import sys
 import threading
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -624,6 +625,69 @@ class _StopChannel(threading.Thread):
             self.join(2.0)
 
 
+class _PreStopBuffer:
+    """The last `length_s` seconds of the frames a run already acquired, kept for a stop (card 082).
+
+    IT COMMANDS NOTHING AND HOLDS NO CORE. It is handed frames by the orchestrator's tee, after the run's
+    own sink has had each one, keeps a COPY with the frame's `t_mono`, and drops what has aged out by that
+    clock and not by a count -- the rate is the run's own, so a faster camera simply keeps more frames.
+    It never triggers an acquisition, a snap or a light: with no frame arriving it holds nothing new.
+
+    A stop freezes it (`stop_at`): nothing offered afterwards is kept, so a frame still in flight when the
+    abort began can neither join the window nor push an older frame out of it. `window()` is then the frames
+    from `stop_t - length_s` to `stop_t`, both ends inside. `put` takes its copy before the lock and swaps
+    under it, so the run's thread never waits on anything slower than a deque append.
+    """
+
+    def __init__(self, length_s: float) -> None:
+        self._length_s = float(length_s)
+        self._lock = threading.Lock()
+        self._ring: deque = deque()
+        self._next = 0
+        self._stop_t: float | None = None
+
+    @property
+    def length_s(self) -> float:
+        return self._length_s
+
+    def put(self, image, metadata, t_mono: float) -> None:
+        if self._stop_t is not None:
+            return
+        copy = None
+        if self._length_s > 0:
+            copy = image.copy() if hasattr(image, "copy") else bytes(image)
+        with self._lock:
+            if self._stop_t is not None:
+                return
+            index = self._next
+            self._next += 1
+            if copy is None:
+                return
+            self._ring.append((index, float(t_mono), copy, dict(metadata or {})))
+            cutoff = float(t_mono) - self._length_s
+            while self._ring and self._ring[0][1] < cutoff:
+                self._ring.popleft()
+
+    def stop_at(self, t_mono: float) -> None:
+        with self._lock:
+            if self._stop_t is None:
+                self._stop_t = float(t_mono)
+
+    def kept(self) -> int:
+        with self._lock:
+            return len(self._ring)
+
+    def window(self) -> list:
+        """(index, t_mono, frame copy, metadata) for each frame inside the window, oldest first."""
+        with self._lock:
+            entries = list(self._ring)
+            stop_t = self._stop_t
+        if stop_t is None:
+            return entries
+        low = stop_t - self._length_s
+        return [e for e in entries if low <= e[1] <= stop_t]
+
+
 class _FrameTap(threading.Thread):
     """The latest frame a run's own acquisition produced, served on loopback (card 058).
 
@@ -821,6 +885,10 @@ class Orchestrator:
         # not proceed.
         self._completed: set[str] = set()
         self._aborted = threading.Event()
+        # The pre-stop buffer's length, as the plan wrote it, and whether a stop has dealt with it
+        # (card 082). `None` means the plan carries no buffer; the operator sets it before begin_run.
+        self.pre_stop_length_s: float | None = None
+        self._pre_stop_handled = False
         self._modules: dict[str, object] = {}
         # The person's hand-over statements, as answered in the seat's window.
         # The trap-step gate reads `objective` from here and nowhere else: the
@@ -865,6 +933,8 @@ class Orchestrator:
         self.stopped_from_outside = False
         self._stop = _StopChannel(self, run_id)
         self._tap = _FrameTap(self, run_id)
+        self._folder = folder
+        self._pre_stop = None if self.pre_stop_length_s is None else _PreStopBuffer(self.pre_stop_length_s)
         addr = self._stop.address()
         with self._log_lock:
             self._stream = open(folder / "events.jsonl", "a", encoding="utf-8")
@@ -932,6 +1002,12 @@ class Orchestrator:
         tap = getattr(self, "_tap", None)
         if tap is not None:
             tap.put(image, metadata, self.clock.offset())
+        ring = getattr(self, "_pre_stop", None)
+        if ring is not None:
+            try:
+                ring.put(image, metadata, self.clock.offset())
+            except Exception:                           # noqa: BLE001 - the run never pays for the buffer
+                pass
         watcher = getattr(self, "_watcher", None)
         if watcher is not None:
             try:
@@ -1997,6 +2073,9 @@ class Orchestrator:
         that refused (4.6.8).
         """
         self._aborted.set()
+        ring = getattr(self, "_pre_stop", None)
+        if ring is not None:
+            ring.stop_at(self.clock.offset())           # the window ends where the stop began (card 082)
         self.record(event="abort_begin", reason=reason)
         report: dict[str, object] = {"reason": reason, "shutters": [], "channels": []}
 
@@ -2105,7 +2184,68 @@ class Orchestrator:
                                            "error": str(exc)})
 
         self.record(event="abort_end", report=report)
+        # THE SAVE COMES LAST (plan.md 4.6.1, card 082): lamps off and shutters closed and read back are
+        # already in the log above, and nothing here sends a command to anything.
+        self._save_pre_stop()
         return report
+
+    #: The saved window, one file in the run folder: one JSON line (this format, the plan's length, the
+    #: instant the stop began, and one entry per frame -- index, t_mono, byte count, shape, dtype and the
+    #: acquisition's metadata), then each frame's bytes in that order.
+    PRE_STOP_FILE = "pre_stop_buffer.frames"
+    PRE_STOP_FORMAT = "pre-stop-buffer-1"
+
+    def _save_pre_stop(self) -> None:
+        """Save the ring whole after an abort, or say why not. Once per run, never retried, never raises.
+
+        A save sends no command and asks for no frame: it writes copies the run already made. A failure is
+        a record (`pre_stop_buffer_not_saved`, why `save_failed`) and not a second attempt, and nothing
+        here can reach a light.
+        """
+        length = self.pre_stop_length_s
+        if length is None or self._pre_stop_handled:
+            return
+        self._pre_stop_handled = True
+        said = {"from": "pre_stop_buffer", "length_s": length, "frames": 0}
+        try:
+            ring = getattr(self, "_pre_stop", None)
+            if ring is None:
+                self.record(event="pre_stop_buffer_not_saved", why="no_run_folder", **said)
+                return
+            if length == 0:
+                self.record(event="pre_stop_buffer_not_saved", why="length_zero", **said)
+                return
+            window = ring.window()
+            if not window:
+                self.record(event="pre_stop_buffer_not_saved", why="no_frames", **said)
+                return
+            entries, bodies = [], []
+            for index, t_mono, frame, metadata in window:
+                if hasattr(frame, "tobytes"):
+                    body, shape, dtype = frame.tobytes(), list(getattr(frame, "shape", [])), str(frame.dtype)
+                else:
+                    body, shape, dtype = bytes(frame), [len(frame)], "bytes"
+                entries.append({"index": index, "t_mono": t_mono, "bytes": len(body), "shape": shape,
+                                "dtype": dtype, "metadata": metadata})
+                bodies.append(body)
+            stopped = ring._stop_t
+            header = json.dumps({"format": self.PRE_STOP_FORMAT, "length_s": length,
+                                 "stopped_at_t_mono": stopped, "frames": entries}, default=str)
+            data = header.encode("utf-8") + b"\n" + b"".join(bodies)
+            (Path(self._folder) / self.PRE_STOP_FILE).write_bytes(data)
+            first, last = window[0], window[-1]
+            span = last[1] - first[1]
+            rate = (len(window) - 1) / span if len(window) >= 2 and span > 0 else None
+            self.record(event="pre_stop_buffer_saved", **{"from": "pre_stop_buffer"}, buffer={
+                "length_s": length, "frames": len(window), "recorded_rate_hz": rate,
+                "first_frame_index": first[0], "last_frame_index": last[0], "path": self.PRE_STOP_FILE,
+                "sha256": "sha256:" + hashlib.sha256(data).hexdigest()})
+        except Exception as exc:                            # noqa: BLE001 - recorded, never retried
+            try:
+                self.record(event="pre_stop_buffer_not_saved", why="save_failed",
+                            detail=f"{type(exc).__name__}: {exc}", **said)
+            except Exception:                               # noqa: BLE001
+                pass
 
     def _close_shutter(self, cid: str, element: str, entry: dict | None) -> dict:
         """One recognised shutter's row: what was sent, what came back, what that shows.

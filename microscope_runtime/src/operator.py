@@ -1120,6 +1120,33 @@ def compile_monitors(plan: dict) -> list[Monitor]:
 # --------------------------------------------------------------------------- #
 
 
+def pre_stop_buffer_length(plan: dict) -> float | None:
+    """The plan's `pre_stop_buffer.length_s`, or a refusal (plan.md 4.6.1, card 082).
+
+    A plan authored by microscope_agent reaches a device, and a stop keeps and saves the last seconds
+    before it, so how long is the plan's to say: there is no default and zero counts only if it is
+    written (2.1 rule 2: unstated is a stop). A block that is there is judged by what the schema says of
+    it -- an object whose only key is `length_s`, a finite number of at least 0 -- for any author. A plan
+    authored by anyone else and carrying no block returns None: it is exempt, and the run records no
+    buffer.
+    """
+    block = plan.get("pre_stop_buffer")
+    if block is None:
+        if plan.get("author") == "microscope_agent":
+            raise Refusal(f"plan {plan.get('id')} was authored by microscope_agent and has no top-level "
+                          "pre_stop_buffer block. A stop keeps and saves the last seconds before it, how "
+                          "long is the plan's to say and there is no default; zero counts only if it is "
+                          "written (plan.md 4.6.1: unstated is a stop). Nothing was sent")
+        return None
+    length = block.get("length_s") if isinstance(block, dict) else None
+    if (not isinstance(block, dict) or set(block) != {"length_s"} or isinstance(length, bool)
+            or not isinstance(length, (int, float)) or not math.isfinite(length) or length < 0):
+        raise Refusal(f"plan {plan.get('id')}'s pre_stop_buffer block must be an object with exactly "
+                      f"length_s, a number of seconds of at least 0, and has {block!r} (plan.md 4.6.1: "
+                      "no rate field, no default). Nothing was sent")
+    return length
+
+
 def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
@@ -1169,6 +1196,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     plan = json.loads(Path(plan_path).read_text())
     if plan.get("card") != "plan":
         raise Refusal(f"{plan_path} is a {plan.get('card')!r} card, not a plan")
+    pre_stop_length = pre_stop_buffer_length(plan)      # refuses before any lock, folder or command
 
     safety = load_safety() if root is None else load_safety(agent)     # refuses when absent
     decision = authorise(plan) if root is None else authorise(plan, approvals_on_disk(agent))
@@ -1218,6 +1246,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     lock = _take_run_lock({"kind": "plan", "plan_id": plan.get("id"), "run_id": run_id})
     try:
         o = orch.Orchestrator(backend=backend)
+        o.pre_stop_length_s = pre_stop_length
         folder = None
         if runs_root is not None:
             folder = Path(runs_root) / run_id
