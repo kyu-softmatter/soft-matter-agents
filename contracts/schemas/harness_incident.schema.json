@@ -7,8 +7,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^INC-([0-9]{8}|undated)-[0-9]{2}$",
-      "description": "INC-<YYYYMMDD>-<nn>, the date it happened, nn in order of recording within that date. Unique in the file. 'undated' when the source gives no date, which is itself worth knowing."
+      "pattern": "^INC-([0-9]{8}|undated)-([a-z][a-z0-9]*(-[a-z][a-z0-9]*)*-)?[0-9]{2}$",
+      "description": "INC-<YYYYMMDD>-<nn>, the date it happened, nn in order of recording within that date. Unique in the file. 'undated' when the source gives no date, which is itself worth knowing. Or INC-<YYYYMMDD>-<machine>-<nn> (HP-013, 2026-10-22), for a harness seat on another machine, so that two seats recording on the same day never mint the same id; the machine word is the recording seat's own and check 89 requires it in recorded_by."
     },
     "on": {
       "type": [

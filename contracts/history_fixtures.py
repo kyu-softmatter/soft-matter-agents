@@ -1076,6 +1076,45 @@ def fixture_89_a_harness_log_line_rewritten(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_89_two_machines_record_on_one_day(repo: Path) -> str:
+    """HP-013 (2026-10-22): two harness seats on two machines, one day.
+
+    harness-office-20261016-1 and harness-scope-20261019-1 hold the same
+    paths, contracts/harness/. Under the date-only form both would mint
+    INC-<date>-01 and both would write retro/<date>.json, and the second
+    commit would be refused or conflict. With the machine word each mints its
+    own ids and writes its own retro, and the set passes. The live records
+    every built repository copies are taken out in a commit of their own
+    first, so the range judges only the two seats' records: their commit refs
+    are the real repository's and resolve nowhere here.
+    """
+    base(repo)
+    shutil.rmtree(repo / "contracts" / "harness")
+    start = commit(repo, "the copied live harness records, out", "contracts", seat="harness-office-20261016-1")
+
+    def incident(iid: str, seat: str) -> dict:
+        return {"id": iid, "on": "2026-10-22", "class": "head-moves-between-read-and-write",
+                "what": f"An incident {seat} recorded on 2026-10-22.",
+                "evidence": [{"kind": "prose_only", "ref": "CLAUDE.md@5df5a6f8:148-166"}], "seats": [],
+                "source": "CLAUDE.md@5df5a6f8:148-166", "enforced_by": None, "recorded_by": seat,
+                "recorded_on": "2026-10-22"}
+
+    def retro(seat: str, ids: list) -> dict:
+        return {"artifact": "harness_retro", "schema_version": "0.1", "seat": seat, "on": "2026-10-22",
+                "trigger": "daily", "tree": "the fixture's", "verdict": "verdict: fixture",
+                "observed": [{"source": "fixture", "path": None, "window": "-", "found": "nothing"}],
+                "new_incidents": ids, "measured": [], "proposals": [], "landed_today": [], "next": []}
+
+    office, scope = "harness-office-20261016-1", "harness-scope-20261019-1"
+    write(repo, "contracts/harness/incidents.jsonl",
+          json.dumps(incident("INC-20261022-office-01", office)) + "\n"
+          + json.dumps(incident("INC-20261022-scope-01", scope)) + "\n")
+    write(repo, "contracts/harness/retro/20261022-office.json", retro(office, ["INC-20261022-office-01"]))
+    write(repo, "contracts/harness/retro/20261022-scope.json", retro(scope, ["INC-20261022-scope-01"]))
+    commit(repo, "two harness seats on two machines record on one day", "contracts/harness", seat=office)
+    return f"{start}..HEAD"
+
+
 def _real_permit(repo: Path, extra: dict, message: str) -> str:
     """A scope approval in an agent's approvals/, where real permits live.
 
@@ -1205,6 +1244,12 @@ FIXTURES = [
                  "clock [microscope_agent/approvals/", fixture_19_a_real_permit_declaring_an_example_instant),
     (19, "FAIL", "(the wall clock), but is not marked voided [microscope_agent/approvals/",
      fixture_19_a_real_permit_is_judged_by_the_wall_clock),
+    # HP-013: the accepted half. Its rejected halves are the check89 groups
+    # two_machines_one_id and machine_word_not_its_seats. Two rows on one
+    # built repository: the records pass check 89, and the machine-word retro
+    # names pass check 13, which a narrower ALLOWED_PATHS line would refuse.
+    (89, "PASS", "2 lines, 0 proposals and 2 retros", fixture_89_two_machines_record_on_one_day),
+    (13, "PASS", "files sit in declared paths", fixture_89_two_machines_record_on_one_day),
 ]
 
 

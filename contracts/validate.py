@@ -1694,8 +1694,11 @@ ALLOWED_PATHS = [
     # The meta-harness's four records (8.3 HP-005, 2026-10-16), the names
     # section 7 already lists. Ruled a reshape, not a widening: declaring a
     # path the plan designed grants no seat reach it did not have. Check 89
-    # judges what lands here.
-    r"^contracts/harness/(incidents\.jsonl|ledger\.jsonl|proposals/HP-[0-9]{3}\.json|retro/[0-9]{8}(-[0-9]+)?\.json)$",
+    # judges what lands here. A retro may also carry its harness seat's
+    # machine word, retro/<date>-<machine>(-<n>).json (HP-013, 2026-10-22), so
+    # two seats' passes on one day are two files and never an add/add conflict.
+    r"^contracts/harness/(incidents\.jsonl|ledger\.jsonl|proposals/HP-[0-9]{3}\.json|"
+    r"retro/[0-9]{8}(-[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*)?(-[0-9]+)?\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -8748,6 +8751,15 @@ def _harness_home(rel: str) -> str | None:
     return g[0] if g else None
 
 
+# An incident id, in either form (HP-013, 2026-10-22): INC-<date>-<nn>, or
+# INC-<date>-<machine>-<nn> for a harness seat on another machine. A machine
+# word is lower-case letters and digits, starting with a letter, possibly in
+# hyphenated parts (kyuhwan-macbook); nn is two digits, so the two never blur.
+# The same shape is harness_incident.schema.json's id pattern.
+INCIDENT_ID = re.compile(r"^INC-(?P<date>[0-9]{8}|undated)-"
+                         r"(?:(?P<machine>[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*)*)-)?[0-9]{2}$")
+
+
 def check_89_harness_records(b: Bundle, commit_range: str | None = None,
                              staged: bool = False) -> list[Finding]:
     """The meta-harness's records hold together (plan.md 8.3, HP-005).
@@ -8851,14 +8863,30 @@ def check_89_harness_records(b: Bundle, commit_range: str | None = None,
                 out.append(Finding(89, FAIL, f"line {i}: incident id {iid} is already used above; an id "
                                              "names one incident", inc_rel))
             incident_ids.add(iid)
-            undated = isinstance(iid, str) and iid.startswith("INC-undated-")
+            # Two forms since HP-013 (2026-10-22): INC-<date>-<nn>, and
+            # INC-<date>-<machine>-<nn> for a harness seat on another machine,
+            # so two seats recording on the same day never mint the same id.
+            # The date is read by name, not by position, and an id this does
+            # not parse leaves its shape to the line schema above.
+            m = INCIDENT_ID.match(iid) if isinstance(iid, str) else None
+            undated = (m.group("date") == "undated") if m else \
+                (isinstance(iid, str) and iid.startswith("INC-undated-"))
             if undated != (rec.get("on") is None):
                 out.append(Finding(89, FAIL, f"line {i}: {iid} has on={rec.get('on')!r}; an undated id has "
                                              "on null, and a dated one has its date", inc_rel))
             elif not undated and isinstance(rec.get("on"), str) and isinstance(iid, str) \
-                    and iid[4:12] != rec["on"].replace("-", ""):
+                    and (m.group("date") if m else iid[4:12]) != rec["on"].replace("-", ""):
                 out.append(Finding(89, FAIL, f"line {i}: {iid} says one date and on says {rec['on']}",
                                    inc_rel))
+            # A machine word is the recording seat's own: it must appear as a
+            # whole word in recorded_by, or a seat could write another
+            # machine's id space and the collision this form exists to prevent
+            # comes back.
+            if m and m.group("machine") and isinstance(rec.get("recorded_by"), str) \
+                    and f"-{m.group('machine')}-" not in f"-{rec['recorded_by']}-":
+                out.append(Finding(89, FAIL, f"line {i}: {iid} carries the machine word "
+                                             f"{m.group('machine')!r}, which is not in its recording seat's "
+                                             f"name {rec['recorded_by']!r}", inc_rel))
             for ev in rec.get("evidence") or []:
                 if isinstance(ev, dict) and ev.get("kind") == "commit" and isinstance(ev.get("ref"), str):
                     wanted.setdefault(ev["ref"], []).append((inc_rel, f"line {i}: {iid}'s evidence"))

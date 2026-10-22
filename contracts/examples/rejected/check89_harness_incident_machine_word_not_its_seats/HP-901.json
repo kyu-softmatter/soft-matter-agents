@@ -1,0 +1,82 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-901",
+  "title": "Give the meta-harness's four records a schema, an allowed path and one check, so contracts/harness/ can exist",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-16",
+  "kind": "tighten",
+  "class": "incident-recorded-only-in-prose",
+  "answers": [
+    "INC-20261022-scope-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261022-scope-01"
+    ],
+    "looked_in": [
+      "the root CLAUDE.md, all of it, for incident narratives",
+      "plan.md 8.2 (lines 3257-3332) and 8.3 (lines 3333-3378)",
+      "commit messages since 2026-10-12, by grep for index.lock, refused, unmade, not made, stale, revert, wrong, race",
+      "every failures.jsonl in the tree",
+      "librarian_agent/queries/log.jsonl, refusals and gaps by day"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/schemas/harness_incident.schema.json",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "New line schema for contracts/harness/incidents.jsonl. Draft at D:\\sma-scratch\\harness-office-20261016-1\\draft\\contracts\\schemas\\harness_incident.schema.json, checked against the 2020-12 metaschema."
+    },
+    {
+      "path": "contracts/schemas/harness_proposal.schema.json",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "New artifact schema for contracts/harness/proposals/HP-<nnn>.json. It carries the ratchet: kind loosen or retire, or a non-empty touches_core, requires person_word; needs_threshold true requires threshold_question. The proposal's stage is deliberately absent and lives in the ledger. Draft beside the first."
+    },
+    {
+      "path": "contracts/schemas/harness_ledger_entry.schema.json",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "New line schema for contracts/harness/ledger.jsonl. landed and reverted require commit; landed requires revert_command, which is what the day's report to the person lists; handed requires to; refused, withdrawn and undecided require note. Draft beside the first."
+    },
+    {
+      "path": "contracts/schemas/harness_retro.schema.json",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "New artifact schema for contracts/harness/retro/<YYYYMMDD>.json (and <YYYYMMDD>-<n>.json for a second pass after a bench visit). Draft beside the first."
+    },
+    {
+      "path": "contracts/validate.py",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "Three edits. (1) ALLOWED_PATHS gains r\"^contracts/harness/(incidents\\.jsonl|ledger\\.jsonl|proposals/HP-[0-9]{3}\\.json|retro/[0-9]{8}(-[0-9]+)?\\.json)$\", the four names plan.md 7 already lists at line 2304 (ruled a reshape, above). (2) ARTIFACT_SCHEMA gains \"harness_proposal\" and \"harness_retro\", so check 1 judges the two JSON records the way it judges findings. (3) One new check over contracts/harness/, number the building seat assigns, refusing: a line of either JSONL file that fails its line schema; a JSONL file whose HEAD bytes are not a prefix of the new bytes (append-only, judged against HEAD as check 41 judges a commit); a duplicate incident id; an evidence ref of kind commit that does not resolve, and the same for a ledger commit; a proposal whose answers or members_found name an incident id the file does not hold; a ledger line naming a proposal with no file; a proposal file whose name and id differ; a landed ledger line for a proposal whose kind is loosen or retire or whose touches_core is non-empty, unless that proposal carries person_word; a landed ledger line for a proposal with needs_threshold true. No threshold is introduced anywhere: every refusal is a structural fact."
+    },
+    {
+      "path": "contracts/examples/rejected/",
+      "owner": "manager-microscope-20261003-1 (any manager: shared surface under contracts/)",
+      "change": "One rejected fixture per refusal of the new check, in a check<NN>_<what>/ group where the defect needs two files (a ledger line and its proposal), landed in the same commit as the check, each watched being accepted with the check switched off before it is watched being rejected with it on."
+    },
+    {
+      "path": "plan.md",
+      "owner": "architecture-20261003-1 (holds section 8)",
+      "change": "Section 8's list gains the new check's line, so check 42's three registrations agree, and section 7 line 2304 says the folder's records are built once this lands. architecture-20261003-1 also said it will write the ALLOWED_PATHS-is-not-a-widening distinction into 8.3 at its next edit."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "every running session: none writes contracts/harness/ except this seat, so a new check over that folder can refuse only this seat's commits"
+    ],
+    "how_they_learn": "Nothing to learn for any seat but this one. The validator is read from the working copy on every run, so the check reaches every commit from the moment it lands, with no restart. This seat learns by its next pass reading HEAD.",
+    "use_site": "the commit gate, which already runs the validator over the tree a commit would create"
+  },
+  "revert": "git revert <landing commit>, which removes the check and the schemas together; contracts/harness/ files committed after it would then be refused by check 13, which is the ordering this proposal exists to fix",
+  "notes": "The order is the repository's ordinary one for a new file, as validate.py's own ALLOWED_PATHS comments describe it: plan.md 7 lists the folder (done, line 2304); the seat's paths (done, 11f651b2); the allowed path and the schemas (this proposal); then the files. Until this lands, the harness seat keeps its folder off the working copy, so no seat's bare run picks up a FAIL for a path that is not yet allowed. The fixtures and replay fields are empty because the building seat fills them as it watches each one; this file says what to watch, not that it was watched. The class is a meta-class: an incident whose only record is a sentence of prose. INC-20261015-04, a commit left unmade by a lock race on 2026-10-15, is the member that prompted it -- it is written down nowhere but one sentence of plan.md 8.3. members_found lists every backfilled incident whose evidence is prose_only: 57 of 87, counted by a script over the draft incidents.jsonl selecting lines whose every evidence item has kind prose_only."
+}
