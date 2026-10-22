@@ -48,6 +48,30 @@ REGISTRY_LOOKUP = [
 ]
 
 
+def is_light_command(event: dict) -> bool:
+    """Whether a log event is a command to a light source software may command (card 076).
+
+    The sources are the declared LIGHT_SOURCES table's, matched by the device names it declares: a
+    command's params carry them as `Device.Property` keys or as a key of a nested settings dict. Only an
+    `apply` event can be one, and a source the table does not declare commandable never is.
+    """
+    if event.get("event") != "apply":
+        return False
+    params = event.get("params")
+    if not isinstance(params, dict):
+        return False
+    devices = {s["device"] for s in LIGHT_SOURCES if s["software_commandable"] and s["device"]}
+
+    def hit(mapping: dict, depth: int) -> bool:
+        for key, value in mapping.items():
+            if str(key).split(".")[0] in devices:
+                return True
+            if depth < 2 and isinstance(value, dict) and hit(value, depth + 1):
+                return True
+        return False
+    return hit(params, 0)
+
+
 class InterlockError(RuntimeError):
     """Raised before anything moves.
 
@@ -726,6 +750,56 @@ class _FrameTap(threading.Thread):
 # --------------------------------------------------------------------------- #
 
 
+class _WatcherSampler(threading.Thread):
+    """The orchestrator's half of the run-time watcher (card 076 part C, plan.md 13.4 item 2).
+
+    At the plan's cadence it takes the snapshot (`Orchestrator.watcher_snapshot`: `read(wait=False)` on the
+    channels this run opened, and nothing else) and hands the watcher DATA: the snapshot, the log since
+    the last tick and which channels have a read-back. It also moves the watcher's events into the run's
+    log. The watcher holds nothing of this object, so it cannot command or stop; this thread is what
+    reads, and it reads nothing once an abort has begun.
+    """
+
+    def __init__(self, orchestrator, watcher, cadence_s: float) -> None:
+        super().__init__(name="watcher-sampler", daemon=True)
+        self._o, self._w, self._cadence = orchestrator, watcher, float(cadence_s)
+        self._done = threading.Event()
+        self._seen = 0
+
+    def run(self) -> None:
+        next_due = self._o.clock.offset() + self._cadence
+        while not self._done.wait(0.01):
+            self.drain()
+            now = self._o.clock.offset()
+            if now < next_due:
+                continue
+            next_due = now + self._cadence
+            if self._o._aborted.is_set():
+                continue                                # no reads once an abort has begun
+            try:
+                self._tick(now)
+            except Exception as exc:                    # noqa: BLE001 - recorded, never silent, never fatal
+                self._o.record(event="snapshot", label="watcher", t_mono=now, states={"sampler": {
+                    "not_read": True, "why": f"the watcher's sampling failed: {type(exc).__name__}: {exc}"}})
+
+    def _tick(self, now: float) -> None:
+        states = self._o.watcher_snapshot(now)
+        with self._o._log_lock:
+            new = list(self._o.log[self._seen:])
+            self._seen = len(self._o.log)
+        channels = {cid: {"read_back": ch.read_back} for cid, ch in self._o.channels.items()}
+        self._w.tick({"t_mono": now, "states": states}, new, channels, now)
+
+    def drain(self) -> None:
+        for event in self._w.drain():
+            self._o.record(**event)
+
+    def stop(self) -> None:
+        self._done.set()
+        if self is not threading.current_thread():
+            self.join(3.0)
+
+
 class Orchestrator:
     def __init__(self, registry_path: Path | None = None, backend: str = "mock") -> None:
         self.channels, self.registry_source, self.registry_provenance = load_registry(registry_path)
@@ -776,7 +850,8 @@ class Orchestrator:
         self._stream.write(json.dumps(event, default=str) + "\n")
         self._stream.flush()
 
-    def begin_run(self, folder: Path, run_id: str, plan_id, revision) -> dict:
+    def begin_run(self, folder: Path, run_id: str, plan_id, revision, watcher=None,
+                  watcher_event: dict | None = None) -> dict:
         """Open runs/<run_id>/events.jsonl and the stop channel; announce both in one line.
 
         The first line is `run_started`, carrying the stop channel's address,
@@ -800,6 +875,15 @@ class Orchestrator:
                 self._stream_line(event)
         self._stop.start()
         self._tap.start()
+        # RIGHT AFTER run_started, the run says whether it is watched (plan.md 13.4 item 7): either
+        # watcher_started or watcher_off. A watcher that did not start never stops the run.
+        if watcher_event is not None:
+            self.record(**watcher_event)
+        if watcher is not None:
+            self._watcher = watcher
+            watcher.start()
+            self._sampler = _WatcherSampler(self, watcher, watcher.cadence_s)
+            self._sampler.start()
         return addr
 
     def end_run(self, how: str, **detail) -> None:
@@ -809,6 +893,18 @@ class Orchestrator:
         The channel closes first, so nothing can be stopped once the run says
         it has ended.
         """
+        # The watcher closes first and its last events (a question still open becomes
+        # watcher_unanswered, run_ended) are in the log before run_ended is written.
+        sampler, watcher = getattr(self, "_sampler", None), getattr(self, "_watcher", None)
+        if sampler is not None:
+            sampler.stop()
+        if watcher is not None:
+            watcher.close()
+            for event in watcher.drain():
+                self.record(**event)
+            if getattr(watcher, "failure", None):
+                detail["watcher_failure"] = watcher.failure
+        self._sampler = self._watcher = None
         stop = getattr(self, "_stop", None)
         if stop is not None:
             stop.close()
@@ -836,6 +932,12 @@ class Orchestrator:
         tap = getattr(self, "_tap", None)
         if tap is not None:
             tap.put(image, metadata, self.clock.offset())
+        watcher = getattr(self, "_watcher", None)
+        if watcher is not None:
+            try:
+                watcher.put_frame(image, metadata, self.clock.offset())
+            except Exception:                           # noqa: BLE001 - the run never pays for the watcher
+                pass
 
     def acquire_sequence(self, channel_id: str, n: int, sink, timeout_s: float | None = None):
         """The channel's own sequence(), with the run's sink teed into the frame tap.
@@ -2108,6 +2210,33 @@ class Orchestrator:
                 row["matched"] = pair[0] in (returned.get("verified") or [])
             rows.append(row)
         return rows
+
+    def watcher_snapshot(self, t_mono: float | None = None) -> dict:
+        """The watcher's snapshot (card 076 part C): `read(wait=False)` and nothing else.
+
+        Only channels this run's preflight reached are read: their interfaces were opened after the
+        ownership check passed, and a channel this run did not open is recorded as not open, never
+        opened to be read. A read never waits: a channel whose device is busy is recorded as not read,
+        with why, and is never carried forward as its last value. Once an abort has begun it reads nothing.
+        The snapshot is one `snapshot` event labelled `watcher`, so the reads are in the log for every reader.
+        """
+        began = self.clock.offset() if t_mono is None else t_mono
+        states: dict[str, dict] = {}
+        for cid in self.channels:
+            if self._aborted.is_set():
+                states[cid] = {"not_read": True, "why": "an abort began, so no more reads were taken"}
+            elif cid not in self._preflight_state:
+                states[cid] = {"not_open": True, "why": ("this run's preflight did not reach this channel, so its "
+                                                         "interface was not opened and is not opened to be read")}
+            else:
+                try:
+                    states[cid] = self.module_for(cid).read(wait=False)
+                except Exception as exc:                # noqa: BLE001 - an unread channel is a fact
+                    states[cid] = {"not_read": True,
+                                   "why": str(exc) if getattr(exc, "would_wait", False)
+                                   else f"{type(exc).__name__}: {exc}"}
+        self.record(event="snapshot", label="watcher", t_mono=began, states=states)
+        return states
 
     def snapshot(self, label: str) -> dict:
         """read() from every channel, gathered into the log around each step."""

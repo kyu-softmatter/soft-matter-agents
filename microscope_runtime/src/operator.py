@@ -83,6 +83,8 @@ orch = _load("_mic_orchestrator", Path(__file__).resolve().parent / "orchestrato
 run_lock = _load("_mic_run_lock", Path(__file__).resolve().parent / "run_lock.py")
 #: The configuration gate (card 069): what a hardware run may load.
 mm_gate = _load("_mic_mm_config_gate", Path(__file__).resolve().parent / "mm_config_gate.py")
+#: The run-time watcher (card 076): it records and never acts, and holds nothing of this module.
+watcher_mod = _load("_mic_watcher", Path(__file__).resolve().parent / "watcher.py")
 
 #: Where the one-run-at-a-time lock lives (card 062). None means
 #: run_lock.default_path(), outside this tree. Tests point it elsewhere.
@@ -1122,7 +1124,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
         root: Path | None = None, mm_config: Path | None = None,
-        config_loader=None) -> dict:
+        config_loader=None, watcher_backend=None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1148,6 +1150,19 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         raise Refusal(f"--mm-config {mm_config} is refused with the mock backend, not ignored: "
                       "the mock loads no Micro-Manager configuration, so a run that names one "
                       "would say it ran against a file it never touched")
+    # THE WATCHER'S BACKEND IS THIS RUN'S ARGUMENT, never the plan's (plan.md 13.4 item 5), and it is
+    # chosen before anything is read: the test double is refused on every backend but mock, so no
+    # instrument run ever carries its answer. Named nowhere, it is `none`: states recorded, nobody asked.
+    try:
+        if callable(getattr(watcher_backend, "ask", None)):         # a backend object, as tests hand in
+            if watcher_backend.kind == "test_double" and backend != "mock":
+                raise watcher_mod.BackendRefused("the test double is refused on every backend but mock, so "
+                                                 f"no instrument run ever carries its answer; this run's backend is {backend!r}")
+            watcher_obj = watcher_backend
+        else:
+            watcher_obj = watcher_mod.make_backend(watcher_backend or "none", backend)
+    except watcher_mod.BackendRefused as exc:
+        raise Refusal(str(exc)) from None
     agent = agent_root(root)
     if root is not None and runs_root is None:
         runs_root = agent / "runs"
@@ -1208,8 +1223,17 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
             folder = Path(runs_root) / run_id
             if folder.exists():
                 raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+            folder.mkdir(parents=True, exist_ok=True)
+            watcher, watcher_event = watcher_mod.build(plan, watcher_obj, folder, o.clock.offset,
+                                                       orch.is_light_command)
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
-                        revision=plan.get("revision"))
+                        revision=plan.get("revision"), watcher=watcher, watcher_event=watcher_event)
+        elif plan.get("watcher") is not None:
+            o.record(event="watcher_off", watcher={"why": "did_not_start", "detail": (
+                "no run folder (no --write): the watcher keeps each state whole in the run folder, so "
+                "it is not started")})
+        else:
+            o.record(event="watcher_off", watcher={"why": "plan_declares_no_watcher"})
         mm_load = None
         if mm_checked is not None:
             mm_load = lambda: _load_mm_config(o, mm_checked, folder, config_loader)    # noqa: E731
@@ -1789,6 +1813,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mm-config", type=Path, default=None,
                         help="hardware only, with --write: a Micro-Manager configuration file the "
                              "person approved by sha256 under approvals/ (card 069)")
+    parser.add_argument("--watcher-backend", default=None, choices=["none", "test_double"],
+                        help="which backend answers the run-time watcher (card 076): none records states and "
+                             "asks nobody; test_double is refused on every backend but mock. Never a plan field")
     parser.add_argument("--handover-objective", default=None,
                         help="the lens the person states is in place, passed exactly and never "
                              "inferred or defaulted (card 069)")
@@ -1803,7 +1830,7 @@ def main(argv: list[str] | None = None) -> int:
         # and events.jsonl exist from the start, beside the stop channel.
         record = run(args.plan, run_id=args.run_id, backend=args.backend,
                      runs_root=AGENT / "runs" if args.write else None,
-                     handover=handover, mm_config=args.mm_config)
+                     handover=handover, mm_config=args.mm_config, watcher_backend=args.watcher_backend)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
