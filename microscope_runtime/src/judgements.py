@@ -75,7 +75,28 @@ class BlockRefused(ValueError):
     """The plan's judgements block cannot be asked as written; the judgements are off, the run goes on."""
 
 
-def check_block(block) -> None:
+def check_points(key: str, points: list, stop_ids: set) -> None:
+    """A point the run never reaches asks nothing and shows only in run_ended, so it is refused up front.
+
+    DM-1 and DM-2 may name `run_start`, `before_measure:<id>` and `after_measure:<id>` for a stop
+    criterion id of THIS plan; DM-4 names exactly `stop`. The schema cannot see across fields, so the
+    plan's own ids are checked here.
+    """
+    for point in points:
+        if key == "dm4":
+            if point != STOP_POINT:
+                raise BlockRefused(f"dm4.points names {point!r}: DM-4 is asked at a stop, so it names exactly "
+                                   f"{STOP_POINT!r}")
+            continue
+        kind, _, ident = point.partition(":")
+        if point == "run_start" or (kind in ("before_measure", "after_measure") and ident in stop_ids):
+            continue
+        raise BlockRefused(f"{key}.points names {point!r}, which the run never reaches: the points are run_start, "
+                           f"before_measure:<id> and after_measure:<id> with <id> one of this plan's stop criteria "
+                           f"{sorted(stop_ids)}")
+
+
+def check_block(block, stop_ids: set | None = None) -> None:
     """Judge the block by what the plan schema says of it. Raises BlockRefused naming the field."""
     if not isinstance(block, dict) or not block:
         raise BlockRefused("judgements is not an object with at least one of dm1, dm2, dm4")
@@ -91,6 +112,8 @@ def check_block(block) -> None:
         points = b.get("points")
         if not (isinstance(points, list) and points and all(isinstance(p, str) and p for p in points)):
             raise BlockRefused(f"{key}.points must be a non-empty list of point names")
+        if stop_ids is not None:
+            check_points(key, points, stop_ids)
         if not (isinstance(b.get("prompt_version"), str) and b["prompt_version"]):
             raise BlockRefused(f"{key}.prompt_version must be a non-empty text")
         frames = b.get("frames")
@@ -129,7 +152,7 @@ def build(plan: dict, backend, run_folder, clock):
     if block is None:
         return None, None
     try:
-        check_block(block)
+        check_block(block, {c.get("id") for c in plan.get("stop_criteria") or [] if isinstance(c, dict)})
     except BlockRefused as exc:
         return None, {"event": "judgements_off", "from": "judgements", "t_mono": clock(),
                       "judgements": {"why": "did_not_start", "detail": str(exc)}}

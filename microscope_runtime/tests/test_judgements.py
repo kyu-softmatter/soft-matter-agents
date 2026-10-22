@@ -52,6 +52,7 @@ R = W.R
 OK_VALUE, BREAKS = 9.0, 1.0
 CAMERA = op.LIVE_VIEW_ROUTES["Kinetix_red"]
 DM12_CODES = ["too_dense", "too_sparse", "out_of_focus"]
+HANG_S = 30.0       # a bound that only a hang crosses, never a busy machine
 DM4_LABELS = ["focus_drift", "particle_lost", "unknown"]
 
 
@@ -68,12 +69,14 @@ def block(points, given=False, codes=None, labels=None, version="p1"):
 
 
 def jplan(dm1=("after_measure:drift",), dm2=("before_measure:drift", "run_start"), dm4=("stop",), given=False,
-          watcher=False, length=3.0, author="microscope_agent"):
+          watcher=False, length=3.0, author="microscope_agent", extra_ids=()):
     plan = {"card": "plan", "id": "plan-test-081", "revision": 2, "actions": [], "author": author,
             "numbers": [{"name": "drift_um", "value": 5, "unit": "um", "source": "test", "grade": "E5"},
                         {"name": "camera_full_scale", "value": 65535, "unit": "ADU", "source": "test", "grade": "E5"}],
             "stop_criteria": [{"id": "drift", "number": "drift_um", "metric": "drift", "comparator": ">"}],
             "pre_stop_buffer": {"length_s": length}, "judgements": {}}
+    for ident in extra_ids:
+        plan["stop_criteria"].append({"id": ident, "number": "drift_um", "metric": "drift", "comparator": ">"})
     if dm1:
         plan["judgements"]["dm1"] = block(dm1, given)
     if dm2:
@@ -166,34 +169,34 @@ class _Unit(unittest.TestCase):
 
 class T2AskedAtEveryPoint(_Unit):
     def test_dm1_and_dm2_are_asked_at_each_point_the_plan_names_each_time_it_is_reached(self):
-        plan = jplan(dm1=("p1", "p2", "p3"), dm2=("p2", "p4"), dm4=None)
+        plan = jplan(dm1=("before_measure:drift", "after_measure:drift", "before_measure:c3"),
+                     dm2=("after_measure:drift", "after_measure:c3"), dm4=None, extra_ids=("c3",))
         j = self.make(plan)
-        for point in ("p1", "p2", "p3", "p4", "p2"):
+        for point in ("before_measure:drift", "after_measure:drift", "before_measure:c3", "after_measure:c3", "after_measure:drift"):
             self.now[0] += 1
             j.reach(point)
         self.settle(j)
         asked = [(e["judgement"]["judgement"], e["judgement"]["point"]) for e in self.of("judgement_asked")]
-        self.assertEqual(sorted(asked), sorted([("DM-1", "p1"), ("DM-1", "p2"), ("DM-1", "p3"), ("DM-1", "p2"),
-                                                ("DM-2", "p2"), ("DM-2", "p4"), ("DM-2", "p2")]))
+        self.assertEqual(sorted(asked), sorted([("DM-1", "before_measure:drift"), ("DM-1", "after_measure:drift"), ("DM-1", "before_measure:c3"), ("DM-1", "after_measure:drift"),
+                                                ("DM-2", "after_measure:drift"), ("DM-2", "after_measure:c3"), ("DM-2", "after_measure:drift")]))
 
     def test_a_point_no_judgement_names_asks_nobody(self):
-        j = self.make(jplan(dm1=("p1",), dm2=("p2",), dm4=None))
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=("after_measure:drift",), dm4=None))
         j.reach("p9")
         self.settle(j)
         self.assertEqual(self.of("judgement_asked"), [])
         self.assertEqual(self.backend.calls, [])
 
     def test_the_stop_point_is_not_asked_by_reach_and_dm4_is_never_asked_at_a_moment_before_a_stop(self):
-        j = self.make(jplan(dm1=None, dm2=None, dm4=("stop", "p1")))
+        j = self.make(jplan(dm1=None, dm2=None, dm4=("stop",)))
         j.reach("stop")
-        j.reach("p1")
         self.settle(j)
         self.assertEqual(self.backend.calls, [])
 
     def test_every_answer_pairs_with_its_request_by_seq_and_seqs_are_unique(self):
-        j = self.make(jplan(dm1=("p1", "p2"), dm2=("p1",), dm4=None))
-        j.reach("p1")
-        j.reach("p2")
+        j = self.make(jplan(dm1=("before_measure:drift", "after_measure:drift"), dm2=("before_measure:drift",), dm4=None))
+        j.reach("before_measure:drift")
+        j.reach("after_measure:drift")
         self.settle(j)
         asked = {e["judgement"]["seq"]: e for e in self.of("judgement_asked")}
         answered = {e["judgement"]["seq"]: e for e in self.of("judgement_answered")}
@@ -204,22 +207,22 @@ class T2AskedAtEveryPoint(_Unit):
             self.assertEqual(asked[seq]["from"], answered[seq]["from"])
 
     def test_each_request_is_written_before_its_answer(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None))
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual([e["event"] for e in self.events], ["judgement_asked", "judgement_answered"])
 
     def test_from_names_the_plans_block(self):
-        j = self.make(jplan(dm1=("p1",), dm2=("p1",), dm4=None))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=("before_measure:drift",), dm4=None))
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual(sorted(e["from"] for e in self.of("judgement_asked")), ["judgements.dm1", "judgements.dm2"])
 
 
 class T5TheRecord(_Unit):
     def test_the_context_is_kept_whole_in_the_run_folder_with_its_hash(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None))
+        j.reach("before_measure:drift")
         self.settle(j)
         request = self.of("judgement_asked")[0]["judgement"]
         self.assertRegex(request["context_path"], r"^judgement_\d{6}_context\.txt$")
@@ -228,11 +231,11 @@ class T5TheRecord(_Unit):
         self.assertEqual(request["allowed_answers"], ["YES", "NO"])
         self.assertEqual(request["allowed_codes"], DM12_CODES)
         self.assertIn(b"question:", raw)
-        self.assertIn("p1", raw.decode("utf-8"))
+        self.assertIn("before_measure:drift", raw.decode("utf-8"))
 
     def test_the_prompt_version_is_keyed_by_judgement_and_plan_in_the_request_and_the_answer(self):
-        j = self.make(jplan(dm1=("p1",), dm2=("p1",), dm4=None))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=("before_measure:drift",), dm4=None))
+        j.reach("before_measure:drift")
         self.settle(j)
         for judgement in ("DM-1", "DM-2"):
             asked = self.of("judgement_asked", judgement)[0]["judgement"]
@@ -244,8 +247,8 @@ class T5TheRecord(_Unit):
                             self.of("judgement_asked", "DM-2")[0]["judgement"]["prompt_version"])
 
     def test_the_answer_names_the_model_and_its_version(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None))
+        j.reach("before_measure:drift")
         self.settle(j)
         answer = self.of("judgement_answered")[0]["judgement"]
         self.assertEqual(answer["model"], {"name": "spy-judge", "version": "7", "kind": "test_double"})
@@ -253,8 +256,8 @@ class T5TheRecord(_Unit):
         self.assertEqual((answer["answer"], answer["reason_codes"]), ("YES", ["too_dense"]))
 
     def test_an_abstain_has_no_answer(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge({"DM-1": {"status": "ABSTAIN"}}))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge({"DM-1": {"status": "ABSTAIN"}}))
+        j.reach("before_measure:drift")
         self.settle(j)
         answer = self.of("judgement_answered")[0]["judgement"]
         self.assertEqual(answer["status"], "ABSTAIN")
@@ -262,15 +265,15 @@ class T5TheRecord(_Unit):
 
     def test_a_score_is_kept_as_the_model_gave_it_and_never_acted_on(self):
         score = {"kind": "suitability", "value": 0.37}
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None),
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None),
                       SpyJudge({"DM-1": {"status": "OK", "answer": "NO", "reason_codes": [], "score": score}}))
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual(self.of("judgement_answered")[0]["judgement"]["score"], score)
 
     def test_a_backend_that_fails_is_an_error_with_its_message(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(fail=RuntimeError("backend down")))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(fail=RuntimeError("backend down")))
+        j.reach("before_measure:drift")
         self.settle(j)
         answer = self.of("judgement_answered")[0]["judgement"]
         self.assertEqual(answer["status"], "ERROR")
@@ -279,30 +282,30 @@ class T5TheRecord(_Unit):
 
     def test_an_answer_that_breaks_the_shape_is_an_error_not_a_record_of_something_else(self):
         bad = {"DM-1": {"status": "OK", "answer": "MAYBE", "reason_codes": ["too_dense"]}}
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(bad))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(bad))
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual(self.of("judgement_answered")[0]["judgement"]["status"], "ERROR")
 
     def test_a_reason_code_the_plan_did_not_declare_is_an_error(self):
         bad = {"DM-1": {"status": "OK", "answer": "YES", "reason_codes": ["too_blue"]}}
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(bad))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(bad))
+        j.reach("before_measure:drift")
         self.settle(j)
         answer = self.of("judgement_answered")[0]["judgement"]
         self.assertEqual(answer["status"], "ERROR")
         self.assertIn("too_blue", answer["error"])
 
     def test_an_ok_answer_with_no_answer_is_an_error(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge({"DM-1": {"status": "OK"}}))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge({"DM-1": {"status": "OK"}}))
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual(self.of("judgement_answered")[0]["judgement"]["status"], "ERROR")
 
     def test_a_question_still_open_when_the_run_ends_is_an_error_and_its_late_answer_is_dropped(self):
         gate = threading.Event()
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(gate=gate))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(gate=gate))
+        j.reach("before_measure:drift")
         self.settle(j, wait_s=0.05)
         gate.set()
         time.sleep(0.2)
@@ -343,8 +346,8 @@ class T5TheRecord(_Unit):
         from referencing import Registry, Resource
         judgement_schema = json.loads((CONTRACTS / "schemas" / "judgement.schema.json").read_text(encoding="utf-8"))
         validator = jsonschema.Draft202012Validator({"$ref": "#/$defs/response", "$defs": judgement_schema["$defs"]})
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(fail=RuntimeError("down")))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(fail=RuntimeError("down")))
+        j.reach("before_measure:drift")
         self.settle(j)
         validator.validate(self.of("judgement_answered")[0]["judgement"])
 
@@ -384,10 +387,12 @@ class Dm4Answers(_Unit):
         self.assertNotIn("reason_codes", answer)
         self.assertEqual(self.of("judgement_asked", "DM-4")[0]["judgement"]["allowed_codes"], DM4_LABELS)
 
-    def test_dm4_is_asked_only_when_the_plan_names_the_stop_point(self):
-        j = self.make(jplan(dm1=None, dm2=None, dm4=("somewhere_else",)))
-        self.stopped(j)
-        self.assertEqual(self.backend.calls, [])
+    def test_dm4_naming_anything_but_the_stop_is_off_naming_the_point(self):
+        built, event = J.build(jplan(dm1=None, dm2=None, dm4=("somewhere_else",)), SpyJudge(), self.folder,
+                               lambda: 0.0)
+        self.assertIsNone(built)
+        self.assertEqual((event["event"], event["judgements"]["why"]), ("judgements_off", "did_not_start"))
+        self.assertIn("somewhere_else", event["judgements"]["detail"])
 
     def test_a_plan_with_no_dm4_asks_nothing_after_a_stop(self):
         j = self.make(jplan(dm4=None))
@@ -398,13 +403,13 @@ class Dm4Answers(_Unit):
 class T7Images(_Unit):
     def setUp(self):
         super().setUp()
-        self.plan = jplan(dm1=("p1",), dm2=None, dm4=None, given=True, watcher=True)
+        self.plan = jplan(dm1=("before_measure:drift",), dm2=None, dm4=None, given=True, watcher=True)
 
     def test_with_images_given_the_backend_gets_only_reduced_png_copies_and_never_the_raw_frame(self):
         j = self.make(self.plan)
         raw = TW.frame(3)
         j.put_frame(raw, {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         images = self.backend.calls[0]["images"]
         self.assertEqual(len(images), 1)
@@ -418,9 +423,9 @@ class T7Images(_Unit):
         self.assertEqual(images[0]["png"], data)
 
     def test_with_images_not_given_the_backend_gets_none(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None, given=False, watcher=True))
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None, given=False, watcher=True))
         j.put_frame(TW.frame(3), {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertIn(self.backend.calls[0]["images"], (None, []))
         self.assertEqual(self.of("judgement_asked")[0]["judgement"]["images"], [])
@@ -428,7 +433,7 @@ class T7Images(_Unit):
     def test_a_frame_that_is_not_a_2d_image_gives_no_image_and_says_why_in_the_context(self):
         j = self.make(self.plan)
         j.put_frame(b"\x00\x01\x02", {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         request = self.of("judgement_asked")[0]["judgement"]
         self.assertEqual(request["images"], [])
@@ -436,7 +441,7 @@ class T7Images(_Unit):
 
     def test_no_frame_yet_gives_no_image_and_says_so(self):
         j = self.make(self.plan)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         request = self.of("judgement_asked")[0]["judgement"]
         self.assertEqual(request["images"], [])
@@ -447,14 +452,14 @@ class T7Images(_Unit):
         plan["watcher"]["image"]["frame_stats"]["camera_ceiling"] = {"gap": "full_scale_gap"}
         j = self.make(plan)
         j.put_frame(TW.frame(3), {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         self.assertEqual(self.of("judgement_asked")[0]["judgement"]["images"], [])
 
     def test_a_plan_with_no_watcher_block_has_no_ceiling_so_no_image(self):
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None, given=True, watcher=False))
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None, given=True, watcher=False))
         j.put_frame(TW.frame(3), {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         request = self.of("judgement_asked")[0]["judgement"]
         self.assertEqual(request["images"], [])
@@ -463,7 +468,7 @@ class T7Images(_Unit):
     def test_the_fixed_detections_are_in_the_context_when_the_plan_declares_a_detector(self):
         j = self.make(self.plan)
         j.put_frame(TW.frame(3), {}, 1.0)
-        j.reach("p1")
+        j.reach("before_measure:drift")
         self.settle(j)
         text = (self.folder / self.of("judgement_asked")[0]["judgement"]["context_path"]).read_text(encoding="utf-8")
         self.assertIn("particle_count", text)
@@ -524,8 +529,8 @@ class T3NothingReachesAnythingElse(_Unit):
     def test_what_a_backend_answers_cannot_name_an_action(self):
         wild = {"DM-1": {"status": "OK", "answer": "YES", "reason_codes": ["too_dense"], "action": "stop",
                          "abort": True, "move_um": 5}}
-        j = self.make(jplan(dm1=("p1",), dm2=None, dm4=None), SpyJudge(wild))
-        j.reach("p1")
+        j = self.make(jplan(dm1=("before_measure:drift",), dm2=None, dm4=None), SpyJudge(wild))
+        j.reach("before_measure:drift")
         self.settle(j)
         answer = self.of("judgement_answered")[0]["judgement"]
         for key in ("action", "abort", "move_um"):
@@ -581,6 +586,23 @@ class T9BuildOrNot(unittest.TestCase):
         self.assertEqual(body["dm1"]["points"], ["after_measure:drift"])
         self.assertEqual(body["dm4"]["points"], ["stop"])
         self.assertIn("plan-test-081", body["dm1"]["prompt_version"])
+
+    def test_a_point_the_run_never_reaches_is_off_naming_the_point(self):
+        for key, point in (("dm1", "before_measure:nothing"), ("dm2", "after_measure:"), ("dm1", "after_detection"),
+                           ("dm2", "before_measurement"), ("dm1", "stop")):
+            with self.subTest(key=key, point=point):
+                plan = jplan()
+                plan["judgements"][key]["points"] = ["run_start", point]
+                built, event = J.build(plan, SpyJudge(), self.folder, lambda: 0.0)
+                self.assertIsNone(built)
+                self.assertEqual((event["event"], event["judgements"]["why"]), ("judgements_off", "did_not_start"))
+                self.assertIn(repr(point), event["judgements"]["detail"])
+
+    def test_every_point_the_run_does_reach_is_accepted_for_dm1_and_dm2(self):
+        plan = jplan(dm1=("run_start", "before_measure:drift", "after_measure:c3"),
+                     dm2=("after_measure:drift", "before_measure:c3"), extra_ids=("c3",))
+        built, event = J.build(plan, SpyJudge(), self.folder, lambda: 0.0)
+        self.assertIsNotNone(built, event)
 
     def test_a_malformed_block_is_off_with_the_reason_and_the_run_goes_on(self):
         plan = jplan()
@@ -683,11 +705,21 @@ class T2InARun(_Run):
         self.assertEqual(lines[-1]["event"], "run_ended")
         self.assertEqual(lines[-1]["how"], "completed")
 
-    def test_a_point_named_that_the_run_never_reaches_is_written_in_run_ended(self):
-        self.run_it(jplan(dm1=("after_measure:drift", "after_measure:nothing"), dm4=None), how="normal", times=[0])
+    def test_a_point_the_run_stopped_before_reaching_is_written_in_run_ended(self):
+        plan = jplan(dm1=("after_measure:drift", "after_measure:later"), dm4=None, extra_ids=("later",))
+        self.run_it(plan, how="monitor", times=[0], stop_t=0.5)
         ended = self.lines()[-1]
-        self.assertEqual(ended["judgements"]["unreached"], {"dm1": ["after_measure:nothing"]})
+        self.assertEqual(ended["judgements"]["unreached"], {"dm1": ["after_measure:later"]})
         self.assertEqual(ended["judgements"]["reached"]["after_measure:drift"], 1)
+
+    def test_a_plan_naming_a_point_the_run_never_reaches_runs_with_the_judgements_off(self):
+        plan = jplan(dm1=("after_detection",), dm4=None)
+        self.run_it(plan, how="normal", times=[0])
+        off = [e for e in self.lines() if e["event"] == "judgements_off"]
+        self.assertEqual(len(off), 1)
+        self.assertIn("after_detection", off[0]["judgements"]["detail"])
+        self.assertNotIn("judgement_asked", self.names())
+        self.assertEqual(self.lines()[-1]["how"], "completed")
 
     def test_a_run_that_never_stopped_does_not_list_the_stop_point_as_missed(self):
         self.run_it(jplan(), how="normal", times=[0, 1])
@@ -808,10 +840,15 @@ class T4Dm4AfterTheAbort(_Run):
     def test_the_abort_is_whole_before_the_question_so_it_is_never_delayed_by_one(self):
         gate = threading.Event()
         self.addCleanup(gate.set)
+        saved_wait = J.CLOSE_WAIT_S
+        J.CLOSE_WAIT_S = 0.2                    # the run's own wait for open questions, shortened for the test
+        self.addCleanup(setattr, J, "CLOSE_WAIT_S", saved_wait)
         t0 = time.monotonic()
         self.run_it(jplan(dm1=None, dm2=None), judgement_backend=SpyJudge(gate=gate), how="monitor", times=[0, 1],
                     stop_t=1.5)
-        self.assertLess(time.monotonic() - t0, 4.0, "the run waited on an unanswered question")
+        # The question is never answered (the gate stays shut), so the run ending at all is the proof it did
+        # not wait on one; the bound only catches a hang, and a loaded machine is nowhere near it.
+        self.assertLess(time.monotonic() - t0, HANG_S, "the run hung on a question")
         names = self.names()
         self.assertLess(names.index("abort_end"), names.index("judgement_asked"))
         answered = self.of("judgement_answered", "DM-4")[0]["judgement"]
