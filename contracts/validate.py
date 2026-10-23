@@ -9068,7 +9068,8 @@ def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: 
          and its signed_at's day is `on`;
       3. the login after `console:`, the file's signed_through.login and the
          login in microscope_runtime/envelope/console_login.json, which the
-         person places by hand, are equal byte for byte;
+         person places by hand, are equal byte for byte -- that file as it
+         stood in the commit that added the permission (HP-017);
       4. proposal_sha256 is the sha256 of the proposal file's blob at
          proposal_commit, read from git, and the file name carries its
          first 12;
@@ -9135,18 +9136,24 @@ def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: 
     if str(perm.get("signed_at") or "")[:10] != pw.get("on"):
         return fail(f"its date {pw.get('on')} is not the day the file was signed")
     # 3. the person's own login, as the person placed it
-    login_path = REPO / "microscope_runtime" / "envelope" / "console_login.json"
+    # Read as committed in the commit that added the permission, never from disk
+    # (HP-017, INC-20261023-02): this line is re-judged on every run, so a
+    # working-copy read would fail every commit on a computer without the file,
+    # and every past landing everywhere once the person changes the login.
+    login_rel = "microscope_runtime/envelope/console_login.json"
     try:
-        placed = json.loads(login_path.read_text(encoding="utf-8-sig")).get("login")
-    except (OSError, json.JSONDecodeError, AttributeError):
+        added = [x for x in git("log", "--diff-filter=A", "--format=%H", "--", rec).decode().split() if x]
+        placed = json.loads(git("show", f"{added[-1]}:{login_rel}").decode("utf-8-sig")).get("login") \
+            if added else None
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, AttributeError, UnicodeDecodeError):
         placed = None
     signed = (perm.get("signed_through") or {}).get("login")
     if placed is None:
-        return fail("microscope_runtime/envelope/console_login.json is absent or unreadable, so no login is the "
-                    "person's")
+        return fail(f"the commit that added {rec} holds no readable {login_rel}, so no login was the person's when "
+                    "it was signed; the login is committed before a permission can bind")
     if not (m.group("login") == signed == placed):
         return fail(f"the logins differ: the word says {m.group('login')!r}, the file {signed!r}, and the one the "
-                    f"person placed is {placed!r}; any other login binds nothing")
+                    f"person had placed when it was signed is {placed!r}; any other login binds nothing")
     # 4. the hash is of what the screen showed
     commit = str(perm.get("proposal_commit") or "")
     try:

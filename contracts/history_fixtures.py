@@ -1259,7 +1259,8 @@ def fixture_41_the_person_commits_an_approval(repo: Path) -> str:
 
 def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = "kyu", sha_wrong: bool = False,
                   changed_after: bool = False, absent: bool = False, decision: str = "yes",
-                  touches_core: list | None = None, perm_seat: str = "human") -> str:
+                  touches_core: list | None = None, perm_seat: str = "human", login_on_disk_only: bool = False,
+                  login_changed_after: bool = False) -> str:
     """HP-016 (2026-10-23): a loosening landed on the person's word given through the console.
 
     The person, Q-20261022-office-14, committed at 659c2214: the permission for a
@@ -1308,7 +1309,8 @@ def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = 
         "artifact": "harness_permission", "schema_version": "0.1", "proposal": "HP-902",
         "proposal_commit": shown, "proposal_sha256": named, "decision": decision, "screen_words": words,
         "signed_at": "2026-10-23T11:00:00Z", "signed_through": {"via": "console", "login": login_signed}})
-    paths = ["microscope_runtime/envelope/console_login.json"] + ([] if absent else [perm_rel])
+    paths = ([] if login_on_disk_only else ["microscope_runtime/envelope/console_login.json"]) + \
+        ([] if absent else [perm_rel])
     commit(repo, "the person's console login and permission", *paths, seat=perm_seat)
     if absent:
         (repo / perm_rel).unlink()
@@ -1323,6 +1325,12 @@ def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = 
                              "by_seat": office, "commit": shown, "revert_command": f"git revert {shown[:8]}"}) + "\n")
     commit(repo, "HP-902 landed on the person's console word", "contracts/harness",
            seat="manager-microscope-20261003-1")
+    if login_changed_after:
+        write(repo, "microscope_runtime/envelope/console_login.json", {
+            "artifact": "console_login", "schema_version": "0.1", "login": "kyu-new",
+            "written_by": "the person, in a fixture", "written_at": "2026-10-24"})
+        commit(repo, "the person changes the console login", "microscope_runtime/envelope/console_login.json",
+               seat="human")
     return f"{start}..HEAD"
 
 
@@ -1356,6 +1364,16 @@ def fixture_89_a_console_word_for_a_change_to_the_core(repo: Path) -> str:
 
 def fixture_89_a_console_word_committed_under_a_seat(repo: Path) -> str:
     return _console_word(repo, perm_seat="microscope-office-20261017-1")
+
+
+def fixture_89_a_console_word_survives_a_later_login_change(repo: Path) -> str:
+    """HP-017: the login is read as it stood when the permission was committed, so a change after keeps the landing."""
+    return _console_word(repo, login_changed_after=True)
+
+
+def fixture_89_a_console_word_whose_login_was_never_committed(repo: Path) -> str:
+    """HP-017: a login file on disk only binds nothing; it is committed before a permission can bind."""
+    return _console_word(repo, login_on_disk_only=True)
 
 
 def fixture_41_a_seat_commits_a_harness_permission(repo: Path) -> str:
@@ -1476,6 +1494,10 @@ FIXTURES = [
      fixture_89_a_console_word_for_a_change_to_the_core),
     (89, "FAIL", "and only `human` commits the person's word", fixture_89_a_console_word_committed_under_a_seat),
     (41, "FAIL", "commits the person's own file", fixture_41_a_seat_commits_a_harness_permission),
+    # HP-017 (2026-10-23): the login as committed with the permission, never as on disk.
+    (89, "PASS", "hold together", fixture_89_a_console_word_survives_a_later_login_change),
+    (89, "FAIL", "holds no readable microscope_runtime/envelope/console_login.json",
+     fixture_89_a_console_word_whose_login_was_never_committed),
 ]
 
 
