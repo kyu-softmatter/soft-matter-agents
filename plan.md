@@ -4321,6 +4321,8 @@ dino `main` is `bdd64da`. It contains every commit card 059 cites, merged withou
    - a test login binds nothing;
    - the plan hash binds as for any approval (check 7).
 
+   **The person commits it, as any approval; no seat may and nothing does it automatically.** It binds from disk the moment it is there, as a file placed by hand does, because `approvals_on_disk` reads the folder and not a commit. So that an approval never committed still leaves a trace, the run log carries the path and sha256 of the approval file that authorised the run.
+
    **No fallback**: if the runtime's approvals folder is absent, the console signs nothing. A file written into the old `microscope_agent/approvals/` would land where no reader looks. 6.1's three conditions hold, and 6.1's holder updates "open" there.
 
    **What this rests on, said plainly.** The runtime cannot tell a file the console wrote from one any other process wrote into that folder. So the folder's guard is the whole guard, as it is for a file placed by hand. On 2026-10-22 that guard was found thinner than 6.1 assumes:
@@ -4350,7 +4352,7 @@ dino `main` is `bdd64da`. It contains every commit card 059 cites, merged withou
    - which camera the tweezers' program holds (4.6.10's gap).
 
 **Who takes what.**
-- manager-microscope cards: the tap's per-camera request (with the console's side), the status file, "check now", the reader's three console checks, the other-login refusal with its fixtures (6), and the mock's additions. The runtime seat builds each on mock first.
+- manager-microscope cards: the tap's per-camera request (with the console's side), the status file, "check now", the reader's three console checks, the authorising approval's path and sha256 in the run log, the other-login refusal with its fixtures (6), and the mock's additions. The runtime seat builds each on mock first.
 - manager-console-office-20261017-1 holds the writing side and the console role.
 - The root settings' holder re-points the root denials (step 8).
 - architecture-20261003-1 updates 6.1.
