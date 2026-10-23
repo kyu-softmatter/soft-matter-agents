@@ -1226,6 +1226,36 @@ def fixture_79_a_runtime_status_file_forced_into_a_commit(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_41_the_runtime_seat_commits_an_approval(repo: Path) -> str:
+    """The runtime seat commits a plan approval (2026-10-22, plan.md 15.1 item 4).
+
+    Its boundary and its paths both cover microscope_runtime/, so until this
+    day check 41 passed it. Only the person writes and commits an approval.
+    """
+    start = base(repo)
+    write(repo, "microscope_runtime/approvals/appr-x.json", {"card": "plan_approval"})
+    commit(repo, "a seat commits the person's approval", "microscope_runtime/approvals/appr-x.json",
+           seat="microscope-office-20261017-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_a_planning_seat_commits_the_safety_policy(repo: Path) -> str:
+    """A microscope seat commits envelope/safety.json in its own tree."""
+    start = base(repo)
+    write(repo, "microscope_agent/envelope/safety.json", {"limits": {}})
+    commit(repo, "a seat commits the person's safety policy", "microscope_agent/envelope/safety.json",
+           seat="microscope-office-20261015-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_the_person_commits_an_approval(repo: Path) -> str:
+    """The person, under the opt-in human seat, commits an approval: not refused."""
+    start = base(repo)
+    write(repo, "microscope_runtime/approvals/appr-x.json", {"card": "plan_approval"})
+    commit(repo, "the person's approval", "microscope_runtime/approvals/appr-x.json", seat="human")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1321,6 +1351,9 @@ FIXTURES = [
      fixture_01_an_artifact_in_a_tree_without_cards_is_judged),
     (79, "FAIL", "is tracked by git inside a directory SKIP_DIRS names",
      fixture_79_a_runtime_status_file_forced_into_a_commit),
+    (41, "FAIL", "commits the person's own file", fixture_41_the_runtime_seat_commits_an_approval),
+    (41, "FAIL", "commits the person's own file", fixture_41_a_planning_seat_commits_the_safety_policy),
+    (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_person_commits_an_approval),
 ]
 
 

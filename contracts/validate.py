@@ -4584,6 +4584,25 @@ def check_46_vocabulary_pin(b: Bundle) -> list[Finding]:
                                      f"out of {len(known)} the history holds")]
 
 
+#: The person's own files: the safety policy, the console login placed beside it,
+#: and approvals/, in every agent tree that has them (2.1 rule 7, 6.1, plan.md
+#: 15.1 item 4: "the person commits it, as any approval; no seat may"). Until
+#: 2026-10-22 nothing at commit refused a seat here: check 41 judged these paths
+#: by boundary like any other, so the runtime seat, whose boundary covers
+#: microscope_runtime/, could commit an approval or a safety value and pass --
+#: measured by manager-microscope-20261003-1 with three built repositories that
+#: day. The settings' Edit denials bind the file tools only, and a session rooted
+#: at the repository root carried none for microscope_runtime/ at all.
+PERSONS_FILES = re.compile(r"^(microscope_agent|microscope_runtime|simulation_agent)/"
+                           r"(envelope/(safety|console_login)\.json$|approvals/)")
+#: The seat that stands for the person, opt-in (seats.json's note on it).
+PERSONS_SEAT = "human"
+#: Commits made before this day are judged as they were: four seat commits
+#: touched these paths in September and October, each in the open, and the rule
+#: did not exist. A history replay must not turn them red (6.2.1, section 8).
+PERSONS_FILES_FROM = "2026-10-22"
+
+
 def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged: bool = False) -> list[Finding]:
     """A commit says which seat made it (6.2.1).
 
@@ -4631,7 +4650,7 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
             return {}
 
     def judge(email: str, paths: list[str], label: str = "", merge: bool = False,
-              reg: dict | None = None) -> list[Finding]:
+              reg: dict | None = None, persons_rule: bool = True) -> list[Finding]:
         reg = reg if reg is not None else load_seats()
         by_email = {s["committer_email"]: s for s in reg.get("seats", [])}
         unknown_status = FAIL if reg.get("unknown_committer") == "refuse" else PENDING
@@ -4675,7 +4694,12 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         for path in paths:
             where = seat_boundary_of(path)
             hit = next((x for x in excludes if path.startswith(x)), None)
-            if where not in owns:
+            if persons_rule and seat["seat"] != PERSONS_SEAT and PERSONS_FILES.match(path):
+                out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} commits the person's own file; only the "
+                                             "person writes and commits a safety policy, a console login or an "
+                                             "approval, whatever the seat's boundary covers (2.1 rule 7, 6.1, 15.1)",
+                                   path))
+            elif where not in owns:
                 out.append(Finding(41, FAIL, f"{pre}seat {seat['seat']!r} owns {sorted(owns)}; this path is "
                                              f"{where}'s (6.2.1)", path))
             elif hit is not None:
@@ -4707,7 +4731,7 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         # attribute. The merge itself stays on the first-parent line and is
         # judged as before, so what it brought in is still attributed to the
         # seat that made it.
-        rows = [x for x in git("log", "--reverse", "--first-parent", "--format=%H%x00%ce%x00%P",
+        rows = [x for x in git("log", "--reverse", "--first-parent", "--format=%H%x00%ce%x00%P%x00%cI",
                                commit_range or "").splitlines() if x.strip()]
     except (OSError, subprocess.CalledProcessError) as exc:
         return [Finding(41, FAIL, f"cannot read commit range {commit_range!r}: {exc}")]
@@ -4715,7 +4739,7 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         return [Finding(41, NA, f"no commits in {commit_range}")]
     out, clean, quiet_merges = [], 0, 0
     for row in rows:
-        sha, ce, parents = (row.split("\x00") + ["", ""])[:3]
+        sha, ce, parents, when = (row.split("\x00") + ["", "", ""])[:4]
         # A merge is read with --cc: what belongs to the merging seat is what
         # is in no parent, which is a conflict resolution or an edit slipped in
         # while merging (6.2.1). Plain -r prints nothing for a merge, so
@@ -4729,7 +4753,8 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
             quiet_merges += 1 if merge else 0
             continue
         base = f"{sha}^" if parents.split() else sha
-        found = judge(ce, paths, sha[:7], merge, seats_at(base))
+        found = judge(ce, paths, sha[:7], merge, seats_at(base),
+                      persons_rule=when[:10] >= PERSONS_FILES_FROM)
         if found and before_enforcement(sha):
             found = [Finding(41, PENDING if f.status == FAIL else f.status,
                              f.message + (f" -- {WAS_CONVENTION}" if f.status == FAIL else ""), f.path)
