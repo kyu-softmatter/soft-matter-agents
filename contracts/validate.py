@@ -274,6 +274,10 @@ ARTIFACT_SCHEMA = {
     # 2026-10-07, card 062: the command list a person approves for live view.
     # An artifact, not a card: it answers no question and is named by its bytes.
     "live_view_list": "live_view_list.schema.json",
+    # 2026-10-22, plan.md 15.1 item 3: the channels a person approves for "check
+    # now", a preparatory run that opens, reads and closes and commands nothing.
+    # idle_status is not here: it is never in a tree (SKIP_DIRS, .gitignore).
+    "check_now_list": "check_now_list.schema.json",
     # 2026-10-16, HP-005: the meta-harness's two JSON records (plan.md 8.3).
     # Its two JSONL files are line schemas and are judged by check 89, the
     # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
@@ -515,7 +519,12 @@ def is_mock_data(rel: str) -> bool:
 #: git's empty tree, the base a root commit is diffed against (check 35).
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
-SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules", ".agent"}
+#: `.runtime_status` (2026-10-22, plan.md 15.1 item 3): the runtime's idle status file,
+#: microscope_runtime/.runtime_status/idle_status.json. Volatile and never a record: every
+#: value in it is already in a run's own log. Named uniquely, after `.agent`, so skipping it
+#: by name skips nothing else. The commit gate still refuses it: check 41's path table has
+#: no entry for it, and the gate judges paths, not the walk.
+SKIP_DIRS = {".git", "__pycache__", ".venv", ".pixi", "node_modules", ".agent", ".runtime_status"}
 
 #: Entries outside SKIP_DIRS that could not even be stat'ed. Check 79 reports
 #: them. A set, because collect() runs twice in an --expect-fail run.
@@ -7483,6 +7492,28 @@ def check_79_gitignored_dirs_are_skipped(b: Bundle) -> list[Finding]:
                                     "machine that is typically a Linux symlink WSL left in the working "
                                     "copy; outside SKIP_DIRS it is reported rather than walked past", u)
                   for u in sorted(UNSTATABLE)]
+    # A TRACKED FILE INSIDE A SKIPPED DIRECTORY (2026-10-22, with
+    # `.runtime_status`). The walk never enters a skipped directory, so no check
+    # judges what is in one -- and a file git tracks there is content every
+    # check walks past. The runtime's idle status file sits in one by design,
+    # and is volatile and never a record, so a forced `git add` of it is the
+    # case this catches. It reads git's index, which under the pre-commit hook
+    # is the index being committed (git sets GIT_INDEX_FILE for the hook, the
+    # commit tool's private one included). Under --commit-range it reads the
+    # current index, not each commit's, which is a known reach: on 2026-10-22
+    # no tracked path anywhere sat inside a skipped directory.
+    try:
+        import subprocess
+        listed = subprocess.run(["git", "-C", str(GIT_REPO), "ls-files", "-z"], capture_output=True,
+                                text=True, check=True).stdout.split(chr(0))
+    except (OSError, subprocess.CalledProcessError):
+        listed = []
+    inside = sorted(x for x in listed if x and set(x.split("/")[:-1]) & SKIP_DIRS)
+    unstatable += [Finding(79, FAIL, f"{x} is tracked by git inside a directory SKIP_DIRS names, so no check "
+                                     "reads it. What sits there is not this repository's content -- the "
+                                     "runtime's idle status file is volatile and never a record -- and a "
+                                     "file there gets committed only by forcing it past .gitignore", x)
+                   for x in inside]
     gi = REPO / ".gitignore"
     if not gi.exists():
         return unstatable + [Finding(79, PENDING, ".gitignore is not in this tree, so there is nothing to compare SKIP_DIRS against")]
@@ -7959,7 +7990,7 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
     # value, so a motion-set name cannot ride in through a free-form part
     # either -- the excitation block's settings are one.
     lists_out: list[Finding] = []
-    for c in b.of_artifact("live_view_list"):
+    for c in [*b.of_artifact("live_view_list"), *b.of_artifact("check_now_list")]:
         if "__unreadable__" in c.data:
             continue
         names: set[str] = set()
@@ -7974,12 +8005,14 @@ def check_85_preparatory_run(b: Bundle) -> list[Finding]:
             elif isinstance(x, str):
                 names.add(x)
         hit = sorted(names & PREPARATORY_MOTION_SET)
+        what, run = (("check-now list", "check-now run") if c.data.get("artifact") == "check_now_list"
+                     else ("live-view list", "live view"))
         if hit:
-            lists_out.append(Finding(85, FAIL, f"live-view list names {hit}, which is the motion set: a live "
-                                               "view is a preparatory run and moves nothing (11-21 condition "
-                                               "3, card 062)", c.rel))
+            lists_out.append(Finding(85, FAIL, f"{what} names {hit}, which is the motion set: a {run} "
+                                               "is a preparatory run and moves nothing (11-21 condition "
+                                               "3, card 062, 15.1 item 3)", c.rel))
         else:
-            lists_out.append(Finding(85, PASS, "live-view list names nothing in the motion set"
+            lists_out.append(Finding(85, PASS, f"{what} names nothing in the motion set"
                                                + ("; it carries an excitation block, on its own approval"
                                                   if "excitation" in c.data else ""), c.rel))
 

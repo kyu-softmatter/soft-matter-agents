@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "idle_status.schema.json",
+  "title": "idle_status -- what the console shows when nothing runs (plan.md 15.1 item 3)",
+  "description": "Outside a run the runtime holds nothing open, so idle status is a FILE THE RUNTIME WRITES, never a device the console asks. It lives at microscope_runtime/.runtime_status/idle_status.json, which the validator's walk skips and .gitignore hides, because it is VOLATILE AND NEVER A RECORD: it is rewritten at the end of every run, a check-now run included, and everything it says is already in that run's own log, which is the record. Written atomically (a temporary file renamed over it), so a reader never sees half of one. Every value carries the time it was read, and NOTHING IS CARRIED FORWARD: a channel the last run did not open is absent or shown as not opened, never given an older value. The registry's fixed facts are POINTED TO, by path and sha256, and not copied, because knowledge lives in one place (P14). The view says \"as of written_at, from written_by_run\"; an absent file is \"no status yet\", which is not \"nothing connected\" (manager-console-office-20261017-1, 2026-10-22).",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "idle_status"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "written_by_run": {
+      "type": "string",
+      "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+    },
+    "last_run": {
+      "description": "the most recent run of any kind, a check-now run included; null before the first",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            },
+            "kind": {
+              "enum": [
+                "plan",
+                "live_view",
+                "check_now",
+                "preparatory"
+              ]
+            },
+            "ended_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "outcome": {
+              "type": "string",
+              "minLength": 1,
+              "description": "run_ended's reason, as the log has it"
+            },
+            "preflight": {
+              "description": "the last preflight's rows as the log has them, with when; null when the run reached no preflight",
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "t_wall": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rows": {
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "t_wall",
+                    "rows"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "last_snapshot": {
+              "description": "the last snapshot of the run, one reading per channel the run opened; null when it took none",
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "t_wall": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "channels": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/reading",
+                        "unevaluatedProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "t_wall",
+                    "channels"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "run_id",
+            "kind",
+            "ended_at",
+            "outcome",
+            "preflight",
+            "last_snapshot"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "check_now": {
+      "description": "the last check-now run; null before the first",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            },
+            "t_wall": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "list": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "additionalProperties": false
+            },
+            "channels": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/reading"
+                  }
+                ],
+                "properties": {
+                  "opened": {
+                    "type": "boolean"
+                  },
+                  "closed": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "null when it was never opened"
+                  },
+                  "error": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "opened",
+                  "closed"
+                ],
+                "unevaluatedProperties": false
+              }
+            }
+          },
+          "required": [
+            "run_id",
+            "t_wall",
+            "list",
+            "channels"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ownership": {
+      "description": "per resource, which maker program holds which interface (4.6.10). Until that check exists this says not_built, and the console shows no verdict rather than a guess",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "not_built"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "probed"
+            },
+            "t_wall": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "verdicts": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "status",
+            "t_wall",
+            "verdicts"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "registry": {
+      "type": "object",
+      "description": "the device registry this runtime read, by path and the sha256 of its bytes",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "written_at",
+    "written_by_run",
+    "last_run",
+    "check_now",
+    "ownership",
+    "registry"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "reading": {
+      "type": "object",
+      "description": "one channel as a run read it. A value is shown only beside the time it was read and how; a channel with no time is unknown, never current",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the channel's display name, as the registry the run read gave it, so a reader needs no store to name it"
+        },
+        "how": {
+          "enum": [
+            "read_back",
+            "not_readable",
+            "not_read"
+          ],
+          "description": "read_back: the device answered a read. not_readable: the registry says this channel has no read-back, so what is shown is what was sent. not_read: the run did not reach it, or it was busy, and the value is null"
+        },
+        "t_wall": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "when this value was read; null exactly when how is not_read"
+        },
+        "value": {
+          "type": [
+            "object",
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ],
+          "description": "what was read, or for not_readable what was last sent in this run; null when not_read"
+        }
+      },
+      "required": [
+        "channel",
+        "name",
+        "how",
+        "t_wall",
+        "value"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "how": {
+                "const": "not_read"
+              }
+            },
+            "required": [
+              "how"
+            ]
+          },
+          "then": {
+            "properties": {
+              "t_wall": {
+                "type": "null"
+              },
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "t_wall": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

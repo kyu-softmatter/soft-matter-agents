@@ -594,6 +594,95 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
       "description": "a camera's device name, as run_started's tap_cameras lists it"
+    },
+    "check_now_request": {
+      "type": "object",
+      "description": "the second message the live-view host accepts (plan.md 15.1 item 3): the sha256 of an approved check-now list's raw bytes. As with live_on, the console cannot send a list, a channel, a path or a value, only name a list the person already approved",
+      "properties": {
+        "check_now": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "check_now"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "check_now": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ],
+      "x_refused": [
+        {
+          "check_now": "approvals/check_now.json"
+        },
+        {
+          "check_now": "1111111111111111111111111111111111111111111111111111111111111111",
+          "channel": "stand_ti2e"
+        },
+        {
+          "check_now": "1111111111111111111111111111111111111111111111111111111111111111",
+          "live_on": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "check_now_reply": {
+      "description": "started is sent once that run's run_started is written; the run writes idle_status at its end. refused says why",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "check_now": {
+              "const": "started"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            }
+          },
+          "required": [
+            "check_now",
+            "run_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "check_now": {
+              "const": "refused"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "check_now",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "check_now": "started",
+          "run_id": "run-20261022-906"
+        },
+        {
+          "check_now": "refused",
+          "reason": "no approved check-now list has that sha256"
+        }
+      ],
+      "x_refused": [
+        {
+          "check_now": "refused"
+        },
+        {
+          "check_now": "started"
+        }
+      ]
     }
   }
 }

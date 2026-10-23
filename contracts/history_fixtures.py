@@ -1210,6 +1210,22 @@ def fixture_19_a_real_permit_is_judged_by_the_wall_clock(repo: Path) -> str:
                         "a real permit whose window closed by the clock")
 
 
+def fixture_79_a_runtime_status_file_forced_into_a_commit(repo: Path) -> str:
+    """The runtime's idle status file, committed (2026-10-22, plan.md 15.1 item 3).
+
+    microscope_runtime/.runtime_status/ is in SKIP_DIRS, so the walk never
+    enters it and no check judges what is in it. The file there is volatile
+    and never a record; .gitignore hides it, and a commit carries it only when
+    someone forces it. This forces it, with git add -f, as the runtime seat,
+    whose boundary and paths otherwise cover the folder.
+    """
+    start = base(repo)
+    write(repo, "microscope_runtime/.runtime_status/idle_status.json", {"artifact": "idle_status"})
+    run(repo, "add", "-f", "--", "microscope_runtime/.runtime_status/idle_status.json")
+    run(repo, "commit", "-q", "--no-verify", "-m", "the idle status file, forced in", seat="microscope-office-20261017-1")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1303,6 +1319,8 @@ FIXTURES = [
     (1, "PASS", "conform to their schema", fixture_89_two_machines_record_on_one_day),
     (1, "FAIL", "'verdict' is a required property [contracts/harness/retro/20261022.json]",
      fixture_01_an_artifact_in_a_tree_without_cards_is_judged),
+    (79, "FAIL", "is tracked by git inside a directory SKIP_DIRS names",
+     fixture_79_a_runtime_status_file_forced_into_a_commit),
 ]
 
 

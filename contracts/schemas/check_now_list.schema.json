@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "check_now_list.schema.json",
+  "title": "check_now_list -- the channels a person approves for \"check now\" (plan.md 15.1 item 3)",
+  "description": "\"Check now\" is a preparatory run (11-21, check 85) whose approved list is this file, which the PERSON writes in microscope_runtime/approvals/ and the live-view host runs only when the console names its sha256, taken over the file's raw bytes (the person, Q-20261022-office-08, 471ef2df: open, read and close from a list approved once, with no light and no motion). The run reaches each listed channel's preflight and read() and closes it, under the run lock. THE FILE CAN EXPRESS NO COMMAND: each entry names a channel and why opening it is inert, and the closed shape admits no setting, value or action. Nothing in the motion set may be listed at all, which check 85 holds by scanning every key and value. A channel whose opening is not known to be inert stays off the list until it is (a serial open can assert DTR; 4.6.10), which is why each entry carries the reason in the person's words. An artifact and not a card: it answers no question and is identified by its bytes.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "check_now_list"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "written_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "the person who wrote this list"
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date",
+      "description": "the day it was written"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "what this list is for, in the person's words"
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "a channel name from the device registry"
+          },
+          "opening_is_inert_because": {
+            "type": "string",
+            "minLength": 10,
+            "description": "why opening, reading and closing this channel moves nothing and lights nothing, in the person's words. A channel nobody can say this for stays off the list"
+          }
+        },
+        "required": [
+          "channel",
+          "opening_is_inert_because"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "written_by",
+    "written_at",
+    "label",
+    "channels"
+  ],
+  "additionalProperties": false
+}

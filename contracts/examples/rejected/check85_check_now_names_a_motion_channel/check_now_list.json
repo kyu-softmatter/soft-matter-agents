@@ -1,0 +1,21 @@
+{
+  "artifact": "check_now_list",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-22",
+  "label": "REJECTED FIXTURE. A motion channel listed for check now. Even a read-only open is refused for the motion set, because a check-now run moves nothing. Check 85 refuses it.",
+  "channels": [
+    {
+      "channel": "camera_red",
+      "opening_is_inert_because": "EXAMPLE reason: the camera opens through Micro-Manager and an open starts no acquisition; the person writes the real one"
+    },
+    {
+      "channel": "camera_blue",
+      "opening_is_inert_because": "EXAMPLE reason: as camera_red; the person writes the real one"
+    },
+    {
+      "channel": "piezo_stage",
+      "opening_is_inert_because": "EXAMPLE reason that does not matter: the motion set is refused whatever is said"
+    }
+  ]
+}

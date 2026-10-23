@@ -1,0 +1,17 @@
+{
+  "artifact": "check_now_list",
+  "schema_version": "0.1",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-22",
+  "label": "EXAMPLE, accepted. Status before a session: the two cameras opened, read and closed. Nothing lit, nothing moved.",
+  "channels": [
+    {
+      "channel": "camera_red",
+      "opening_is_inert_because": "EXAMPLE reason: the camera opens through Micro-Manager and an open starts no acquisition; the person writes the real one"
+    },
+    {
+      "channel": "camera_blue",
+      "opening_is_inert_because": "EXAMPLE reason: as camera_red; the person writes the real one"
+    }
+  ]
+}
