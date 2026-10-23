@@ -282,6 +282,9 @@ ARTIFACT_SCHEMA = {
     # hand beside the safety policy. The approval reader compares a console-signed
     # approval's login to it; the console never reads or writes it.
     "console_login": "console_login.schema.json",
+    # 2026-10-23, HP-016: the person's word on a harness loosening, given through
+    # the console and committed by the person under approvals/harness/.
+    "harness_permission": "harness_permission.schema.json",
     # 2026-10-16, HP-005: the meta-harness's two JSON records (plan.md 8.3).
     # Its two JSONL files are line schemas and are judged by check 89, the
     # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
@@ -1762,6 +1765,9 @@ ALLOWED_PATHS = [
     # beside the policy. The person's own file (check 41's PERSONS_FILES).
     r"^microscope_runtime/envelope/console_login\.json$",
     r"^microscope_runtime/approvals/[A-Za-z0-9_.-]+$",
+    # HP-016 (2026-10-23): one subfolder, the person's word on a harness proposal
+    # given through the console, named by the proposal and the hash it showed.
+    r"^microscope_runtime/approvals/harness/HP-[0-9]{3}-[0-9a-f]{12}\.json$",
     r"^microscope_runtime/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^microscope_runtime/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^microscope_runtime/tests/[A-Za-z0-9_.-]+\.py$",
@@ -8993,6 +8999,14 @@ def check_89_harness_records(b: Bundle, commit_range: str | None = None,
                                              "this outcome was an outcome of", led_rel))
             if isinstance(rec.get("commit"), str):
                 wanted.setdefault(rec["commit"], []).append((led_rel, f"line {i}: {pid} {rec.get('outcome')}"))
+            if rec.get("outcome") in ("landed", "refused") and prop is not None:
+                words = [("the ledger line", rec.get("person_word"))]
+                if rec.get("outcome") == "landed":
+                    words.append(("the proposal", prop.data.get("person_word")))
+                for whose, pw in words:
+                    if isinstance(pw, dict):
+                        out += _check_89_console_word(pw, pid, prop.data, prop.rel, rec.get("outcome"),
+                                                      f"line {i} ({whose})", led_rel)
             if rec.get("outcome") != "landed" or prop is None:
                 continue
             d = prop.data
@@ -9023,6 +9037,134 @@ def check_89_harness_records(b: Bundle, commit_range: str | None = None,
         n_r = sum(len(s["retros"]) for s in sets.values())
         out.append(Finding(89, PASS, f"{n_lines} lines, {n_p} proposals and {n_r} retros in {len(sets)} sets "
                                      f"hold together; {len(wanted)} named commits resolve"))
+    return out
+
+
+#: A person_word given through the console (HP-016, the person at 659c2214).
+CONSOLE_WORD = re.compile(r"^console:(?P<login>[A-Za-z0-9][A-Za-z0-9._-]{0,63})$")
+PERMISSION_FILE = re.compile(r"^microscope_runtime/approvals/harness/(?P<pid>HP-[0-9]{3})-(?P<sha12>[0-9a-f]{12})\.json$")
+#: What the person signed and what must land unchanged. proof, reach and notes
+#: are filled in after the signature and may differ (HP-016 item 5).
+SIGNED_FIELDS = ("kind", "changes", "touches_core", "answers", "needs_threshold", "revert")
+
+
+def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: str, where: str,
+                           rel: str) -> list[Finding]:
+    """A person_word given through the console, read at a landed or refused line (HP-016).
+
+    The words are the record: the person, 2026-10-23, committed at 659c2214,
+    "10: 규칙을 느슨하게 하는 제안의 허락도 그 화면에서 로그인과 비밀번호로 하고
+    싶다. 그 방식을 바꾸는 것을 받아들인다." (the permission for a proposal that
+    loosens a rule may be given on that screen too, by login and password).
+    So the word is a file the console writes at the password, in the person's
+    approvals folder, and the person commits. Six things, each a structural
+    fact and none a threshold:
+
+      1. recorded_in names a permission file for this proposal, present in
+         the tree, identical to what was committed, and every commit that
+         touched it was made under `human`;
+      2. it is a harness_permission naming this proposal, its decision is yes
+         for a landing and no for a refusal, its screen_words are the quote
+         and its signed_at's day is `on`;
+      3. the login after `console:`, the file's signed_through.login and the
+         login in microscope_runtime/envelope/console_login.json, which the
+         person places by hand, are equal byte for byte;
+      4. proposal_sha256 is the sha256 of the proposal file's blob at
+         proposal_commit, read from git, and the file name carries its
+         first 12;
+      5. what was signed is what lands: SIGNED_FIELDS of the proposal in the
+         tree equal the signed blob's;
+      6. the form counts for a loosening or a retirement that touches no part
+         of the core. A change to the core stays words said in a window.
+    """
+    m = CONSOLE_WORD.match(str(pw.get("said_in_window_of") or ""))
+    if not m:
+        return []
+    import hashlib
+    import subprocess
+    out: list[Finding] = []
+
+    def fail(msg: str) -> list[Finding]:
+        out.append(Finding(89, FAIL, f"{where}: {pid}'s person_word was given through the console, and {msg} "
+                                     "(8.3 rule 1, HP-016)", rel))
+        return out
+
+    def git(*args: str) -> bytes:
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, check=True).stdout
+
+    if d.get("kind") not in ("loosen", "retire") or d.get("touches_core"):
+        return fail(f"the proposal is a {d.get('kind')} touching {d.get('touches_core') or 'nothing in the core'}; "
+                    "the console form counts only for a loosening or a retirement that touches no part of the "
+                    "core, and a change to the core stays words said in a window")
+    rec = str(pw.get("recorded_in") or "")
+    pm = PERMISSION_FILE.match(rec)
+    if not pm or pm.group("pid") != pid:
+        return fail(f"recorded_in {rec!r} is not a permission file for {pid} under "
+                    "microscope_runtime/approvals/harness/")
+    path = REPO / rec
+    if not path.is_file():
+        return fail(f"{rec} is not in the tree")
+    raw = path.read_bytes()
+    try:
+        perm = json.loads(raw.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return fail(f"{rec} is not readable JSON: {exc}")
+    # 1. committed, unchanged since, and only ever under `human`
+    human = next((s.get("committer_email") for s in load_seats().get("seats", [])
+                  if s.get("seat") == PERSONS_SEAT), None)
+    try:
+        emails = [e for e in git("log", "--format=%ce", "--", rec).decode().splitlines() if e.strip()]
+        held = git("cat-file", "blob", f"HEAD:{rec}")
+    except (OSError, subprocess.CalledProcessError):
+        emails, held = [], None
+    if not emails or held is None:
+        return fail(f"{rec} is in no commit; the person commits a permission as an approval")
+    if held.replace(b"\r\n", b"\n") != raw.replace(b"\r\n", b"\n"):
+        return fail(f"{rec} differs from what was committed")
+    others = sorted({e for e in emails if e != human})
+    if others:
+        return fail(f"{rec} was committed under {others}, and only `human` commits the person's word")
+    # 2. this proposal, this outcome, these words
+    if perm.get("artifact") != "harness_permission" or perm.get("proposal") != pid:
+        return fail(f"{rec} is not a harness_permission naming {pid}")
+    want = "yes" if outcome == "landed" else "no"
+    if perm.get("decision") != want:
+        return fail(f"{rec} says {perm.get('decision')!r}, and a line {outcome} stands only on {want!r}")
+    if pw.get("quote") != perm.get("screen_words"):
+        return fail("its quote is not the file's screen_words")
+    if str(perm.get("signed_at") or "")[:10] != pw.get("on"):
+        return fail(f"its date {pw.get('on')} is not the day the file was signed")
+    # 3. the person's own login, as the person placed it
+    login_path = REPO / "microscope_runtime" / "envelope" / "console_login.json"
+    try:
+        placed = json.loads(login_path.read_text(encoding="utf-8-sig")).get("login")
+    except (OSError, json.JSONDecodeError, AttributeError):
+        placed = None
+    signed = (perm.get("signed_through") or {}).get("login")
+    if placed is None:
+        return fail("microscope_runtime/envelope/console_login.json is absent or unreadable, so no login is the "
+                    "person's")
+    if not (m.group("login") == signed == placed):
+        return fail(f"the logins differ: the word says {m.group('login')!r}, the file {signed!r}, and the one the "
+                    f"person placed is {placed!r}; any other login binds nothing")
+    # 4. the hash is of what the screen showed
+    commit = str(perm.get("proposal_commit") or "")
+    try:
+        blob = git("cat-file", "blob", f"{commit}:{prop_rel}")
+    except (OSError, subprocess.CalledProcessError):
+        return fail(f"its proposal_commit {commit[:12]} holds no {prop_rel}")
+    sha = hashlib.sha256(blob).hexdigest()
+    if sha != perm.get("proposal_sha256") or sha[:12] != pm.group("sha12"):
+        return fail(f"the proposal at {commit[:12]} hashes to {sha[:12]}, and the permission names "
+                    f"{str(perm.get('proposal_sha256'))[:12]} in its body and {pm.group('sha12')} in its name")
+    # 5. what was signed is what lands
+    try:
+        signed_prop = json.loads(blob.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return fail(f"the proposal at {commit[:12]} is not JSON")
+    moved = [k for k in SIGNED_FIELDS if signed_prop.get(k) != d.get(k)]
+    if moved:
+        return fail(f"its {', '.join(moved)} differ from what the person signed at {commit[:12]}")
     return out
 
 

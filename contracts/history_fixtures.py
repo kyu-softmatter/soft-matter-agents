@@ -48,6 +48,7 @@ harness had somewhere to put them.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import shutil
@@ -1256,6 +1257,116 @@ def fixture_41_the_person_commits_an_approval(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = "kyu", sha_wrong: bool = False,
+                  changed_after: bool = False, absent: bool = False, decision: str = "yes",
+                  touches_core: list | None = None, perm_seat: str = "human") -> str:
+    """HP-016 (2026-10-23): a loosening landed on the person's word given through the console.
+
+    The person, Q-20261022-office-14, committed at 659c2214: the permission for a
+    loosening may be given on the console's screen by login and password. The
+    console writes microscope_runtime/approvals/harness/<HP>-<sha12>.json at the
+    password; the person commits it under `human`; a manager lands the
+    proposal with a person_word of the console form. Each keyword breaks one of
+    check 89's six readings, and the defaults meet all of them.
+    """
+    base(repo)
+    shutil.rmtree(repo / "contracts" / "harness")
+    start = commit(repo, "the copied live harness records, out", "contracts", seat="harness-office-20261016-1")
+    office = "harness-office-20261016-1"
+    write(repo, "contracts/harness/incidents.jsonl", json.dumps({
+        "id": "INC-20261023-office-01", "on": "2026-10-23", "class": "contract-has-no-slot-for-it",
+        "what": "A rule the fixture loosens.", "evidence": [{"kind": "prose_only", "ref": "plan.md@ca9d24a6:1"}],
+        "seats": [], "source": "plan.md@ca9d24a6:1", "enforced_by": None, "recorded_by": office,
+        "recorded_on": "2026-10-23"}) + "\n")
+    prop = {
+        "artifact": "harness_proposal", "schema_version": "0.1", "id": "HP-902",
+        "title": "A loosening the fixture lands on a console word", "drafted_by": office,
+        "drafted_on": "2026-10-23", "kind": "loosen", "class": "contract-has-no-slot-for-it",
+        "answers": ["INC-20261023-office-01"],
+        "classification": {"members_found": ["INC-20261023-office-01"], "looked_in": ["the fixture"]},
+        "changes": [{"path": "contracts/validate.py", "owner": "any manager", "change": "Nothing; a fixture."}],
+        "touches_core": touches_core or [], "needs_threshold": False,
+        "proof": {"fixtures": [], "replay": {"range": None, "new_fail_on_accepted": None, "run_line": None},
+                  "equivalence": None},
+        "reach": {"already_running": [], "how_they_learn": "nobody runs in a fixture", "use_site": None},
+        "revert": "git revert <landing commit>"}
+    rel = "contracts/harness/proposals/HP-902.json"
+    write(repo, rel, prop)
+    write(repo, "contracts/harness/ledger.jsonl", json.dumps(
+        {"at": "2026-10-23T10:00:00Z", "proposal": "HP-902", "outcome": "drafted", "by_seat": office}) + "\n")
+    shown = commit(repo, "a proposal the screen shows", "contracts/harness", seat=office)
+    blob = subprocess.run(["git", "-C", str(repo), "cat-file", "blob", f"{shown}:{rel}"], capture_output=True,
+                          check=True).stdout
+    sha = hashlib.sha256(blob).hexdigest()
+    named = ("0" * 64) if sha_wrong else sha
+    words = f"Give permission for HP-902 as shown, sha256 {named[:12]}: yes"
+    perm_rel = f"microscope_runtime/approvals/harness/HP-902-{named[:12]}.json"
+    write(repo, "microscope_runtime/envelope/console_login.json", {
+        "artifact": "console_login", "schema_version": "0.1", "login": login_placed,
+        "written_by": "the person, in a fixture", "written_at": "2026-10-23"})
+    write(repo, perm_rel, {
+        "artifact": "harness_permission", "schema_version": "0.1", "proposal": "HP-902",
+        "proposal_commit": shown, "proposal_sha256": named, "decision": decision, "screen_words": words,
+        "signed_at": "2026-10-23T11:00:00Z", "signed_through": {"via": "console", "login": login_signed}})
+    paths = ["microscope_runtime/envelope/console_login.json"] + ([] if absent else [perm_rel])
+    commit(repo, "the person's console login and permission", *paths, seat=perm_seat)
+    if absent:
+        (repo / perm_rel).unlink()
+    if changed_after:
+        prop["changes"] = prop["changes"] + [{"path": "contracts/seats.json", "owner": "any manager",
+                                              "change": "Something the person never saw."}]
+    prop["person_word"] = {"quote": words, "said_in_window_of": f"console:{login_signed}", "on": "2026-10-23",
+                           "recorded_in": perm_rel}
+    write(repo, rel, prop)
+    with open(repo / "contracts/harness/ledger.jsonl", "a", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps({"at": "2026-10-23T12:00:00Z", "proposal": "HP-902", "outcome": "landed",
+                             "by_seat": office, "commit": shown, "revert_command": f"git revert {shown[:8]}"}) + "\n")
+    commit(repo, "HP-902 landed on the person's console word", "contracts/harness",
+           seat="manager-microscope-20261003-1")
+    return f"{start}..HEAD"
+
+
+def fixture_89_a_loosening_landed_on_a_console_word(repo: Path) -> str:
+    return _console_word(repo)
+
+
+def fixture_89_a_console_word_under_another_login(repo: Path) -> str:
+    return _console_word(repo, login_placed="kyu", login_signed="admin")
+
+
+def fixture_89_a_console_word_whose_hash_is_not_the_proposals(repo: Path) -> str:
+    return _console_word(repo, sha_wrong=True)
+
+
+def fixture_89_a_console_word_and_changes_the_person_never_saw(repo: Path) -> str:
+    return _console_word(repo, changed_after=True)
+
+
+def fixture_89_a_console_word_whose_file_is_gone(repo: Path) -> str:
+    return _console_word(repo, absent=True)
+
+
+def fixture_89_a_console_no_cited_for_a_landing(repo: Path) -> str:
+    return _console_word(repo, decision="no")
+
+
+def fixture_89_a_console_word_for_a_change_to_the_core(repo: Path) -> str:
+    return _console_word(repo, touches_core=["harness_rules_1_to_5"])
+
+
+def fixture_89_a_console_word_committed_under_a_seat(repo: Path) -> str:
+    return _console_word(repo, perm_seat="microscope-office-20261017-1")
+
+
+def fixture_41_a_seat_commits_a_harness_permission(repo: Path) -> str:
+    """HP-016: the subfolder is the person's like the rest of approvals/, shown and not assumed."""
+    start = base(repo)
+    write(repo, "microscope_runtime/approvals/harness/HP-902-000000000000.json", {"artifact": "harness_permission"})
+    commit(repo, "a seat writes the person's word", "microscope_runtime/approvals/harness/HP-902-000000000000.json",
+           seat="microscope-office-20261017-1")
+    return f"{start}..HEAD"
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1354,6 +1465,17 @@ FIXTURES = [
     (41, "FAIL", "commits the person's own file", fixture_41_the_runtime_seat_commits_an_approval),
     (41, "FAIL", "commits the person's own file", fixture_41_a_planning_seat_commits_the_safety_policy),
     (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_person_commits_an_approval),
+    # HP-016 (2026-10-23): the person's word through the console.
+    (89, "PASS", "hold together", fixture_89_a_loosening_landed_on_a_console_word),
+    (89, "FAIL", "the logins differ", fixture_89_a_console_word_under_another_login),
+    (89, "FAIL", "and the permission names", fixture_89_a_console_word_whose_hash_is_not_the_proposals),
+    (89, "FAIL", "differ from what the person signed", fixture_89_a_console_word_and_changes_the_person_never_saw),
+    (89, "FAIL", "is not in the tree", fixture_89_a_console_word_whose_file_is_gone),
+    (89, "FAIL", "stands only on 'yes'", fixture_89_a_console_no_cited_for_a_landing),
+    (89, "FAIL", "the console form counts only for a loosening or a retirement that touches no part",
+     fixture_89_a_console_word_for_a_change_to_the_core),
+    (89, "FAIL", "and only `human` commits the person's word", fixture_89_a_console_word_committed_under_a_seat),
+    (41, "FAIL", "commits the person's own file", fixture_41_a_seat_commits_a_harness_permission),
 ]
 
 

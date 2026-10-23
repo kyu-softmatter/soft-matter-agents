@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness_permission.schema.json",
+  "title": "harness_permission -- the person's word on a harness loosening or retirement, given through the console (plan.md 8.3 rule 1, HP-016)",
+  "description": "The person, Q-20261022-office-14, committed verbatim at 659c2214: the permission for a proposal that loosens a rule may be given on the console's screen by login and password. The console's server writes this file at the moment the person types the password again, and nothing else writes it, at microscope_runtime/approvals/harness/<proposal>-<first 12 hex of proposal_sha256>.json. The person commits it, under `human`; check 41 refuses any other seat under approvals/. proposal_sha256 is over the bytes of contracts/harness/proposals/<proposal>.json at proposal_commit, which is what the screen showed. screen_words is the screen's own sentence the person confirmed. The login is a plain id in plan_approval's signed_through pattern. No password, hash of one, or token goes in, so the shape admits no other key. Check 89 reads it at the landing or refusal line that cites it.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "harness_permission"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "proposal": {
+      "type": "string",
+      "pattern": "^HP-[0-9]{3}$"
+    },
+    "proposal_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "proposal_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision": {
+      "enum": [
+        "yes",
+        "no"
+      ]
+    },
+    "screen_words": {
+      "type": "string",
+      "minLength": 10,
+      "description": "the screen's sentence the person confirmed, naming the proposal id and the hash"
+    },
+    "signed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_through": {
+      "type": "object",
+      "properties": {
+        "via": {
+          "const": "console"
+        },
+        "login": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        }
+      },
+      "required": [
+        "via",
+        "login"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "proposal",
+    "proposal_commit",
+    "proposal_sha256",
+    "decision",
+    "screen_words",
+    "signed_at",
+    "signed_through"
+  ],
+  "additionalProperties": false
+}
