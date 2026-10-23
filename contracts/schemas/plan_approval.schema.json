@@ -33,6 +33,24 @@
     },
     "note": {
       "type": "string"
+    },
+    "signed_through": {
+      "type": "object",
+      "description": "Present only when the console wrote this approval, at the moment the person typed the password again (6.1 condition 3; the person, 55a635b6). It says how the approval was made: through the console, under which login. When is approved_at, which the console sets as the password check passes; it is not repeated here, because two times that must agree are two times that can drift. The login is a plain id, never an email, because a committed approval is published. A test login binds nothing: the console writes a practice approval only into its own practice data, and the runtime's reader refuses any login that is not the one the person placed by hand beside the safety policy (15.1). Nothing secret goes in, so the block admits no other key.",
+      "properties": {
+        "via": {
+          "const": "console"
+        },
+        "login": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        }
+      },
+      "required": [
+        "via",
+        "login"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
