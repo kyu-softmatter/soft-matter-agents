@@ -1,0 +1,137 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-016",
+  "title": "The person's permission for a loosening may also be a file the console writes under the person's login, bound to the proposal it showed",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-23",
+  "kind": "loosen",
+  "class": "contract-has-no-slot-for-it",
+  "answers": [
+    "INC-20261023-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261023-01",
+      "INC-20261018-05"
+    ],
+    "looked_in": [
+      "person_word in harness_ledger_entry.schema.json and harness_proposal.schema.json: one form, words said in a seat's window",
+      "check 89's landing rule in contracts/validate.py: a landed loosen, retire or core change needs person_word",
+      "the console-signed plan approval as built: plan_approval signed_through {via, login} (e2f5b08b), the person's login in microscope_runtime/envelope/console_login.json (4e61cf96), check 41 holding approvals/ to the person (088fb2b0), plan.md 15.1 item 4",
+      "INC-20261018-05: the same schemas could not hold a loosening before the person was asked; same class, a different gap"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/schemas/harness_permission.schema.json (new)",
+      "owner": "a manager, with manager-console-office-20261017-1 for the console's shape",
+      "change": "The file the console's server writes at the moment the person types the password again on the administrator screen, and nothing else writes: {artifact: harness_permission, schema_version, proposal: HP-<nnn>, proposal_commit, proposal_sha256, decision: yes|no, signed_at, signed_through: {via: console, login}}, no other key. proposal_sha256 is over the bytes of the proposal file at proposal_commit, which is what the screen showed. The login is a plain id, in plan_approval's signed_through pattern, so the two compare byte for byte with the one login file. No password, hash of one, or token can ride in it."
+    },
+    {
+      "path": "contracts/schemas/harness_ledger_entry.schema.json and harness_proposal.schema.json",
+      "owner": "any manager (shared surface under contracts/)",
+      "change": "person_word becomes one of two forms: the words said in a seat's window, as now, or {via: console, file, sha256, on}, naming the permission file by path and by the sha256 of its bytes."
+    },
+    {
+      "path": "contracts/validate.py, check 89",
+      "owner": "manager-microscope-20261003-1 (check 89's holder)",
+      "change": "For a person_word of the console form, at a landing (and a refusal) line: (1) the file is in the tree being judged and its bytes hash to the sha256 named; (2) it validates as harness_permission and names this proposal, and its decision is yes for landed and no for refused; (3) signed_through.login equals the login in microscope_runtime/envelope/console_login.json byte for byte, the one file the person places by hand, never the console's settings; any other login, a test login among them, binds nothing; (4) proposal_sha256 equals the sha256 of the proposal file's blob at proposal_commit, read from git; (5) what was signed is what lands: the landed proposal's kind, changes, touches_core, answers, needs_threshold and revert equal the signed blob's. Proof, reach and notes may be filled in after; (6) the console form counts for kind loosen and retire. A proposal whose touches_core is not empty still needs the window form, until the person says otherwise (see notes)."
+    },
+    {
+      "path": "contracts/validate.py, check 41 and ALLOWED_PATHS; contracts/seats.json",
+      "owner": "check 41's holder; architecture for the registry",
+      "change": "The folder the permission files land in is held to the person: check 41 fails every committer but human there, as for approvals/ since 088fb2b0, and the person commits each file, as an approval. A candidate place is contracts/harness/permissions/, beside the proposals it binds. Then the two harness seats' paths exclude it, so neither harness seat can write what binds its own proposals. The place is the holders' to pick, with the console's."
+    },
+    {
+      "path": "console/ (the administrator screen)",
+      "owner": "manager-console-office-20261017-1",
+      "change": "Show the proposal as it stands at a named commit, with its sha256. Ask the password again at each permission. Write the one file at that moment and nothing else. Sign nothing when the folder is absent. A password a session has seen cannot sign, which holds the administrator account until the person changes its password at the console (plan.md 6.1, 1d3f2c97). The screen never lands, reverts, schedules or seats anything."
+    },
+    {
+      "path": "plan.md 8.3 rule 1 and 6.1",
+      "owner": "architecture-20261003-1",
+      "change": "Rule 1's words gain the second form, with the conditions above, citing 659c2214."
+    }
+  ],
+  "touches_core": [
+    "harness_rules_1_to_5"
+  ],
+  "needs_threshold": false,
+  "person_word": {
+    "quote": "10: 규칙을 느슨하게 하는 제안의 허락도 그 화면에서 로그인과 비밀번호로 하고 싶다. 그 방식을 바꾸는 것을 받아들인다.",
+    "said_in_window_of": "architecture-office-20261017-2",
+    "on": "2026-10-23",
+    "recorded_in": "docs/ideas/20261023.md@659c2214"
+  },
+  "proof": {
+    "fixtures": [
+      {
+        "path": "accepted: a loosening landed on a console permission that meets (1) to (5)",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: the permission's login is not console_login.json's",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: proposal_sha256 does not match the blob at proposal_commit",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: the landed proposal's changes differ from the signed blob's",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: the file named is absent from the tree, or its bytes do not hash to the sha256 named",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: a decision no cited for a landing",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "rejected: a console permission cited for a proposal that touches the core",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "history row: a seat committing a file in the permission folder is refused by check 41",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "harness-office-20261016-1 (this seat)",
+      "harness-scope-20261019-1",
+      "check 89's holder",
+      "the console seats"
+    ],
+    "how_they_learn": "This seat writes to each through the intake seats, and to the microscope computer's harness seat by relay. The gate tells anyone who cites the new form wrongly, at the landing commit.",
+    "use_site": "check 89, at the commit of a landing or refusal line that cites a console permission"
+  },
+  "revert": "git revert <each landing commit>, the check's last",
+  "notes": "A loosening that touches the core (rule 1), so the person's word is required and given: the line quoted above, said in the intake seat's window and committed verbatim at 659c2214, which counts for every seat from that commit. Scope is read narrowly from the person's words, which name a proposal that loosens a rule. A retirement is a loosening and is included. A change to the core is not named there, so it stays words in a window until the person says otherwise. That is put to the person as a plain question through the intake seat. What the guard rests on, as for the plan approval (plan.md 15.1): check 89 cannot tell a file the console wrote from one any process wrote into that folder. So the folder's guard (check 41 held to the person, the person's own commit, settings denials) and the login file are the whole guard. Nothing in it is built until 8.3's words and the check exist. No loosening is landed on a console permission before then."
+}
