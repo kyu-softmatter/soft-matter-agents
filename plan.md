@@ -4290,3 +4290,67 @@ dino `main` is `bdd64da`. It contains every commit card 059 cites, merged withou
 **Records that cite paths.** Findings, runs and cards cite working-copy paths. A citation pinned to a commit stays true across the move; an unpinned one goes stale. **From the move on, a citation of a file in either microscope folder names the commit it was read at.**
 
 **What does not change.** **This is not a second execution path**: 4.6.8's one execution path (the person, 2026-10-16) moves into the runtime's folder whole, and two microscope sessions do not make two paths. The handoff specification the person adopted on 2026-10-19 (`a1f3feca`, 13.5) describes one Python controller beneath its models and its agent; it is this runtime, on the one path, and not a second controller beside it. The design session still never commands the instrument; it writes plans, and the runtime runs the ones the person approved. The safety rules (2.1), the approval model (6.1), the one Micro-Manager core, the run lock, the stop channel and every refusal stay exactly as they are: the move changes where code and records live, not what any of them may do. The simulation agent keeps its envelope, approvals and runs in its own folder, because its envelope is a budget and not a laser and it has no runtime of this kind.
+
+### 15.1 The redesigned console and the runtime (2026-10-22)
+
+**What the person asked.** The console is redesigned as the agents' user interface (I-20261022-office-04, `d1068945`). Its biggest purpose is to pare the console down: "현재 콘솔에 너무 많은 정보가 담겨져있어서 이를 덜어내기 위함이 가장 큰 목적임." (the console holds too much, and paring it down is the biggest purpose; `c84c0f32`). It is built in three steps: the frontend, then a mock backend, then the real instruments. The instruments tab and the last step were routed to this section. Four answers of the person's bear on the runtime, each committed verbatim in `docs/ideas/20261022.md`: Q-20261022-office-06 (`231f0c76`), -07 (`cd9dcb57`), -08 (`471ef2df`) and -09 (`55a635b6`). This subsection says what the runtime serves, refuses and checks under them. Nothing in it is built.
+
+1. **Views come from what already exists, and a pared-down console needs no runtime change.**
+   - The frame tap serves the latest frame of a run's own acquisition, live view included, and never acquires.
+   - `events.jsonl` carries `snapshot` events: one at each stage boundary, and the watcher's `read(wait=False)` at the plan's cadence (13.4). A channel the run did not open is shown as not open, a busy one as not read, and neither is ever carried forward.
+   - `apply` events carry what was sent, each with its `from`.
+   - The records carry the rest: runs, refusals, aborts, the watcher's states, the pre-stop buffer and approvals by hash.
+
+   Labels follow from the rules already here. **The trap channel and the laser combiner cannot be read back** (4.6.6 rule 5), so a trap position or a laser line on a screen is what was sent, never what was observed. A plot's time axis is the software clock, fine for display and never for physics (4.6.9). The screen's refresh and time window are the console's. How often an instrument is read is a plan field the person signs, because every read talks to the device. A merged two-camera image is a picture until a camera-to-camera alignment is in the store. Traps drawn over the live image need a trap-to-camera mapping in the store, or the overlay is refused (11-25 rule 4). Latest frames per camera would change the tap's one request, which is a card agreed with the console first (11-25).
+2. **Hands-on control is deferred until after the reduction** (Q-07): "3: 손 제어는 콘솔을 덜어낸 뒤에 정한다. 그때까지는 보기·초안·정지만." (hands-on control is decided after the console has been pared down; until then, show, draft and stop only). Until then:
+   - A pattern or a set of targets is a drafted `trap_steps` or `operation` plan the person signs.
+   - Live view stays the approved-list preparatory run of 11-25.
+   - Stop is the run's stop channel.
+
+   No set-point path, no plan per click and no signed bench session is designed or built. The three options put to the person are asked again after the reduction. **Four quantities the instruments tab names have no limit in the person's policy**: exposure, flicker rate, trap count and widefield source power. A command touching any of them refuses until the person writes one (2.1 rule 2). The registry's trap-count ceiling and splitting scheme are still unfilled (4.6.3).
+3. **Status when nothing runs, and "check now"** (Q-08): "4: (2) 여기에 '지금 확인' 버튼도 둔다. 한 번 승인한 목록대로 열고 읽고 닫으되 빛도 움직임도 없다." (also a "check now" button; it opens, reads and closes from a list approved once, with no light and no motion). Outside a run the runtime holds nothing open, so idle status is **a file the runtime writes**, never a device the console asks. It holds:
+   - the last run's preflight and last snapshot, each with its time;
+   - the verdicts per resource on each ownership probe, once 4.6.10's ownership check exists (which maker program holds which interface);
+   - the registry's fixed facts.
+
+   It sits outside the person's folders; manager-microscope names it. **"Check now" is a preparatory run under 11-21's conditions, the live-view pattern.** The person approves one list by path and sha256. It reaches each listed channel's preflight and `read()` and closes it, with nothing in the motion set and no light-source command, under the run lock and the ownership check, and it writes the same status file. The console names the list's hash in a one-message shape like the live-view host's, and can send nothing else. **A channel whose opening is not known to be inert stays off the list until it is** (a serial open can assert DTR; 4.6.10).
+4. **Where a console-signed approval lands** (Q-09): "5: (1) 내 승인 폴더에, 비밀번호를 치는 순간 콘솔이 쓴다. 파일에 '콘솔에서 이 로그인으로 서명' 표시를 넣고, AI 세션은 거기 못 쓴다. 콘솔이 자기 폴더 밖에 쓰는 이 예외를 받아들인다." (in my approvals folder, written by the console at the moment the password is typed; the file carries a "signed through the console under this login" mark; no AI session can write there; I accept this exception to the console writing outside its own folder).
+
+   **One place and one reader**: `microscope_runtime/approvals/`, written by the console's server at that moment, and the console writes nothing else there. The operator's reader stays the one it is. For a file carrying the console mark, it adds three checks:
+   - the login must be the person's own, as named in a file the person places by hand beside the safety policy (manager-console-office-20261017-1's proposal). It is never taken from the console's settings, which decide only the screen and which a session can write;
+   - a test login binds nothing;
+   - the plan hash binds as for any approval (check 7).
+
+   **No fallback**: if the runtime's approvals folder is absent, the console signs nothing. A file written into the old `microscope_agent/approvals/` would land where no reader looks. 6.1's three conditions hold, and 6.1's holder updates "open" there.
+
+   **What this rests on, said plainly.** The runtime cannot tell a file the console wrote from one any other process wrote into that folder. So the folder's guard is the whole guard, as it is for a file placed by hand. On 2026-10-22 that guard was found thinner than 6.1 assumes:
+   - the root `.claude/settings.json` still denies the old `microscope_agent/` envelope, approvals, runs and src paths and names nothing under `microscope_runtime/`. A session rooted at the repository root is therefore refused there only at commit, while `approvals_on_disk` reads the folder from disk. Step 8 above owes that re-pointing, and the root settings' holder has it;
+   - a deny reaches the Write and Edit tools, not a shell;
+   - the console's server is code a session maintains.
+
+   A signature the runtime checks against a public half the person places would close the last point, at the cost of a signature library in both environments. The person's answer does not take it now. Whether 6.1 condition 1 holds without it is 6.1's holder's to judge.
+5. **A run from another login's question** (Q-06; 6 at `e1bd3ebd` and `570a4d4f`). This is the runtime's half of 6's refusal:
+   - a plan whose asking login is absent or unreadable counts as another login's (2.1 rule 2). Every plan on disk today has its own approval, so this blocks only what a standing permit would otherwise cover;
+   - for another login's run no standing permit covers it, whether a `scope_approval`, an approved list or a short run inside the envelope. Only an approval of that exact plan hash does, placed by the person's hand or signed in the console under the person's own login;
+   - the asking login is never taken from the plan's word or the console's settings. **In the first build every question from the console counts as another login's**, because no per-question proof exists (6), so each plan it leads to needs its own approval.
+
+   A question the person types into an agent's own window keeps 6's table as it stands. Live view's "on" is offered only under the person's login. That is a console-side role (manager-console, under Q-06), and the live-view host needs nothing new.
+6. **The mock is the runtime on its own mock, and the last step changes no console code.** The mock backend in the person's build order is `--backend mock` behind the same orchestrator (4.6.5). It is not an engine on the console's side: dino's `mock` executed commands and stays retired (above), and nothing under `console/` opens a core. So the steps run like this:
+   - the frontend works on recorded runs, read as data;
+   - the console then talks to the live-view host and to plan runs on the mock: the same event stream, frame tap and stop channel;
+   - finally the runtime's backend argument changes, and the console does not.
+
+   What the mock lacks for the tab is manager-microscope's to card: two cameras framing together, a moving piezo trace, trap commands echoed, the confocal elements, and the "check now" list. **Connecting the real instruments is the person's at the bench**:
+   - the stop-delay measurement already listed for the next visit (14);
+   - each list and plan signed by hash, with the bench handed over;
+   - the maker programs closed or kept as the sheet says, until the ownership check exists;
+   - a limit written for anything newly controlled;
+   - the first command of each new kind watched;
+   - three measurements for the store: the trap-to-camera mapping, the camera-to-camera alignment and the pixel size per objective;
+   - which camera the tweezers' program holds (4.6.10's gap).
+
+**Who takes what.**
+- manager-microscope cards: the tap's per-camera request (with the console's side), the status file, "check now", the reader's three console checks, the other-login refusal with its fixtures (6), and the mock's additions. The runtime seat builds each on mock first.
+- manager-console-office-20261017-1 holds the writing side and the console role.
+- The root settings' holder re-points the root denials (step 8).
+- architecture-20261003-1 updates 6.1.
