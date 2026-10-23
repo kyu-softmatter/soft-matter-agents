@@ -1,0 +1,135 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-23",
+  "trigger": "daily",
+  "tree": "86db5134 plus 1 uncommitted paths [dirty ff955ac0], which is nobody's commit -- the run before this pass's record was written; the one path is the intake seat's docs/ideas/20261023.md",
+  "verdict": "verdict: 225 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "this computer's commit tool record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-22T16:30Z to 2026-10-23T18:50Z, 152 lines",
+      "found": "57 commit attempts: 55 committed, 2 refused. Both refusals were architecture-20261003-1's, naming a patch file and then a message file that did not exist at the path given: the tool's correct refusal, and nothing was lost. No refusal at the rebuild limit. HEAD moves per attempt: 0: 39, 1: 12, 2: 6. Gate runs per commit: 1: 37, 2: 12, 3: 6. 46 push lines: 31 pushed, 15 refused, all 15 for listing other seats' commits not yet named. No hold or release. Counted by tools/count_window.py in this seat's scratch folder."
+    },
+    {
+      "source": "commits this computer's log cannot see",
+      "path": null,
+      "window": "git log --first-parent origin/main, 2026-10-22T16:30Z to 2026-10-23T18:50Z, 56 commits",
+      "found": "All 56 are in this computer's log, so none was made around the tool here. None came from the microscope computer in this window."
+    },
+    {
+      "source": "commits touching contracts/harness/ by any other seat",
+      "path": "contracts/harness/",
+      "window": "origin/main, all history",
+      "found": "0 of 24. The second harness seat (harness-scope-20261019-1) has not committed."
+    },
+    {
+      "source": "failures.jsonl in each agent, and the librarian's query log",
+      "path": null,
+      "window": "2026-10-22T16:30Z to 2026-10-23T18:50Z",
+      "found": "No commit touched any of the seven failures.jsonl files or librarian_agent/queries/log.jsonl, and the query log (1478 lines) has no uncommitted change."
+    },
+    {
+      "source": "the three landings since the last pass, each read back by this seat",
+      "path": "contracts/harness/ledger.jsonl",
+      "window": "2026-10-22T18:16Z to 21:09Z",
+      "found": "HP-013 at 1c27af54: machine-word incident ids and retro names. It was incomplete at landing, because the proposal and retro schemas kept the old id pattern; the miss was in this seat's change list (INC-20261022-03). HP-014 at 6e74dbdc completed it, with one shared id definition. HP-015 at 7ca41a48: check 1 judges artifacts in a tree without cards (INC-20261022-04). Each was listed to the person through the intake seat the same day, with its revert command. Proof fields of HP-014 and HP-015 were filled here from their builder's reports, attributed, because the builder cannot write this folder."
+    },
+    {
+      "source": "the console redesign, as it bears on the meta-harness",
+      "path": "docs/ideas/20261022.md, docs/ideas/20261023.md",
+      "window": "d1068945, 1d3f2c97, 86db5134",
+      "found": "The administrator screen's harness area is read-only plus drafting: it lands, reverts, approves, schedules and seats nothing (plan.md 8.3 at 1d3f2c97). A console signature is no seat's window, so it is not a person_word. The API management tab (86db5134) shows usage and cost: the meta-harness counts neither, and this seat told the console manager where those figures live."
+    },
+    {
+      "source": "the harness2 trial",
+      "path": null,
+      "window": "-",
+      "found": "No word on the account or the model has come through the intake seat. Nothing was built further and nothing has run."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261020-01",
+    "INC-20261022-03",
+    "INC-20261022-04"
+  ],
+  "measured": [
+    {
+      "class": "limit-refuses-correct-work",
+      "since": "51feb21b",
+      "recurrences": 0,
+      "method": "refusals at the rebuild limit in this computer's tool log in the window; the most HEAD moves on one attempt was 2"
+    },
+    {
+      "class": "confirmation-pre-supplied",
+      "since": "a65d262e",
+      "recurrences": 0,
+      "method": "push lines that published another seat's commit without naming it: none; 15 refusals asked for the names, none for an inexact flag"
+    },
+    {
+      "class": "boundary-narrows-one-side-only",
+      "since": "0cfd1d85",
+      "recurrences": 0,
+      "method": "commits touching contracts/harness/ by a seat other than a harness seat, on origin/main"
+    },
+    {
+      "class": "two-writers-one-keyspace",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "duplicate incident ids or two harness seats writing one retro file on origin/main; the second seat has not written yet, so this has not been tested by use"
+    },
+    {
+      "class": "class-fixed-not-swept",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "the copy of the id shape left outside the shared definition, check 89's INCIDENT_ID, accepts and refuses the same 12 sample ids as $defs/incident_id, in both directions; this covers only HP-014's member of the class"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-013",
+      "this_pass": "Landed at 1c27af54, incomplete; completed by HP-014."
+    },
+    {
+      "id": "HP-014",
+      "this_pass": "Drafted, handed and landed at 6e74dbdc."
+    },
+    {
+      "id": "HP-015",
+      "this_pass": "Drafted, handed and landed at 7ca41a48."
+    },
+    {
+      "id": "HP-012",
+      "this_pass": "Still open: the check and the bridge twin."
+    }
+  ],
+  "landed_today": [
+    {
+      "proposal": "HP-013",
+      "kind": "reshape",
+      "commit": "1c27af54",
+      "revert_command": "git revert 1c27af54"
+    },
+    {
+      "proposal": "HP-014",
+      "kind": "reshape",
+      "commit": "6e74dbdc",
+      "revert_command": "git revert 6e74dbdc"
+    },
+    {
+      "proposal": "HP-015",
+      "kind": "tighten",
+      "commit": "7ca41a48",
+      "revert_command": "git revert 7ca41a48"
+    }
+  ],
+  "next": [
+    "The question whether this seat's daily pass may run on a schedule still waits for the person's answer in this seat's own window (INC-20261022-02).",
+    "When the second harness seat first commits, check that its ids carry 'scope' and its retro is retro/<date>-scope.json (relay RL-3 through the intake seats).",
+    "harness2 trial: wait for the account and the model.",
+    "HP-012: the check and the bridge twin are still open with a manager.",
+    "Write proposal files HP-001 to HP-004 from plan.md 8.3, so HP-001's landing can enter the ledger."
+  ]
+}
