@@ -67,58 +67,64 @@
   "proof": {
     "fixtures": [
       {
-        "path": "accepted: a loosening landed on a console permission that meets (1) to (5)",
+        "path": "contracts/history_fixtures.py: a loosening landed on a console permission that meets items 1 to 5",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "n/a for an accepted row",
+        "watched_passing_after": "ffef9a67: passes check 89, with no check 1 or 13 failure on the file (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: the permission's login is not console_login.json's",
+        "path": "contracts/history_fixtures.py: refused, another login",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: proposal_sha256 does not match the blob at proposal_commit",
+        "path": "contracts/history_fixtures.py: refused, a wrong proposal hash",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: the landed proposal's changes differ from the signed blob's",
+        "path": "contracts/history_fixtures.py: refused, changes after signing",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: the file named is absent from the tree, or its bytes do not hash to the sha256 named",
+        "path": "contracts/history_fixtures.py: refused, the file gone",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: a decision no cited for a landing",
+        "path": "contracts/history_fixtures.py: refused, a decision no for a landing",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: a console permission cited for a proposal that touches the core",
+        "path": "contracts/history_fixtures.py: refused, a proposal touching the core",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "rejected: the permission file was committed under a seat and not under human",
+        "path": "contracts/history_fixtures.py: refused, the file committed under a seat",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "a scratch copy with check 89's console reading switched off: NOT REJECTED, 0/7 for the seven rows (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: refused by check 89 (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "history row: a seat committing a file under microscope_runtime/approvals/harness/ is refused by check 41",
+        "path": "contracts/history_fixtures.py: a seat committing a file under microscope_runtime/approvals/harness/ is refused by check 41",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "no code needed: PERSONS_FILES has covered approvals/ since 088fb2b0; the row shows the subfolder covered",
+        "watched_passing_after": "ffef9a67: refused by check 41 (manager-microscope-20261003-1's run)"
+      },
+      {
+        "path": "contracts/examples/rejected/check89_harness_ledger_console_word_names_no_record",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": "with both rules off: NOT REJECTED, 110/111 (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "ffef9a67: rejected (manager-microscope-20261003-1's run)"
       }
     ],
     "replay": {
@@ -126,7 +132,10 @@
       "new_fail_on_accepted": null,
       "run_line": null
     },
-    "equivalence": null
+    "equivalence": {
+      "before": null,
+      "after": "validator 225 passed, 0 failed; --expect-fail 81/81 cards, 111/111 groups; history_fixtures 63/63 (manager-microscope-20261003-1's run)"
+    }
   },
   "reach": {
     "already_running": [

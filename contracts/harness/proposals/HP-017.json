@@ -1,0 +1,78 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-017",
+  "title": "Check 89 judges a console word against the person's login as committed when the permission was committed, not against the working copy at the run",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-23",
+  "kind": "reshape",
+  "class": "platform-assumption-breaks-on-another-machine",
+  "answers": [
+    "INC-20261023-02"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261023-02"
+    ],
+    "looked_in": [
+      "contracts/validate.py at ffef9a67, check 89's console reading: login_path = REPO / microscope_runtime/envelope/console_login.json, read from disk",
+      "git ls-files microscope_runtime/envelope/: safety.json is tracked (135e62ea, human); console_login.json is not yet placed on the Office computer",
+      "check 89 re-judges the whole ledger on every run"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/validate.py, check 89",
+      "owner": "manager-microscope-20261003-1 (check 89's holder)",
+      "change": "Item 3 reads the login from microscope_runtime/envelope/console_login.json as it stands in the commit that added the permission file (git show <that commit>:<path>), not from the working copy. If that commit holds no such file, the console word is refused: the person's login must be committed before a permission can bind. So an old line is judged against the login the person had placed when signing, the same on every computer, and a later change of login does not turn past landings red."
+    },
+    {
+      "path": "console/ (the administrator screen)",
+      "owner": "manager-console-office-20261017-1",
+      "change": "Sign nothing while microscope_runtime/envelope/console_login.json is not committed in the tree the console reads, so a permission is never written that check 89 would refuse."
+    },
+    {
+      "path": "contracts/history_fixtures.py",
+      "owner": "check 89's holder",
+      "change": "Two rows: a landing whose login file is changed by the person after it still passes; a console word whose login file was only on disk, never committed, is refused."
+    }
+  ],
+  "touches_core": [],
+  "needs_threshold": false,
+  "proof": {
+    "fixtures": [
+      {
+        "path": "history row: the person changes console_login.json after a console-signed landing; the old line still passes check 89",
+        "reproduces": "INC-20261023-02",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "history row: console_login.json present on disk and never committed; the console word is refused",
+        "reproduces": "INC-20261023-02",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": {
+      "before": null,
+      "after": null
+    }
+  },
+  "reach": {
+    "already_running": [
+      "check 89's holder",
+      "the console seats",
+      "both harness seats"
+    ],
+    "how_they_learn": "This seat tells check 89's holder and the console manager directly, and the microscope computer through the intake seats.",
+    "use_site": "check 89, at every run over a ledger holding a console word"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "Classed as a reshape: the rule stays that the login must be the person's own, as the person placed it. Only the moment it is read at changes, from the run to the signing. It is stricter where it differs today: a login file only on disk no longer binds. Read loosely, judging an old line by the login of its day could be called a refusal lifted. But no console word exists yet, so nothing that is refused today would pass after. If the owner judges any part of it a loosening, it waits for the person's word through the intake seat, and this seat puts the question."
+}
