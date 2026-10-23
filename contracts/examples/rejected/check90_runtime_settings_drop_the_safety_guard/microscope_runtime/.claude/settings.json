@@ -1,6 +1,7 @@
 {
   "permissions": {
     "deny": [
+      "Edit(/envelope/console_login.json)",
       "Edit(/approvals/**)",
       "Edit(/tasks/**)",
       "Edit(/CLAUDE.md)",

@@ -278,6 +278,10 @@ ARTIFACT_SCHEMA = {
     # now", a preparatory run that opens, reads and closes and commands nothing.
     # idle_status is not here: it is never in a tree (SKIP_DIRS, .gitignore).
     "check_now_list": "check_now_list.schema.json",
+    # 2026-10-22, plan.md 15.1 item 4: the person's own console login, placed by
+    # hand beside the safety policy. The approval reader compares a console-signed
+    # approval's login to it; the console never reads or writes it.
+    "console_login": "console_login.schema.json",
     # 2026-10-16, HP-005: the meta-harness's two JSON records (plan.md 8.3).
     # Its two JSONL files are line schemas and are judged by check 89, the
     # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
@@ -1754,6 +1758,9 @@ ALLOWED_PATHS = [
     r"^microscope_runtime/(CLAUDE\.md|\.claude/settings\.json|failures\.jsonl)$",
     r"^microscope_runtime/tasks/[A-Za-z0-9_.-]+$",
     r"^microscope_runtime/envelope/safety\.json$",
+    # 2026-10-22, plan.md 15.1 item 4: the person's console login, placed by hand
+    # beside the policy. The person's own file (check 41's PERSONS_FILES).
+    r"^microscope_runtime/envelope/console_login\.json$",
     r"^microscope_runtime/approvals/[A-Za-z0-9_.-]+$",
     r"^microscope_runtime/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^microscope_runtime/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
@@ -9065,8 +9072,8 @@ def _check_89_append_only(commit_range: str | None, staged: bool) -> list[Findin
 EXECUTION_FOLDERS = ("microscope_runtime",)
 #: The five inward guards, in the one form Claude Code resolves against the
 #: session's own folder: Edit(...), with a single leading slash.
-INWARD_GUARDS = ("Edit(/envelope/safety.json)", "Edit(/approvals/**)", "Edit(/tasks/**)",
-                 "Edit(/CLAUDE.md)", "Edit(/.claude/**)")
+INWARD_GUARDS = ("Edit(/envelope/safety.json)", "Edit(/envelope/console_login.json)", "Edit(/approvals/**)",
+                 "Edit(/tasks/**)", "Edit(/CLAUDE.md)", "Edit(/.claude/**)")
 
 
 def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Finding]:
@@ -9075,9 +9082,10 @@ def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Fin
     The session that runs the instrument is the one that must be refused
     envelope/safety.json and approvals/ on disk, not only at commit, and its
     inward denials resolve only from its own root. So the runtime's
-    .claude/settings.json carries five guards -- the person's two, and the
-    manager's tasks/, CLAUDE.md and .claude/ -- and they exist before any of
-    those paths does.
+    .claude/settings.json carries six guards -- the person's three (the
+    policy, the console login beside it since 2026-10-22, and approvals/), and
+    the manager's tasks/, CLAUDE.md and .claude/ -- and they exist before any
+    of those paths does.
 
     THE FORM IS CHECKED, NOT ONLY THE INTENT, because the wrong form guards
     nothing and reads as protection. Claude Code consults only Edit(...) for
@@ -9088,7 +9096,7 @@ def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Fin
     en/permissions, 'Read and Edit', read 2026-10-17). A settings file this
     check does not see -- user-level, harness or settings.local.json -- can
     add refusals and cannot be relied on to; this asks only that the
-    repository's own file says the five lines.
+    repository's own file says the six lines.
 
     A folder is judged wherever one with that name holds a file, so a rejected
     fixture group is read by the same rule as the live tree.
@@ -9125,7 +9133,7 @@ def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Fin
                    f"pattern without the leading slash, or naming the folder itself, does not resolve to this "
                    f"folder's file") if near else ""
             out.append(Finding(90, FAIL, f"the deny list lacks {guard}{why}", rel))
-    return out or [Finding(90, PASS, f"{len(roots)} execution folder(s) carry the five inward guards, anchored "
+    return out or [Finding(90, PASS, f"{len(roots)} execution folder(s) carry the {len(INWARD_GUARDS)} inward guards, anchored "
                                      "at the folder, in the form Claude Code consults")]
 
 

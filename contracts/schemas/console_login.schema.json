@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "console_login.schema.json",
+  "title": "console_login -- the person's own console login, placed by hand beside the safety policy (plan.md 15.1 item 4)",
+  "description": "microscope_runtime/envelope/console_login.json, written BY THE PERSON, by hand, as safety.json is. The operator's approval reader compares a console-signed approval's signed_through.login to this login, byte for byte, and refuses on a mismatch, a missing file or an invalid one. It is never taken from the console's settings, which decide only the screen and which a session can write (15.1 item 4; manager-console-office-20261017-1's shape, 2026-10-22). Same pattern as plan_approval's signed_through.login: a plain id, never an email, because the file is committed. Nothing secret goes in, so the shape admits no other key.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "console_login"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "login": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "description": "the person's own console login"
+    },
+    "written_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "who placed this file"
+    },
+    "written_at": {
+      "type": "string",
+      "format": "date",
+      "description": "the day it was placed"
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "login",
+    "written_by",
+    "written_at"
+  ],
+  "additionalProperties": false
+}

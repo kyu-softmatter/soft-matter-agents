@@ -1,0 +1,8 @@
+{
+  "artifact": "console_login",
+  "schema_version": "0.1",
+  "login": "EXAMPLE-login",
+  "written_by": "EXAMPLE, not the person",
+  "written_at": "2026-10-22",
+  "password": "EXAMPLE-not-a-secret"
+}

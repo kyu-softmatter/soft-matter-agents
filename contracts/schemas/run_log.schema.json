@@ -46,13 +46,71 @@
             "scope_approval",
             null
           ]
+        },
+        "file": {
+          "type": "object",
+          "description": "the approval file that authorised this run, by its path and the sha256 of its raw bytes, as the reader read it (plan.md 15.1 item 4). An approval binds from disk the moment it is there, before anyone commits it, so this is what leaves a trace of an approval that was never committed. Required when id is not null from card 087 on; run logs written before carry no file, and the schema cannot tell their dates, so it is optional here and the runtime's tests hold it",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signed_through": {
+              "type": "object",
+              "properties": {
+                "via": {
+                  "const": "console"
+                },
+                "login": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                }
+              },
+              "required": [
+                "via",
+                "login"
+              ],
+              "additionalProperties": false,
+              "description": "copied from the approval when it was signed through the console"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "id",
         "kind"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "file"
+              ]
+            }
+          }
+        }
+      ]
     },
     "safety_policy_version": {
       "type": [

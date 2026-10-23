@@ -2,6 +2,7 @@
   "permissions": {
     "deny": [
       "Edit(/envelope/safety.json)",
+      "Edit(/envelope/console_login.json)",
       "Write(/approvals/**)",
       "Edit(/tasks/**)",
       "Edit(/CLAUDE.md)",

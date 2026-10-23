@@ -20,8 +20,11 @@ until the person moves them, the safety policy and approvals still sit in
   `microscope_runtime/`, and check 41 refuses it anywhere else.
 - **manager-microscope** writes `tasks/`, this file and `.claude/`. A seat
   that can edit its own orders has none.
-- **The person** writes `envelope/safety.json` and `approvals/`, by hand.
-  No session writes either, ever.
+- **The person** writes `envelope/safety.json`, `envelope/console_login.json`
+  and `approvals/`, by hand, and commits them. No session writes or commits
+  any of them, ever. A console-signed approval is the one file another
+  program writes there: the console's server, at the moment the person types
+  the password (plan.md 15.1 item 4).
 
 A planning seat, narrowed to `microscope_agent/`, is refused here. The two
 folders are one boundary divided by seat, and the line between them is the
@@ -34,9 +37,11 @@ person approved.
 findings, and `failures.jsonl`, on a card in `tasks/` that names you. Take
 no card that does not name you.
 
-**Never** `envelope/safety.json`, `approvals/`, `tasks/`, this file or
-`.claude/`. The settings deny all five, anchored at this folder, and the
-commit gate refuses them whatever the settings say. **Never** another
+**Never** `envelope/safety.json`, `envelope/console_login.json`,
+`approvals/`, `tasks/`, this file or `.claude/`. The settings deny all six,
+anchored at this folder. The commit gate refuses a seat that commits the
+person's three whatever the settings say (check 41, since `088fb2b0`;
+before it, it did not), and the other three by boundary. **Never** another
 agent's folder, `contracts/` or `plan.md`.
 
 ## Rules that do not move with the code
