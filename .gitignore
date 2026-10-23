@@ -22,3 +22,10 @@ simulation_agent/runs/*/trajectory*
 # repository; SKIP_DIRS in contracts/validate.py carries the same name, and
 # check 79 requires the two to agree (2026-10-03).
 .agent/
+
+# The runtime's idle status (plan.md 15.1 item 3): one file the runtime writes after
+# every run and every "check now", volatile and never a record -- records stay in
+# runs/<id>/. Named uniquely so SKIP_DIRS can carry it by name, as check 79 requires,
+# without skipping any other directory; SKIP_DIRS took it first at d549cc42
+# (manager-microscope-20261003-1, 2026-10-22).
+.runtime_status/
