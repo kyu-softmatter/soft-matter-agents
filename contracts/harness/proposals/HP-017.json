@@ -42,16 +42,16 @@
   "proof": {
     "fixtures": [
       {
-        "path": "history row: the person changes console_login.json after a console-signed landing; the old line still passes check 89",
+        "path": "contracts/history_fixtures.py, fixture_89_a_console_word_survives_a_later_login_change",
         "reproduces": "INC-20261023-02",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "HEAD's validator before c94debd4: FAILed, a correct old landing turned red (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "c94debd4: passes (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "history row: console_login.json present on disk and never committed; the console word is refused",
+        "path": "contracts/history_fixtures.py, fixture_89_a_console_word_whose_login_was_never_committed",
         "reproduces": "INC-20261023-02",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "HEAD's validator before c94debd4: passed, a login only on disk bound (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "c94debd4: refused, the login is committed before a permission can bind (manager-microscope-20261003-1's run)"
       }
     ],
     "replay": {
@@ -60,8 +60,8 @@
       "run_line": null
     },
     "equivalence": {
-      "before": null,
-      "after": null
+      "before": "the earlier console rows answered as before (builder's run)",
+      "after": "validator 225 passed, 0 failed; --expect-fail 81/81 cards, 111/111 groups; history_fixtures 65/65 (manager-microscope-20261003-1's run)"
     }
   },
   "reach": {
