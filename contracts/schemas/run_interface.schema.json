@@ -56,6 +56,14 @@
         },
         "frame_tap": {
           "$ref": "#/$defs/address"
+        },
+        "tap_cameras": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/camera_name"
+          },
+          "description": "the cameras whose latest frame the tap answers for, in order; the first is the one the bare request answers. Only cameras this run's own acquisition takes, so the list may be empty, and then every request is answered frame false. Added 2026-10-22 with the per-camera request (plan.md 15.1 item 1; agreed with manager-console-office-20261017-1)"
         }
       },
       "required": [
@@ -65,7 +73,8 @@
         "revision",
         "t0_wall",
         "stop_channel",
-        "frame_tap"
+        "frame_tap",
+        "tap_cameras"
       ],
       "additionalProperties": false,
       "examples": [
@@ -82,7 +91,11 @@
           "frame_tap": {
             "host": "127.0.0.1",
             "port": 50212
-          }
+          },
+          "tap_cameras": [
+            "Kinetix_red",
+            "Kinetix_blue"
+          ]
         },
         {
           "event": "run_started",
@@ -97,7 +110,10 @@
           "frame_tap": {
             "host": "127.0.0.1",
             "port": 50214
-          }
+          },
+          "tap_cameras": [
+            "Kinetix_red"
+          ]
         }
       ],
       "x_refused": [
@@ -114,7 +130,10 @@
           "frame_tap": {
             "host": "127.0.0.1",
             "port": 50216
-          }
+          },
+          "tap_cameras": [
+            "Kinetix_red"
+          ]
         },
         {
           "event": "run_started",
@@ -125,6 +144,24 @@
           "stop_channel": {
             "host": "127.0.0.1",
             "port": 50217
+          },
+          "tap_cameras": [
+            "Kinetix_red"
+          ]
+        },
+        {
+          "event": "run_started",
+          "run_id": "run-20261017-905",
+          "plan_id": null,
+          "revision": null,
+          "t0_wall": "2026-10-17T12:00:00+00:00",
+          "stop_channel": {
+            "host": "127.0.0.1",
+            "port": 50218
+          },
+          "frame_tap": {
+            "host": "127.0.0.1",
+            "port": 50219
           }
         }
       ]
@@ -247,14 +284,15 @@
       ]
     },
     "frame_tap_request": {
-      "description": "the ONE request the frame tap answers, as one line. The tap never acquires: it hands over a copy of the latest frame the run's own acquisition produced",
-      "const": {
-        "get": "latest_frame"
-      },
+      "description": "the ONE request the frame tap answers, as one line. The tap never acquires: it hands over a copy of the latest frame the run's own acquisition produced. TWO FORMS, and only these: the bare {\"get\": \"latest_frame\"}, which answers for the first camera in run_started's tap_cameras exactly as before, and the same with `camera`, naming one camera from that list. A camera the list does not name is refused by name; the tap never acquires for a camera the run is not taking (plan.md 15.1 item 1, 11-25)",
       "x_max_bytes": 256,
       "examples": [
         {
           "get": "latest_frame"
+        },
+        {
+          "get": "latest_frame",
+          "camera": "Kinetix_blue"
         }
       ],
       "x_refused": [
@@ -264,11 +302,43 @@
         {
           "get": "latest_frame",
           "exposure_ms": 10
+        },
+        {
+          "get": "latest_frame",
+          "camera": "Kinetix_blue",
+          "exposure_ms": 10
+        },
+        {
+          "get": "latest_frame",
+          "camera": ""
+        }
+      ],
+      "oneOf": [
+        {
+          "const": {
+            "get": "latest_frame"
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "get": {
+              "const": "latest_frame"
+            },
+            "camera": {
+              "$ref": "#/$defs/camera_name"
+            }
+          },
+          "required": [
+            "get",
+            "camera"
+          ],
+          "additionalProperties": false
         }
       ]
     },
     "frame_tap_header": {
-      "description": "the frame tap's reply: one JSON header line, then, when frame is true, exactly `bytes` bytes of the frame in C order with the given shape and dtype",
+      "description": "the frame tap's reply: one JSON header line, then, when frame is true, exactly `bytes` bytes of the frame in C order with the given shape and dtype. A frame names its camera; a merged two-camera panel is the reader's composite of two replies and a picture, not a measurement, until a camera-to-camera alignment is in the store (15.1 item 1)",
       "oneOf": [
         {
           "type": "object",
@@ -278,6 +348,10 @@
             },
             "note": {
               "type": "string"
+            },
+            "camera": {
+              "$ref": "#/$defs/camera_name",
+              "description": "the camera asked about, when one was: a refusal names it"
             }
           },
           "required": [
@@ -321,6 +395,10 @@
                 "float64",
                 "bytes"
               ]
+            },
+            "camera": {
+              "$ref": "#/$defs/camera_name",
+              "description": "the camera this frame came from. Every frame names its camera, so two replies are never mistaken for one camera's"
             }
           },
           "required": [
@@ -329,7 +407,8 @@
             "t_mono",
             "bytes",
             "shape",
-            "dtype"
+            "dtype",
+            "camera"
           ],
           "additionalProperties": false
         }
@@ -350,12 +429,29 @@
             2048,
             2048
           ],
-          "dtype": "uint16"
+          "dtype": "uint16",
+          "camera": "Kinetix_red"
+        },
+        {
+          "frame": false,
+          "camera": "Kinetix_green",
+          "note": "not a camera this run takes: the tap answers for Kinetix_red and Kinetix_blue and never acquires"
         }
       ],
       "x_refused": [
         {
           "frame": true,
+          "t_mono": 3.2,
+          "bytes": 8,
+          "shape": [
+            2,
+            2
+          ],
+          "dtype": "uint16"
+        },
+        {
+          "frame": true,
+          "metadata": {},
           "t_mono": 3.2,
           "bytes": 8,
           "shape": [
@@ -493,6 +589,11 @@
           "live_on": "refused"
         }
       ]
+    },
+    "camera_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
+      "description": "a camera's device name, as run_started's tap_cameras lists it"
     }
   }
 }
