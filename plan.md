@@ -2458,6 +2458,10 @@ rebuild/
     src/<package>/, web/, tests/, docs/  the console's code and its screens' documents. `src/<package>/agents/mock_data/` is mock
                                     data by construction and is never read as cards
     failures.jsonl                  the console seats' dead ends
+    requests/questions/             the question window's requests (4.5; `question_request`, `2f359866`): one file per
+                                    request, `qr-<date>-<time>-<4>.json`, written by the console's server and never
+                                    rewritten. None claims to be the person's own until that proof exists, so every one
+                                    reads as another login's (6). It reaches no agent until the new inbox opens (6.2 rule 3)
   simulation_agent/                 the same structure, only the axis list differs (§4.5.3)
     CLAUDE.md
     envelope/                       budget.json (resource ceilings -- wall clock, storage, smoke), snapshot.json.
