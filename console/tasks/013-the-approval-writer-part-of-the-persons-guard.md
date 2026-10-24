@@ -25,6 +25,27 @@ the runtime's half: one folder and one reader, the login checked against the
 person's own file, and no fallback. The mark's shape landed at `e2f5b08b`.
 Card 011's dialog is the screen this writer serves.
 
+## Until the runtime's own checks land: a test root only
+
+Revised the same day, after architecture-office-20261017-1 wrote one order
+into plan.md 15.1 item 4 (`0607b848`):
+- The console's refusals below are the first guard.
+- The runtime reader's three checks are the second. They are card 087,
+  committed at `4e61cf96` and not yet in `operator.py`.
+- Until 087 lands, the operator would accept a console-written file on the
+  console's checks alone.
+
+So:
+- **The writer's target folder is a setting whose default is none, and
+  with none it refuses**: "signing into the approvals folder waits for the
+  runtime's own checks".
+- It writes only into a folder named explicitly in a test, or in the mock
+  stage's scratch root. **Never into `microscope_runtime/approvals/`** in
+  this card.
+- Pointing it at the real folder is a later card, after card 087 lands. It
+  is a change to this module, so it needs the person's word the same way.
+- Every rule below still holds, inside whatever folder is configured.
+
 ## What to do
 
 1. **One small module of its own**, for example
@@ -47,8 +68,10 @@ Card 011's dialog is the screen this writer serves.
    - The plan's fingerprint, recomputed from the plan card on disk by
      `card_sha`'s rule, equals the fingerprint the screen showed and sent.
      Otherwise "the plan changed; review it again".
-   - `microscope_runtime/approvals/` exists in the tree the console reads.
-     There is no other place and no fallback.
+   - The configured target folder is set and exists. Default none means
+     refuse. When the real folder is allowed later, it is
+     `microscope_runtime/approvals/` only, with no fallback to the old
+     place.
    - No approval file of that name is there yet. Otherwise "already
      approved".
 3. **What it writes**: one plan approval.
@@ -73,8 +96,10 @@ Card 011's dialog is the screen this writer serves.
    - refuses under the mock store, and a practice or test login;
    - refuses a wrong password, throttled;
    - refuses a changed plan, by fingerprint;
-   - refuses a missing `microscope_runtime/approvals/`, including when the
-     old `microscope_agent/approvals/` exists;
+   - refuses when no target folder is configured, which is the default;
+   - refuses a configured folder that does not exist;
+   - never writes into `microscope_runtime/approvals/`, even when it
+     exists;
    - refuses an existing file of that name;
    - on success, exactly one file, valid against the schema, carrying the
      mark, with nothing written outside that folder;
