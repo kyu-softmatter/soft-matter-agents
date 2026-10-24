@@ -11,10 +11,10 @@ function Row({ account, onApprove }: { account: Account; onApprove: (role: Role)
   return (
     <tr>
       <td>{account.name}</td>
-      <td>{account.email}</td>
+      <td>{account.login}</td>
       <td>{account.created_at}</td>
       <td>
-        <select aria-label={`Role for ${account.email}`} value={role} onChange={(e) => setRole(e.target.value as Role | "")}>
+        <select aria-label={`Role for ${account.login}`} value={role} onChange={(e) => setRole(e.target.value as Role | "")}>
           <option value="">Choose a role</option>
           {ROLES.map((r) => (
             <option key={r} value={r}>
@@ -78,7 +78,7 @@ export function ApprovalList({ api, me }: { api: AuthApi; me: Me }) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
+              <th>Login</th>
               <th>Created</th>
               <th>Role</th>
               <th />
@@ -87,11 +87,11 @@ export function ApprovalList({ api, me }: { api: AuthApi; me: Me }) {
           <tbody>
             {accounts.map((a) => (
               <Row
-                key={a.email}
+                key={a.login}
                 account={a}
                 onApprove={async (role) => {
                   try {
-                    await api.approve(a.email, role);
+                    await api.approve(a.login, role);
                   } catch (e) {
                     setError(e instanceof Error ? e.message : String(e));
                     return;

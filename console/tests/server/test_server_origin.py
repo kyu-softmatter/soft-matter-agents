@@ -39,9 +39,9 @@ def quick_lock_poll(monkeypatch):
     "https://example.com",
 ])
 def test_other_pages_holding_the_cookie_cannot_command(origin, engine, make_client):
-    """The director's case: the operator holds control and is logged in; a page served on
+    """The director's case: the operator is logged in; a page served on
     another loopback port sends the cookie along (SameSite ignores ports). Refused."""
-    c = make_client(engine, control=True)
+    c = make_client(engine)
     assert c.cookies.get(SESSION_COOKIE)
     r = c.post(WRITE, json={}, headers={"origin": origin})
     assert (r.status_code, code(r)) == (403, "foreign_origin"), origin
@@ -49,13 +49,13 @@ def test_other_pages_holding_the_cookie_cannot_command(origin, engine, make_clie
 
 
 def test_own_page_and_no_origin_may_command(engine, make_client):
-    c = make_client(engine, control=True)
+    c = make_client(engine)
     assert c.post(WRITE, json={}, headers={"origin": OWN}).status_code == 204
     assert c.post(WRITE, json={}).status_code == 204  # no browser: no Origin
 
 
 def test_listed_dev_origin_may_command(engine, make_client):
-    c = make_client(engine, control=True, dev_origins=[DEV + "/"])
+    c = make_client(engine, dev_origins=[DEV + "/"])
     assert c.post(WRITE, json={}, headers={"origin": DEV}).status_code == 204
     other = c.post(WRITE, json={}, headers={"origin": "http://localhost:5174"})
     assert code(other) == "foreign_origin"

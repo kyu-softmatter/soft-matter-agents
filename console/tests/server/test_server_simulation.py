@@ -14,7 +14,7 @@ from sma_console.agents.simulation import SimulationRuns
 from sma_console.server.api import REFUSAL_HEADER
 from sma_console.server.api import simulation as sim_api
 
-VIEWER = "vera@example.test"  # the seeded viewer of conftest.py
+VIEWER = "vera"  # the seeded viewer of conftest.py
 
 BASE = "/api/simulation"
 MOCK_STATES = {"mock-sim-2d-done": "complete", "mock-sim-3d-fault": "fault",

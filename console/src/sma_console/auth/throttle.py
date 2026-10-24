@@ -1,7 +1,7 @@
 """Attempt limits for login and unlock (public-release audit S2).
 
-Wrong passwords are counted per **account** (the email as typed, normalized, whether or not it
-exists, so a lockout says nothing about which emails have accounts) and per **client** (the
+Wrong passwords are counted per **account** (the login as typed, case-folded, whether or not it
+exists, so a lockout says nothing about which logins have accounts) and per **client** (the
 socket address). Too many inside the window locks that key for `lockout_s`; while any key of a
 request is locked the request is refused before the password is checked, so a locked guesser
 costs no scrypt either. A right password clears the account's count (not the client's: one
@@ -9,7 +9,7 @@ client trying many accounts stays counted).
 
 PROVISIONAL numbers (not tuned): 5 wrong per account, 20 per client, in 15 min; 15 min lockout.
 State is in memory: a server restart clears it. Keys are capped in length and stale ones are
-dropped, so guesses with made-up emails cannot grow it without bound. The check and the count
+dropped, so guesses with made-up logins cannot grow it without bound. The check and the count
 are two steps: a burst of parallel requests can pass a few more than the limit (bounded by the
 server's worker threads).
 """
@@ -26,7 +26,7 @@ ACCOUNT_LIMIT = 5
 CLIENT_LIMIT = 20
 WINDOW_S = 15 * 60
 LOCKOUT_S = 15 * 60
-MAX_KEY = 320  # characters of an account key (the longest valid email)
+MAX_KEY = 320  # characters of an account key (what is typed is cut here; a login is at most 64)
 PRUNE_AT = 5000  # keys kept before stale ones are dropped
 
 

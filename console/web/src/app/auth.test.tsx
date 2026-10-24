@@ -21,7 +21,7 @@ const ME: ShellMe = {
   name: "Kyu",
   role: "operator",
   locked: false,
-  has_control: false,
+ 
   local: true,
 };
 

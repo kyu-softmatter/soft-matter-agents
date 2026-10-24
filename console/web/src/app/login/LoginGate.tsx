@@ -1,7 +1,7 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { isLoopbackHost, useClient } from "../client";
-import { type AuthApi, clientAuthApi, type Me, type SetupState } from "./api";
+import { type AuthApi, clientAuthApi, type Me, type SetupInfo } from "./api";
 import { isNotice, LoginForm, Notice, SetupForm, SignupForm } from "./forms";
 import { LockScreen } from "./LockScreen";
 import "./login.css";
@@ -30,7 +30,7 @@ export function useAuth(): AuthState | null {
 type Phase =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "setup"; state: SetupState; local: boolean }
+  | { kind: "setup"; info: SetupInfo; local: boolean }
   | { kind: "out"; view: "login" | "signup" | "signed_up" | "pending_approval" | "disabled" }
   | { kind: "in"; me: Me };
 
@@ -68,8 +68,8 @@ function GateWith({
         setPhase({ kind: "in", me });
         return;
       }
-      const state = await api.setup();
-      setPhase(state === "ready" ? { kind: "out", view: "login" } : { kind: "setup", state, local });
+      const info = await api.setup();
+      setPhase(info.state === "ready" ? { kind: "out", view: "login" } : { kind: "setup", info, local });
     } catch (e) {
       setPhase({ kind: "error", message: e instanceof Error ? e.message : String(e) });
     }
@@ -131,7 +131,7 @@ function GateWith({
       <div className="login-page">
         {abort && <div className="login-lock-stop">{abort}</div>}
         <SetupForm
-          needsEmail={phase.state === "needs_admin_email"}
+          adminLogin={phase.info.adminLogin}
           local={phase.local}
           onCreate={async (body) => setPhase({ kind: "in", me: await api.createAdmin(body) })}
         />
@@ -144,9 +144,9 @@ function GateWith({
         {phase.view === "login" && (
           <LoginForm
             onSignup={() => out("signup")}
-            onLogin={async (email, password) => {
+            onLogin={async (login, password) => {
               try {
-                setPhase({ kind: "in", me: await api.login({ email, password }) });
+                setPhase({ kind: "in", me: await api.login({ login, password }) });
               } catch (e) {
                 if (isNotice(e)) out(e.outcome);
                 else throw e;

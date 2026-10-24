@@ -165,6 +165,46 @@ describe("the footer, on every screen", () => {
     expect(within(footer()).queryByText("Example data")).toBeNull();
   });
 
+  it("says so when the server says this browser is not on the microscope computer", async () => {
+    app({ me: { ...TEST_ME, local: false } });
+    const chip = await screen.findByTestId("remote-chip");
+    expect(chip.textContent).toBe("viewing from another computer · read only");
+    expect(within(footer()).getByTestId("remote-chip")).toBe(chip);
+  });
+
+  it("shows no such chip on the microscope computer", async () => {
+    app();
+    await screen.findByRole("navigation", { name: "Areas" });
+    expect(screen.queryByTestId("remote-chip")).toBeNull();
+  });
+
+  it("has a Lock button beside Log out, Lock first, and it locks the screen", async () => {
+    let locked = false;
+    window.location.hash = "";
+    const fake = fakeTransport(
+      {
+        [STORE_PATH]: () => ({ status: 200, body: MOCK_STORE }),
+        "/api/auth/lock": () => {
+          locked = true;
+          return { status: 204 };
+        },
+        "/api/auth/me": () => ({ status: 200, body: { ...TEST_ME, locked } }),
+      },
+      { me: { ...TEST_ME } },
+    );
+    const client = new Client(fake.transport, "127.0.0.1");
+    clients.push(client);
+    render(<App client={client} />);
+    await screen.findByRole("navigation", { name: "Areas" });
+    const names = within(footer()).getAllByRole("button").map((b) => b.textContent);
+    expect(names.slice(-2)).toEqual(["Lock", "Log out"]);
+    fireEvent.click(within(footer()).getByRole("button", { name: "Lock" }));
+    await screen.findByRole("dialog", { name: "Locked" });
+    expect(fake.calls.filter((c) => c.init?.method === "POST").map((c) => c.path)).toContain("/api/auth/lock");
+    // STOP stays reachable on the lock screen (card 004)
+    expect(screen.getAllByRole("button", { name: "Stop all runs" }).length).toBeGreaterThan(0);
+  });
+
   it("Log out is the login's own control and makes the logout call", async () => {
     const fake = app();
     await screen.findByRole("navigation", { name: "Areas" });

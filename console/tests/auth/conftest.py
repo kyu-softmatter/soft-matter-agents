@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from sma_console.auth import AccountStore, AuditLog, DeviceControl, LoginSessions, passwords
+from sma_console.auth import AccountStore, AuditLog, LoginSessions, passwords
 from sma_console.auth import config as auth_config
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -26,9 +26,8 @@ class Clock:
 
 @pytest.fixture(autouse=True)
 def isolated_config(tmp_path, monkeypatch):
-    """No test reads the real settings folder or a real admin email."""
+    """No test reads the real settings folder or a real admin login setting."""
     monkeypatch.setenv(auth_config.CONFIG_DIR_ENV, str(tmp_path / "config"))
-    monkeypatch.delenv(auth_config.ADMIN_EMAIL_ENV, raising=False)
     return tmp_path / "config"
 
 
@@ -60,14 +59,9 @@ def logins(seeded, audit, clock):
 
 
 @pytest.fixture
-def control(logins, audit, clock):
-    return DeviceControl(logins, audit=audit, clock=clock)
-
-
-@pytest.fixture
 def login(logins):
-    def _login(email: str) -> str:
-        result = logins.login(email, SEED_PASSWORD)
+    def _login(login: str) -> str:
+        result = logins.login(login, SEED_PASSWORD)
         assert result.ok, result.outcome
         return result.token
 

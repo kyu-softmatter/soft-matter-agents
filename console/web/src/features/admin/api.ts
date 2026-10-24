@@ -1,5 +1,6 @@
 // Temporary until gen:api: the /api/auth/accounts shapes are hand-written here from
-// server/api/auth.py (AccountOut, RoleIn, PasswordIn). Reads and writes go through the shell's
+// server/api/auth.py (AccountOut, NeedsLoginOut, RoleIn, PasswordIn). An account is named by its
+// login, a plain id, never an email (console card 009); accounts are switched off, never deleted. Reads and writes go through the shell's
 // shared client (src/app/client.tsx: get, post); this file opens no connection of its own.
 
 import type { Client } from "../../app/client";
@@ -10,6 +11,17 @@ export type AccountStatus = "pending" | "active" | "disabled";
 export const ROLES: Role[] = ["viewer", "operator", "admin"];
 
 export interface Account {
+  login: string;
+  name: string;
+  role: Role;
+  status: AccountStatus;
+  created_at: string;
+  approved_by: string | null;
+  approved_at: string | null;
+}
+
+/** An account an older console recorded under an email: it cannot log in until it is given a login. */
+export interface NeedsLogin {
   email: string;
   name: string;
   role: Role;
@@ -26,21 +38,22 @@ export interface Me {
   local: boolean;
 }
 
-const at = (email: string, action: string) => `/api/auth/accounts/${encodeURIComponent(email)}/${action}`;
+const at = (login: string, action: string) => `/api/auth/accounts/${encodeURIComponent(login)}/${action}`;
 
 /** Every route needs a live, unlocked admin on the microscope PC; the server refuses the rest. */
 export function accountsApi(client: Client) {
   return {
     me: () => client.get<Me>("/api/auth/me"),
     list: () => client.get<Account[]>("/api/auth/accounts"),
-    approve: (email: string, role: Role) => client.post<Account>(at(email, "approve"), { role }),
-    setRole: (email: string, role: Role) => client.post<Account>(at(email, "role"), { role }),
-    disable: (email: string) => client.post<Account>(at(email, "disable")),
-    enable: (email: string) => client.post<Account>(at(email, "enable")),
+    needsLogin: () => client.get<NeedsLogin[]>("/api/auth/accounts/needs-login"),
+    approve: (login: string, role: Role) => client.post<Account>(at(login, "approve"), { role }),
+    setRole: (login: string, role: Role) => client.post<Account>(at(login, "role"), { role }),
+    disable: (login: string) => client.post<Account>(at(login, "disable")),
+    enable: (login: string) => client.post<Account>(at(login, "enable")),
     /** ends every login of that account */
-    resetPassword: (email: string, password: string) => client.post<Account>(at(email, "password"), { password }),
-    /** pending or disabled accounts only; the audit log keeps the history */
-    remove: (email: string) => client.post<Account>(at(email, "delete")),
+    resetPassword: (login: string, password: string) => client.post<Account>(at(login, "password"), { password }),
+    /** the email goes in the body, never in a path; the audit line names both */
+    giveLogin: (email: string, login: string) => client.post<Account>("/api/auth/accounts/give-login", { email, login }),
   };
 }
 

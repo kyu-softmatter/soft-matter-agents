@@ -1,5 +1,5 @@
-"""T-009b: the login cookie on every route, the refusal marks, the server-held control grant,
-GET /api/permissions and D14 viewer counts. Accounts are seeded fakes (example.test)."""
+"""T-009b: the login cookie on every route, the refusal marks, GET /api/permissions and D14
+viewer counts. Accounts are seeded fakes (plain logins)."""
 
 from __future__ import annotations
 
@@ -9,14 +9,14 @@ import pytest
 
 from sma_console.server.api import SESSION_COOKIE
 
-OTTO, OLGA, VERA, ADA = ("otto@example.test", "olga@example.test", "vera@example.test",
-                         "admin@example.test")
+OTTO, OLGA, VERA, ADA = ("otto", "olga", "vera",
+                         "ada")
 DEV_ORIGIN = {"origin": "http://localhost:5173"}  # another loopback origin (a dev server)
 OWN_ORIGIN = {"origin": "http://127.0.0.1:8765"}  # the page this server served
 #: writes that replaced the retired commands route as probes (soft-matter-agents card 077):
 #: one behind the origin rule only, one behind the full write rule (loopback, login, unlocked)
 OPEN_WRITE = "/api/auth/activity"
-WRITE = "/api/auth/control/release"
+WRITE = "/api/auth/accounts/give-login"
 
 
 def detail(r):
@@ -94,32 +94,6 @@ def test_only_the_remote_refusal_carries_remote_view(engine, make_client):
             (403, code, code)
 
 
-# -- who, and with which grant --------------------------------------------------------------
-
-
-def test_the_server_held_grant_never_reaches_the_browser(engine, make_client, seat):
-    holder = make_client(engine, control=True)
-    grant = seat.grant_for(seat.login(holder.login_token))
-    assert grant and seat.control.check(grant).user_id == OTTO
-    for r in (holder.get("/api/state"), holder.get("/api/permissions?ops=status")):
-        assert grant not in r.text
-
-
-def test_grant_ends_with_release_revoke_and_logout(engine, make_client, seat):
-    c = make_client(engine, control=True)
-    info = seat.login(c.login_token)
-    assert seat.has_control(info)
-    seat.release(c.login_token)
-    assert seat.grant_for(info) is None
-    seat.acquire(c.login_token, local=True)
-    admin = make_client(engine, login=ADA)
-    seat.control.revoke(admin.login_token, "test")
-    assert seat.grant_for(info) is None
-    seat.acquire(c.login_token, local=True)
-    seat.logins.logout(c.login_token)
-    assert seat.grant_for(info) is None and seat.control.holder() is None
-
-
 # -- GET /api/permissions -------------------------------------------------------------------
 
 
@@ -135,17 +109,11 @@ def _no_commands(got, names=ENGINE_NAMES):
         assert (got[op]["allowed"], got[op]["code"]) == (False, "no_commands"), op
 
 
-def test_permissions_for_the_control_holder(engine, make_client):
-    got = make_client(engine, control=True).get(f"/api/permissions?ops={OPS}").json()
+def test_permissions_for_a_logged_in_operator(engine, make_client):
+    got = make_client(engine).get(f"/api/permissions?ops={OPS}").json()
     _no_commands(got)
     assert got["session_open"]["allowed"] and got["submit_question"]["allowed"]
     assert engine.checks == []  # the engine is not asked: there is nothing to send it
-
-
-def test_permissions_without_control_are_the_same(engine, make_client):
-    got = make_client(engine).get(f"/api/permissions?ops={OPS}").json()
-    _no_commands(got)
-    assert got["session_open"]["allowed"]
 
 
 def test_permissions_for_a_local_viewer(engine, make_client):

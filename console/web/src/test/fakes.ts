@@ -36,11 +36,10 @@ export type Route = (init?: RequestInit) => {
 
 /** The logged-in user every fake transport answers on /api/auth/me unless a test says otherwise. */
 export const TEST_ME = {
-  user_id: "operator@example.test",
+  user_id: "otto",
   name: "Test Operator",
   role: "operator",
   locked: false,
-  has_control: false,
   local: true,
   expires_at: 4102444800, // 2100-01-01: never expires during a test
 } as const;

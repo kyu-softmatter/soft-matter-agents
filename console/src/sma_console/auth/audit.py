@@ -1,7 +1,7 @@
 """The audit log ``audit.jsonl``: who did what and when (X4).
 
 One JSON object per line, **append only**. There is no API that edits or deletes a line.
-Every line carries ``ts`` (UTC ISO 8601), ``kind``, ``user_id`` (account email, or null) and
+Every line carries ``ts`` (UTC ISO 8601), ``kind``, ``user_id`` (the account's login, or null; older lines may hold an email, and stay as written) and
 ``session_id`` (experiment session id, or null; T-019 supplies it through
 ``session_id_provider``), then the event's own fields.
 
@@ -30,17 +30,15 @@ class AuditKind(StrEnum):
     LOCKED = "locked"
     UNLOCKED = "unlocked"
     ACCOUNT_CREATED = "account_created"
-    #: a sign-up for an email that already has an account; answered like a new one (S1)
+    #: a sign-up for a login that already has an account; answered like a new one (S1)
     SIGNUP_EXISTING = "signup_existing"
     ACCOUNT_APPROVED = "account_approved"
     ACCOUNT_ROLE_CHANGED = "account_role_changed"
     ACCOUNT_DISABLED = "account_disabled"
     ACCOUNT_ENABLED = "account_enabled"
     ACCOUNT_PASSWORD_RESET = "account_password_reset"
-    ACCOUNT_DELETED = "account_deleted"
-    CONTROL_ACQUIRED = "control_acquired"
-    CONTROL_RELEASED = "control_released"
-    CONTROL_REVOKED = "control_revoked"
+    #: an administrator gave an email-keyed account its plain login id (names both)
+    ACCOUNT_LOGIN_GIVEN = "account_login_given"
     COMMAND_PROPOSED = "command_proposed"
     COMMAND_CONFIRMED = "command_confirmed"
     COMMAND_EXECUTED = "command_executed"

@@ -46,9 +46,8 @@ def fast_scrypt(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def isolated_auth_config(tmp_path, monkeypatch):
-    """No test reads the real settings folder or a real admin email."""
+    """No test reads the real settings folder or a real admin login setting."""
     monkeypatch.setenv(auth_config.CONFIG_DIR_ENV, str(tmp_path / "config"))
-    monkeypatch.delenv(auth_config.ADMIN_EMAIL_ENV, raising=False)
 
 
 @pytest.fixture
@@ -76,13 +75,13 @@ def agent_store(tmp_path_factory):
 
 @pytest.fixture
 def make_client(tmp_path, agent_store, seat):
-    """`make_client(engine, remote=False, login=OPERATOR, control=False, **create_app_kwargs)`.
+    """`make_client(engine, remote=False, login=OPERATOR, **create_app_kwargs)`.
 
-    `login` is the seeded account whose cookie the client carries (None: no cookie);
-    `control` takes device control for it (local only). No web build unless given."""
+    `login` is the seeded account whose cookie the client carries (None: no cookie).
+    No web build unless given."""
 
     def make(engine: Any, *, remote: bool = False, login: str | None = OPERATOR,
-             control: bool = False, **kw) -> LoopbackClient:
+             **kw) -> LoopbackClient:
         kw.setdefault("web_dist", tmp_path / "no-web-dist")
         kw.setdefault("agent_store", agent_store)
         kw.setdefault("auth", seat)
@@ -90,9 +89,7 @@ def make_client(tmp_path, agent_store, seat):
         client = LoopbackClient(app, base_url="http://127.0.0.1:8765",
                                 client=REMOTE if remote else LOCAL)
         if login is not None:
-            token = log_in(kw["auth"], client, login)
-            if control:
-                kw["auth"].acquire(token, local=True)
+            log_in(kw["auth"], client, login)
         return client
 
     return make
@@ -100,5 +97,5 @@ def make_client(tmp_path, agent_store, seat):
 
 @pytest.fixture
 def log_in_as(seat):
-    """`log_in_as(client, email)` sets that seeded account's login cookie on any TestClient."""
-    return lambda client, email: log_in(seat, client, email)
+    """`log_in_as(client, login)` sets that seeded account's login cookie on any TestClient."""
+    return lambda client, login: log_in(seat, client, login)

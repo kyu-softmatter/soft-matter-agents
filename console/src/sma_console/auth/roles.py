@@ -7,11 +7,11 @@ Some actions are **local only**: the request must come from the microscope PC it
 (loopback; the server decides that and passes ``local``). Remote viewing stays read-only, so
 hardware commands, submitting a question to the assistant and writing a map flag need both
 the role and a local request (D16). Hiding a button in the UI is not the check; the server
-routes call ``allows`` / ``control.authorize``.
+routes call ``allows``.
 
 ``STOP`` (``abort``, ``lights_off``) is not a role permission: anyone may send it, with or
 without device control and while their login is locked (design rule 12). ``allows`` returns
-True for it for every role, and ``control.authorize`` accepts it even with no login at all.
+True for it for every role; the server accepts it even with no login at all.
 """
 
 from __future__ import annotations

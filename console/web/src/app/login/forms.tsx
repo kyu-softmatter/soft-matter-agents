@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
 
-import { AuthError } from "./api";
+import { AuthError, isPlainLogin, PLAIN_LOGIN_MESSAGE } from "./api";
 
 const MIN_PASSWORD = 8; // T-018 passwords.MIN_PASSWORD_LENGTH
 
@@ -66,16 +66,19 @@ export function LoginForm({
   onSignup,
 }: {
   /** rejects with AuthError; a pending or disabled outcome is handled by the caller */
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (login: string, password: string) => Promise<void>;
   onSignup: () => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
-  const { busy, error, submit } = useSubmit(() => onLogin(email, password));
+  const { busy, error, submit } = useSubmit(async () => {
+    if (!isPlainLogin(login)) throw new Error(PLAIN_LOGIN_MESSAGE); // an email is refused before anything is sent
+    await onLogin(login, password);
+  });
   return (
     <form className="login-card" aria-label="Log in" onSubmit={submit}>
       <h2>Log in</h2>
-      <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="username" />
+      <Field label="Login" value={login} onChange={setLogin} autoComplete="username" />
       <Field label="Password" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
       <ErrorLine error={error} />
       <button type="submit" disabled={busy}>
@@ -95,24 +98,26 @@ export function SignupForm({
   onSignup,
   onCancel,
 }: {
-  onSignup: (body: { name: string; email: string; password: string }) => Promise<void>;
+  onSignup: (body: { name: string; login: string; password: string }) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [again, setAgain] = useState("");
   const { busy, error, submit } = useSubmit(async () => {
+    if (!isPlainLogin(login)) throw new Error(PLAIN_LOGIN_MESSAGE);
     const problem = passwordProblem(password, again);
     if (problem) throw new Error(problem);
-    await onSignup({ name, email, password });
+    await onSignup({ name, login, password });
   });
   return (
     <form className="login-card" aria-label="Create an account" onSubmit={submit}>
       <h2>Create an account</h2>
       <p className="muted">An administrator approves new accounts and sets what they may do.</p>
       <Field label="Name" value={name} onChange={setName} autoComplete="name" />
-      <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="username" />
+      <Field label="Login" value={login} onChange={setLogin} autoComplete="username" />
+      <p className="muted">Letters, digits, dot, dash or underscore. Not an email.</p>
       <Field label="Password" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
       <Field label="Password again" type="password" value={again} onChange={setAgain} autoComplete="new-password" />
       <ErrorLine error={error} />
@@ -127,41 +132,61 @@ export function SignupForm({
 }
 
 export function SetupForm({
-  needsEmail,
+  adminLogin,
   local,
   onCreate,
 }: {
-  needsEmail: boolean;
+  /** the login the settings name for the administrator; null when it is not a plain id */
+  adminLogin: string | null;
   local: boolean;
-  onCreate: (body: { name: string; password: string; email?: string }) => Promise<void>;
+  onCreate: (body: { password: string }) => Promise<void>;
 }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [again, setAgain] = useState("");
   const { busy, error, submit } = useSubmit(async () => {
     const problem = passwordProblem(password, again);
     if (problem) throw new Error(problem);
-    await onCreate(needsEmail ? { name, password, email } : { name, password });
+    await onCreate({ password });
   });
   if (!local) {
     return (
       <div className="login-card" role="status">
-        <h2>First run</h2>
+        <h2>First start</h2>
         <p>Set up the administrator account on the microscope PC.</p>
+      </div>
+    );
+  }
+  if (adminLogin === null) {
+    return (
+      <div className="login-card" role="status">
+        <h2>First start</h2>
+        <p>
+          The settings file names an administrator login (admin_login) that cannot be used. {PLAIN_LOGIN_MESSAGE} Fix
+          it there and reload this page.
+        </p>
       </div>
     );
   }
   return (
     <form className="login-card" aria-label="Create the administrator account" onSubmit={submit}>
-      <h2>First run: create the administrator account</h2>
-      <Field label="Name" value={name} onChange={setName} autoComplete="name" />
-      {needsEmail && <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="username" />}
+      <h2>First start: the administrator</h2>
+      <p className="muted">
+        This screen appears once, on the computer the console runs on. Type the administrator's password here yourself. No
+        password comes with the console.
+      </p>
+      <label className="login-field">
+        <span>Administrator login</span>
+        <input type="text" value={adminLogin} readOnly autoComplete="username" />
+      </label>
       <Field label="Password" type="password" value={password} onChange={setPassword} autoComplete="new-password" />
+      <p className="muted">
+        Choose one you have never written anywhere else, a chat window included. The console cannot tell if a password
+        has been seen.
+      </p>
       <Field label="Password again" type="password" value={again} onChange={setAgain} autoComplete="new-password" />
       <ErrorLine error={error} />
       <button type="submit" disabled={busy}>
-        Create administrator
+        Create the administrator
       </button>
     </form>
   );
@@ -169,7 +194,7 @@ export function SetupForm({
 
 export function Notice({ kind, onBack }: { kind: "signed_up" | "pending_approval" | "disabled"; onBack: () => void }) {
   const text = {
-    signed_up: "Account created. An administrator must approve it before you can log in.",
+    signed_up: "Account created. The administrator approves it and sets what it may do. Until then it cannot log in.",
     pending_approval: "Your account is waiting for an administrator's approval.",
     disabled: "This account is disabled. Ask an administrator.",
   }[kind];

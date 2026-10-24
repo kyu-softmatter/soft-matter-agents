@@ -77,12 +77,12 @@ def test_area_router_discovery(tmp_path, monkeypatch, engine, agent_store, seat,
     app.state.auth = seat
     assert include_area_routers(app, "fake_areas") == ["demo"]
     local = TestClient(app, client=("127.0.0.1", 1))
-    log_in_as(local, "otto@example.test")
+    log_in_as(local, "otto")
     assert local.get("/api/demo/ping").json() == {"pong": [], "local": True,
                                                   "store": "MockStore"}
     assert local.put("/api/demo/note").json() == {"ok": True}
     remote = TestClient(app, client=("10.0.0.5", 1))
-    log_in_as(remote, "otto@example.test")
+    log_in_as(remote, "otto")
     assert remote.get("/api/demo/ping").json()["local"] is False
     assert remote.put("/api/demo/note").status_code == 403
 

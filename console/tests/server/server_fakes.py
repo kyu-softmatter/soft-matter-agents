@@ -22,12 +22,12 @@ REMOTE = ("192.168.1.20", 50000)
 #: the one password every seeded fake user gets (a test value, not a real credential)
 TEST_PASSWORD = "server-test-pass-1"
 ADMIN, OPERATOR, OPERATOR2, VIEWER = (
-    "admin@example.test", "otto@example.test", "olga@example.test", "vera@example.test")
+    "ada", "otto", "olga", "vera")
 USERS = [
-    {"name": "Ada Admin", "email": ADMIN, "role": "admin"},
-    {"name": "Otto Operator", "email": OPERATOR, "role": "operator"},
-    {"name": "Olga Operator", "email": OPERATOR2, "role": "operator"},
-    {"name": "Vera Viewer", "email": VIEWER, "role": "viewer"},
+    {"name": "Ada Admin", "login": ADMIN, "role": "admin"},
+    {"name": "Otto Operator", "login": OPERATOR, "role": "operator"},
+    {"name": "Olga Operator", "login": OPERATOR2, "role": "operator"},
+    {"name": "Vera Viewer", "login": VIEWER, "role": "viewer"},
 ]
 
 
@@ -132,8 +132,8 @@ class LoopbackClient(TestClient):
         return cm if raw or not events else _EventsConnect(cm)
 
 
-def log_in(seat: AuthSeat, client: LoopbackClient, email: str) -> str:
-    result = seat.logins.login(email, TEST_PASSWORD)
+def log_in(seat: AuthSeat, client: LoopbackClient, login: str) -> str:
+    result = seat.logins.login(login, TEST_PASSWORD)
     assert result.ok, result.message
     client.cookies.set(SESSION_COOKIE, result.token)
     client.login_token = result.token

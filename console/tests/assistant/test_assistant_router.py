@@ -26,10 +26,10 @@ from sma_console.server.schemas import Event
 LOCAL = ("127.0.0.1", 50000)
 REMOTE = ("192.168.1.20", 50000)
 TEST_PASSWORD = "assistant-test-pass-1"  # a test value for the seeded fake accounts
-OTTO, VERA = "otto@example.test", "vera@example.test"
+OTTO, VERA = "otto", "vera"
 USERS = [
-    {"name": "Otto Operator", "email": OTTO, "role": "operator"},
-    {"name": "Vera Viewer", "email": VERA, "role": "viewer"},
+    {"name": "Otto Operator", "login": OTTO, "role": "operator"},
+    {"name": "Vera Viewer", "login": VERA, "role": "viewer"},
 ]
 
 
@@ -74,7 +74,6 @@ def text(s):
 @pytest.fixture(autouse=True)
 def isolated_auth_config(tmp_path, monkeypatch):
     monkeypatch.setenv(auth_config.CONFIG_DIR_ENV, str(tmp_path / "config"))
-    monkeypatch.delenv(auth_config.ADMIN_EMAIL_ENV, raising=False)
     for name in ("DINO_AF_ASSISTANT_PROVIDER", "DINO_AF_ASSISTANT_DATA"):
         monkeypatch.delenv(name, raising=False)
 
@@ -93,9 +92,9 @@ def seat(tmp_path) -> AuthSeat:
 
 @pytest.fixture
 def setup(tmp_path, seat, agent_store):
-    """`setup(script, login=OTTO, remote=False, control=True)` -> (client, engine, app)."""
+    """`setup(script, login=OTTO, remote=False)` -> (client, engine, app)."""
 
-    def make(script=(), *, login=OTTO, remote=False, control=True, **cfg):
+    def make(script=(), *, login=OTTO, remote=False, **cfg):
         engine = FakeEngine()
         app = create_app(
             engine,
@@ -114,8 +113,6 @@ def setup(tmp_path, seat, agent_store):
             result = seat.logins.login(login, TEST_PASSWORD)
             assert result.ok, result.message
             client.cookies.set(SESSION_COOKIE, result.token)
-            if control and not remote and login != VERA:  # a viewer cannot take control
-                seat.acquire(result.token, local=True)
         return client, engine, app
 
     return make
@@ -139,7 +136,7 @@ def test_status_is_exactly_three_names(setup):
     r = client.get("/api/assistant/status")
     assert r.status_code == 200
     assert r.json() == {"provider": "fake", "connected": False, "data_stage": "text"}
-    client, _, _ = setup(control=False, data_policy="prompt_only")
+    client, _, _ = setup(data_policy="prompt_only")
     assert client.get("/api/assistant/status").json()["data_stage"] == "prompt_only"
 
 
@@ -282,7 +279,7 @@ def test_map_flag_card_follows_d16(setup, seat):
 def test_lights_off_card_is_not_connected_either(setup):
     """A stop card too: no engine takes its stop from here (card 077)."""
     client, _, app = setup(
-        [[tool_use("propose_lights_off", reason="done")], [text("x")]], control=False
+        [[tool_use("propose_lights_off", reason="done")], [text("x")]]
     )
     _, lines = ask(client)
     pid = proposal_id(lines)
@@ -404,9 +401,9 @@ def test_card_gate_comes_from_the_hardware_provider_when_there_is_one(setup):
 # -- T-013c: rejecting needs the same permission as confirming ---------------------------
 
 
-def _client_for(app, seat, email, where=LOCAL):
+def _client_for(app, seat, login, where=LOCAL):
     c = TestClient(app, base_url="http://127.0.0.1:8765", client=where)
-    c.cookies.set(SESSION_COOKIE, seat.logins.login(email, TEST_PASSWORD).token)
+    c.cookies.set(SESSION_COOKIE, seat.logins.login(login, TEST_PASSWORD).token)
     return c
 
 
@@ -433,7 +430,7 @@ def test_viewer_and_remote_cannot_reject(setup, seat, tool, inp):
 
 def test_a_stop_card_may_be_cleared_by_anyone_allowed_to_stop(setup, seat):
     client, _, app = setup(
-        [[tool_use("propose_lights_off", reason="r")], [text("x")]], control=False
+        [[tool_use("propose_lights_off", reason="r")], [text("x")]]
     )
     _, lines = ask(client)
     pid = proposal_id(lines)

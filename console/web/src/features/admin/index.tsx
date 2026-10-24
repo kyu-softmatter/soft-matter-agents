@@ -1,14 +1,26 @@
 // The `admin` area: an admin on the microscope PC manages the other accounts.
 //
 // List with a status filter; per row: approve a pending account with a role (D12), change a role,
-// disable / enable, set a new password (their logins end), and delete a pending or disabled
-// account (the audit log keeps the history). The admin's own row has no actions, so nobody
-// locks themselves out here. The server checks all of it again (server/api/auth.py).
+// disable / enable, set a new password (their logins end). Accounts are switched off, never
+// deleted (the audit log refers to them). The admin's own row has no actions, so nobody locks
+// themselves out here. An account an older console recorded under an email is listed apart as
+// "needs a login id", and the administrator gives it a plain login. The server checks all of it
+// again (server/api/auth.py).
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useClient } from "../../app/client";
-import { type Account, type AccountStatus, accountsApi, type AccountsApi, type Me, type Role, ROLES } from "./api";
+import { isPlainLogin, PLAIN_LOGIN_MESSAGE } from "../../app/login/api";
+import {
+  type Account,
+  type AccountStatus,
+  accountsApi,
+  type AccountsApi,
+  type Me,
+  type NeedsLogin,
+  type Role,
+  ROLES,
+} from "./api";
 
 type Filter = AccountStatus | "all";
 const FILTERS: Filter[] = ["all", "pending", "active", "disabled"];
@@ -17,9 +29,9 @@ function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-function RolePicker({ email, value, onChange }: { email: string; value: Role | ""; onChange: (r: Role | "") => void }) {
+function RolePicker({ login, value, onChange }: { login: string; value: Role | ""; onChange: (r: Role | "") => void }) {
   return (
-    <select aria-label={`Role for ${email}`} value={value} onChange={(e) => onChange(e.target.value as Role | "")}>
+    <select aria-label={`Role for ${login}`} value={value} onChange={(e) => onChange(e.target.value as Role | "")}>
       <option value="">Choose a role</option>
       {ROLES.map((r) => (
         <option key={r} value={r}>
@@ -39,21 +51,20 @@ function Actions({
   api: AccountsApi;
   run: (what: string, fn: () => Promise<unknown>) => Promise<boolean>;
 }) {
-  const { email, status } = account;
+  const { login, status } = account;
   // a pending account gets no preset role: the admin picks one on purpose (D12)
   const [role, setRole] = useState<Role | "">(status === "active" ? account.role : "");
   const [password, setPassword] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <span className="accounts-actions">
       {status === "pending" && (
         <>
-          <RolePicker email={email} value={role} onChange={setRole} />
+          <RolePicker login={login} value={role} onChange={setRole} />
           <button
             type="button"
             disabled={role === ""}
-            onClick={() => role !== "" && void run(`${email} approved as ${role}`, () => api.approve(email, role))}
+            onClick={() => role !== "" && void run(`${login} approved as ${role}`, () => api.approve(login, role))}
           >
             Approve
           </button>
@@ -61,22 +72,22 @@ function Actions({
       )}
       {status === "active" && (
         <>
-          <RolePicker email={email} value={role} onChange={setRole} />
+          <RolePicker login={login} value={role} onChange={setRole} />
           <button
             type="button"
             disabled={role === "" || role === account.role}
-            onClick={() => role !== "" && void run(`${email} is now ${role}`, () => api.setRole(email, role))}
+            onClick={() => role !== "" && void run(`${login} is now ${role}`, () => api.setRole(login, role))}
           >
             Set role
           </button>
-          <button type="button" onClick={() => void run(`${email} disabled`, () => api.disable(email))}>
-            Disable
+          <button type="button" onClick={() => void run(`${login} switched off`, () => api.disable(login))}>
+            Switch off
           </button>
         </>
       )}
       {status === "disabled" && (
-        <button type="button" onClick={() => void run(`${email} enabled`, () => api.enable(email))}>
-          Enable
+        <button type="button" onClick={() => void run(`${login} switched on`, () => api.enable(login))}>
+          Switch on
         </button>
       )}
       {status !== "pending" &&
@@ -89,14 +100,14 @@ function Actions({
             className="accounts-password"
             onSubmit={(e) => {
               e.preventDefault();
-              void run(`New password set for ${email}; their logins ended`, () => api.resetPassword(email, password)).then(
+              void run(`New password set for ${login}; their logins ended`, () => api.resetPassword(login, password)).then(
                 (ok) => ok && setPassword(null),
               );
             }}
           >
             <input
               type="password"
-              aria-label={`New password for ${email}`}
+              aria-label={`New password for ${login}`}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -109,23 +120,50 @@ function Actions({
             </button>
           </form>
         ))}
-      {status !== "active" &&
-        (confirmDelete ? (
-          <>
-            <span className="warn">Delete {email} for good?</span>
-            <button type="button" onClick={() => void run(`${email} deleted`, () => api.remove(email))}>
-              Confirm delete
-            </button>
-            <button type="button" onClick={() => setConfirmDelete(false)}>
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button type="button" onClick={() => setConfirmDelete(true)}>
-            Delete
-          </button>
-        ))}
     </span>
+  );
+}
+
+function GiveLogin({
+  old,
+  run,
+  api,
+}: {
+  old: NeedsLogin;
+  api: AccountsApi;
+  run: (what: string, fn: () => Promise<unknown>) => Promise<boolean>;
+}) {
+  const [login, setLogin] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  return (
+    <form
+      className="accounts-password"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!isPlainLogin(login)) {
+          setProblem(PLAIN_LOGIN_MESSAGE); // refused here, so nothing is sent
+          return;
+        }
+        setProblem(null);
+        void run(`${old.name} now logs in as ${login}`, () => api.giveLogin(old.email, login));
+      }}
+    >
+      <input
+        type="text"
+        aria-label={`Login for ${old.email}`}
+        autoComplete="off"
+        value={login}
+        onChange={(e) => setLogin(e.target.value)}
+      />
+      <button type="submit" disabled={login === ""}>
+        Give login
+      </button>
+      {problem && (
+        <span className="warn" role="alert">
+          {problem}
+        </span>
+      )}
+    </form>
   );
 }
 
@@ -134,6 +172,7 @@ export default function AccountsScreen() {
   const api = useMemo(() => accountsApi(client), [client]);
   const [me, setMe] = useState<Me | null>(null);
   const [accounts, setAccounts] = useState<Account[] | null>(null);
+  const [needing, setNeeding] = useState<NeedsLogin[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -143,6 +182,7 @@ export default function AccountsScreen() {
   const load = useCallback(async () => {
     try {
       setAccounts(await api.list());
+      setNeeding(await api.needsLogin());
     } catch (e) {
       setError(message(e));
     }
@@ -203,7 +243,7 @@ export default function AccountsScreen() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
+              <th>Login</th>
               <th>Role</th>
               <th>Status</th>
               <th>Created</th>
@@ -213,15 +253,15 @@ export default function AccountsScreen() {
           </thead>
           <tbody>
             {shown.map((a) => (
-              <tr key={a.email} data-status={a.status}>
+              <tr key={a.login} data-status={a.status}>
                 <td>{a.name}</td>
-                <td>{a.email}</td>
+                <td>{a.login}</td>
                 <td>{a.role}</td>
                 <td>{a.status}</td>
                 <td>{a.created_at}</td>
                 <td>{a.approved_by ?? "—"}</td>
                 <td>
-                  {a.email === me?.user_id ? (
+                  {a.login === me?.user_id ? (
                     <span className="muted">you</span>
                   ) : (
                     // keyed on status and role: after a change the row starts from the new values
@@ -232,6 +272,39 @@ export default function AccountsScreen() {
             ))}
           </tbody>
         </table>
+      )}
+      {needing.length > 0 && (
+        <section className="accounts-needs-login" aria-label="Needs a login id">
+          <h3>Needs a login id</h3>
+          <p className="muted">
+            An older console kept these accounts under an email. They cannot log in until you give each a plain login. Nothing
+            is guessed, and nothing is deleted.
+          </p>
+          <table aria-label="Accounts that need a login id">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Was</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {needing.map((n) => (
+                <tr key={n.email}>
+                  <td>{n.name}</td>
+                  <td>{n.email}</td>
+                  <td>{n.role}</td>
+                  <td>{n.status}</td>
+                  <td>
+                    <GiveLogin old={n} api={api} run={run} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
       )}
     </section>
   );

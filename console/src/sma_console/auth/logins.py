@@ -7,7 +7,7 @@ A *login session* is one person logged in from one browser. It is not the experi
   The cookie that carries it (HttpOnly, SameSite=Strict) is the server task's job.
 * After ``idle_lock_s`` without ``touch`` the session **locks**: the person must give their
   password again (``unlock``). A lock stops nothing that is running; guards keep working and
-  anyone may still stop the hardware (``control.authorize``).
+  anyone may still stop a run.
 * After ``max_age_s`` from login the session ends whatever the activity.
 * The role is looked up from the account store on every read, so an admin's change applies at
   once, and a disabled account's sessions end.
@@ -28,7 +28,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 
-from .accounts import AccountError, AccountStore, LoginOutcome, normalize_email
+from .accounts import AccountStore, LoginOutcome
 from .audit import AuditKind, AuditLog
 from .roles import AccountStatus, Role
 from .throttle import AttemptLimiter
@@ -82,7 +82,8 @@ class LoginResult:
     def message(self) -> str:
         return {
             LoginOutcome.OK: "Logged in.",
-            LoginOutcome.BAD_CREDENTIALS: "Wrong email or password.",
+            LoginOutcome.BAD_CREDENTIALS: "Wrong login or password.",
+            LoginOutcome.NOT_A_LOGIN: "A login is a plain id, not an email address.",
             LoginOutcome.PENDING: "Your account is waiting for an administrator's approval.",
             LoginOutcome.DISABLED: "This account is disabled. Ask an administrator.",
             LoginOutcome.TOO_MANY: "Too many wrong passwords. Try again in "
@@ -142,18 +143,18 @@ class LoginSessions:
 
     # -- login / logout -----------------------------------------------------------------------
 
-    def login(self, email: str, password: str, client: str | None = None) -> LoginResult:
-        """``client``: the caller's address, for the per-client attempt limit."""
-        try:
-            user_id = normalize_email(email)
-        except AccountError:
-            user_id = None
-        keys = self.limiter.keys(user_id or email, client)
+    def login(self, login: str, password: str, client: str | None = None) -> LoginResult:
+        """``client``: the caller's address, for the per-client attempt limit. What is typed must
+        be a plain login id: an email is refused before anything is counted or checked."""
+        user_id = login if isinstance(login, str) else None
+        keys = self.limiter.keys(user_id, client)
         if (wait := self.limiter.retry_after(keys)) is not None:
             self._log(AuditKind.LOGIN_FAILED, user_id, reason=str(LoginOutcome.TOO_MANY),
                       client=client)
             return LoginResult(LoginOutcome.TOO_MANY, retry_after_s=wait)
-        check = self._accounts.authenticate(email, password)
+        check = self._accounts.authenticate(login, password)
+        if check.outcome is LoginOutcome.NOT_A_LOGIN:
+            return LoginResult(check.outcome)
         if not check.ok:
             if check.outcome is LoginOutcome.BAD_CREDENTIALS:  # a right password is no guess
                 for kind, _ in self.limiter.failed(keys):
@@ -164,7 +165,7 @@ class LoginSessions:
         self.limiter.succeeded(user_id)
         now = self._clock()
         token = secrets.token_urlsafe(32)
-        s = _Session(login_id=secrets.token_hex(8), user_id=check.account.email,
+        s = _Session(login_id=secrets.token_hex(8), user_id=check.account.login,
                      issued_at=now, last_activity=now)
         with self._guard():
             self._sessions[_hash(token)] = s
@@ -223,19 +224,6 @@ class LoginSessions:
         with self._guard():
             s = self._live(token)
             return None if s is None else self._info(s)
-
-    def is_live(self, login_id: str) -> bool:
-        """True while the session named ``login_id`` exists (locked counts as live)."""
-        with self._guard():
-            for key, s in list(self._sessions.items()):
-                if s.login_id == login_id:
-                    acc = self._accounts.get(s.user_id)
-                    if (acc is None or acc.status is not AccountStatus.ACTIVE
-                            or self._clock() - s.issued_at >= self.max_age_s):
-                        self._end(key, s, "expired")
-                        return False
-                    return True
-        return False
 
     # -- activity and lock --------------------------------------------------------------------
 

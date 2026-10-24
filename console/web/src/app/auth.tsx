@@ -1,6 +1,6 @@
-import { type ComponentType, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type ComponentType, type ReactNode, useEffect, useRef } from "react";
 
-import { CommandRefused, useClient } from "./client";
+import { useClient } from "./client";
 
 /**
  * The seam to the login screen (T-105, `src/app/login/`, not part of the shell).
@@ -17,7 +17,6 @@ export interface ShellMe {
   name: string;
   role: Role;
   locked: boolean;
-  has_control: boolean;
   local: boolean;
 }
 
@@ -90,56 +89,4 @@ export function useActivity(enabled: boolean, now: () => number = Date.now): voi
     kinds.forEach((k) => window.addEventListener(k, onInput, { passive: true }));
     return () => kinds.forEach((k) => window.removeEventListener(k, onInput));
   }, [client, enabled, now]);
-}
-
-// -- control token holder ---------------------------------------------------------------
-
-export interface Holder {
-  user_id: string;
-  name: string;
-  since?: string | number;
-}
-
-/** GET /api/auth/control, and Take / Release for the local operator. */
-export function useControl(me: ShellMe | null) {
-  const client = useClient();
-  const [holder, setHolder] = useState<Holder | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const reload = useCallback(async () => {
-    if (!me) return;
-    try {
-      const r = await client.get<{ holder: Holder | null }>("/api/auth/control");
-      setHolder(r.holder);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  }, [client, me]);
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
-
-  const post = useCallback(
-    async (path: string) => {
-      const r = await client.transport.fetch(path, { method: "POST" });
-      if (!r.ok) {
-        const body = (await r.json().catch(() => ({}))) as { detail?: string; holder?: Holder };
-        if (body.holder) setHolder(body.holder);
-        setError(body.detail ?? `HTTP ${r.status}`);
-        throw new CommandRefused(r.status, body.detail ?? `HTTP ${r.status}`);
-      }
-      setError(null);
-      await reload();
-    },
-    [client, reload],
-  );
-
-  return {
-    holder,
-    error,
-    take: () => post("/api/auth/control/acquire").catch(() => {}),
-    release: () => post("/api/auth/control/release").catch(() => {}),
-  };
 }

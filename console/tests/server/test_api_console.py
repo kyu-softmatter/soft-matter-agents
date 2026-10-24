@@ -15,7 +15,7 @@ from sma_console.server.api import REFUSAL_HEADER
 from sma_console.server.api.console import READ_ONLY_MESSAGE
 
 # the seeded fake accounts of conftest.py
-ADMIN, OPERATOR, VIEWER = "admin@example.test", "otto@example.test", "vera@example.test"
+ADMIN, OPERATOR, VIEWER = "ada", "otto", "vera"
 SIM_QID = "sim-20260923-001"
 SIM_RUN = "run-20260924-001-smoke-g2k2"
 MIC_RUN = "run-20260924-003"

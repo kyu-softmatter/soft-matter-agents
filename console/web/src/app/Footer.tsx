@@ -32,7 +32,9 @@ export function useExampleData(): boolean {
 
 /**
  * The footer of every screen (console card 008): STOP at the left, the same stop the lock screen
- * has; an "Example data" chip while the store is the mock; at the right who is logged in, and Log out.
+ * has; an "Example data" chip while the store is the mock; a chip when the server says this browser
+ * is not on the microscope computer (the screens are then read only); at the right who is logged
+ * in, Lock, and Log out.
  * Nothing about lights, the assistant, or who holds control of an engine: the console has none.
  */
 export function ShellFooter() {
@@ -45,11 +47,21 @@ export function ShellFooter() {
       <span className="muted footer-note">Stops every running run.</span>
       <span className="footer-spacer" />
       {example && <span className="chip">Example data</span>}
+      {me && me.local === false && (
+        <span className="chip warn" data-testid="remote-chip">
+          viewing from another computer · read only
+        </span>
+      )}
       {me && <span className="footer-user">{me.name}</span>}
       {auth && me && (
-        <button type="button" onClick={() => void auth.logout()}>
-          Log out
-        </button>
+        <>
+          <button type="button" onClick={() => void auth.lock()}>
+            Lock
+          </button>
+          <button type="button" onClick={() => void auth.logout()}>
+            Log out
+          </button>
+        </>
       )}
     </>
   );

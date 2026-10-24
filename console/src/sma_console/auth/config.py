@@ -1,14 +1,15 @@
-"""Where the auth files live, and where the first admin's email comes from.
+"""Where the auth files live, and where the first administrator's login comes from.
 
 Account files, the audit log and the app log live in a **settings folder outside the
 repository** (docs/PLAN.md §5 "Users and login"): ``%LOCALAPPDATA%\\dino-autofocus`` on Windows,
 ``$XDG_DATA_HOME/dino-autofocus`` (default ``~/.local/share``) elsewhere. ``DINO_AF_CONFIG_DIR``
 or an explicit argument overrides it.
 
-The admin email is **never written in code, tests, docs or git** (the repository goes public at
-integration). It is read from the ``DINO_AF_ADMIN_EMAIL`` environment variable or from
-``settings.json`` in the settings folder (``{"admin_email": "..."}``). When neither is set the
-app needs its first-run setup step; ``admin_email`` returns None and callers say so.
+The first administrator's **login** is a plain id (never an email, console card 009). It is
+``admin_login`` in ``settings.json`` in that folder (``{"admin_login": "..."}``) and defaults to
+``softmatter`` when the key is absent. It is a name and not a credential: no password comes with
+the console, and the person types the administrator's password at the first start. The old
+``admin_email`` setting and its environment variable are no longer read.
 """
 
 from __future__ import annotations
@@ -20,8 +21,9 @@ from pathlib import Path
 
 APP_DIR_NAME = "dino-autofocus"
 CONFIG_DIR_ENV = "DINO_AF_CONFIG_DIR"
-ADMIN_EMAIL_ENV = "DINO_AF_ADMIN_EMAIL"
 SETTINGS_FILE = "settings.json"
+#: the login the person named for the administrator (I-20261022-office-04)
+DEFAULT_ADMIN_LOGIN = "softmatter"
 
 ACCOUNTS_FILE = "accounts.json"
 AUDIT_FILE = "audit.jsonl"
@@ -42,15 +44,15 @@ def config_dir(override: str | os.PathLike[str] | None = None) -> Path:
     return Path(base) / APP_DIR_NAME
 
 
-def admin_email(directory: str | os.PathLike[str] | None = None) -> str | None:
-    """The configured first-admin email (environment first, then settings.json), or None."""
-    env = os.environ.get(ADMIN_EMAIL_ENV, "").strip()
-    if env:
-        return env
+def admin_login(directory: str | os.PathLike[str] | None = None) -> str:
+    """The first administrator's login: ``admin_login`` in settings.json, else ``softmatter``.
+
+    The value is returned as written (trimmed). Whether it is a plain id is the account store's
+    check, made where the account is created, so a bad setting is refused with its reason there.
+    """
     path = config_dir(directory) / SETTINGS_FILE
-    if not path.is_file():
-        return None
-    value = json.loads(path.read_text(encoding="utf-8")).get("admin_email")
-    if isinstance(value, str) and value.strip():
-        return value.strip()
-    return None
+    if path.is_file():
+        value = json.loads(path.read_text(encoding="utf-8")).get("admin_login")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return DEFAULT_ADMIN_LOGIN

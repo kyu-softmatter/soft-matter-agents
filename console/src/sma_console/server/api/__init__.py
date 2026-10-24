@@ -51,8 +51,6 @@ from ...auth import (
     AccountStore,
     Action,
     AuditLog,
-    ControlHolder,
-    DeviceControl,
     LoginInfo,
     LoginSessions,
     allows,
@@ -104,18 +102,12 @@ LOCKED = Refusal(423, "locked", "the screen is locked; unlock it first")
 
 
 class AuthSeat:
-    """T-018's accounts, login sessions and device control, as the server holds them.
+    """T-018's accounts and login sessions, as the server holds them. (dino's take-and-release
+    control of the device went with the engine it controlled; console card 009.)"""
 
-    The control token never reaches the browser: `acquire` keeps it here and `grant_for`
-    hands it to the engine Command. Route code (T-105) calls `acquire` / `release` on the
-    seat, not on `control`, so the seat knows the grant; a revoke, logout or expiry is seen
-    through `control.holder()` and ends the grant here too."""
-
-    def __init__(self, accounts: AccountStore, logins: LoginSessions, control: DeviceControl,
+    def __init__(self, accounts: AccountStore, logins: LoginSessions,
                  audit: AuditLog | None = None) -> None:
-        self.accounts, self.logins, self.control, self.audit = accounts, logins, control, audit
-        self._grants: dict[str, str] = {}  # login_id -> control token
-        self._lock = threading.Lock()
+        self.accounts, self.logins, self.audit = accounts, logins, audit
 
     @classmethod
     def from_config(cls, config_dir: str | Path | None = None) -> AuthSeat:
@@ -126,7 +118,7 @@ class AuthSeat:
         audit = AuditLog(d / config.AUDIT_FILE)
         accounts = AccountStore(audit=audit, config_dir=d)
         logins = LoginSessions(accounts, audit=audit)
-        return cls(accounts, logins, DeviceControl(logins, audit=audit), audit)
+        return cls(accounts, logins, audit)
 
     @classmethod
     def throwaway(cls) -> AuthSeat:
@@ -137,33 +129,6 @@ class AuthSeat:
 
     def login(self, token: str | None) -> LoginInfo | None:
         return self.logins.get(token) if token else None
-
-    def acquire(self, login_token: str, *, local: bool) -> ControlHolder:
-        g = self.control.acquire(login_token, local=local)
-        with self._lock:
-            self._grants[g.login_id] = g.token
-        return ControlHolder(g.user_id, g.login_id, g.acquired_at)
-
-    def release(self, login_token: str) -> None:
-        info = self.logins.get(login_token)
-        self.control.release(login_token)
-        if info is not None:
-            with self._lock:
-                self._grants.pop(info.login_id, None)
-
-    def grant_for(self, info: LoginInfo | None) -> str | None:
-        """The control token this login holds right now, or None."""
-        if info is None:
-            return None
-        holder = self.control.holder()
-        with self._lock:
-            if holder is None or holder.login_id != info.login_id:
-                self._grants.pop(info.login_id, None)
-                return None
-            return self._grants.get(info.login_id)
-
-    def has_control(self, info: LoginInfo | None) -> bool:
-        return self.grant_for(info) is not None
 
 
 class SessionSeat:

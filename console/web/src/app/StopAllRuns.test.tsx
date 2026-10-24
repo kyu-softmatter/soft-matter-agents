@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 const USERS = [
-  { name: "Otto Operator", email: "otto@example.test", password: "otto-pass-1", role: "operator" as const, status: "active" as const },
+  { name: "Otto Operator", login: "otto", password: "otto-pass-1", role: "operator" as const, status: "active" as const },
 ];
 
 const ANSWER = {
@@ -80,7 +80,7 @@ describe("Stop all runs, on the screens a login does not reach (console card 004
     const api = createFakeAuthApi({ users: USERS });
     gate(api);
     await screen.findByRole("form", { name: "Log in" });
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "otto@example.test" } });
+    fireEvent.change(screen.getByLabelText("Login"), { target: { value: "otto" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "otto-pass-1" } });
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
     await screen.findByText("the app");

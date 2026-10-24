@@ -180,7 +180,7 @@ export interface paths {
         };
         /**
          * Setup State
-         * @description Whether the first admin still has to be made. Never says which email is configured.
+         * @description Whether the first admin still has to be made, and under which login (a name, not a secret).
          */
         get: operations["setup_state_api_auth_setup_get"];
         put?: never;
@@ -202,7 +202,8 @@ export interface paths {
         put?: never;
         /**
          * Create First Admin
-         * @description First run only, on the microscope PC only: the first admin, then logged in.
+         * @description First run only, on the microscope PC only: the first admin, under the login the settings
+         *     name (`softmatter` by default) and the password typed here, then logged in.
          */
         post: operations["create_first_admin_api_auth_setup_admin_post"];
         delete?: never;
@@ -222,12 +223,12 @@ export interface paths {
         put?: never;
         /**
          * Signup
-         * @description Name, email, password only. The account waits for an admin, who sets its role (D12).
+         * @description Name, login, password only. The account waits for an admin, who sets its role (D12).
          *
-         *     On the microscope PC only (user decision 2026-10-02, audit S3; may be opened later). An
-         *     email that already has an account gets the same answer as a new one and nothing changes
-         *     (audit S1): the answer never tells a caller which emails are registered; the audit log
-         *     records it for the admin.
+         *     The login is a plain id; an email is refused. On the microscope PC only (user decision
+         *     2026-10-02, audit S3; may be opened later). A login that already has an account gets the same
+         *     answer as a new one and nothing changes (audit S1): the answer never tells a caller which
+         *     logins are registered; the audit log records it for the admin.
          */
         post: operations["signup_api_auth_signup_post"];
         delete?: never;
@@ -264,7 +265,7 @@ export interface paths {
         put?: never;
         /**
          * Logout
-         * @description Ends the login (and frees device control if it held it). Fine without a login.
+         * @description Ends the login. Fine without a login.
          */
         post: operations["logout_api_auth_logout_post"];
         delete?: never;
@@ -361,7 +362,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/accounts/{email}/approve": {
+    "/api/auth/accounts/needs-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Needs Login
+         * @description Accounts an older console recorded under an email. None of them can log in yet.
+         */
+        get: operations["needs_login_api_auth_accounts_needs_login_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/accounts/give-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Give Login
+         * @description Give an email-keyed account a plain login. Nothing is guessed: the administrator names it.
+         *     The audit line names both.
+         */
+        post: operations["give_login_api_auth_accounts_give_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/accounts/{login}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -374,14 +416,14 @@ export interface paths {
          * Approve
          * @description The role is chosen here by the admin, and nowhere else (D12).
          */
-        post: operations["approve_api_auth_accounts__email__approve_post"];
+        post: operations["approve_api_auth_accounts__login__approve_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/accounts/{email}/role": {
+    "/api/auth/accounts/{login}/role": {
         parameters: {
             query?: never;
             header?: never;
@@ -391,14 +433,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Set Role */
-        post: operations["set_role_api_auth_accounts__email__role_post"];
+        post: operations["set_role_api_auth_accounts__login__role_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/accounts/{email}/disable": {
+    "/api/auth/accounts/{login}/disable": {
         parameters: {
             query?: never;
             header?: never;
@@ -407,15 +449,18 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Disable */
-        post: operations["disable_api_auth_accounts__email__disable_post"];
+        /**
+         * Disable
+         * @description Switch an account off. Accounts are never deleted: the audit log refers to them.
+         */
+        post: operations["disable_api_auth_accounts__login__disable_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/accounts/{email}/enable": {
+    "/api/auth/accounts/{login}/enable": {
         parameters: {
             query?: never;
             header?: never;
@@ -425,14 +470,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Enable */
-        post: operations["enable_api_auth_accounts__email__enable_post"];
+        post: operations["enable_api_auth_accounts__login__enable_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/accounts/{email}/password": {
+    "/api/auth/accounts/{login}/password": {
         parameters: {
             query?: never;
             header?: never;
@@ -445,95 +490,7 @@ export interface paths {
          * Reset Password
          * @description The admin sets a new password; every login of that account ends.
          */
-        post: operations["reset_password_api_auth_accounts__email__password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/accounts/{email}/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Delete
-         * @description Pending or disabled accounts only; the audit log keeps the history.
-         */
-        post: operations["delete_api_auth_accounts__email__delete_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/control": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Control */
-        get: operations["control_api_auth_control_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/control/acquire": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Acquire */
-        post: operations["acquire_api_auth_control_acquire_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/control/release": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Release */
-        post: operations["release_api_auth_control_release_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/control/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke */
-        post: operations["revoke_api_auth_control_revoke_post"];
+        post: operations["reset_password_api_auth_accounts__login__password_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -971,8 +928,8 @@ export interface components {
     schemas: {
         /** AccountOut */
         AccountOut: {
-            /** Email */
-            email: string;
+            /** Login */
+            login: string;
             /** Name */
             name: string;
             /**
@@ -1098,10 +1055,6 @@ export interface components {
              */
             data: unknown;
         };
-        /** ControlOut */
-        ControlOut: {
-            holder: components["schemas"]["HolderOut"] | null;
-        };
         /**
          * ConversationOut
          * @description `messages` are the Messages API turns as sent (user and assistant content blocks).
@@ -1174,6 +1127,13 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** GiveLoginIn */
+        GiveLoginIn: {
+            /** Email */
+            email: string;
+            /** Login */
+            login: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1228,15 +1188,6 @@ export interface components {
             remote_view: boolean;
             /** Remote Abort */
             remote_abort: boolean;
-        };
-        /** HolderOut */
-        HolderOut: {
-            /** User Id */
-            user_id: string;
-            /** Name */
-            name: string;
-            /** Since */
-            since: number;
         };
         /** InboxMessageOut */
         InboxMessageOut: {
@@ -1360,8 +1311,8 @@ export interface components {
         };
         /** LoginIn */
         LoginIn: {
-            /** Email */
-            email: string;
+            /** Login */
+            login: string;
             /** Password */
             password: string;
         };
@@ -1378,12 +1329,36 @@ export interface components {
             role: "admin" | "operator" | "viewer";
             /** Locked */
             locked: boolean;
-            /** Has Control */
-            has_control: boolean;
             /** Local */
             local: boolean;
             /** Expires At */
             expires_at: number;
+        };
+        /**
+         * NeedsLoginOut
+         * @description An account an older console recorded under an email: it cannot log in until it has a login.
+         */
+        NeedsLoginOut: {
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "operator" | "viewer";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "active" | "disabled";
+            /** Created At */
+            created_at: string;
+            /** Approved By */
+            approved_by: string | null;
+            /** Approved At */
+            approved_at: string | null;
         };
         /** OpSummary */
         OpSummary: {
@@ -1696,15 +1671,6 @@ export interface components {
              */
             note: string;
         };
-        /** RevokeIn */
-        RevokeIn: {
-            /** Reason */
-            reason: string;
-        };
-        /** RevokeOut */
-        RevokeOut: {
-            previous_holder: components["schemas"]["HolderOut"] | null;
-        };
         /** RoleIn */
         RoleIn: {
             /**
@@ -1879,14 +1845,15 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** SetupIn */
+        /**
+         * SetupIn
+         * @description The administrator's login comes from the settings, not from here. A blank name is the login.
+         */
         SetupIn: {
-            /** Name */
-            name: string;
             /** Password */
             password: string;
-            /** Email */
-            email?: string | null;
+            /** Name */
+            name?: string | null;
         };
         /** SetupOut */
         SetupOut: {
@@ -1894,7 +1861,9 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "needs_admin_email" | "needs_admin" | "ready";
+            state: "needs_admin" | "ready";
+            /** Admin Login */
+            admin_login?: string | null;
         };
         /**
          * ShutdownAccepted
@@ -1919,8 +1888,8 @@ export interface components {
         SignupIn: {
             /** Name */
             name: string;
-            /** Email */
-            email: string;
+            /** Login */
+            login: string;
             /** Password */
             password: string;
         };
@@ -3184,12 +3153,65 @@ export interface operations {
             };
         };
     };
-    approve_api_auth_accounts__email__approve_post: {
+    needs_login_api_auth_accounts_needs_login_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedsLoginOut"][];
+                };
+            };
+        };
+    };
+    give_login_api_auth_accounts_give_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GiveLoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_api_auth_accounts__login__approve_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                email: string;
+                login: string;
             };
             cookie?: never;
         };
@@ -3219,12 +3241,12 @@ export interface operations {
             };
         };
     };
-    set_role_api_auth_accounts__email__role_post: {
+    set_role_api_auth_accounts__login__role_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                email: string;
+                login: string;
             };
             cookie?: never;
         };
@@ -3254,12 +3276,12 @@ export interface operations {
             };
         };
     };
-    disable_api_auth_accounts__email__disable_post: {
+    disable_api_auth_accounts__login__disable_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                email: string;
+                login: string;
             };
             cookie?: never;
         };
@@ -3285,12 +3307,12 @@ export interface operations {
             };
         };
     };
-    enable_api_auth_accounts__email__enable_post: {
+    enable_api_auth_accounts__login__enable_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                email: string;
+                login: string;
             };
             cookie?: never;
         };
@@ -3316,12 +3338,12 @@ export interface operations {
             };
         };
     };
-    reset_password_api_auth_accounts__email__password_post: {
+    reset_password_api_auth_accounts__login__password_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                email: string;
+                login: string;
             };
             cookie?: never;
         };
@@ -3338,135 +3360,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_api_auth_accounts__email__delete_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                email: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccountOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    control_api_auth_control_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControlOut"];
-                };
-            };
-        };
-    };
-    acquire_api_auth_control_acquire_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControlOut"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    release_api_auth_control_release_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    revoke_api_auth_control_revoke_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RevokeIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RevokeOut"];
                 };
             };
             /** @description Validation Error */
@@ -3972,6 +3865,13 @@ export interface operations {
             };
             /** @description remote view with remote abort off (D13) */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description this project's runs folder was not found: not "nothing running" */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

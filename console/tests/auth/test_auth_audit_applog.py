@@ -15,7 +15,7 @@ from sma_console.auth import AuditFieldError, AuditKind, AuditLog, applog
 
 def test_every_line_has_time_kind_user_and_session(tmp_path):
     log = AuditLog(tmp_path / "audit.jsonl", session_id_provider=lambda: "2026-10-01-a-1")
-    log.append(AuditKind.COMMAND_PROPOSED, "otto@example.test", command="move_z", origin="ui")
+    log.append(AuditKind.COMMAND_PROPOSED, "otto", command="move_z", origin="ui")
     log.append(AuditKind.LOGIN, None, session_id="explicit")
     lines = (tmp_path / "audit.jsonl").read_text(encoding="utf-8").splitlines()
     rows = [json.loads(line) for line in lines]
@@ -26,15 +26,15 @@ def test_every_line_has_time_kind_user_and_session(tmp_path):
 
 
 def test_without_a_session_the_field_is_null(tmp_path):
-    row = AuditLog(tmp_path / "a.jsonl").append("logout", "otto@example.test")
+    row = AuditLog(tmp_path / "a.jsonl").append("logout", "otto")
     assert "session_id" in row and row["session_id"] is None
 
 
 def test_appends_never_rewrite(tmp_path):
     path = tmp_path / "audit.jsonl"
-    AuditLog(path).append("login", "otto@example.test")
+    AuditLog(path).append("login", "otto")
     first = path.read_bytes()
-    AuditLog(path).append("logout", "otto@example.test")
+    AuditLog(path).append("logout", "otto")
     assert path.read_bytes().startswith(first)
     public = {n for n, _ in inspect.getmembers(AuditLog, inspect.isfunction)
               if not n.startswith("_")}
@@ -44,7 +44,7 @@ def test_appends_never_rewrite(tmp_path):
 @pytest.mark.parametrize("field", ["password", "new_password", "token", "control_token", "ts"])
 def test_secrets_and_reserved_names_are_refused(tmp_path, field):
     with pytest.raises(AuditFieldError):
-        AuditLog(tmp_path / "a.jsonl").append("login", "otto@example.test", **{field: "x"})
+        AuditLog(tmp_path / "a.jsonl").append("login", "otto", **{field: "x"})
 
 
 def test_unknown_kind_is_refused(tmp_path):
@@ -110,6 +110,6 @@ def test_kinds_for_commands_and_questions_exist(tmp_path):
     for kind in ("command_proposed", "command_confirmed", "command_executed", "command_rejected",
                  "question_submitted", "assistant_message"):
         assert AuditKind(kind)
-    row = AuditLog(tmp_path / "a.jsonl").append(AuditKind.QUESTION_SUBMITTED, "otto@example.test",
+    row = AuditLog(tmp_path / "a.jsonl").append(AuditKind.QUESTION_SUBMITTED, "otto",
                                                area="console", text="Is the 100x lens in?")
     assert row["kind"] == "question_submitted" and row["area"] == "console"

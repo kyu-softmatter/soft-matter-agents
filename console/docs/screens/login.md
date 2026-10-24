@@ -1,5 +1,16 @@
 # Login screen and auth API: contract (T-105 stage A)
 
+> **Changed at console card 009: a login is a plain id, never an email.** An account is keyed by a
+> login (`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`, the pattern of `signed_through.login` in
+> `plan_approval.schema.json`), stored exactly as typed, with no two logins that differ only by case.
+> Sign-up, login and the first start refuse an email in words. The first administrator's login is
+> `admin_login` in the settings file (default `softmatter`) and its password is typed at the first
+> start; no credential ships. An account an older console kept under an email loads as "needs a login
+> id", cannot log in, and is given a plain login by the administrator (the audit line names both).
+> Accounts are switched off, never deleted: there is no delete route. dino's take-and-release control
+> of the device is gone with the engine it controlled: there are no `/control` routes and no
+> `has_control`. Where the tables below still say email, delete or control, read this note first.
+
 Design: PLAN.md §5 "Users and login", §7 D9, D12, D13, D16, design rule 12. Core logic:
 `src/sma_console/auth/` (T-018). This file fixes the HTTP surface and the screen so that
 stage B (`server/api/auth.py`, `web/src/app/login/`) and the shell (T-010) can be built against it.
@@ -12,30 +23,27 @@ T-009b refusals: `{"detail": {code, message}}` plus the `X-DinoAF-Refusal: <code
 
 | Method, path | Who | From | Body → reply |
 |---|---|---|---|
-| `GET /setup` | anyone | any | → `{state: "needs_admin_email" \| "needs_admin" \| "ready"}`. No email in the reply |
-| `POST /setup/admin` | anyone, only while state ≠ ready | local | `{name, password, email?}` → `Me` + cookie. `email` only when none is configured |
-| `POST /signup` | anyone | **local** | `{name, email, password}` → `201 {status: "pending"}`. Nothing else is accepted (no role field; extra fields → 422). An email that already has an account gets the same `201` and nothing changes (audit `signup_existing`). From another PC: `403 remote_view` (user decision 2026-10-02; may be opened later) |
-| `POST /login` | anyone | any | `{email, password}` → `Me` + cookie; `401` with `detail.code` `bad_credentials` \| `pending_approval` \| `disabled`; `429 too_many_attempts` with `Retry-After` after too many wrong passwords (below) |
-| `POST /logout` | logged in | any | → `204`, cookie cleared, control released |
+| `GET /setup` | anyone | any | → `{state: "needs_admin" \| "ready", admin_login}`. `admin_login` is the login the first administrator will have (a name, not a secret); null once ready, or when the settings name one that is not a plain id |
+| `POST /setup/admin` | anyone, only while state ≠ ready | local | `{password, name?}` → `Me` + cookie. The login is the settings', never the caller's (a `login` or `email` field → 422); a blank name is the login. A settings value that is not a plain id → `409 setup_required` |
+| `POST /signup` | anyone | **local** | `{name, login, password}` → `201 {status: "pending"}`. Nothing else is accepted (no role field; extra fields → 422). An email or any non-plain id → `422 invalid`; the administrator's own login → `409 login_reserved`. A login that already has an account gets the same `201` and nothing changes (audit `signup_existing`). From another PC: `403 remote_view` (user decision 2026-10-02; may be opened later) |
+| `POST /login` | anyone | any | `{login, password}` → `Me` + cookie; `422 not_a_login` for an email or any non-plain id (no password is looked at); `401` with `detail.code` `bad_credentials` \| `pending_approval` \| `disabled`; `429 too_many_attempts` with `Retry-After` after too many wrong passwords (below) |
+| `POST /logout` | logged in | any | → `204`, cookie cleared |
 | `POST /lock` | logged in | any | → `204`. "Lock" in the user menu |
 | `POST /unlock` | logged in, locked | any | `{password}` → `Me`; `401` on a wrong password; `429 too_many_attempts` with `Retry-After` past the limit |
 | `POST /activity` | logged in | any | → `204`. The screen calls it on user input (throttled, at most every 30 s) so the idle lock does not fire while someone is working |
 | `GET /me` | logged in | any | → `Me`; `401` without a valid cookie |
 | `GET /accounts?status=` | admin | local | → `[Account]` (no hashes); `status` (pending / active / disabled) is optional |
-| `POST /accounts/{email}/approve` | admin | local | `{role}` → `Account`. Role is set only here (D12) |
-| `POST /accounts/{email}/role` | admin | local | `{role}` → `Account` |
-| `POST /accounts/{email}/disable` | admin | local | → `Account`. Never the last active admin |
-| `POST /accounts/{email}/enable` | admin | local | → `Account`. Disabled → active, role kept |
-| `POST /accounts/{email}/password` | admin | local | `{password}` → `Account`; every login of that account ends; `422 password_policy` |
-| `POST /accounts/{email}/delete` | admin | local | → `Account`. Pending or disabled only, never the caller; the audit log keeps the history |
-| `GET /control` | logged in | any | → `{holder: {user_id, name, since} \| null}` |
-| `POST /control/acquire` | operator, admin | local | → `{holder}`; `409` (`detail.code` `control_busy`, plus top-level `holder`) when someone else holds it |
-| `POST /control/release` | the holder | local | → `204` |
-| `POST /control/revoke` | admin | local | `{reason}` → `{previous_holder}` |
+| `POST /accounts/{login}/approve` | admin | local | `{role}` → `Account`. Role is set only here (D12) |
+| `POST /accounts/{login}/role` | admin | local | `{role}` → `Account` |
+| `POST /accounts/{login}/disable` | admin | local | → `Account`. Switches the account off. Never the last active admin |
+| `POST /accounts/{login}/enable` | admin | local | → `Account`. Switched off → active, role kept |
+| `POST /accounts/{login}/password` | admin | local | `{password}` → `Account`; every login of that account ends; `422 password_policy` |
+| `GET /accounts/needs-login` | admin | local | → `[{email, name, role, status, created_at, approved_by, approved_at}]`: accounts an older console kept under an email. None can log in |
+| `POST /accounts/give-login` | admin | local | `{email, login}` → `Account`. The email is in the body, never in a path. Name, role, status, password and history are kept; the audit line `account_login_given` names both. `404 no_account`, `422 invalid`, `409 account_exists` |
 
 ```
-Me      = {user_id, name, role, locked, has_control, local, expires_at}
-Account = {email, name, role, status, created_at, approved_by, approved_at}
+Me      = {user_id, name, role, locked, local, expires_at}     # user_id is the login
+Account = {login, name, role, status, created_at, approved_by, approved_at}
 ```
 
 `local` in `Me` tells the screen whether write controls can work at all (D16: questions, map
@@ -49,15 +57,16 @@ not the check.
   remote view ever leaves it). The token never appears in a reply body, a URL or a log.
 - Idle lock after 15 min without `/activity`; the session ends 12 h after login (T-018
   defaults, `LoginSessions(idle_lock_s, max_age_s)`).
-- The **device-control token never leaves the server.** When a logged-in holder sends a
-  command, the server attaches its grant to the engine `Command`; the engine checks it with
-  `DeviceControl.check` (T-011). The browser only knows `has_control`.
-- Every login, failed login, logout, lock, unlock, sign-up, approval, role change, disable,
-  enable, password reset, delete and control change goes to `audit.jsonl` through T-018. The router adds no second log.
+- There is no device-control token any more: the take-and-release control went with the engine it
+  controlled (console card 009). Stopping a run needs no control (card 004).
+- Every login, failed login, logout, lock, unlock, sign-up, approval, role change, switch off,
+  switch on, password reset and giving of a login goes to `audit.jsonl` through T-018. The router adds
+  no second log. No password, and no password hash, is ever in it. Old lines stay as written: the log
+  is append-only, so earlier lines may hold an email as `user_id` and may name a control or a delete.
 
 ### Attempt limits (`auth/throttle.py`)
 
-Wrong passwords on login and unlock are counted per account (the email as typed, whether it
+Wrong passwords on login and unlock are counted per account (the login as typed, case-folded, whether it
 exists or not) and per client address. PROVISIONAL limits: 5 per account and 20 per client in
 15 min, then that key is refused for 15 min. While a key is locked the password is not checked
 at all (no scrypt cost), and the answer is `429 too_many_attempts` with `Retry-After`. A right
@@ -85,15 +94,15 @@ One component tree, shown by the shell instead of the areas when `GET /me` is 40
 
 | State | Shows |
 |---|---|
-| setup needed (`/setup` ≠ ready) | "First run: create the administrator account". Name, password (twice), and an email field only for `needs_admin_email`. Local only; remote shows "Set up on the microscope PC" |
-| logged out | Login form (email, password). Link to sign-up |
-| sign-up | Name, email, password (twice). After submit: "Account created. An administrator must approve it before you can log in." |
+| setup needed (`/setup` ≠ ready) | "First start: the administrator". The administrator's login is shown, fixed (from `GET /setup`); a password (twice); under the password, "Choose one you have never written anywhere else, a chat window included. The console cannot tell if a password has been seen." No password is filled in or shown. Local only; remote shows "Set up on the microscope PC". When the settings name a login that is not a plain id, no form: the page says to fix `admin_login` |
+| logged out | Login form (login, password). An email is refused in words and nothing is sent. Link to sign-up |
+| sign-up | Name, login ("Letters, digits, dot, dash or underscore. Not an email."), password (twice). After submit: "Account created. The administrator approves it and sets what it may do. Until then it cannot log in." |
 | pending (login returned `pending_approval`) | "Your account is waiting for an administrator's approval." No retry loop |
 | disabled | "This account is disabled. Ask an administrator." |
 | locked | "Locked: enter your password to continue" over a dimmed app. **Running work and guards keep going, and the Abort button stays live on the lock screen.** The status bar stays visible |
-| accounts page | Area `#/admin` (`web/src/features/admin/`, formerly `#/accounts`; console card 008), in the sidebar for an administrator only, below a rule, and usable only locally. Every account with a status filter. Pending: role picker (no default) and Approve, or Delete. Active: role picker and Set role, Disable, Reset password. Disabled: Enable, Reset password, Delete (with a confirm). The admin's own row has no actions |
+| accounts page | Area `#/admin` (`web/src/features/admin/`, formerly `#/accounts`; console card 008), in the sidebar for an administrator only, below a rule, and usable only locally. Every account with a status filter. Pending: role picker (no default) and Approve. Active: role picker and Set role, Switch off, Reset password. Switched off: Switch on, Reset password. There is no delete. The admin's own row has no actions. Below, "Needs a login id" lists accounts an older console kept under an email, each with a field and "Give login" |
 
-UI text in English. No email is prefilled, remembered or shown before login.
+UI text in English. No email is asked for, and no password is prefilled, remembered or shown. The footer of the app (card 008) has Lock beside Log out, and a chip "viewing from another computer · read only" when `Me.local` is false.
 
 ## 5. What the shell (T-010) and server (T-009) must provide
 
@@ -110,8 +119,7 @@ Requests to the AF work-assignment assistant, who forwards them to the manager:
 4. **T-010: a route guard.** Before rendering an area, call `GET /api/auth/me`. On 401 or
    `locked`, render `app/login/` (exported `LoginGate`) instead. Any 401 from another call sends
    the app back to it. Hash routing stays as is; no `#/login` route is needed.
-5. **T-010: status bar items:** user name and role, a "remote · read only" badge when
-   `local` is false, the control holder (`GET /control`) with Take / Release for the local
-   operator, a Log out button always in view, and a user menu (Lock, and Manage accounts for an
-   admin).
+5. **T-010: status bar items** (now the footer, card 008 and 009): user name, a chip when `local` is
+   false, a Lock button and a Log out button always in view. The control holder with Take / Release
+   is gone.
 6. **T-010: an activity hook** that calls `POST /api/auth/activity` on user input, throttled.

@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,12 +6,12 @@ import { createFakeAuthApi, type Me } from "./api";
 import { ApprovalList } from "./ApprovalList";
 import { LoginGate, useAuth } from "./LoginGate";
 
-// fake users: example.test addresses only, test passwords only
+// fake users: plain logins only, test passwords only
 const USERS = [
-  { name: "Ada Admin", email: "admin@example.test", password: "admin-pass-1", role: "admin" as const, status: "active" as const },
-  { name: "Otto Operator", email: "otto@example.test", password: "otto-pass-1", role: "operator" as const, status: "active" as const },
-  { name: "Pat Pending", email: "pat@example.test", password: "pat-pass-12", role: "viewer" as const, status: "pending" as const },
-  { name: "Dee Disabled", email: "dee@example.test", password: "dee-pass-12", role: "viewer" as const, status: "disabled" as const },
+  { name: "Ada Admin", login: "ada", password: "admin-pass-1", role: "admin" as const, status: "active" as const },
+  { name: "Otto Operator", login: "otto", password: "otto-pass-1", role: "operator" as const, status: "active" as const },
+  { name: "Pat Pending", login: "pat", password: "pat-pass-12", role: "viewer" as const, status: "pending" as const },
+  { name: "Dee Disabled", login: "dee", password: "dee-pass-12", role: "viewer" as const, status: "disabled" as const },
 ];
 
 function App() {
@@ -29,8 +29,8 @@ function fill(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 
-async function logIn(email: string, password: string) {
-  fill("Email", email);
+async function logIn(login: string, password: string) {
+  fill("Login", login);
   fill("Password", password);
   fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 }
@@ -49,21 +49,21 @@ describe("LoginGate", () => {
     gate();
     await screen.findByRole("form", { name: "Log in" });
     expect(screen.queryByText(/the app for/)).toBeNull();
-    await logIn("OTTO@Example.test", "otto-pass-1"); // email without case
+    await logIn("otto", "otto-pass-1");
     expect(await screen.findByText("the app for Otto Operator")).toBeTruthy();
   });
 
   it("says why a login failed", async () => {
     gate();
     await screen.findByRole("form", { name: "Log in" });
-    await logIn("otto@example.test", "wrong-pass");
-    expect((await screen.findByRole("alert")).textContent).toContain("Wrong email or password");
+    await logIn("otto", "wrong-pass");
+    expect((await screen.findByRole("alert")).textContent).toContain("Wrong login or password");
   });
 
   it("tells a pending account it waits for approval", async () => {
     gate();
     await screen.findByRole("form", { name: "Log in" });
-    await logIn("pat@example.test", "pat-pass-12");
+    await logIn("pat", "pat-pass-12");
     expect((await screen.findByRole("status")).textContent).toContain("waiting for an administrator's approval");
     expect(screen.queryByText(/the app for/)).toBeNull();
   });
@@ -71,30 +71,30 @@ describe("LoginGate", () => {
   it("tells a disabled account so", async () => {
     gate();
     await screen.findByRole("form", { name: "Log in" });
-    await logIn("dee@example.test", "dee-pass-12");
+    await logIn("dee", "dee-pass-12");
     expect((await screen.findByRole("status")).textContent).toContain("disabled");
   });
 
-  it("signs up with name, email and password only, then says approval is needed", async () => {
+  it("signs up with name, login and password only, then says approval is needed", async () => {
     const api = gate();
     fireEvent.click(await screen.findByRole("button", { name: "Create one" }));
     const form = screen.getByRole("form", { name: "Create an account" });
-    expect(form.querySelectorAll("input")).toHaveLength(4); // name, email, password twice: no role
+    expect(form.querySelectorAll("input")).toHaveLength(4); // name, login, password twice: no role
     expect(form.querySelector("select")).toBeNull();
     fill("Name", "Kim Lee");
-    fill("Email", "kim@example.test");
+    fill("Login", "kim");
     fill("Password", "kim-pass-12");
     fill("Password again", "kim-pass-12");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect((await screen.findByRole("status")).textContent).toContain("must approve it");
-    expect(api.users.find((u) => u.email === "kim@example.test")).toMatchObject({ status: "pending", role: "viewer" });
+    expect((await screen.findByRole("status")).textContent).toContain("approves it and sets what it may do");
+    expect(api.users.find((u) => u.login === "kim")).toMatchObject({ status: "pending", role: "viewer" });
   });
 
   it("checks the two passwords before signing up", async () => {
     const api = gate();
     fireEvent.click(await screen.findByRole("button", { name: "Create one" }));
     fill("Name", "Kim Lee");
-    fill("Email", "kim@example.test");
+    fill("Login", "kim");
     fill("Password", "kim-pass-12");
     fill("Password again", "kim-pass-13");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
@@ -102,13 +102,11 @@ describe("LoginGate", () => {
     expect(api.users).toHaveLength(USERS.length);
   });
 
-  it("asks for the first admin on first run, with an email field only when none is configured", async () => {
+  it("asks for the first admin on first run: the login is shown, no email is asked for", async () => {
     gate(createFakeAuthApi({ setup: "needs_admin" }));
     const form = await screen.findByRole("form", { name: "Create the administrator account" });
     expect(form.querySelector('input[type="email"]')).toBeNull();
-    cleanupAndRender(createFakeAuthApi({ setup: "needs_admin_email" }));
-    const withEmail = await screen.findByRole("form", { name: "Create the administrator account" });
-    expect(withEmail.querySelector('input[type="email"]')).not.toBeNull();
+    expect((screen.getByLabelText("Administrator login") as HTMLInputElement).value).toBe("softmatter");
   });
 
   it("does not offer first-run setup from a remote PC", async () => {
@@ -125,7 +123,7 @@ describe("LoginGate", () => {
     const onAbort = vi.fn();
     const api = gate(undefined, <button onClick={onAbort}>Abort</button>);
     await screen.findByRole("form", { name: "Log in" });
-    await logIn("otto@example.test", "otto-pass-1");
+    await logIn("otto", "otto-pass-1");
     await screen.findByText("the app for Otto Operator");
     fireEvent.click(screen.getByRole("button", { name: "Lock" }));
     await screen.findByRole("dialog", { name: "Locked" });
@@ -147,7 +145,7 @@ describe("LoginGate", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       const api = createFakeAuthApi({ users: USERS });
-      await api.login({ email: "otto@example.test", password: "otto-pass-1" });
+      await api.login({ login: "otto", password: "otto-pass-1" });
       render(
         <LoginGate api={api} pollMs={1000}>
           <App />
@@ -166,7 +164,7 @@ describe("LoginGate", () => {
 
   it("logs out back to the login form", async () => {
     const api = createFakeAuthApi({ users: USERS });
-    await api.login({ email: "otto@example.test", password: "otto-pass-1" });
+    await api.login({ login: "otto", password: "otto-pass-1" });
     gate(api);
     fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
     await screen.findByRole("form", { name: "Log in" });
@@ -174,22 +172,13 @@ describe("LoginGate", () => {
   });
 });
 
-function cleanupAndRender(api: ReturnType<typeof createFakeAuthApi>) {
-  cleanup();
-  render(
-    <LoginGate api={api} pollMs={0}>
-      <App />
-    </LoginGate>,
-  );
-}
-
 describe("ApprovalList", () => {
   const me = (over: Partial<Me>): Me => ({
-    user_id: "admin@example.test",
+    user_id: "ada",
     name: "Ada Admin",
     role: "admin",
     locked: false,
-    has_control: false,
+   
     local: true,
     expires_at: 0,
     ...over,
@@ -207,16 +196,16 @@ describe("ApprovalList", () => {
 
   it("approves with a role the admin picks; there is no default role", async () => {
     const api = createFakeAuthApi({ users: USERS });
-    await api.login({ email: "admin@example.test", password: "admin-pass-1" });
+    await api.login({ login: "ada", password: "admin-pass-1" });
     render(<ApprovalList api={api} me={me({})} />);
-    const picker = (await screen.findByLabelText("Role for pat@example.test")) as HTMLSelectElement;
+    const picker = (await screen.findByLabelText("Role for pat")) as HTMLSelectElement;
     const approve = screen.getByRole("button", { name: "Approve" }) as HTMLButtonElement;
     expect(picker.value).toBe("");
     expect(approve.disabled).toBe(true);
     fireEvent.change(picker, { target: { value: "operator" } });
     fireEvent.click(approve);
     await screen.findByText("No accounts are waiting.");
-    expect(api.users.find((u) => u.email === "pat@example.test")).toMatchObject({ status: "active", role: "operator" });
+    expect(api.users.find((u) => u.login === "pat")).toMatchObject({ status: "active", role: "operator" });
   });
 });
 
@@ -250,8 +239,8 @@ describe("clientAuthApi over the shared client", () => {
     });
     const api = clientAuthApi(new Client(fake.transport, "127.0.0.1"));
     expect(await api.me()).toBeNull();
-    expect(await api.setup()).toBe("ready");
-    const err = await api.login({ email: "pat@example.test", password: "pat-pass-12" }).catch((e) => e);
+    expect(await api.setup()).toEqual({ state: "ready", adminLogin: null });
+    const err = await api.login({ login: "pat", password: "pat-pass-12" }).catch((e) => e);
     expect(err).toMatchObject({ status: 401, outcome: "pending_approval" });
     expect(err.message).toContain("approval");
     const login = fake.calls.find((c) => c.path === "/api/auth/login")!;
@@ -268,7 +257,7 @@ describe("clientAuthApi over the shared client", () => {
     });
     const fake = fakeTransport({ "/api/auth/login": tooMany, "/api/auth/unlock": tooMany });
     const api = clientAuthApi(new Client(fake.transport, "127.0.0.1"));
-    const err = await api.login({ email: "vera@example.test", password: "x" }).catch((e) => e);
+    const err = await api.login({ login: "vera", password: "x" }).catch((e) => e);
     expect(err).toMatchObject({ status: 429 });
     expect(err.message).toContain("Try again in 15 minutes");
     const unlock = await api.unlock({ password: "x" }).catch((e) => e);
@@ -285,7 +274,7 @@ describe("LoginGate with T-009c lock state", () => {
       return () => listeners.delete(fn);
     };
     const api = createFakeAuthApi({ users: USERS });
-    await api.login({ email: "otto@example.test", password: "otto-pass-1" });
+    await api.login({ login: "otto", password: "otto-pass-1" });
     const meCalls = vi.spyOn(api, "me");
     function Resumed() {
       return <output data-testid="resumed">{useAuth()?.resumed}</output>;

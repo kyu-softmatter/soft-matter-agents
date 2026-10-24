@@ -60,7 +60,7 @@ def hash_password(password: str) -> str:
 
 
 def dummy_verify(password: str) -> bool:
-    """Spend what a real check costs and return False (for an unknown login email)."""
+    """Spend what a real check costs and return False (for an unknown login)."""
     _scrypt(password, bytes(SALT_BYTES), SCRYPT_N, SCRYPT_R, SCRYPT_P, HASH_BYTES)
     return False
 
