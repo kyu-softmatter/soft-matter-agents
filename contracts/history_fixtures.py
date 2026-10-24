@@ -1260,7 +1260,7 @@ def fixture_41_the_person_commits_an_approval(repo: Path) -> str:
 def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = "kyu", sha_wrong: bool = False,
                   changed_after: bool = False, absent: bool = False, decision: str = "yes",
                   touches_core: list | None = None, perm_seat: str = "human", login_on_disk_only: bool = False,
-                  login_changed_after: bool = False) -> str:
+                  login_changed_after: bool = False, kind: str = "loosen") -> str:
     """HP-016 (2026-10-23): a loosening landed on the person's word given through the console.
 
     The person, Q-20261022-office-14, committed at 659c2214: the permission for a
@@ -1282,7 +1282,7 @@ def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = 
     prop = {
         "artifact": "harness_proposal", "schema_version": "0.1", "id": "HP-902",
         "title": "A loosening the fixture lands on a console word", "drafted_by": office,
-        "drafted_on": "2026-10-23", "kind": "loosen", "class": "contract-has-no-slot-for-it",
+        "drafted_on": "2026-10-23", "kind": kind, "class": "contract-has-no-slot-for-it",
         "answers": ["INC-20261023-office-01"],
         "classification": {"members_found": ["INC-20261023-office-01"], "looked_in": ["the fixture"]},
         "changes": [{"path": "contracts/validate.py", "owner": "any manager", "change": "Nothing; a fixture."}],
@@ -1358,8 +1358,14 @@ def fixture_89_a_console_no_cited_for_a_landing(repo: Path) -> str:
     return _console_word(repo, decision="no")
 
 
-def fixture_89_a_console_word_for_a_change_to_the_core(repo: Path) -> str:
+def fixture_89_a_change_to_the_core_landed_on_a_console_word(repo: Path) -> str:
+    """HP-018 (the person, 881f5119): a change to the core may land on a console word too."""
     return _console_word(repo, touches_core=["harness_rules_1_to_5"])
+
+
+def fixture_89_a_console_word_on_a_tightening(repo: Path) -> str:
+    """HP-018: a tighten touching nothing in the core needs no word, and a console word on one is refused."""
+    return _console_word(repo, kind="tighten")
 
 
 def fixture_89_a_console_word_committed_under_a_seat(repo: Path) -> str:
@@ -1490,8 +1496,8 @@ FIXTURES = [
     (89, "FAIL", "differ from what the person signed", fixture_89_a_console_word_and_changes_the_person_never_saw),
     (89, "FAIL", "is not in the tree", fixture_89_a_console_word_whose_file_is_gone),
     (89, "FAIL", "stands only on 'yes'", fixture_89_a_console_no_cited_for_a_landing),
-    (89, "FAIL", "the console form counts only for a loosening or a retirement that touches no part",
-     fixture_89_a_console_word_for_a_change_to_the_core),
+    (89, "PASS", "hold together", fixture_89_a_change_to_the_core_landed_on_a_console_word),
+    (89, "FAIL", "touching nothing in the core, which needs no word", fixture_89_a_console_word_on_a_tightening),
     (89, "FAIL", "and only `human` commits the person's word", fixture_89_a_console_word_committed_under_a_seat),
     (41, "FAIL", "commits the person's own file", fixture_41_a_seat_commits_a_harness_permission),
     # HP-017 (2026-10-23): the login as committed with the permission, never as on disk.

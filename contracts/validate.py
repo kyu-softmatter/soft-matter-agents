@@ -9075,8 +9075,13 @@ def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: 
          first 12;
       5. what was signed is what lands: SIGNED_FIELDS of the proposal in the
          tree equal the signed blob's;
-      6. the form counts for a loosening or a retirement that touches no part
-         of the core. A change to the core stays words said in a window.
+      6. the form counts for every proposal that needs the person's word: a
+         loosening, a retirement, or any change to the core (HP-018, the
+         person at 881f5119: "10-2: 가장 중요한 부분을 바꾸는 제안도 관리자 화면에서
+         로그인과 비밀번호로 허락한다." -- a proposal that changes the most
+         important part is also permitted from the administrator screen by
+         login and password). A tighten or reshape touching nothing in the
+         core needs no word, and a console word on one is refused.
     """
     m = CONSOLE_WORD.match(str(pw.get("said_in_window_of") or ""))
     if not m:
@@ -9093,10 +9098,10 @@ def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: 
     def git(*args: str) -> bytes:
         return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, check=True).stdout
 
-    if d.get("kind") not in ("loosen", "retire") or d.get("touches_core"):
-        return fail(f"the proposal is a {d.get('kind')} touching {d.get('touches_core') or 'nothing in the core'}; "
-                    "the console form counts only for a loosening or a retirement that touches no part of the "
-                    "core, and a change to the core stays words said in a window")
+    if d.get("kind") not in ("loosen", "retire") and not d.get("touches_core"):
+        return fail(f"the proposal is a {d.get('kind')} touching nothing in the core, which needs no word of the "
+                    "person's; the console form counts only for a proposal that does -- a loosening, a "
+                    "retirement, or a change to the core (HP-018)")
     rec = str(pw.get("recorded_in") or "")
     pm = PERMISSION_FILE.match(rec)
     if not pm or pm.group("pid") != pid:
