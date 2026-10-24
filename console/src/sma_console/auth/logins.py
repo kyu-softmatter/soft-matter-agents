@@ -225,6 +225,26 @@ class LoginSessions:
             s = self._live(token)
             return None if s is None else self._info(s)
 
+    # -- a password asked again ---------------------------------------------------------------
+
+    def check_password(self, user_id: str, password: str, client: str | None = None, *,
+                       reason: str = "sign_bad_password") -> bool:
+        """Is `password` this account's? For a screen that asks it again (the sign dialog). It uses
+        the login's own attempt limit, so wrong guesses here and at login count together; past the
+        limit it raises `TooManyAttempts` before the password is looked at. Nothing is stored, and
+        neither the password nor a hash of it reaches the audit log."""
+        keys = self.limiter.keys(user_id, client)
+        if (wait := self.limiter.retry_after(keys)) is not None:
+            self._log(AuditKind.LOGIN_FAILED, user_id, reason=str(LoginOutcome.TOO_MANY), client=client)
+            raise TooManyAttempts(wait)
+        if not self._accounts.authenticate(user_id, password).ok:  # scrypt, without the lock
+            for kind, _ in self.limiter.failed(keys):
+                self._log(AuditKind.LOGIN_FAILED, user_id, reason="lockout_started", key=kind, client=client)
+            self._log(AuditKind.LOGIN_FAILED, user_id, reason=reason)
+            return False
+        self.limiter.succeeded(user_id)
+        return True
+
     # -- activity and lock --------------------------------------------------------------------
 
     def touch(self, token: str) -> LoginInfo | None:

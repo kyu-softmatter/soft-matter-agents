@@ -192,6 +192,20 @@ class AccountStore:
         self._needs_login: list[NeedsLogin] = []
         self._load()
 
+    @property
+    def config_dir(self) -> Path:
+        return self._config_dir
+
+    def person_login(self) -> str | None:
+        """The login the settings name as the person's own, if it is a plain id; else None."""
+        named = config.person_login(self._config_dir)
+        if named is None:
+            return None
+        try:
+            return check_login(named)
+        except AccountError:
+            return None
+
     # -- file ---------------------------------------------------------------------------------
 
     def _load(self) -> None:

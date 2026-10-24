@@ -5,7 +5,6 @@ import { Client, ClientProvider } from "../../app/client";
 import { ScreenContextProvider, useCurrentScreenContext } from "../../app/screenContext";
 import { fakeTransport } from "../../test/fakes";
 import ConsoleScreen, { parseRest } from "./index";
-import { changedKeys } from "./questions";
 import { consoleRoutes, FAKE_DATA, type FakeData } from "./testData";
 
 function ContextProbe() {
@@ -47,51 +46,6 @@ describe("parseRest", () => {
     expect(parseRest("inbox")).toEqual({ tab: "inbox" });
     expect(parseRest("whatever")).toEqual({ tab: "questions" });
     expect(parseRest("ask")).toEqual({ tab: "questions" }); // the Ask tab is gone: the field is on the first screen
-  });
-});
-
-describe("question detail", () => {
-  it("shows card tabs of the latest version and switches between them", async () => {
-    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
-    const tabs = await screen.findByRole("tablist", { name: "Cards" });
-    expect(within(tabs).getAllByRole("tab").map((t) => t.textContent)).toEqual(["goal", "axis a1", "axis a7"]);
-    expect(screen.getByRole("article", { name: "Card v5_goal.json" })).toBeTruthy();
-
-    fireEvent.click(within(tabs).getByRole("tab", { name: "axis a7" }));
-    const card = screen.getByRole("article", { name: "Card v5_axis_bd_pairwise_a7.json" });
-    expect(within(card).getByText("infeasible")).toBeTruthy();
-    await waitFor(() =>
-      expect(ctx()).toMatchObject({ area: "questions", qid: "sim-20260923-001", version: 5, card_kind: "axis" }),
-    );
-  });
-
-  it("lists every version the store returns, past v3", async () => {
-    const t = renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
-    const picker = (await screen.findByLabelText("Version")) as HTMLSelectElement;
-    expect([...picker.options].map((o) => o.textContent)).toEqual(["v1", "v2", "v5 (latest)"]);
-
-    fireEvent.change(picker, { target: { value: "1" } });
-    expect(await screen.findByRole("article", { name: "Card goal.json" })).toBeTruthy();
-    expect(t.gets("/api/console/questions/sim-20260923-001?version=1")).toBe(1);
-    expect(screen.getByRole("tab", { name: "refusal" })).toBeTruthy();
-  });
-
-  it("shows grades exactly as the card has them, and the degraded banner", async () => {
-    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
-    const table = await screen.findByRole("table", { name: "Numbers" });
-    const grades = within(table).getAllByTitle("grade as written on the card").map((g) => g.textContent);
-    expect(grades).toEqual(["E2", "E4", "E9"]);
-    expect(within(table).getByText("0.09")).toBeTruthy();
-    expect(screen.getByRole("alert").textContent).toContain("librarian unreachable");
-  });
-
-  it("compares two versions by card and field", async () => {
-    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
-    fireEvent.change(await screen.findByLabelText("Compare with"), { target: { value: "2" } });
-    const diff = await screen.findByRole("table", { name: "Changes v5 to v2" });
-    expect(within(diff).getByText("axis_bd_pairwise_a7.json").nextSibling?.textContent).toBe("changed: verdict");
-    expect(within(diff).getByText("goal.json").nextSibling?.textContent).toBe("only in v5");
-    expect(changedKeys({ a: 1, b: 2 }, { a: 1, b: 3, c: 0 })).toEqual(["b", "c"]);
   });
 });
 

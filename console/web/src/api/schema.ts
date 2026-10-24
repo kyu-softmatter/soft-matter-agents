@@ -822,6 +822,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/console/signing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Signing State
+         * @description Who may see Sign, and whether anything could be signed here. The screen only; the runtime
+         *     decides from the person's own file (plan.md 6.1).
+         */
+        get: operations["signing_state_api_console_signing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/console/sign-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign Check
+         * @description Check the person's password for the plan whose fingerprint the dialog showed. **Writes nothing.**
+         *     Under the mock store a practice login is shown as signed; under a real tree the answer is that signing
+         *     is not built yet. A tree without `microscope_runtime/approvals/` says so first, and offers no other place.
+         */
+        post: operations["sign_check_api_console_sign_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/simulation/runs": {
         parameters: {
             query?: never;
@@ -2034,6 +2077,54 @@ export interface components {
              * @default api
              */
             reason: string;
+        };
+        /**
+         * SignCheckIn
+         * @description The plan whose fingerprint was shown, and the password typed again. Nothing else.
+         */
+        SignCheckIn: {
+            /** Qid */
+            qid: string;
+            /** Plan Hash */
+            plan_hash: string;
+            /** Password */
+            password: string;
+        };
+        /** SignCheckOut */
+        SignCheckOut: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "not_built" | "practice_signed";
+            /** Message */
+            message: string;
+        };
+        /**
+         * SigningStateOut
+         * @description What the sign dialog may offer to this login (console card 011). It decides the screen only.
+         */
+        SigningStateOut: {
+            /**
+             * Person Named
+             * @description the settings name the person's login (person_login)
+             */
+            person_named: boolean;
+            /**
+             * Is Person
+             * @description this login is that login
+             */
+            is_person: boolean;
+            /**
+             * Practice
+             * @description the mock store: a practice login is shown as signed, nothing is written
+             */
+            practice: boolean;
+            /**
+             * Approvals Folder
+             * @description microscope_runtime/approvals/ is in the tree this console reads
+             */
+            approvals_folder: boolean;
         };
         /** SignupIn */
         SignupIn: {
@@ -4252,6 +4343,87 @@ export interface operations {
             };
             /** @description the store could not read the files */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    signing_state_api_console_signing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningStateOut"];
+                };
+            };
+        };
+    };
+    sign_check_api_console_sign_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignCheckOut"];
+                };
+            };
+            /** @description wrong password */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description not the person's login */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the plan changed, or there is no approvals folder */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description too many wrong passwords */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

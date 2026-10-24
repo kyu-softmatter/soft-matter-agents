@@ -1,164 +1,33 @@
-/** Question detail with card tabs, versions and numbers (ui-spec 7.1). The list is the cards (card 010). */
+/** The pieces a question's cards are drawn with: a card's main fields, its numbers with their words (ui-spec 7.1). */
 
-import { useEffect, useState } from "react";
-
-import { useClient } from "../../app/client";
-import { type Card, PATHS, type QuestionDetail } from "./api";
-import { asArray, Fields, isRecord, Json, Loaded, shortTime, show, useLoad, versionLabel } from "./ui";
-
-// --- detail ---------------------------------------------------------------------------------
+import type { Approval, Card, QuestionDetail } from "./api";
+import { asArray, Fields, isRecord, Json, provenanceWord, show, versionLabel } from "./ui";
 
 export function cardsOf(d: QuestionDetail): Card[] {
   const one = (c: Card | null) => (c === null ? [] : [c]);
   return [...one(d.goal), ...d.axes, ...one(d.plan), ...one(d.synthesis), ...d.refusals, ...d.results, ...d.others];
 }
 
-export interface QuestionSelection {
-  version: number;
-  card_kind?: string;
+/** What an approval says about the plan it names, in words (read only: the console writes none). */
+export function approvalSays(a: Approval, detail: QuestionDetail): string {
+  if (a.plan_hash !== null && a.plan_hash === detail.plan_hash) return "signs this version's plan";
+  if (a.plan_found === true) return "signs another version's plan";
+  if (a.plan_found === false) return "signs a plan that is not in the question folder";
+  return "its question folder is not here";
 }
 
-export function QuestionDetailView({
-  qid,
-  refreshKey,
-  onSelect,
-}: {
-  qid: string;
-  refreshKey: number;
-  onSelect: (sel: QuestionSelection) => void;
-}) {
-  const client = useClient();
-  const [version, setVersion] = useState<number | undefined>(undefined);
-  const [compare, setCompare] = useState<number | undefined>(undefined);
-  const [tab, setTab] = useState<string | undefined>(undefined);
-  const state = useLoad(() => client.get<QuestionDetail>(PATHS.question(qid, version)), [client, qid, version, refreshKey]);
-  const other = useLoad(
-    () => (compare === undefined ? Promise.resolve(undefined) : client.get<QuestionDetail>(PATHS.question(qid, compare))),
-    [client, qid, compare, refreshKey],
-  );
-
-  const detail = state.data;
-  const cards = detail === undefined ? [] : cardsOf(detail);
-  const card = cards.find((c) => c.name === tab) ?? cards[0];
-  const shownVersion = detail?.version;
-  const kind = card?.kind;
-  useEffect(() => {
-    if (shownVersion !== undefined) onSelect({ version: shownVersion, card_kind: kind });
-  }, [shownVersion, kind, onSelect]);
-
+/** True when an approval card of this plan's fingerprint says APPROVED: a draft is not a signature. */
+export function isSigned(detail: QuestionDetail): boolean {
   return (
-    <Loaded state={state}>
-      {(d) => (
-        <section aria-label={`Question ${d.summary.qid}`} className="console-detail">
-          <header className="console-detail-head">
-            <h2>{d.summary.qid}</h2>
-            <span>{d.summary.agent}</span>
-            <span className="console-status">{d.summary.status ?? "—"}</span>
-            {d.summary.source !== "soft-matter-agents" && <span className="console-tag">{d.summary.source}</span>}
-          </header>
-          <p>{d.summary.title}</p>
-          <div className="console-filters">
-            <label>
-              Version{" "}
-              <select value={d.version} onChange={(e) => { setVersion(Number(e.target.value)); setTab(undefined); }}>
-                {[...d.summary.versions].sort((a, b) => a - b).map((v) => (
-                  <option key={v} value={v}>
-                    {versionLabel(v)}{v === d.summary.latest_version ? " (latest)" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Compare with{" "}
-              <select
-                value={compare ?? ""}
-                onChange={(e) => setCompare(e.target.value === "" ? undefined : Number(e.target.value))}
-              >
-                <option value="">—</option>
-                {d.summary.versions.filter((v) => v !== d.version).map((v) => (
-                  <option key={v} value={v}>{versionLabel(v)}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {compare !== undefined && (
-            <Loaded state={other}>{(o) => (o === undefined ? null : <VersionDiff a={d} b={o} />)}</Loaded>
-          )}
-          {cards.length === 0 ? (
-            <p className="console-muted">This version has no cards.</p>
-          ) : (
-            <>
-              <div role="tablist" aria-label="Cards" className="console-tabs">
-                {cards.map((c) => (
-                  <button
-                    key={c.name}
-                    role="tab"
-                    aria-selected={c === card}
-                    onClick={() => setTab(c.name)}
-                    title={c.name}
-                  >
-                    {cardTabLabel(c, cards)}
-                  </button>
-                ))}
-              </div>
-              {card !== undefined && <CardView card={card} />}
-            </>
-          )}
-          <PlanApprovals detail={d} />
-          {d.documents.map((doc) => (
-            <details key={doc.name} className="console-json">
-              <summary>{doc.name} <span className="console-tag">generated</span></summary>
-              <pre>{doc.text}</pre>
-            </details>
-          ))}
-          {d.files.length > 0 && (
-            <p className="console-muted">Not opened: {d.files.map((f) => `${f.name} (${f.size} B)`).join(", ")}</p>
-          )}
-        </section>
-      )}
-    </Loaded>
+    detail.plan_hash != null &&
+    (detail.approvals ?? []).some((a) => a.plan_hash === detail.plan_hash && (a.status ?? "").toUpperCase() === "APPROVED")
   );
 }
 
-/** What the person approved for this question (approvals/), read only: the console writes none. */
-export function PlanApprovals({ detail }: { detail: QuestionDetail }) {
-  const approvals = detail.approvals ?? [];
-  if (detail.plan_hash == null && approvals.length === 0) return null;
-  return (
-    <section aria-label="Approvals" className="console-approvals">
-      {detail.plan_hash != null && (
-        <p className="console-muted">
-          Plan hash ({versionLabel(detail.version)}, status left out): <code>{detail.plan_hash}</code>
-        </p>
-      )}
-      {approvals.length === 0 ? (
-        <p className="console-muted">No approval in approvals/ names this question.</p>
-      ) : (
-        <ul>
-          {approvals.map((a) => (
-            <li key={a.name}>
-              {a.id ?? a.name} · {a.status ?? "—"} by {a.approved_by ?? "—"} at {shortTime(a.approved_at)} ·{" "}
-              {a.plan_hash !== null && a.plan_hash === detail.plan_hash
-                ? "signs this version's plan"
-                : a.plan_found === true
-                  ? "signs another version's plan"
-                  : a.plan_found === false
-                    ? "signs a plan that is not in the question folder"
-                    : "its question folder is not here"}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-/** "axis a7" for the second axis card, else the kind alone. */
-function cardTabLabel(c: Card, all: Card[]): string {
-  if (all.filter((x) => x.kind === c.kind).length < 2) return c.kind;
-  const base = c.name.replace(/^v\d+_/, "").replace(/\.json$/, "");
-  const tail = base.split("_").pop() ?? base;
-  return `${c.kind} ${tail}`;
+/** Whether the assistant wrote a card (its author or origin says so): such text is labelled as the assistant's. */
+export function writtenByAssistant(card: Card | null): boolean {
+  if (card === null || !isRecord(card.data)) return false;
+  return /assistant/i.test(String(card.data.author ?? "")) || /assistant/i.test(String(card.data.origin ?? ""));
 }
 
 export function CardView({ card }: { card: Card }) {
@@ -189,7 +58,7 @@ export function NumbersTable({ numbers }: { numbers: unknown[] }) {
   return (
     <table className="console-table" aria-label="Numbers">
       <thead>
-        <tr><th>Name</th><th>Value</th><th>Unit</th><th>Source</th><th>Grade</th><th>Precision</th></tr>
+        <tr><th>Name</th><th>Value</th><th>Unit</th><th>How it is known</th><th>Source</th><th>Grade</th><th>Precision</th></tr>
       </thead>
       <tbody>
         {rows.map((n, i) => (
@@ -197,6 +66,7 @@ export function NumbersTable({ numbers }: { numbers: unknown[] }) {
             <td>{show(n.name)}</td>
             <td>{show(n.value)}</td>
             <td>{show(n.unit)}</td>
+            <td>{provenanceWord(n.source)}</td>
             <td>{show(n.source)}</td>
             <td><GradeBadge grade={n.grade} /></td>
             <td>{show(n.precision)}</td>
@@ -261,46 +131,4 @@ function Assumptions({ data }: { data: Record<string, unknown> }) {
       )}
     </div>
   );
-}
-
-// --- version diff ---------------------------------------------------------------------------
-
-function baseName(c: Card): string {
-  return c.name.replace(/^v\d+_/, "");
-}
-
-/** Which cards differ between two versions, and in which top-level fields. */
-export function VersionDiff({ a, b }: { a: QuestionDetail; b: QuestionDetail }) {
-  const left = new Map(cardsOf(a).map((c) => [baseName(c), c]));
-  const right = new Map(cardsOf(b).map((c) => [baseName(c), c]));
-  const names = [...new Set([...left.keys(), ...right.keys()])].sort();
-  const la = versionLabel(a.version);
-  const lb = versionLabel(b.version);
-  return (
-    <table className="console-table" aria-label={`Changes ${la} to ${lb}`}>
-      <thead>
-        <tr><th>Card</th><th>{la} → {lb}</th></tr>
-      </thead>
-      <tbody>
-        {names.map((n) => {
-          const x = left.get(n);
-          const y = right.get(n);
-          let what: string;
-          if (x === undefined) what = `only in ${lb}`;
-          else if (y === undefined) what = `only in ${la}`;
-          else {
-            const changed = changedKeys(x.data, y.data);
-            what = changed.length === 0 ? "same" : `changed: ${changed.join(", ")}`;
-          }
-          return <tr key={n}><td>{n}</td><td>{what}</td></tr>;
-        })}
-      </tbody>
-    </table>
-  );
-}
-
-export function changedKeys(x: unknown, y: unknown): string[] {
-  if (!isRecord(x) || !isRecord(y)) return JSON.stringify(x) === JSON.stringify(y) ? [] : ["(whole card)"];
-  const keys = [...new Set([...Object.keys(x), ...Object.keys(y)])].sort();
-  return keys.filter((k) => JSON.stringify(x[k]) !== JSON.stringify(y[k]));
 }

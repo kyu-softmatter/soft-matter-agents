@@ -551,6 +551,11 @@ class SmaFiles:
     def registered_names(self) -> list[str]:
         return quantity_names(self._root)
 
+    def approvals_target_present(self) -> bool:
+        """`microscope_runtime/approvals/` and only it: the old place, `microscope_agent/approvals/`, is
+        read for display and is not a place to sign into (card 011)."""
+        return (self._root / "microscope_runtime" / "approvals").is_dir()
+
 
 def _scan(d: Path) -> dict[int, list[Path]]:
     """The files of a question folder by version, names sorted, nothing opened."""

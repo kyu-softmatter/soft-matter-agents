@@ -84,3 +84,33 @@ export function shortTime(t: string | null | undefined): string {
   if (!t) return "—";
   return t.replace("T", " ").replace(/(\.\d+)?(Z|[+-]\d\d:\d\d)$/, "");
 }
+
+/**
+ * What a number's source says, in the person's words (plan.md 5.3; console card 011): computed,
+ * guessed, measured, read back, sent. A source this does not know is shown as written, never hidden.
+ */
+export function provenanceWord(source: unknown): string {
+  if (typeof source !== "string" || source === "") return "no source given";
+  const kind = source.split(":", 1)[0];
+  switch (kind) {
+    case "computed":
+      return "computed";
+    case "assumed":
+    case "operator_recall":
+    case "guess":
+      return "guessed";
+    case "calibration":
+    case "measured":
+    case "result":
+    case "run":
+      return "measured";
+    case "kb":
+      return "measured elsewhere";
+    case "readback":
+      return "read back";
+    case "sent":
+      return "sent";
+    default:
+      return `source: ${source}`;
+  }
+}

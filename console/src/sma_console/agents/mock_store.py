@@ -112,6 +112,9 @@ class MockStore:
         mine = [] if self._write_dir is None else [long_path(self._write_dir).joinpath(*REQUEST_PARTS)]
         return [*mine, self.sample.root.joinpath(*REQUEST_PARTS)]
 
+    def approvals_target_present(self) -> bool:
+        return True  # practice: there is nothing to look for, and nothing is written
+
     def registered_names(self) -> list[str]:
         try:
             return quantity_names(repository_root())

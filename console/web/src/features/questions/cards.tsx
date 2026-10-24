@@ -23,7 +23,7 @@ const STEPS = [
 
 const addressee = (v: RequestCard["addressed_to"]) => ADDRESSEES.find((a) => a.value === v)?.label ?? v;
 
-function Steps({ q }: { q: QuestionProgress }) {
+export function QuestionStepsList({ q }: { q: QuestionProgress }) {
   return (
     <ol aria-label="Progress" className="ask-steps">
       {STEPS.map(([key, label]) => {
@@ -40,14 +40,24 @@ function Steps({ q }: { q: QuestionProgress }) {
   );
 }
 
-export function QuestionCardsView({ cards, onOpen }: { cards: QuestionCards; onOpen: (qid: string) => void }) {
+export function QuestionCardsView({
+  cards,
+  onOpen,
+  onOpenRequest,
+}: {
+  cards: QuestionCards;
+  onOpen: (qid: string) => void;
+  onOpenRequest: (id: string) => void;
+}) {
   const empty = cards.requests.length === 0 && cards.questions.length === 0;
   return (
     <section aria-label="Question cards" className="ask-cards">
       {empty && <p className="console-muted">No questions yet.</p>}
       {cards.requests.map((r) => (
         <article key={r.id} className="ask-card" data-kind="request">
-          <p className="ask-words">{r.words}</p>
+          <button className="console-link ask-words" onClick={() => onOpenRequest(r.id)}>
+            {r.words}
+          </button>
           <p className="console-muted">
             {r.login} · {shortTime(r.asked_at)} · {addressee(r.addressed_to)}
           </p>
@@ -67,7 +77,7 @@ export function QuestionCardsView({ cards, onOpen }: { cards: QuestionCards; onO
           <p className="console-muted">
             {q.agent} · {q.status ?? "—"} · {shortTime(q.created_at)}
           </p>
-          <Steps q={q} />
+          <QuestionStepsList q={q} />
         </article>
       ))}
     </section>

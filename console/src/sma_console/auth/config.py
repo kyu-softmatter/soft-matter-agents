@@ -10,6 +10,9 @@ The first administrator's **login** is a plain id (never an email, console card 
 ``softmatter`` when the key is absent. It is a name and not a credential: no password comes with
 the console, and the person types the administrator's password at the first start. The old
 ``admin_email`` setting and its environment variable are no longer read.
+
+``person_login`` (console card 011) names the login that is the person's own, for the screen only:
+the Sign button shows to that login and to no other, and to nobody while the key is absent.
 """
 
 from __future__ import annotations
@@ -56,3 +59,18 @@ def admin_login(directory: str | os.PathLike[str] | None = None) -> str:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return DEFAULT_ADMIN_LOGIN
+
+
+def person_login(directory: str | os.PathLike[str] | None = None) -> str | None:
+    """The login the console's settings name as the person's own, or None.
+
+    ``person_login`` in settings.json (console card 011). It decides only what the screen offers:
+    who sees the Sign button. The runtime decides from the person's own file beside the safety
+    policy, never from this (plan.md 6.1). Whether the value is a plain id is the account store's
+    check; absent or blank is None, and then no login is the person.
+    """
+    path = config_dir(directory) / SETTINGS_FILE
+    if not path.is_file():
+        return None
+    value = json.loads(path.read_text(encoding="utf-8")).get("person_login")
+    return value.strip() if isinstance(value, str) and value.strip() else None

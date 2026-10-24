@@ -414,3 +414,8 @@ class AgentStore(Protocol):
     def registered_names(self) -> list[str]:
         """The quantity names in `contracts/quantities.json`, for autocomplete; none if unreadable."""
         ...
+
+    def approvals_target_present(self) -> bool:
+        """Whether the one place an approval is signed into, `microscope_runtime/approvals/`, is in the
+        tree this store reads. No other place counts. (Nothing is written by the console yet.)"""
+        ...

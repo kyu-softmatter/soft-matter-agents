@@ -27,7 +27,7 @@ from typing import Any, Literal
 
 from fastapi import APIRouter, Request
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...agents import (
@@ -40,13 +40,15 @@ from ...agents import (
     sma_run,
 )
 from ...agents import requests as question_requests
-from ...auth import AuditKind
+from ...auth import AuditKind, TooManyAttempts
 from . import (
     AgentStoreDep,
     Auth,
     Login,
     Refusal,
     command_why,
+    logged_in_refusal,
+    remote_view,
     server_action_why,
 )
 
@@ -319,6 +321,29 @@ class QuestionProgressOut(BaseModel):
 class QuestionCardsOut(BaseModel):
     requests: list[RequestCardOut]
     questions: list[QuestionProgressOut]
+
+
+class SigningStateOut(BaseModel):
+    """What the sign dialog may offer to this login (console card 011). It decides the screen only."""
+
+    person_named: bool = Field(description="the settings name the person's login (person_login)")
+    is_person: bool = Field(description="this login is that login")
+    practice: bool = Field(description="the mock store: a practice login is shown as signed, nothing is written")
+    approvals_folder: bool = Field(description="microscope_runtime/approvals/ is in the tree this console reads")
+
+
+class SignCheckIn(BaseModel):
+    """The plan whose fingerprint was shown, and the password typed again. Nothing else."""
+
+    model_config = ConfigDict(extra="forbid")
+    qid: str
+    plan_hash: str
+    password: str
+
+
+class SignCheckOut(BaseModel):
+    outcome: Literal["not_built", "practice_signed"]
+    message: str
 
 
 class SuggestionOut(BaseModel):
@@ -843,3 +868,76 @@ def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
     except StoreError as e:
         raise _store_error(e).http() from e
     return QuestionCardsOut(requests=requests, questions=_newest_first(cards))
+
+
+# -- the sign dialog: it checks, and writes nothing (card 011) -------------------------------------
+
+NOT_BUILT_MESSAGE = "Signing is not built yet: the part that writes your approval waits for your OK."
+PRACTICE_MESSAGE = "Practice: this login is shown as signed. Nothing was written."
+NO_APPROVALS_FOLDER = ("Nothing can be signed here: the folder microscope_runtime/approvals/ is not in the tree "
+                       "this console reads, and no other place is used.")
+
+
+def _signing_state(store: Any, me: Any, seat: Any) -> SigningStateOut:
+    named = seat.accounts.person_login()
+    return SigningStateOut(
+        person_named=named is not None,
+        is_person=named is not None and me.info is not None and me.info.user_id == named,
+        practice=isinstance(store, MockStore),
+        approvals_folder=bool(store.approvals_target_present()) if hasattr(store, "approvals_target_present") else False)
+
+
+@router.get("/signing", response_model=SigningStateOut)
+def signing_state(store: AgentStoreDep, me: Login, seat: Auth) -> SigningStateOut:
+    """Who may see Sign, and whether anything could be signed here. The screen only; the runtime
+    decides from the person's own file (plan.md 6.1)."""
+    if me.info is None:
+        raise Refusal(401, "login_required", "log in first").http()
+    return _signing_state(store, me, seat)
+
+
+@router.post(
+    "/sign-check",
+    response_model=SignCheckOut,
+    responses={401: {"description": "wrong password"}, 403: {"description": "not the person's login"},
+               409: {"description": "the plan changed, or there is no approvals folder"},
+               429: {"description": "too many wrong passwords"}},
+)
+def sign_check(body: SignCheckIn, request: Request, store: AgentStoreDep, me: Login,
+               seat: Auth) -> SignCheckOut:
+    """Check the person's password for the plan whose fingerprint the dialog showed. **Writes nothing.**
+    Under the mock store a practice login is shown as signed; under a real tree the answer is that signing
+    is not built yet. A tree without `microscope_runtime/approvals/` says so first, and offers no other place."""
+    if why := logged_in_refusal(me):
+        raise why.http()
+    if not me.local:
+        raise remote_view("Signing is done at the microscope computer only.").http()
+    state = _signing_state(store, me, seat)
+    if not state.person_named:
+        raise Refusal(403, "person_not_named", "The person's login is not named yet, so no one can sign.").http()
+    if not state.is_person:
+        raise Refusal(403, "not_person", "Only the person's own login signs.").http()
+    try:
+        detail = store.get_question(body.qid)
+    except NotFoundError as e:
+        raise _not_found(e).http() from e
+    except StoreError as e:
+        raise _store_error(e).http() from e
+    if detail.plan_hash is None or detail.plan_hash != body.plan_hash:
+        raise Refusal(409, "plan_changed", "The plan is not the one whose fingerprint was shown. Open it again.").http()
+    if not state.practice and not state.approvals_folder:
+        raise Refusal(409, "no_approvals_folder", NO_APPROVALS_FOLDER).http()
+    client = request.client.host if request.client else None
+    try:
+        ok = seat.logins.check_password(me.info.user_id, body.password, client)
+    except TooManyAttempts as e:
+        return JSONResponse(  # type: ignore[return-value]  # same words and Retry-After as login and unlock
+            {"detail": {"code": "too_many_attempts", "message": str(e)}}, status_code=429,
+            headers={"X-DinoAF-Refusal": "too_many_attempts", "Retry-After": str(e.retry_after_s)})
+    if not ok:
+        raise Refusal(401, "bad_credentials", "Wrong password.").http()
+    outcome = "practice_signed" if state.practice else "not_built"
+    if seat.audit is not None:  # who, which question and plan, what came of it: never a password or a hash of one
+        seat.audit.append(AuditKind.SIGN_CHECKED, me.user_id, origin="console", qid=body.qid,
+                          plan_hash=body.plan_hash, outcome=outcome)
+    return SignCheckOut(outcome=outcome, message=PRACTICE_MESSAGE if state.practice else NOT_BUILT_MESSAGE)  # type: ignore[arg-type]

@@ -32,6 +32,8 @@ All are mounted at `/api/console` by T-009's area-router mechanism. Bodies are t
 | `GET /approvals` | `agent=`, optional | `Approval[]` (the seats' `approvals/` plan_approval cards, newest first; `plan_found`: a plan card of the question hashes to `plan_hash`) | `list_approvals(agent)` |
 | `POST /question-requests` | `{words, addressed_to}` (nothing else is accepted) | `201`, `QuestionRequest`: `contracts/schemas/question_request.schema.json`, exactly as written | `write_request(store.request_write_folder(), ...)` |
 | `GET /question-cards` | | `{requests: RequestCard[], questions: QuestionProgress[]}`: requests written in the console (newest first), and the agents' questions with five steps | `read_requests`, `list_questions`, `get_question`, `list_runs` |
+| `GET /signing` | | `SigningState`: `person_named`, `is_person`, `practice`, `approvals_folder` (the screen's offer to this login) | `settings.json` `person_login`; `approvals_target_present()` |
+| `POST /sign-check` | `{qid, plan_hash, password}` (nothing else) | `SignCheck`: `outcome` `not_built` or `practice_signed`, `message`. **Writes nothing** | `AccountStore.person_login()`, `LoginSessions.check_password` |
 | `GET /suggestions` | | `[{text, kind}]`, `kind` `earlier question` or `registered name`: strings already on disk | `read_requests`, `registered_names()` |
 
 Error mapping (all T-009b refusals: `detail = {code, message}` and the `X-DinoAF-Refusal` header):
@@ -98,6 +100,48 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
   run log names the question), result (a result card exists). When the runs folder cannot be read the run
   step says "not known": that is not "no run". A click opens today's view of an agents' question (the
   detail is card 011).
+
+## One question and the sign dialog, writing nothing (console card 011; plans 006 and 007)
+
+A question's card opens its page (`#/questions/questions/<qid>`; a request written in the console opens
+`#/questions/requests/<id>`, where nothing has started). The page shows the question verbatim (the goal
+card's own words), who asked and when, the five steps of card 010, a **summary put together from card
+fields** (the goal's purpose and observable, the plan's steps) labelled as such, and **every card made
+from the question, one row each**: goal, design (axes), synthesis, each plan and its revision, refusals,
+approvals, runs that name the question, results, other cards, and the bridge's rounds for the goal's
+thread. A row opens on a click to its main fields. Anything a card says the assistant wrote ("author" or
+"origin" naming the assistant) is labelled "Written by the assistant". A number's `source` is also said
+in the person's word: computed, guessed (assumed, operator recall), measured (calibration, result),
+measured elsewhere (the library), read back, sent; a source it does not know is shown as written. The old
+card tabs and the two-version diff are gone; the version picker stays when a question has several.
+
+- **Who sees Sign.** Only the login named `person_login` in `settings.json` outside the tree (the same
+  file as `admin_login`). With the key absent, or not a plain id, no login sees it and the box says the
+  person's login is not named yet. Any other login sees "Waits for the person's signature" and no
+  button. This decides the screen only: the runtime decides from the person's own file beside the safety
+  policy, never from the console's settings (plan.md 6.1). `POST /sign-check` repeats it: 403
+  `person_not_named` or `not_person`.
+- **A plan waiting.** A plan with no approval of its fingerprint whose status is APPROVED (a draft is not
+  a signature) shows a box with "Review and sign".
+- **The dialog** shows the plan and its revision, its steps, its light (the light sources among its
+  devices, and the numbers named for power, illumination, laser or exposure), what cannot be undone (an
+  action that does not say it is reversible is not trusted to be), and the **full fingerprint**: the sha256
+  of the plan card with `status` removed, the rule of `contracts/validate.py`'s `card_sha` and of a
+  plan_approval's `plan_hash` (a test runs that function's own source against the contracts' example plan
+  and its approval's `plan_hash`). A password field is typed again and never pre-filled, and is cleared
+  after every try.
+- **Sign checks the password at the server and writes nothing.** The order is: the person's login; the
+  plan is the question's current one (409 `plan_changed` otherwise); the approvals folder; then the
+  password, counted by the login's own attempt limit (401, then 429 with Retry-After). The answer is
+  "Signing is not built yet: the part that writes your approval waits for your OK." Under the mock store
+  a practice login is shown as signed, with "Nothing was written". No password, and no hash of one, is in
+  a response, a log or an audit line; the audit line `sign_checked` names the login, the question, the
+  plan's fingerprint and the outcome.
+- **No approvals folder.** Only `microscope_runtime/approvals/` counts. Without it in the tree the console
+  reads, the dialog says nothing can be signed and offers no form and no other place; the old
+  `microscope_agent/approvals/` is read for display and is not a place to sign.
+- **What this card does not build:** the writer. It writes an approval into `microscope_runtime/approvals/`,
+  is part of the person's guard, and waits for the person's answer to Q-20261024-office-01.
 
 ## A run soft-matter-agents executes (C-04, C-08)
 

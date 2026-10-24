@@ -35,7 +35,7 @@ import "./console.css";
 import { Inbox } from "./inbox";
 import { AskBox, submitReason } from "./ask";
 import { QuestionCardsView } from "./cards";
-import { QuestionDetailView, type QuestionSelection } from "./questions";
+import { QuestionPage, RequestPage } from "./detail";
 import { RunDetailView, RunList } from "./runs";
 import { Loaded, useLoad } from "./ui";
 
@@ -44,6 +44,7 @@ type Tab = "questions" | "runs" | "inbox";
 interface View {
   tab: Tab;
   qid?: string;
+  requestId?: string;
   agent?: Agent;
   runId?: string;
 }
@@ -53,6 +54,8 @@ export function parseRest(rest: string): View {
   switch (parts[0]) {
     case "questions":
       return parts[1] ? { tab: "questions", qid: parts[1] } : { tab: "questions" };
+    case "requests":
+      return parts[1] ? { tab: "questions", requestId: parts[1] } : { tab: "questions" };
     case "runs": {
       const agent = AGENTS.find((a) => a === parts[1]);
       return agent && parts[2] ? { tab: "runs", agent, runId: parts[2] } : { tab: "runs" };
@@ -77,8 +80,8 @@ export default function ConsoleScreen() {
   const [rest, setRest] = useAreaPath();
   const view = parseRest(rest);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [sel, setSel] = useState<QuestionSelection | undefined>(undefined);
-  const onSelect = useCallback((s: QuestionSelection) => setSel(s), []);
+  const [shownVersion, setShownVersion] = useState<number | undefined>(undefined);
+  const onSelect = useCallback((v: number) => setShownVersion(v), []);
 
   // re-read when the event socket comes back after a drop (the server may have restarted); not a poll
   const link = useRef({ open: connected, dropped: false });
@@ -100,17 +103,15 @@ export default function ConsoleScreen() {
 
   // prompt context (X1): short ids only, no card bodies (D7)
   const qid = view.qid;
-  const version = qid !== undefined ? sel?.version : undefined;
-  const cardKind = qid !== undefined ? sel?.card_kind : undefined;
+  const version = qid !== undefined ? shownVersion : undefined;
   const details = useMemo(() => {
     const d: Record<string, string | number> = {};
     if (qid !== undefined) d.qid = qid;
     if (version !== undefined) d.version = version;
-    if (cardKind !== undefined) d.card_kind = cardKind;
     if (view.runId !== undefined) d.run_id = view.runId;
     if (view.agent !== undefined) d.agent = view.agent;
     return d;
-  }, [qid, version, cardKind, view.runId, view.agent]);
+  }, [qid, version, view.runId, view.agent]);
   useScreenContext(details);
 
   const store = storeInfo.data;
@@ -135,7 +136,7 @@ export default function ConsoleScreen() {
         <button onClick={() => setRefreshKey((k) => k + 1)}>Refresh</button>
       </div>
 
-      {view.tab === "questions" && view.qid === undefined && (
+      {view.tab === "questions" && view.qid === undefined && view.requestId === undefined && (
         <>
           <AskBox
             reason={submitReason(readOnly, perms, storeInfo)}
@@ -143,14 +144,26 @@ export default function ConsoleScreen() {
             onWritten={() => setRefreshKey((k) => k + 1)}
           />
           <Loaded state={cards}>
-            {(c) => <QuestionCardsView cards={c} onOpen={(q) => setRest(`questions/${encodeURIComponent(q)}`)} />}
+            {(c) => (
+              <QuestionCardsView
+                cards={c}
+                onOpen={(q) => setRest(`questions/${encodeURIComponent(q)}`)}
+                onOpenRequest={(id) => setRest(`requests/${encodeURIComponent(id)}`)}
+              />
+            )}
           </Loaded>
         </>
       )}
       {view.tab === "questions" && view.qid !== undefined && (
         <>
           <button className="console-link" onClick={() => setRest("questions")}>← All questions</button>
-          <QuestionDetailView key={view.qid} qid={view.qid} refreshKey={refreshKey} onSelect={onSelect} />
+          <QuestionPage key={view.qid} qid={view.qid} refreshKey={refreshKey} onSelect={onSelect} />
+        </>
+      )}
+      {view.tab === "questions" && view.requestId !== undefined && (
+        <>
+          <button className="console-link" onClick={() => setRest("questions")}>← All questions</button>
+          <Loaded state={cards}>{(c) => <RequestPage id={view.requestId ?? ""} cards={c.requests} />}</Loaded>
         </>
       )}
       {view.tab === "runs" && view.runId === undefined && (

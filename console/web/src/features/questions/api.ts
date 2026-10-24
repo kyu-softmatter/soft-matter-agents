@@ -35,6 +35,10 @@ export type QuestionProgress = Schemas["QuestionProgressOut"];
 export type QuestionCards = Schemas["QuestionCardsOut"];
 export type Suggestion = Schemas["SuggestionOut"];
 export type Addressee = AskIn["addressed_to"];
+/** What the sign dialog may offer this login (card 011). The runtime decides from the person's own file. */
+export type SigningState = Schemas["SigningStateOut"];
+export type SignCheck = Schemas["SignCheckOut"];
+export type SignCheckIn = Schemas["SignCheckIn"];
 /** A run soft-matter-agents executes, as its events.jsonl says so far (plan.md 11-25). */
 export type RunStream = Schemas["RunStreamOut"];
 export type StopResult = Schemas["StopOut"];
@@ -83,6 +87,8 @@ export const PATHS = {
   questionRequests: "/api/console/question-requests",
   questionCards: "/api/console/question-cards",
   suggestions: "/api/console/suggestions",
+  signing: "/api/console/signing",
+  signCheck: "/api/console/sign-check",
   question: (qid: string, version?: number) => `/api/console/questions/${seg(qid)}${query({ version })}`,
   runs: (agent?: Agent) => `/api/console/runs${query({ agent })}`,
   run: (agent: Agent, runId: string) => `/api/console/runs/${seg(agent)}/${seg(runId)}`,
@@ -114,6 +120,17 @@ export async function fetchPermissions(client: Client, ops: readonly string[]): 
 export async function askQuestion(client: Client, body: AskIn): Promise<QuestionRequest> {
   const r = await client.post<QuestionRequest>(PATHS.questionRequests, body);
   if (r === null) throw new CommandRefused(502, "the server returned no request");
+  return r;
+}
+
+/**
+ * `POST /api/console/sign-check`: the server checks the person's password for the plan whose fingerprint
+ * the dialog showed. **It writes nothing.** Every refusal (wrong password, the throttle, a missing
+ * approvals folder, a login that is not the person's) is thrown with its reason, in words.
+ */
+export async function signCheck(client: Client, body: SignCheckIn): Promise<SignCheck> {
+  const r = await client.post<SignCheck>(PATHS.signCheck, body);
+  if (r === null) throw new CommandRefused(502, "the server returned no answer");
   return r;
 }
 

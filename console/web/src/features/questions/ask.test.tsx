@@ -314,12 +314,20 @@ describe("the cards below the field", () => {
     expect(screen.queryByRole("columnheader", { name: "Observable" })).toBeNull();
   });
 
-  it("opens an agents' question on a click, in today's view of it", async () => {
+  it("opens an agents' question on a click, on the question's own page", async () => {
     show();
     const cards = await screen.findByRole("region", { name: "Question cards" });
     fireEvent.click(within(cards).getByRole("button", { name: /structural relaxation time/ }));
     expect(window.location.hash).toBe("#/questions/questions/sim-20260923-001");
-    expect(await screen.findByRole("tablist", { name: "Cards" })).toBeTruthy();
+    expect(await screen.findByRole("region", { name: "Question sim-20260923-001" })).toBeTruthy();
+  });
+
+  it("opens a request written in the console on a click, on its own page", async () => {
+    show();
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    fireEvent.click(within(cards).getByRole("button", { name: /How far apart are the wells at 4x\?/ }));
+    expect(window.location.hash).toBe("#/questions/requests/qr-20261023-091500-w3k8");
+    expect(await screen.findByRole("region", { name: "Question request" })).toBeTruthy();
   });
 
   it("says plainly when there are no questions yet", async () => {
