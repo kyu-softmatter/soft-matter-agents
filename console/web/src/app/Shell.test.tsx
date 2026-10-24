@@ -1,4 +1,4 @@
-import { act, fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { describe, expect, it } from "vitest";
 
@@ -31,10 +31,10 @@ function SimulationScreen() {
   );
 }
 
-function MapScreen() {
+function ExperimentsScreen() {
   const details = useMemo(() => ({ sample_id: "20260930_1849_1" }), []);
   useScreenContext(details);
-  return <p>map screen</p>;
+  return <p>experiments screen</p>;
 }
 
 function ContextProbe() {
@@ -45,9 +45,9 @@ function ContextProbe() {
 function withProbe(entries: AreaEntry[]): AreaEntry[] {
   // the probe stands in for the prompt box: it reads the context of the screen in view
   return entries.map((e) =>
-    e.id === "map"
-      ? { ...e, load: () => Promise.resolve({ default: () => (<><MapScreen /><ContextProbe /></>) }) }
-      : e.id === "sample"
+    e.id === "experiments"
+      ? { ...e, load: () => Promise.resolve({ default: () => (<><ExperimentsScreen /><ContextProbe /></>) }) }
+      : e.id === "instruments"
         ? { ...e, load: () => Promise.resolve({ default: ContextProbe }) }
         : e,
   );
@@ -58,61 +58,61 @@ describe("Shell", () => {
     render(<Shell registry={buildRegistry({})} />);
     const nav = screen.getByRole("navigation", { name: "Areas" });
     expect(nav.querySelectorAll("a")).toHaveLength(AREAS.filter((a) => !("adminOnly" in a)).length);
-    expect(screen.queryByRole("link", { name: "Accounts" })).toBeNull();
-    expect(screen.getByText("Console: not implemented yet")).toBeTruthy();
-    expect(screen.getByText("Takatori Lab Console")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Admin" })).toBeNull();
+    expect(screen.getByText("Questions: not implemented yet")).toBeTruthy();
+    expect(screen.getByText("Soft-matter agents")).toBeTruthy();
   });
 
   it("shows the admin-only areas to an admin", () => {
     render(<Shell registry={buildRegistry({})} admin />);
     const nav = screen.getByRole("navigation", { name: "Areas" });
     expect(nav.querySelectorAll("a")).toHaveLength(AREAS.length);
-    expect(screen.getByRole("link", { name: "Accounts" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Admin" })).toBeTruthy();
   });
 
   it("switches area from the navigation and updates the hash", () => {
     render(<Shell registry={buildRegistry({})} />);
-    fireEvent.click(screen.getByRole("link", { name: "Objective" }));
-    expect(window.location.hash).toBe("#/objective");
-    expect(screen.getByText("Objective: not implemented yet")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Objective" }).getAttribute("aria-current")).toBe("page");
+    fireEvent.click(screen.getByRole("link", { name: "Library" }));
+    expect(window.location.hash).toBe("#/library");
+    expect(screen.getByText("Library: not implemented yet")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Library" }).getAttribute("aria-current")).toBe("page");
   });
 
   it("follows a hash change from outside (back button, link)", () => {
     render(<Shell registry={buildRegistry({})} />);
     act(() => {
-      window.location.hash = "#/hardware";
+      window.location.hash = "#/results";
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     });
-    expect(screen.getByText("Hardware: not implemented yet")).toBeTruthy();
+    expect(screen.getByText("Results: not implemented yet")).toBeTruthy();
   });
 
   it("lazy-loads a registered screen and passes its context on with the area", async () => {
-    window.location.hash = "#/map";
+    window.location.hash = "#/experiments";
     render(<Shell registry={withProbe(buildRegistry({}))} />);
-    expect(await screen.findByText("map screen")).toBeTruthy();
+    expect(await screen.findByText("experiments screen")).toBeTruthy();
     await waitFor(() =>
       expect(JSON.parse(screen.getByTestId("ctx").textContent ?? "{}")).toEqual({
-        area: "map",
+        area: "experiments",
         sample_id: "20260930_1849_1",
       }),
     );
   });
 
   it("drops the previous screen's context when the area changes", async () => {
-    window.location.hash = "#/map";
+    window.location.hash = "#/experiments";
     render(<Shell registry={withProbe(buildRegistry({}))} />);
-    await screen.findByText("map screen");
-    fireEvent.click(screen.getByRole("link", { name: "Sample" }));
+    await screen.findByText("experiments screen");
+    fireEvent.click(screen.getByRole("link", { name: "Instruments" }));
     await waitFor(() =>
-      expect(JSON.parse(screen.getByTestId("ctx").textContent ?? "{}")).toEqual({ area: "sample" }),
+      expect(JSON.parse(screen.getByTestId("ctx").textContent ?? "{}")).toEqual({ area: "instruments" }),
     );
   });
 
   it("shows a load failure inside the area, not a blank app", async () => {
-    window.location.hash = "#/live";
+    window.location.hash = "#/library";
     const broken = buildRegistry({}).map((e) =>
-      e.id === "live" ? { ...e, load: () => Promise.reject(new Error("chunk missing")) } : e,
+      e.id === "library" ? { ...e, load: () => Promise.reject(new Error("chunk missing")) } : e,
     );
     const quiet = console.error;
     console.error = () => {};
@@ -126,11 +126,18 @@ describe("Shell", () => {
     }
   });
 
-  it("keeps a slot for the prompt box and the status bar", () => {
-    // whatever T-014 puts in the slot, the region is there
-    render(<Shell registry={buildRegistry({})} statusBar={<span>status here</span>} />);
-    expect(screen.getByRole("region", { name: "Prompt" })).toBeTruthy();
-    expect(screen.getByText("status here")).toBeTruthy();
+  it("has a footer on every screen, with what the app puts in it, and no prompt box or side panel", () => {
+    render(<Shell registry={buildRegistry({})} footer={<span>footer here</span>} />);
+    expect(within(screen.getByTestId("shell-footer")).getByText("footer here")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Prompt" })).toBeNull();
+    expect(document.querySelector("aside")).toBeNull();
+  });
+
+  it("does not open an administrator-only area for anyone else", () => {
+    window.location.hash = "#/admin";
+    render(<Shell registry={buildRegistry({})} />);
+    expect(screen.getByText("Questions: not implemented yet")).toBeTruthy();
+    expect(screen.queryByText("Admin: not implemented yet")).toBeNull();
   });
 
   it("shows a placeholder in the prompt slot while there is no prompt box", () => {

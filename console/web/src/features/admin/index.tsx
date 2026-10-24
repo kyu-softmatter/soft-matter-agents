@@ -1,4 +1,4 @@
-// The `accounts` area: an admin on the microscope PC manages the other accounts.
+// The `admin` area: an admin on the microscope PC manages the other accounts.
 //
 // List with a status filter; per row: approve a pending account with a role (D12), change a role,
 // disable / enable, set a new password (their logins end), and delete a pending or disabled

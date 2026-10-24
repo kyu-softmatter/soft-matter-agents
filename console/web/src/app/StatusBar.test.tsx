@@ -2,10 +2,9 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { fakeTransport, type Route } from "../test/fakes";
-import { App } from "./App";
 import { Client, ClientProvider } from "./client";
 import { lightIsOn, readAssistantStatus, readLights, useEngineStatus } from "./status";
-import { ShutdownNoticeView } from "./StatusBar";
+import { ShutdownNoticeView, StatusBar } from "./StatusBar";
 
 describe("useEngineStatus after an unlock", () => {
   function Probe({ resumed }: { resumed?: number }) {
@@ -54,7 +53,13 @@ const SNAPSHOT = {
 function setup(routes: Record<string, Route> = {}, hostname = "127.0.0.1") {
   const t = fakeTransport({ "/api/state": () => ({ status: 200, body: SNAPSHOT }), ...routes });
   const client = new Client(t.transport, hostname);
-  render(<App client={client} />);
+  // The status bar is no longer in the shell (console card 008); its readers and view stay in the
+  // tree, and these tests render the bar by itself.
+  render(
+    <ClientProvider client={client}>
+      <StatusBar />
+    </ClientProvider>,
+  );
   // the event socket is open unless a test closes it: values show as current
   act(() => t.sockets.find((s) => s.path === "/ws/events")?.open());
   return { ...t, client };
@@ -190,10 +195,5 @@ describe("last-shutdown notice (ui-spec 5.2)", () => {
   it("warns when a light did not read back off", () => {
     render(<ShutdownNoticeView last={{ t: 1759300000, all_off: false }} />);
     expect(screen.getByRole("alert").textContent).toContain("did not read back off");
-  });
-
-  it("appears on the first screen from GET /api/state", async () => {
-    setup({ "/api/state": () => ({ status: 200, body: { ...SNAPSHOT, last_shutdown_lights: { t: 1, all_off: false } } }) });
-    expect((await screen.findByTestId("shutdown-notice")).getAttribute("role")).toBe("alert");
   });
 });

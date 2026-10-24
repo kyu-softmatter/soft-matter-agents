@@ -22,49 +22,56 @@ body {
 
 .shell {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
   grid-template-areas:
-    "header header"
-    "main side"
-    "status status";
+    "sidebar main"
+    "footer footer";
   height: 100vh;
 }
 
-.header {
-  grid-area: header;
+.sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 12px;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  overflow: auto;
+}
+
+.brand {
+  padding: 4px 12px 16px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.sidebar a {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--line);
-  background: var(--panel);
-}
-
-.title {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.nav {
-  display: flex;
-  gap: 4px;
-}
-
-.nav a {
-  padding: 6px 12px;
+  min-height: 44px;
+  padding: 10px 12px;
   border-radius: 6px;
   color: var(--ink);
+  font-weight: 500;
   text-decoration: none;
 }
 
-.nav a[aria-current="page"] {
+.sidebar a[aria-current="page"] {
   background: var(--accent);
   color: #fff;
 }
 
-.nav a.not-ready {
+.sidebar a.not-ready {
   color: var(--muted);
+}
+
+.sidebar-rule {
+  width: calc(100% - 8px);
+  margin: 8px 4px;
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 
 .main {
@@ -73,26 +80,94 @@ body {
   padding: 16px;
 }
 
-.side {
-  grid-area: side;
-  border-left: 1px solid var(--line);
-  background: var(--panel);
-  overflow: auto;
+.not-built h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
 }
 
-.assistant-slot {
-  padding: 12px;
+.not-built p {
+  margin: 4px 0;
 }
 
-.status {
-  grid-area: status;
-  display: flex;
-  gap: 16px;
+.chip {
+  display: inline-flex;
   align-items: center;
-  padding: 4px 16px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* The footer of every screen: STOP at the left, the login corner at the right. */
+.shell-footer {
+  grid-area: footer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  padding: 12px 24px;
   border-top: 1px solid var(--line);
   background: var(--panel);
   font-size: 13px;
+}
+
+.shell-footer .stop-all {
+  position: relative;
+}
+
+.shell-footer .abort-button {
+  min-height: 44px;
+}
+
+.shell-footer .stop-all-result {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: 360px;
+  margin: 0;
+}
+
+.footer-spacer {
+  flex: 1 1 auto;
+}
+
+/* Phone width: the sidebar stacks above the screen, and its links wrap. */
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "sidebar"
+      "main"
+      "footer";
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+
+  .brand {
+    flex: 1 0 100%;
+    padding: 0 0 4px;
+  }
+
+  .sidebar-rule {
+    display: none;
+  }
+
+  .shell-footer {
+    padding: 12px 16px;
+  }
 }
 
 .muted {

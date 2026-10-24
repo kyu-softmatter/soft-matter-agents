@@ -1,5 +1,7 @@
 # Console screen contract (T-100 stage A)
 
+> **Renamed at console card 008:** this screen is now the area `questions` (`web/src/features/questions/`, hash `#/questions/...`; the file keeps its name here). `#/console` lands on it as any old hash does. Its own redesign is a later card.
+
 Area `console` (PLAN.md §2 F1, §9 WP-F). This is the contract between the screen, the server router
 `server/api/console.py` and the AgentStore. The panels themselves are in `docs/ui-spec.md` 7.1, which is
 not repeated here (on main since T-004 merged).
@@ -67,6 +69,31 @@ announces a loopback stop channel and a frame tap in `run_started`, and keeps go
   no button, and `"Abort: this run is not followed (no events.jsonl), so the console has no stop channel
   for it; stop it at the instrument or in the operator terminal"`. Simulation runs have no Abort here.
 - Nothing is written in the soft-matter-agents tree (the audit line goes to the console's own folder).
+
+## The shell around every screen (card 008, plans 006 and 007)
+
+The app is a **left sidebar** and a **footer on every screen**; the header with twelve areas is gone.
+
+- **Sidebar**, "Soft-matter agents" at the top, then Questions, Instruments, Experiments, Simulation,
+  Library, Results, and **Admin below a rule, for an administrator only**. At phone width it stacks above
+  the screen. An administrator-only area is not opened for anyone else: `#/admin` opens Questions.
+  Old hashes (`#/console`, `#/hardware`, `#/map`, `#/accounts`, ...) land on Questions, as an unknown one
+  does. Instruments, Experiments and Library are plain screens (title, one sentence, "not built yet")
+  that request nothing.
+- **Footer**: STOP at the left (`StopAllRuns`, the one stop the lock screen has; one request to
+  `POST /api/console/runs/stop`, no confirmation), a chip "Example data" while `GET /api/console/store`
+  says the store is `mock` (never on a guess: an unreachable or other store shows none), and at the right
+  the logged-in user's name and Log out. No password is shown or filled.
+- **Left out of the shell**: the lights reading, the assistant's status, the take and release control,
+  the focus readout, the status bar, the last-shutdown notice and the assistant side panel. The modules
+  stay in the tree and nothing in the shell renders them. The last-shutdown notice read
+  `last_shutdown_lights` from the engine status, and **the only engine here, the placeholder, never sets
+  that field** (its snapshot in `server/__main__.py` has no such key, and the field is `None` in
+  `server/schemas/state.py`), so the notice had nothing real to show and went with the status bar.
+- Gone with the old header: the user menu (Lock, Manage accounts) and the "remote · read only" badge. The
+  idle lock still works, and a remote login is still refused by the server and the refusal shown in words.
+- The seven retired areas (hardware, sample, map, objective, patterns, tweezers, sessions) and their
+  "not connected here" notice are removed from the tree.
 
 ## Where the microscope's runs and approvals are (card 005, plan.md 15)
 

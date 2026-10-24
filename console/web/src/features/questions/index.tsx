@@ -1,9 +1,9 @@
 /**
- * Console area: the agents' questions, runs and inbox, and asking a question
+ * Questions area (formerly the Console area): the agents' questions, runs and inbox, and asking a question
  * (PLAN F1, ui-spec 7.1, docs/screens/console.md). Reads only; the one write is a question to
  * the mock store, which the server allows or refuses.
  *
- * `rest` forms (after `#/console/`):
+ * `rest` forms (after `#/questions/`):
  *   "" | "questions"          question list
  *   "questions/<qid>"         one question, latest version
  *   "runs"                    run list

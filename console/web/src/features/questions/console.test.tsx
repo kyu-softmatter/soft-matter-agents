@@ -20,7 +20,7 @@ afterEach(() => {
   clients.splice(0).forEach((c) => c.events.stop());
 });
 
-function renderConsole(data: FakeData = FAKE_DATA, hash = "#/console", hostname = "127.0.0.1") {
+function renderConsole(data: FakeData = FAKE_DATA, hash = "#/questions", hostname = "127.0.0.1") {
   window.location.hash = hash;
   const { routes, submitted } = consoleRoutes(data);
   const fake = fakeTransport(routes);
@@ -28,7 +28,7 @@ function renderConsole(data: FakeData = FAKE_DATA, hash = "#/console", hostname 
   clients.push(client);
   const view = render(
     <ClientProvider client={client}>
-      <ScreenContextProvider area="console">
+      <ScreenContextProvider area="questions">
         <ConsoleScreen />
         <ContextProbe />
       </ScreenContextProvider>
@@ -96,7 +96,7 @@ describe("question list", () => {
 
 describe("question detail", () => {
   it("shows card tabs of the latest version and switches between them", async () => {
-    renderConsole(FAKE_DATA, "#/console/questions/sim-20260923-001");
+    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
     const tabs = await screen.findByRole("tablist", { name: "Cards" });
     expect(within(tabs).getAllByRole("tab").map((t) => t.textContent)).toEqual(["goal", "axis a1", "axis a7"]);
     expect(screen.getByRole("article", { name: "Card v5_goal.json" })).toBeTruthy();
@@ -105,12 +105,12 @@ describe("question detail", () => {
     const card = screen.getByRole("article", { name: "Card v5_axis_bd_pairwise_a7.json" });
     expect(within(card).getByText("infeasible")).toBeTruthy();
     await waitFor(() =>
-      expect(ctx()).toMatchObject({ area: "console", qid: "sim-20260923-001", version: 5, card_kind: "axis" }),
+      expect(ctx()).toMatchObject({ area: "questions", qid: "sim-20260923-001", version: 5, card_kind: "axis" }),
     );
   });
 
   it("lists every version the store returns, past v3", async () => {
-    const t = renderConsole(FAKE_DATA, "#/console/questions/sim-20260923-001");
+    const t = renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
     const picker = (await screen.findByLabelText("Version")) as HTMLSelectElement;
     expect([...picker.options].map((o) => o.textContent)).toEqual(["v1", "v2", "v5 (latest)"]);
 
@@ -121,7 +121,7 @@ describe("question detail", () => {
   });
 
   it("shows grades exactly as the card has them, and the degraded banner", async () => {
-    renderConsole(FAKE_DATA, "#/console/questions/sim-20260923-001");
+    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
     const table = await screen.findByRole("table", { name: "Numbers" });
     const grades = within(table).getAllByTitle("grade as written on the card").map((g) => g.textContent);
     expect(grades).toEqual(["E2", "E4", "E9"]);
@@ -130,7 +130,7 @@ describe("question detail", () => {
   });
 
   it("compares two versions by card and field", async () => {
-    renderConsole(FAKE_DATA, "#/console/questions/sim-20260923-001");
+    renderConsole(FAKE_DATA, "#/questions/questions/sim-20260923-001");
     fireEvent.change(await screen.findByLabelText("Compare with"), { target: { value: "2" } });
     const diff = await screen.findByRole("table", { name: "Changes v5 to v2" });
     expect(within(diff).getByText("axis_bd_pairwise_a7.json").nextSibling?.textContent).toBe("changed: verdict");
@@ -141,7 +141,7 @@ describe("question detail", () => {
 
 describe("runs and inbox", () => {
   it("links a simulation run to the simulation area", async () => {
-    renderConsole(FAKE_DATA, "#/console/runs/simulation/run-20260924-001-smoke-g2k2");
+    renderConsole(FAKE_DATA, "#/questions/runs/simulation/run-20260924-001-smoke-g2k2");
     const link = await screen.findByRole("link", { name: "Open in Simulation" });
     expect(link.getAttribute("href")).toBe("#/simulation/runs/run-20260924-001-smoke-g2k2");
     expect(screen.getByText(/Not opened: trajectory.gsd/)).toBeTruthy();
@@ -150,21 +150,21 @@ describe("runs and inbox", () => {
   });
 
   it("shows a microscope run's explanation fields and no simulation link", async () => {
-    renderConsole(FAKE_DATA, "#/console/runs/microscope/run-20260924-003");
+    renderConsole(FAKE_DATA, "#/questions/runs/microscope/run-20260924-003");
     expect(await screen.findByText("No plan fits this run.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Open in Simulation" })).toBeNull();
   });
 
   it("opens a run from the list, which shows the approval kind", async () => {
-    renderConsole(FAKE_DATA, "#/console/runs");
+    renderConsole(FAKE_DATA, "#/questions/runs");
     expect(await screen.findByText("smoke_auto")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "run-20260924-003" }));
     expect(await screen.findByRole("region", { name: "Run run-20260924-003" })).toBeTruthy();
-    expect(window.location.hash).toBe("#/console/runs/microscope/run-20260924-003");
+    expect(window.location.hash).toBe("#/questions/runs/microscope/run-20260924-003");
   });
 
   it("lists inbox threads with their rounds", async () => {
-    renderConsole(FAKE_DATA, "#/console/inbox");
+    renderConsole(FAKE_DATA, "#/questions/inbox");
     const inbox = await screen.findByRole("region", { name: "Inbox" });
     expect(within(inbox).getByText("thr-tracer-diffusivity-001")).toBeTruthy();
     expect(within(inbox).getByText("Round two.")).toBeTruthy();
@@ -186,7 +186,7 @@ describe("ask a question", () => {
   });
 
   it("is disabled with the read-only reason when the store is not the mock store", async () => {
-    const t = renderConsole({ ...FAKE_DATA, store: READ_ONLY_STORE }, "#/console/ask");
+    const t = renderConsole({ ...FAKE_DATA, store: READ_ONLY_STORE }, "#/questions/ask");
     expect(await screen.findByText(READ_ONLY_STORE_REASON)).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Question"), { target: { value: "How fast?" } });
     expect(submitButton().disabled).toBe(true);
@@ -198,20 +198,20 @@ describe("ask a question", () => {
   it("shows the shared permission reason for a viewer", async () => {
     renderConsole(
       { ...FAKE_DATA, permissions: { submit_question: { allowed: false, reason: "Needs the operator role" } } },
-      "#/console/ask",
+      "#/questions/ask",
     );
     expect(await screen.findByText("Needs the operator role")).toBeTruthy();
     expect(submitButton().disabled).toBe(true);
   });
 
   it("is greyed out on a remote screen, with the read-only badge", async () => {
-    renderConsole(FAKE_DATA, "#/console/ask", "lab-pc.example.test");
+    renderConsole(FAKE_DATA, "#/questions/ask", "lab-pc.example.test");
     expect(await screen.findAllByText(READ_ONLY_REMOTE)).toHaveLength(2); // badge and reason
     expect(submitButton().disabled).toBe(true);
   });
 
   it("disables submit when the permission check cannot be read, and keeps the reads", async () => {
-    renderConsole({ ...FAKE_DATA, permissions: null }, "#/console/ask");
+    renderConsole({ ...FAKE_DATA, permissions: null }, "#/questions/ask");
     expect(await screen.findByText(PERMISSION_CHECK_UNAVAILABLE)).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Question"), { target: { value: "How fast?" } });
     expect(submitButton().disabled).toBe(true);
@@ -226,7 +226,7 @@ describe("ask a question", () => {
         ...FAKE_DATA,
         postRefusal: { status: 403, body: { detail: { code: "role", message: "role viewer may not submit_question" } } },
       },
-      "#/console/ask",
+      "#/questions/ask",
     );
     await screen.findByText("Store: mock");
     fireEvent.change(screen.getByLabelText("Question"), { target: { value: "How fast?" } });
@@ -247,7 +247,7 @@ describe("ask a question", () => {
         ...FAKE_DATA,
         postRefusal: { status: 403, body: { detail: { code: "remote_view", message: "remote view: no" } } },
       },
-      "#/console/ask",
+      "#/questions/ask",
     );
     await screen.findByText("Store: mock");
     fireEvent.change(screen.getByLabelText("Question"), { target: { value: "How fast?" } });
@@ -261,7 +261,7 @@ describe("ask a question", () => {
   });
 
   it("submits to the mock store and re-reads the list", async () => {
-    const t = renderConsole(FAKE_DATA, "#/console/ask");
+    const t = renderConsole(FAKE_DATA, "#/questions/ask");
     await screen.findByText("Store: mock");
     expect(submitButton().disabled).toBe(true); // no text yet
     fireEvent.change(screen.getByLabelText("Question"), { target: { value: "How fast do tracers move?" } });
@@ -285,7 +285,7 @@ describe("the runs folder was not found (console card 005)", () => {
       "this project's microscope runs folder was not found in soft-matter-agents: neither " +
       "microscope_runtime/runs/ nor microscope_agent/runs/ is there. The console cannot see the runs, " +
       "which is not the same as there being none.";
-    window.location.hash = "#/console/runs";
+    window.location.hash = "#/questions/runs";
     const { routes } = consoleRoutes(FAKE_DATA);
     const fake = fakeTransport({
       ...routes,
@@ -295,7 +295,7 @@ describe("the runs folder was not found (console card 005)", () => {
     clients.push(client);
     render(
       <ClientProvider client={client}>
-        <ScreenContextProvider area="console">
+        <ScreenContextProvider area="questions">
           <ConsoleScreen />
         </ScreenContextProvider>
       </ClientProvider>,

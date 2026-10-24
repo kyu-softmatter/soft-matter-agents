@@ -91,7 +91,7 @@ One component tree, shown by the shell instead of the areas when `GET /me` is 40
 | pending (login returned `pending_approval`) | "Your account is waiting for an administrator's approval." No retry loop |
 | disabled | "This account is disabled. Ask an administrator." |
 | locked | "Locked: enter your password to continue" over a dimmed app. **Running work and guards keep going, and the Abort button stays live on the lock screen.** The status bar stays visible |
-| accounts page | Area `#/accounts` (`web/src/features/accounts/`), in the navigation for an admin only and usable only locally; the user menu's "Manage accounts" opens it. Every account with a status filter. Pending: role picker (no default) and Approve, or Delete. Active: role picker and Set role, Disable, Reset password. Disabled: Enable, Reset password, Delete (with a confirm). The admin's own row has no actions |
+| accounts page | Area `#/admin` (`web/src/features/admin/`, formerly `#/accounts`; console card 008), in the sidebar for an administrator only, below a rule, and usable only locally. Every account with a status filter. Pending: role picker (no default) and Approve, or Delete. Active: role picker and Set role, Disable, Reset password. Disabled: Enable, Reset password, Delete (with a confirm). The admin's own row has no actions |
 
 UI text in English. No email is prefilled, remembered or shown before login.
 

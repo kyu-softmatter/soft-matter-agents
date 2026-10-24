@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { fakeTransport, TEST_ME } from "../test/fakes";
@@ -234,9 +234,12 @@ describe("in the real app", () => {
     expect(posts(fake.calls)).toHaveLength(1);
   });
 
-  it("a console in use has no stop-all control: the Console area stops a followed run", async () => {
-    app({ ...TEST_ME });
+  it("a console in use has it in the footer of every screen (console card 008)", async () => {
+    const fake = app({ ...TEST_ME });
     await screen.findByRole("navigation", { name: "Areas" });
-    expect(screen.queryByRole("button", { name: "Stop all runs" })).toBeNull();
+    fireEvent.click(within(screen.getByTestId("shell-footer")).getByRole("button", { name: "Stop all runs" }));
+    await screen.findByTestId("stop-all-result");
+    expect(stops(fake.calls)).toHaveLength(1);
+    expect(posts(fake.calls)).toHaveLength(1);
   });
 });

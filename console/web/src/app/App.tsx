@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { LoginGate, useActivity, useAuth } from "./auth";
-import { type Client, ClientProvider, useClient, useReadOnly } from "./client";
+import { type Client, ClientProvider, useClient } from "./client";
+import { ShellFooter } from "./Footer";
 import { Shell } from "./Shell";
 import { StopAllRuns } from "./StopAllRuns";
-import { useAssistantStatus, useEngineStatus } from "./status";
-import { ShutdownNoticeView, StatusBarView, UserPart } from "./StatusBar";
 
 function Connected() {
   const client = useClient();
   const auth = useAuth();
-  const status = useEngineStatus(auth?.resumed);
-  const assistant = useAssistantStatus();
-  const readOnly = useReadOnly();
-  const [dismissed, setDismissed] = useState(false);
 
   // any later 401 / 423 sends the app back to the login or lock screen
   useEffect(() => {
@@ -29,30 +24,13 @@ function Connected() {
 
   useActivity(!!auth?.me);
 
-  return (
-    <Shell
-      admin={auth?.me?.role === "admin"}
-      statusBar={
-        <StatusBarView
-          status={status}
-          assistant={assistant}
-          readOnly={readOnly}
-          user={<UserPart auth={auth} />}
-        />
-      }
-      notice={
-        dismissed ? null : (
-          <ShutdownNoticeView last={status.lastShutdown} onDismiss={() => setDismissed(true)} />
-        )
-      }
-    />
-  );
+  return <Shell admin={auth?.me?.role === "admin"} footer={<ShellFooter />} />;
 }
 
 /**
  * The whole app: the server client, the login gate (T-105; a pass-through until
  * its web part is in the build) with Abort kept reachable under it, then the
- * shell with the live status bar.
+ * shell with its footer.
  */
 export function App({ client }: { client: Client }) {
   return (

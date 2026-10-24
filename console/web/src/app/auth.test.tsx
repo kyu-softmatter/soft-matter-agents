@@ -14,7 +14,7 @@ import {
   useActivity,
 } from "./auth";
 import { Client, ClientProvider } from "./client";
-import { StatusBarView, UserPart } from "./StatusBar";
+import { StatusBarView } from "./StatusBar";
 
 const ME: ShellMe = {
   user_id: "kyu@example.org",
@@ -24,18 +24,6 @@ const ME: ShellMe = {
   has_control: false,
   local: true,
 };
-
-function fakeAuth(me: Partial<ShellMe> = {}): ShellAuth & { calls: string[] } {
-  const calls: string[] = [];
-  return {
-    me: { ...ME, ...me },
-    api: {},
-    calls,
-    logout: async () => void calls.push("logout"),
-    lock: async () => void calls.push("lock"),
-    refresh: async () => void calls.push("refresh"),
-  };
-}
 
 function withClient(ui: React.ReactNode, routes: Record<string, Route> = {}, opts: FakeOptions = {}) {
   const t = fakeTransport(routes, opts);
@@ -118,71 +106,6 @@ describe("login seam", () => {
     expect(screen.queryByText("the app")).toBeNull();
   });
 
-  it("shows no user part without a login", () => {
-    withClient(<UserPart auth={null} />);
-    expect(screen.queryByTestId("sb-user")).toBeNull();
-  });
-});
-
-describe("user part", () => {
-  const control = (holder: unknown): Route => () => ({ status: 200, body: { holder } });
-
-  it("shows the user, a free control token and Take for a local operator", async () => {
-    const auth = fakeAuth();
-    const { calls } = withClient(<UserPart auth={auth} />, {
-      "/api/auth/control": control(null),
-      "/api/auth/control/acquire": () => ({ status: 200, body: { holder: { user_id: ME.user_id, name: "Kyu" } } }),
-    });
-    expect(screen.getByTestId("sb-me").textContent).toBe("Kyu · operator");
-    await waitFor(() => expect(screen.getByTestId("sb-control").textContent).toBe(" · control: free"));
-    fireEvent.click(screen.getByRole("button", { name: "Take" }));
-    await waitFor(() => expect(auth.calls).toContain("refresh"));
-    expect(calls.some((c) => c.path === "/api/auth/control/acquire" && c.init?.method === "POST")).toBe(true);
-  });
-
-  it("names someone else's hold and offers no Take", async () => {
-    withClient(<UserPart auth={fakeAuth()} />, { "/api/auth/control": control({ user_id: "b@x", name: "Bea" }) });
-    await waitFor(() => expect(screen.getByTestId("sb-control").textContent).toBe(" · control: Bea"));
-    expect(screen.queryByRole("button", { name: "Take" })).toBeNull();
-  });
-
-  it("offers Release to the holder", async () => {
-    withClient(<UserPart auth={fakeAuth({ has_control: true })} />, {
-      "/api/auth/control": control({ user_id: ME.user_id, name: "Kyu" }),
-    });
-    await waitFor(() => expect(screen.getByTestId("sb-control").textContent).toBe(" · control: you"));
-    expect(screen.getByRole("button", { name: "Release" })).toBeTruthy();
-  });
-
-  it("gives a viewer or a remote user no Take", async () => {
-    withClient(<UserPart auth={fakeAuth({ role: "viewer" })} />, { "/api/auth/control": control(null) });
-    await waitFor(() => expect(screen.getByTestId("sb-control").textContent).toBe(" · control: free"));
-    expect(screen.queryByRole("button", { name: "Take" })).toBeNull();
-  });
-
-  it("shows Log out without opening the menu", async () => {
-    const auth = fakeAuth();
-    withClient(<UserPart auth={auth} />, { "/api/auth/control": control(null) });
-    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
-    await waitFor(() => expect(auth.calls).toContain("logout"));
-  });
-
-  it("has Lock in the menu, and Manage accounts for an admin only", async () => {
-    const auth = fakeAuth({ role: "admin" });
-    withClient(<UserPart auth={auth} />, { "/api/auth/control": control(null) });
-    fireEvent.click(screen.getByRole("button", { name: "User menu" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Lock" }));
-    await waitFor(() => expect(auth.calls).toContain("lock"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Manage accounts" }));
-    expect(window.location.hash).toBe("#/accounts");
-    expect(screen.queryByRole("menu")).toBeNull();
-  });
-
-  it("gives a non-admin no Manage accounts", () => {
-    withClient(<UserPart auth={fakeAuth()} />, { "/api/auth/control": control(null) });
-    fireEvent.click(screen.getByRole("button", { name: "User menu" }));
-    expect(screen.queryByRole("menuitem", { name: "Manage accounts" })).toBeNull();
-  });
 });
 
 describe("activity", () => {

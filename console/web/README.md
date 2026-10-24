@@ -29,18 +29,20 @@ server address. The built app served by the server itself needs no `--dev-origin
 
 | Path | Owner | What |
 |---|---|---|
-| `src/app/` | shell (T-010) | layout, navigation, area registry, screen context, status bar, shared components |
+| `src/app/` | shell (T-010, reshaped by console card 008) | the left sidebar and the footer, the area registry, screen context, shared components. The status bar and the prompt box are in the tree and in no screen |
 | `src/app/assistant/` | prompt box (T-014) | the prompt box on every screen. Not part of the shell |
 | `src/api/` | generated | OpenAPI types from `npm run gen:api`. Never edited by hand |
 | `src/features/<area>/` | that area's work package | the area's screen |
-| `src/features/live/` | shell (T-010) | the live view |
+| `src/features/live/` | shell (T-010) | the live view. In no navigation until the cameras card places it under Instruments |
 | `package.json`, `package-lock.json` | T-010 only | ask the manager for a package; one session changes these at a time |
 
 ## Adding an area screen
 
-The areas and their order are fixed in `src/app/areas.ts`: `console`, `hardware`, `sample`,
-`map`, `objective`, `live`, `simulation`, `sessions`. Login (`src/app/login/`, T-105) is not an
-area and has no navigation entry. To give an area its screen:
+The areas and their order are fixed in `src/app/areas.ts`: `questions`, `instruments`,
+`experiments`, `simulation`, `library`, `results`, and `admin` (shown to an administrator only).
+Login (`src/app/login/`, T-105) is not an area and has no navigation entry. `instruments`,
+`experiments` and `library` are plain "not built yet" screens until their own cards. To give an
+area its screen:
 
 1. Create `src/features/<area>/index.tsx`.
 2. Default-export a React component that takes no props.
@@ -48,8 +50,8 @@ area and has no navigation entry. To give an area its screen:
    when the area is opened. Do not edit `src/app/`.
 
 Until the file exists the shell shows "<Area>: not implemented yet". A folder whose name is not
-one of the areas is ignored with a console warning; adding a new area is a shell change (ask the
-manager). If the screen throws while loading, the shell shows the error inside the area and the
+one of the areas is ignored with a console warning, except the ones `OUT_OF_NAVIGATION` names
+(`live`), which are ignored quietly; adding a new area is a shell change (ask the manager). If the screen throws while loading, the shell shows the error inside the area and the
 rest of the app keeps working.
 
 Inside `src/features/<area>/` the area owns its files and folders. Keep imports from other
@@ -63,10 +65,12 @@ it, query included, to the area untouched. The area decides what `<rest>` means:
 | Hash | Area | `rest` |
 |---|---|---|
 | `#/simulation/runs/run-20260924-001` | simulation | `runs/run-20260924-001` |
-| `#/map?sample_id=20260930_1849_1` | map | `?sample_id=20260930_1849_1` |
-| `#/console` | console | (empty) |
+| `#/experiments?sample_id=20260930_1849_1` | experiments | `?sample_id=20260930_1849_1` |
+| `#/questions` | questions | (empty) |
 
-An unknown area falls back to the console. Inside a screen:
+An unknown area, and an old one (`#/console`, `#/hardware`, `#/map`, `#/accounts`, ...), falls back to
+Questions. An administrator-only area is not opened for anyone else, whatever the address says.
+Inside a screen:
 
 ```tsx
 import { areaHref, useAreaPath } from "../../app/route";
@@ -87,7 +91,7 @@ screen adds short ids and names only, never frames or file contents (PLAN D7):
 import { useMemo } from "react";
 import { useScreenContext } from "../../app/screenContext";
 
-export default function MapScreen() {
+export default function ExperimentsScreen() {
   const details = useMemo(() => ({ sample_id, region }), [sample_id, region]);
   useScreenContext(details);   // cleared when the screen unmounts or the area changes
   ...

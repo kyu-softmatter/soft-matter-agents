@@ -9,7 +9,6 @@ import {
 } from "react";
 
 import { type AreaEntry, type AreaId, registry as defaultRegistry } from "./areas";
-import { AssistantSlot } from "./AssistantSlot";
 import { useArea } from "./route";
 import { ScreenContextProvider } from "./screenContext";
 
@@ -71,62 +70,60 @@ export function Nav({
   current: AreaId;
   onSelect: (id: AreaId) => void;
 }) {
+  const link = (e: AreaEntry) => (
+    <a
+      key={e.id}
+      href={`#/${e.id}`}
+      aria-current={e.id === current ? "page" : undefined}
+      className={e.load ? undefined : "not-ready"}
+      onClick={(ev) => {
+        ev.preventDefault();
+        onSelect(e.id);
+      }}
+    >
+      {e.label}
+    </a>
+  );
+  const everyone = entries.filter((e) => !e.adminOnly);
+  const admin = entries.filter((e) => e.adminOnly);
   return (
-    <nav className="nav" aria-label="Areas">
-      {entries.map((e) => (
-        <a
-          key={e.id}
-          href={`#/${e.id}`}
-          aria-current={e.id === current ? "page" : undefined}
-          className={e.load ? undefined : "not-ready"}
-          onClick={(ev) => {
-            ev.preventDefault();
-            onSelect(e.id);
-          }}
-        >
-          {e.label}
-        </a>
-      ))}
+    <nav className="sidebar" aria-label="Areas">
+      <span className="brand">Soft-matter agents</span>
+      {everyone.map(link)}
+      {admin.length > 0 && <hr className="sidebar-rule" />}
+      {admin.map(link)}
     </nav>
   );
 }
 
 /**
- * The app frame: header with the area navigation, the area screen, the prompt
- * box slot and the status bar slot. The shell has no hardware logic; screens
- * talk to the server API only.
+ * The app frame: a left sidebar of areas (Admin below a rule, for an administrator only), the
+ * area screen, and a footer on every screen. The shell has no hardware logic; screens talk to the
+ * server API only. What the footer holds is the app's to say (`footer`), so the shell stays a frame.
  */
 export function Shell({
   registry = defaultRegistry,
-  statusBar,
-  notice,
+  footer,
   admin = false,
 }: {
   registry?: AreaEntry[];
-  /** the logged-in user is an admin: admin-only areas show in the navigation */
+  /** the logged-in user is an administrator: admin-only areas show in the sidebar and open */
   admin?: boolean;
-  statusBar?: ReactNode;
-  /** shown above the area screen, e.g. the last-shutdown light readback */
-  notice?: ReactNode;
+  footer?: ReactNode;
 }) {
   const [area, go] = useArea();
-  const entry = registry.find((e) => e.id === area) ?? registry[0];
+  // An administrator-only area is not opened for anyone else, whatever the address says.
+  const visible = registry.filter((e) => admin || !e.adminOnly);
+  const entry = visible.find((e) => e.id === area) ?? visible[0];
   return (
     <ScreenContextProvider area={entry.id}>
       <div className="shell">
-        <header className="header">
-          <span className="title">Takatori Lab Console</span>
-          <Nav entries={registry.filter((e) => admin || !e.adminOnly)} current={entry.id} onSelect={go} />
-        </header>
+        <Nav entries={visible} current={entry.id} onSelect={go} />
         <main className="main">
-          {notice}
           <AreaView key={entry.id} entry={entry} />
         </main>
-        <aside className="side">
-          <AssistantSlot />
-        </aside>
-        <footer className="status" aria-label="Status">
-          {statusBar ?? <span className="muted">status: not connected</span>}
+        <footer className="shell-footer" data-testid="shell-footer" aria-label="Footer">
+          {footer ?? <span className="muted">not connected</span>}
         </footer>
       </div>
     </ScreenContextProvider>

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { Client, ClientProvider } from "../../app/client";
 import { fakeTransport, type Route } from "../../test/fakes";
-import { type LiveState, PATHS, type RunStream } from "../console/api";
+import { type LiveState, PATHS, type RunStream } from "../questions/api";
 import { LIVE_OFF, LIVE_OFF_NOTE, LIVE_ON, listSummary, SmaLiveSwitch } from "./smaLive";
 
 const SHA = "a".repeat(64);

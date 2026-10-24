@@ -1,8 +1,6 @@
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
-import { type ShellAuth, useControl } from "./auth";
 import { useReadOnly } from "./client";
-import { areaHref, navigate } from "./route";
 import { type AssistantStatus, type EngineStatus, type LastShutdown, useAssistantStatus, useEngineStatus } from "./status";
 import { EncoderZ } from "./Verdict";
 
@@ -33,67 +31,6 @@ function AssistantPart({ a }: { a: AssistantStatus }) {
     <span className="sb-item" data-testid="sb-assistant" title="What the assistant may send to Claude (PLAN D7)">
       assistant: {a.provider ?? "?"} · data {a.data_stage ?? "?"}
       {a.connected === false && <span className="muted"> · not connected</span>}
-    </span>
-  );
-}
-
-/**
- * The user part: name and role, the control holder with Take / Release for the
- * local operator, Log out always in view, and the user menu (Lock, Manage
- * accounts for an admin). Nothing until T-105's login is in the build.
- */
-export function UserPart({ auth }: { auth: ShellAuth | null }) {
-  const me = auth?.me ?? null;
-  const control = useControl(me);
-  const [menu, setMenu] = useState(false);
-  if (!auth || !me) return null;
-  const canHold = me.local && (me.role === "operator" || me.role === "admin");
-  const holder = control.holder;
-  return (
-    <span className="sb-item sb-user" data-testid="sb-user">
-      <span data-testid="sb-me">
-        {me.name} · {me.role}
-      </span>
-      <span data-testid="sb-control">
-        {" · control: "}
-        {holder ? (me.has_control || holder.user_id === me.user_id ? "you" : holder.name) : "free"}
-      </span>
-      {canHold && !me.has_control && !holder && (
-        <button type="button" onClick={() => void control.take().then(auth.refresh)}>
-          Take
-        </button>
-      )}
-      {canHold && me.has_control && (
-        <button type="button" onClick={() => void control.release().then(auth.refresh)}>
-          Release
-        </button>
-      )}
-      {control.error && <span className="warn"> {control.error}</span>}
-      <button type="button" onClick={() => void auth.logout()}>
-        Log out
-      </button>
-      <button type="button" aria-haspopup="menu" aria-expanded={menu} aria-label="User menu" onClick={() => setMenu((m) => !m)}>
-        ▾
-      </button>
-      {menu && (
-        <span role="menu" className="user-menu">
-          <button role="menuitem" type="button" onClick={() => void auth.lock()}>
-            Lock
-          </button>
-          {me.role === "admin" && (
-            <button
-              role="menuitem"
-              type="button"
-              onClick={() => {
-                setMenu(false);
-                navigate(areaHref("accounts"));
-              }}
-            >
-              Manage accounts
-            </button>
-          )}
-        </span>
-      )}
     </span>
   );
 }

@@ -15,9 +15,9 @@ import {
   type LiveState,
   PATHS,
   type Permission,
-} from "../console/api";
-import { FollowedRun } from "../console/runs";
-import { errorText } from "../console/ui";
+} from "../questions/api";
+import { FollowedRun } from "../questions/runs";
+import { errorText } from "../questions/ui";
 
 export const LIVE_ON = "Live on";
 export const LIVE_OFF = "Live off";

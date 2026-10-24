@@ -6,24 +6,25 @@ import type { ComponentType } from "react";
  * shell only finds it (see web/README.md, "Adding an area screen").
  */
 export const AREAS = [
-  { id: "console", label: "Console" },
-  { id: "hardware", label: "Hardware" },
-  { id: "sample", label: "Sample" },
-  { id: "map", label: "Map" },
-  { id: "objective", label: "Objective" },
-  { id: "live", label: "Live" },
+  { id: "questions", label: "Questions" },
+  { id: "instruments", label: "Instruments" },
+  { id: "experiments", label: "Experiments" },
   { id: "simulation", label: "Simulation" },
+  { id: "library", label: "Library" },
   { id: "results", label: "Results" },
-  { id: "patterns", label: "Patterns" },
-  { id: "tweezers", label: "Tweezers" },
-  { id: "sessions", label: "Sessions" },
-  // shown in the navigation to an admin only; the server refuses everyone else anyway
-  { id: "accounts", label: "Accounts", adminOnly: true },
+  // shown in the navigation to an administrator only; the server refuses everyone else anyway
+  { id: "admin", label: "Admin", adminOnly: true },
 ] as const;
+
+/**
+ * Screen folders that are in the tree and in no navigation. `features/live/` waits for the cameras
+ * card, which places it under Instruments (console card 008); until then nothing reaches it.
+ */
+export const OUT_OF_NAVIGATION = ["live"] as const;
 
 export type AreaId = (typeof AREAS)[number]["id"];
 
-export const DEFAULT_AREA: AreaId = "console";
+export const DEFAULT_AREA: AreaId = "questions";
 
 export type AreaModule = { default: ComponentType };
 export type AreaLoader = () => Promise<AreaModule>;
@@ -61,6 +62,7 @@ export function buildRegistry(
     const id = areaIdOfPath(path);
     if (id === null) continue;
     if (!isAreaId(id)) {
+      if ((OUT_OF_NAVIGATION as readonly string[]).includes(id)) continue;
       warn(`features/${id}/index.tsx is not a registered area; ignored`);
       continue;
     }

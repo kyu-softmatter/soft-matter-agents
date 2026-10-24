@@ -36,7 +36,7 @@ function setup({
   const client = new Client(fake.transport, hostname);
   render(
     <ClientProvider client={client}>
-      <ScreenContextProvider area="map">
+      <ScreenContextProvider area="experiments">
         {screenEl}
         <AssistantApiContext.Provider value={api}>
           <PromptBox />
@@ -64,7 +64,7 @@ describe("PromptBox", () => {
     const fakeApi = api as ReturnType<typeof createFakeAssistantApi>;
     expect(fakeApi.asked[0]).toEqual({
       question: "What is in this region?",
-      context: { area: "map", sample_id: "20260930_1849_1", region: { x_um: 10, y_um: 20 } },
+      context: { area: "experiments", sample_id: "20260930_1849_1", region: { x_um: 10, y_um: 20 } },
       conversation_id: null,
     });
   });
