@@ -530,11 +530,7 @@ export interface paths {
          */
         get: operations["list_questions_api_console_questions_get"];
         put?: never;
-        /**
-         * Submit Question
-         * @description Leave a question for a seat. The mock store only; operator on the microscope PC (D16).
-         */
-        post: operations["submit_question_api_console_questions_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -755,6 +751,69 @@ export interface paths {
         };
         /** List Inbox */
         get: operations["list_inbox_api_console_inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/console/question-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Write Question Request
+         * @description Write one question request into the console's own folder. Nothing reaches an agent.
+         */
+        post: operations["write_question_request_api_console_question_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/console/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggestions
+         * @description What autocomplete may offer: the words of earlier requests and the registered quantity names,
+         *     each labelled. Strings already on disk; never a model's completion, never the store's contents.
+         */
+        get: operations["suggestions_api_console_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/console/question-cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Question Cards
+         * @description The cards below the question field: requests written in the console, newest first (each
+         *     "request written · not picked up yet": the inbox is not open), and the agents' questions on
+         *     disk with their five steps. Reads only.
+         */
+        get: operations["question_cards_api_console_question_cards_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1004,6 +1063,12 @@ export interface components {
             /** Conversation Id */
             conversation_id?: string | null;
         };
+        /** AskedByOut */
+        AskedByOut: {
+            /** Login */
+            login: string;
+            console_role: components["schemas"]["ConsoleRoleOut"];
+        };
         /**
          * AssistantStatus
          * @description Exactly these three names (T-010 status bar). `connected` is true only for the
@@ -1054,6 +1119,17 @@ export interface components {
              * @description the card file's content, untouched
              */
             data: unknown;
+        };
+        /** ConsoleRoleOut */
+        ConsoleRoleOut: {
+            /** May Ask */
+            may_ask: boolean;
+            /** May Draft */
+            may_draft: boolean;
+            /** Agents */
+            agents: ("microscope" | "simulation" | "librarian")[];
+            /** May Ask Model Run */
+            may_ask_model_run: boolean;
         };
         /**
          * ConversationOut
@@ -1575,6 +1651,13 @@ export interface components {
             /** Engine Op Id */
             engine_op_id?: string | null;
         };
+        /** QuestionCardsOut */
+        QuestionCardsOut: {
+            /** Requests */
+            requests: components["schemas"]["RequestCardOut"][];
+            /** Questions */
+            questions: components["schemas"]["QuestionProgressOut"][];
+        };
         /** QuestionDetailOut */
         QuestionDetailOut: {
             summary: components["schemas"]["QuestionSummaryOut"];
@@ -1606,19 +1689,64 @@ export interface components {
              */
             approvals?: components["schemas"]["ApprovalOut"][];
         };
-        /** QuestionIn */
-        QuestionIn: {
-            /** Text */
-            text: string;
+        /** QuestionProgressOut */
+        QuestionProgressOut: {
+            /** Qid */
+            qid: string;
             /**
-             * Target
+             * Agent
              * @enum {string}
              */
-            target: "microscope" | "simulation";
-            /** Purpose */
-            purpose?: string | null;
-            /** Observable */
-            observable?: string | null;
+            agent: "microscope" | "simulation";
+            /** Title */
+            title: string;
+            /** Status */
+            status: string | null;
+            /** Created At */
+            created_at: string | null;
+            steps: components["schemas"]["StepsOut"];
+        };
+        /**
+         * QuestionRequestIn
+         * @description The words as typed and the Ask choice. Nothing else: the login, role and time are the
+         *     server's, and no other key is accepted.
+         */
+        QuestionRequestIn: {
+            /** Words */
+            words: string;
+            /**
+             * Addressed To
+             * @enum {string}
+             */
+            addressed_to: "agents_decide" | "microscope" | "simulation" | "librarian";
+        };
+        /**
+         * QuestionRequestOut
+         * @description `contracts/schemas/question_request.schema.json`, exactly: what was written.
+         */
+        QuestionRequestOut: {
+            /**
+             * Artifact
+             * @constant
+             */
+            artifact: "question_request";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "0.1";
+            /** Id */
+            id: string;
+            /** Words */
+            words: string;
+            asked_by: components["schemas"]["AskedByOut"];
+            /** Asked At */
+            asked_at: string;
+            /**
+             * Addressed To
+             * @enum {string}
+             */
+            addressed_to: "agents_decide" | "microscope" | "simulation" | "librarian";
         };
         /** QuestionSummaryOut */
         QuestionSummaryOut: {
@@ -1670,6 +1798,29 @@ export interface components {
              * @default
              */
             note: string;
+        };
+        /**
+         * RequestCardOut
+         * @description A request written in the console, as a card. The inbox is not open, so none is picked up.
+         */
+        RequestCardOut: {
+            /** Id */
+            id: string;
+            /** Words */
+            words: string;
+            /** Login */
+            login: string;
+            /** Asked At */
+            asked_at: string;
+            /**
+             * Addressed To
+             * @enum {string}
+             */
+            addressed_to: "agents_decide" | "microscope" | "simulation" | "librarian";
+            /** State */
+            state: string;
+            /** Runs Wait For Signature */
+            runs_wait_for_signature: boolean;
         };
         /** RoleIn */
         RoleIn: {
@@ -1973,6 +2124,42 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * StepsOut
+         * @description The five steps of an agents' question, each from the file that says it is done.
+         */
+        StepsOut: {
+            /**
+             * Asked
+             * @description a goal card exists
+             */
+            asked: boolean;
+            /**
+             * Designed
+             * @description a plan card exists
+             */
+            designed: boolean;
+            /**
+             * Signed
+             * @description an approval for that plan's hash exists
+             */
+            signed: boolean;
+            /**
+             * Run
+             * @description a run log names the question
+             */
+            run: boolean;
+            /**
+             * Result
+             * @description a result card exists
+             */
+            result: boolean;
+            /**
+             * Run Known
+             * @description false when the runs folder could not be read: run is then not known
+             */
+            run_known: boolean;
+        };
         /** StopAllOut */
         StopAllOut: {
             /**
@@ -2030,6 +2217,16 @@ export interface components {
             store: string;
             /** Writable */
             writable: boolean;
+        };
+        /** SuggestionOut */
+        SuggestionOut: {
+            /** Text */
+            text: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "earlier question" | "registered name";
         };
         /** TrapOut */
         TrapOut: {
@@ -3438,51 +3635,6 @@ export interface operations {
             };
         };
     };
-    submit_question_api_console_questions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QuestionIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QuestionSummaryOut"];
-                };
-            };
-            /** @description remote view or role (D16) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description the store is read-only */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description empty text, unknown purpose */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     get_question_api_console_questions__qid__get: {
         parameters: {
             query?: {
@@ -3976,6 +4128,119 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InboxThreadOut"][];
+                };
+            };
+            /** @description no such question, version or run */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the store could not read the files */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    write_question_request_api_console_question_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionRequestOut"];
+                };
+            };
+            /** @description remote view or role (D16) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the id was taken five times */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description blank or too long words, an addressee that is not one of four */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    suggestions_api_console_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"][];
+                };
+            };
+            /** @description no such question, version or run */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the store could not read the files */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    question_cards_api_console_question_cards_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionCardsOut"];
                 };
             };
             /** @description no such question, version or run */

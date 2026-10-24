@@ -1,5 +1,6 @@
 """Console area (PLAN.md F1, ui-spec 7.1, docs/screens/console.md): the agents' questions, runs
-and inbox, read from the AgentStore, and the one write, a question to the mock store.
+and inbox, read from the AgentStore, and the one write, a question request into the console's own
+folder (card 010; `agents/requests.py`). Nothing a request holds reaches an agent.
 
 A run that soft-matter-agents' orchestrator is executing is followed through what it offers a
 console (its plan.md 11-25; `agents/sma_run.py`): `GET .../stream` reads its events.jsonl,
@@ -11,11 +12,10 @@ the microscope PC always, from a logged-in remote viewer when remote abort is on
 it is sent only when a person presses it. Closing the page stops nothing (OD-30). Nothing is
 written in the soft-matter-agents tree.
 
-The router reads only. Whether someone may submit is not decided here: the access middleware
-already refuses a remote or logged-out write, and the route asks `server_action_why` for the
-T-018 permission `SUBMIT_QUESTION` (operator on the microscope PC, D16). The console's own rule
-is the read-only store (409). Records pass through as the store has them: card contents,
-grades and `numbers` are not touched (PLAN.md §6 item 3).
+Whether someone may ask is not decided here: the access middleware already refuses a remote or
+logged-out write, and the route asks `server_action_why` for the T-018 permission `SUBMIT_QUESTION`
+(operator on the microscope PC, D16) and puts a refusal in words. Records pass through as the store
+has them: card contents, grades and `numbers` are not touched (PLAN.md §6 item 3).
 """
 
 from __future__ import annotations
@@ -28,25 +28,24 @@ from typing import Any, Literal
 from fastapi import APIRouter, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ...agents import (
     AGENTS,
     MockStore,
     NotFoundError,
-    ReadOnlyStoreError,
     RunsFolderNotFoundError,
     StoreError,
     sma_live,
     sma_run,
 )
+from ...agents import requests as question_requests
 from ...auth import AuditKind
 from . import (
     AgentStoreDep,
     Auth,
     Login,
     Refusal,
-    Sessions,
     command_why,
     server_action_why,
 )
@@ -249,11 +248,82 @@ class LiveOnOut(BaseModel):
     reason: str | None
 
 
-class QuestionIn(BaseModel):
+Addressee = Literal["agents_decide", "microscope", "simulation", "librarian"]
+
+
+class QuestionRequestIn(BaseModel):
+    """The words as typed and the Ask choice. Nothing else: the login, role and time are the
+    server's, and no other key is accepted."""
+
+    model_config = ConfigDict(extra="forbid")
+    words: str = Field(max_length=question_requests.MAX_WORDS)
+    addressed_to: Addressee
+
+
+class ConsoleRoleOut(BaseModel):
+    may_ask: bool
+    may_draft: bool
+    agents: list[Literal["microscope", "simulation", "librarian"]]
+    may_ask_model_run: bool
+
+
+class AskedByOut(BaseModel):
+    login: str
+    console_role: ConsoleRoleOut
+
+
+class QuestionRequestOut(BaseModel):
+    """`contracts/schemas/question_request.schema.json`, exactly: what was written."""
+
+    artifact: Literal["question_request"]
+    schema_version: Literal["0.1"]
+    id: str
+    words: str
+    asked_by: AskedByOut
+    asked_at: str
+    addressed_to: Addressee
+
+
+class RequestCardOut(BaseModel):
+    """A request written in the console, as a card. The inbox is not open, so none is picked up."""
+
+    id: str
+    words: str
+    login: str
+    asked_at: str
+    addressed_to: Addressee
+    state: str
+    runs_wait_for_signature: bool
+
+
+class StepsOut(BaseModel):
+    """The five steps of an agents' question, each from the file that says it is done."""
+
+    asked: bool = Field(description="a goal card exists")
+    designed: bool = Field(description="a plan card exists")
+    signed: bool = Field(description="an approval for that plan's hash exists")
+    run: bool = Field(description="a run log names the question")
+    result: bool = Field(description="a result card exists")
+    run_known: bool = Field(description="false when the runs folder could not be read: run is then not known")
+
+
+class QuestionProgressOut(BaseModel):
+    qid: str
+    agent: AgentName
+    title: str
+    status: str | None
+    created_at: str | None
+    steps: StepsOut
+
+
+class QuestionCardsOut(BaseModel):
+    requests: list[RequestCardOut]
+    questions: list[QuestionProgressOut]
+
+
+class SuggestionOut(BaseModel):
     text: str
-    target: AgentName
-    purpose: str | None = None
-    observable: str | None = None
+    kind: Literal["earlier question", "registered name"]
 
 
 # -- refusals -----------------------------------------------------------------------------
@@ -268,6 +338,21 @@ def _invalid(e: ValueError) -> Refusal:
 
 
 READ_ONLY = Refusal(409, "read_only_store", READ_ONLY_MESSAGE)
+REMOTE_ASK = ("Questions can be asked from the microscope computer only. This browser is "
+              "viewing from another computer.")
+VIEWER_ASK = "This login can only look: it cannot ask a question. An administrator can give it more."
+
+
+def _ask_refusal(me: Any) -> Refusal | None:
+    """`server_action_why` for asking, with the refusal said in words for the person."""
+    why = server_action_why(me, "submit_question")
+    if why is None:
+        return None
+    if why.code == "remote_view":
+        return Refusal(403, "remote_view", REMOTE_ASK)
+    if why.code == "role":
+        return Refusal(403, "role", VIEWER_ASK)
+    return why
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     404: {"description": "no such question, version or run"},
@@ -676,32 +761,85 @@ def list_inbox(store: AgentStoreDep) -> list[InboxThreadOut]:
 
 
 @router.post(
-    "/questions",
+    "/question-requests",
     status_code=201,
-    response_model=QuestionSummaryOut,
+    response_model=QuestionRequestOut,
     responses={403: {"description": "remote view or role (D16)"},
-               409: {"description": "the store is read-only"},
-               422: {"description": "empty text, unknown purpose"}},
+               409: {"description": "the id was taken five times"},
+               422: {"description": "blank or too long words, an addressee that is not one of four"}},
 )
-def submit_question(body: QuestionIn, store: AgentStoreDep, me: Login, seat: Auth,
-                    sessions: Sessions) -> QuestionSummaryOut:
-    """Leave a question for a seat. The mock store only; operator on the microscope PC (D16)."""
-    if why := server_action_why(me, "submit_question"):
+def write_question_request(body: QuestionRequestIn, store: AgentStoreDep, me: Login,
+                           seat: Auth) -> QuestionRequestOut:
+    """Write one question request into the console's own folder. Nothing reaches an agent."""
+    if why := _ask_refusal(me):
         raise why.http()
-    if not store.writable:
+    if not getattr(store, "writable", False) or not hasattr(store, "request_write_folder"):
         raise READ_ONLY.http()
+    folder = store.request_write_folder()
+    doc: dict[str, Any] | None = None
+    for _ in range(5):  # an id that is taken is never rewritten: ask for another
+        try:
+            doc = question_requests.build_request(
+                words=body.words, login=me.info.user_id, role=str(me.info.role),
+                addressed_to=body.addressed_to, now=question_requests.utc_now(),
+                suffix=question_requests.random_suffix())
+        except question_requests.RequestError as e:
+            raise _invalid(e).http() from e
+        try:
+            question_requests.write_request(folder, doc)
+            break
+        except question_requests.RequestIdTaken:
+            doc = None
+        except StoreError as e:
+            raise _store_error(e).http() from e
+    if doc is None:
+        raise Refusal(409, "request_exists", "A request with that id exists already. Try again.").http()
+    if seat.audit is not None:  # the id and the addressee, never the words
+        seat.audit.append(AuditKind.QUESTION_SUBMITTED, me.user_id, origin="console",
+                          target=doc["addressed_to"], request=doc["id"])
+    return QuestionRequestOut.model_validate(doc)
+
+
+@router.get("/suggestions", response_model=list[SuggestionOut], responses=ERRORS)
+def suggestions(store: AgentStoreDep) -> list[SuggestionOut]:
+    """What autocomplete may offer: the words of earlier requests and the registered quantity names,
+    each labelled. Strings already on disk; never a model's completion, never the store's contents."""
+    folders = store.request_folders() if hasattr(store, "request_folders") else []
+    names = store.registered_names() if hasattr(store, "registered_names") else []
+    found = question_requests.suggestions(question_requests.read_requests(folders), names)
+    return [SuggestionOut(**s) for s in found]
+
+
+def _steps(store: Any, agent: str, s: Any, qids_with_runs: set[str], run_known: bool) -> StepsOut:
+    d = store.get_question(s.qid, s.latest_version)
+    signed = d.plan is not None and d.plan_hash is not None and any(
+        a.plan_hash == d.plan_hash and str(a.status or "").upper() == "APPROVED" for a in d.approvals)
+    return StepsOut(asked=d.goal is not None, designed=d.plan is not None, signed=signed,
+                    run=s.qid in qids_with_runs, result=bool(d.results), run_known=run_known)
+
+
+@router.get("/question-cards", response_model=QuestionCardsOut, responses=ERRORS)
+def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
+    """The cards below the question field: requests written in the console, newest first (each
+    "request written · not picked up yet": the inbox is not open), and the agents' questions on
+    disk with their five steps. Reads only."""
+    folders = store.request_folders() if hasattr(store, "request_folders") else []
+    requests = [RequestCardOut(
+        id=r["id"], words=r["words"], login=r["asked_by"]["login"], asked_at=r["asked_at"],
+        addressed_to=r["addressed_to"], state=question_requests.NOT_PICKED_UP,
+        runs_wait_for_signature=True) for r in question_requests.read_requests(folders)]
+    cards: list[QuestionProgressOut] = []
     try:
-        q = store.submit_question(body.text, body.target, purpose=body.purpose,
-                                  observable=body.observable)
-    except ReadOnlyStoreError as e:
-        raise READ_ONLY.http() from e
-    except ValueError as e:
-        raise _invalid(e).http() from e
+        for agent in AGENTS:
+            try:
+                with_runs = {r.qid for r in store.list_runs(agent) if r.qid}
+                known = True
+            except RunsFolderNotFoundError:  # the runs cannot be seen: not "no run"
+                with_runs, known = set(), False
+            for s in store.list_questions(agent):
+                cards.append(QuestionProgressOut(
+                    qid=s.qid, agent=s.agent, title=s.title, status=s.status, created_at=s.created_at,
+                    steps=_steps(store, agent, s, with_runs, known)))
     except StoreError as e:
         raise _store_error(e).http() from e
-    if seat.audit is not None:
-        cur = sessions.current
-        seat.audit.append(AuditKind.QUESTION_SUBMITTED, me.user_id,
-                          session_id=cur.info.session_id if cur is not None else None,
-                          origin="console", target=body.target, qid=q.qid)
-    return QuestionSummaryOut.model_validate(q.to_dict())
+    return QuestionCardsOut(requests=requests, questions=_newest_first(cards))

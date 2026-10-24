@@ -5,17 +5,20 @@
 
 import type { Route } from "../../test/fakes";
 import {
+  type AskIn,
   type Card,
   type InboxThread,
   PATHS,
   type Permissions,
+  type QuestionCards,
   type QuestionDetail,
+  type QuestionRequest,
   type QuestionSummary,
   READ_ONLY_STORE_REASON,
   type RunDetail,
   type StoreInfo,
   SUBMIT_OP,
-  type SubmitIn,
+  type Suggestion,
 } from "./api";
 
 export interface FakeData {
@@ -26,17 +29,25 @@ export interface FakeData {
   questions: QuestionDetail[];
   runs: RunDetail[];
   inbox: InboxThread[];
+  /** the cards below the question field: requests written, and the agents' questions with steps */
+  cards: QuestionCards;
+  /** what autocomplete may offer: strings already on disk */
+  suggestions: Suggestion[];
   /** the POST refuses with this whatever the permission answer said (it may be stale) */
   postRefusal?: { status: number; body: unknown };
 }
 
+/** The login the fake server says wrote a request. */
+export const FAKE_LOGIN = "otto";
+
 /**
  * Routes for `fakeTransport`, answering like the console router would (docs/screens/console.md).
- * The POST follows the server's order: permission 403, then read-only store 409.
+ * The POST follows the server's order: permission 403, then a store that cannot take it, 409.
  */
-export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; submitted: SubmitIn[] } {
+export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; submitted: AskIn[] } {
   const questions = [...data.questions];
-  const submitted: SubmitIn[] = [];
+  const submitted: AskIn[] = [];
+  const requests = [...data.cards.requests];
   const ok = (body: unknown) => ({ status: 200, body });
   const latest = (qid: string) => {
     const vs = questions.filter((d) => d.summary.qid === qid);
@@ -50,6 +61,8 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
       const qids = [...new Set(questions.map((d) => d.summary.qid))].sort().reverse();
       return ok(qids.map((q) => latest(q).summary));
     },
+    [PATHS.questionCards]: () => ok({ requests, questions: data.cards.questions }),
+    [PATHS.suggestions]: () => ok([...requests.map((r) => ({ text: r.words, kind: "earlier question" })), ...data.suggestions.filter((s) => s.kind === "registered name")]),
     [PATHS.runs()]: () => ok(data.runs.map((r) => r.summary)),
     [PATHS.inbox]: () => ok(data.inbox),
   };
@@ -59,9 +72,7 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
   }
   for (const r of data.runs) routes[PATHS.run(r.summary.agent, r.summary.run_id)] = () => ok(r);
 
-  const list = routes[PATHS.questions()];
-  routes[PATHS.questions()] = (init) => {
-    if (init?.method !== "POST") return list(init);
+  routes[PATHS.questionRequests] = (init) => {
     if (data.postRefusal !== undefined) return data.postRefusal;
     const perm = data.permissions?.[SUBMIT_OP];
     if (perm === undefined || !perm.allowed) {
@@ -70,28 +81,29 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
     if (!data.store.writable) {
       return { status: 409, body: { detail: { code: "read_only_store", message: READ_ONLY_STORE_REASON } } };
     }
-    const body = JSON.parse(String(init.body)) as SubmitIn;
+    const body = JSON.parse(String(init?.body)) as AskIn;
     submitted.push(body);
-    const qid = `${body.target === "microscope" ? "mic" : "sim"}-20261001-${900 + submitted.length}`;
-    const card: Card = {
-      name: "goal.json", kind: "goal", version: 1, status: "DRAFT", created_at: "2026-10-01T00:00:00Z",
-      data: { card: "goal", qid, status: "DRAFT", question: body.text, origin: "dino-autofocus mock" },
+    const written: QuestionRequest = {
+      artifact: "question_request", schema_version: "0.1", id: `qr-20261001-12000${submitted.length}-abcd`,
+      words: body.words,
+      asked_by: {
+        login: FAKE_LOGIN,
+        console_role: { may_ask: true, may_draft: true, agents: ["microscope", "simulation", "librarian"], may_ask_model_run: true },
+      },
+      asked_at: "2026-10-01T12:00:00Z", addressed_to: body.addressed_to,
     };
-    const s: QuestionSummary = {
-      qid, agent: body.target, title: body.text, status: "DRAFT", created_at: card.created_at,
-      updated_at: card.created_at, latest_version: 1, versions: [1], source: "mock-submitted",
-    };
-    questions.push({
-      summary: s, version: 1, goal: card, axes: [], plan: null, synthesis: null, refusals: [], results: [],
-      others: [], documents: [], files: [],
+    requests.unshift({
+      id: written.id, words: written.words, login: FAKE_LOGIN, asked_at: written.asked_at,
+      addressed_to: written.addressed_to, state: "request written · not picked up yet", runs_wait_for_signature: true,
     });
-    return { status: 201, body: s };
+    return { status: 201, body: written };
   };
   return { routes, submitted };
 }
 
 export const MOCK_STORE: StoreInfo = { store: "mock", writable: true };
 export const READ_ONLY_STORE: StoreInfo = { store: "soft-matter-agents", writable: false };
+/** a store that cannot take a request (the server answers 409 read_only_store) */
 
 function summary(over: Partial<QuestionSummary> & Pick<QuestionSummary, "qid" | "agent">): QuestionSummary {
   return {
@@ -187,4 +199,31 @@ export const FAKE_DATA: FakeData = {
       messages: [{ name: "r2_ask_experiment.md", round: 2, kind: "ask_experiment", card: null, text: "Round two." }],
     },
   ],
+  cards: {
+    requests: [
+      {
+        id: "qr-20261023-091500-w3k8", words: "How far apart are the wells at 4x?", login: "member-2",
+        asked_at: "2026-10-23T09:15:00Z", addressed_to: "microscope", state: "request written · not picked up yet",
+        runs_wait_for_signature: true,
+      },
+    ],
+    questions: [
+      {
+        qid: "sim-20260923-001", agent: "simulation", title: "structural relaxation time", status: "DRAFT",
+        created_at: "2026-09-23T10:00:00Z",
+        steps: { asked: true, designed: true, signed: false, run: true, result: true, run_known: true },
+      },
+      {
+        qid: "mic-20260925-001", agent: "microscope", title: "tracer diffusivity", status: "VALIDATED",
+        created_at: "2026-09-25T09:00:00Z",
+        steps: { asked: true, designed: false, signed: false, run: false, result: false, run_known: false },
+      },
+    ],
+  },
+  suggestions: [
+    { text: "How far apart are the wells at 4x?", kind: "earlier question" },
+    { text: "pixel_size", kind: "registered name" },
+    { text: "refractive_index", kind: "registered name" },
+  ],
+
 };

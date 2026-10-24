@@ -22,7 +22,8 @@ from sma_console.agents import (
     SmaFiles,
     open_store,
 )
-from sma_console.agents.mock_store import MOCK_DATA, ORIGIN, PACKAGE_DIR
+from sma_console.agents import requests as question_requests
+from sma_console.agents.mock_store import MOCK_DATA, PACKAGE_DIR
 from sma_console.agents.sma_files import long_path
 
 SIM_Q = "sim-20260923-001"
@@ -30,13 +31,16 @@ DATA = long_path(MOCK_DATA)  # the tests' own reads survive a deep checkout too
 PACKAGE = long_path(PACKAGE_DIR)
 
 
-def fixed_clock():
-    return datetime(2026, 10, 1, 12, 0, 0, tzinfo=UTC)
+def a_request(words="Is the bead stuck?", rid="qr-20261001-120000-abcd"):
+    return {"artifact": "question_request", "schema_version": "0.1", "id": rid, "words": words,
+            "asked_by": {"login": "otto", "console_role": {
+                "may_ask": True, "may_draft": True, "agents": ["microscope"], "may_ask_model_run": False}},
+            "asked_at": "2026-10-01T12:00:00Z", "addressed_to": "agents_decide"}
 
 
 @pytest.fixture
 def store(tmp_path):
-    return MockStore(tmp_path / "written", clock=fixed_clock)
+    return MockStore(tmp_path / "written")
 
 
 def tree(root: Path) -> dict[str, str]:
@@ -158,7 +162,6 @@ def test_inbox(store):
 
 
 def test_everything_survives_a_json_round_trip(store):
-    store.submit_question("Is the bead stuck?", "microscope")
     objs = []
     for agent in ("microscope", "simulation"):
         for q in store.list_questions(agent):
@@ -174,51 +177,26 @@ def test_everything_survives_a_json_round_trip(store):
         assert roundtrip(o) == o
 
 
-def test_submit_writes_a_marked_draft_and_lists_it_first(store):
-    text = "How fast do 2 um beads diffuse 10 um above the coverslip?\nSecond line."
-    s = store.submit_question(text, "microscope", purpose="characterize",
-                              observable="tracer_diffusivity")
-    assert s.qid == "mic-20261001-901"
-    assert (s.status, s.source, s.versions) == ("DRAFT", "mock-submitted", [1])
-    assert s.title == text.splitlines()[0]
-    assert store.list_questions("microscope")[0] == s
-    goal = store.get_question(s.qid).goal
-    assert goal.data["origin"] == ORIGIN
-    assert goal.data["question"] == text and goal.data["constraint_notes"] == [text]
-    assert goal.data["purpose"] == "characterize"
-    assert goal.data["observable"] == {"name": "tracer_diffusivity"}
-    assert goal.data["qid"] == s.qid and goal.data["author"] == "human"
-    assert re.fullmatch(r"^(mic|sim)-[0-9]{8}-[0-9]{3}$", s.qid)
-    s2 = store.submit_question("another", "microscope")
-    assert s2.qid == "mic-20261001-902"
-    assert "purpose" not in store.get_question(s2.qid).goal.data  # not guessed
-    s3 = store.submit_question("for the other seat", "simulation")
-    assert s3.qid == "sim-20261001-901" and s3.agent == "simulation"
+def test_a_request_is_written_in_the_practice_copy_and_read_back(store, tmp_path):
+    path = question_requests.write_request(store.request_write_folder(), a_request())
+    assert path == long_path(tmp_path / "written" / "console" / "requests" / "questions" / "qr-20261001-120000-abcd.json")
+    ids = [r["id"] for r in question_requests.read_requests(store.request_folders())]
+    assert "qr-20261001-120000-abcd" in ids and len(ids) == 3  # the two practice requests of the sample, and this one
+    assert store.list_questions("microscope") == MockStore(tmp_path / "other").list_questions("microscope")  # no goal card made
 
 
-def test_submit_refuses_bad_input(store):
-    with pytest.raises(ValueError):
-        store.submit_question("   ", "microscope")
-    with pytest.raises(ValueError):
-        store.submit_question("q", "bridge")
-    with pytest.raises(ValueError):
-        store.submit_question("q", "microscope", purpose="find out")
-
-
-def test_submit_writes_only_in_the_write_folder(tmp_path):
+def test_a_request_is_written_only_in_the_write_folder(tmp_path):
     before_sample = tree(MOCK_DATA)
     before_package = tree(PACKAGE)
-    write_dir = tmp_path / "written"
-    store = MockStore(write_dir, clock=fixed_clock)
-    store.submit_question("q one", "microscope")
-    store.submit_question("q two", "simulation")
+    store = MockStore(tmp_path / "written")
+    question_requests.write_request(store.request_write_folder(), a_request("one", "qr-20261001-120000-aaaa"))
+    question_requests.write_request(store.request_write_folder(), a_request("two", "qr-20261001-120000-bbbb"))
     assert tree(MOCK_DATA) == before_sample
     assert {k for k in tree(PACKAGE) if "__pycache__" not in k} == \
         {k for k in before_package if "__pycache__" not in k}
-    assert sorted(p.relative_to(tmp_path).as_posix() for p in tmp_path.rglob("*")
-                  if p.is_file()) == [
-        "written/microscope_agent/questions/mic-20261001-901/goal.json",
-        "written/simulation_agent/questions/sim-20261001-901/goal.json",
+    assert sorted(p.relative_to(tmp_path).as_posix() for p in tmp_path.rglob("*") if p.is_file()) == [
+        "written/console/requests/questions/qr-20261001-120000-aaaa.json",
+        "written/console/requests/questions/qr-20261001-120000-bbbb.json",
     ]
 
 
@@ -230,38 +208,38 @@ def test_write_folder_may_not_be_inside_the_package():
 
 
 def test_default_write_folder_is_a_temporary_one():
-    with MockStore(clock=fixed_clock) as store:
+    with MockStore() as store:
         assert store.list_questions("microscope")  # reading makes no folder
         assert store._write_dir is None
-        store.submit_question("q", "microscope")
+        question_requests.write_request(store.request_write_folder(), a_request())
         made = store.write_dir
         assert PACKAGE_DIR not in made.parents
-        assert (made / "microscope_agent/questions/mic-20261001-901/goal.json").is_file()
+        assert (made / "console/requests/questions/qr-20261001-120000-abcd.json").is_file()
     assert not made.exists()  # leaving the block deleted the folder the store made
 
 
 def test_close_deletes_only_a_folder_the_store_made(tmp_path):
-    store = MockStore(clock=fixed_clock)
-    store.submit_question("q", "microscope")
+    store = MockStore()
+    question_requests.write_request(store.request_write_folder(), a_request())
     made = store.write_dir
     store.close()
     store.close()  # twice is fine
     assert not made.exists()
     assert store.list_questions("microscope")[0].source == "mock"  # the sample is still read
-    again = store.submit_question("q", "microscope")  # a new temporary folder
-    assert again.qid == "mic-20261001-901" and store.write_dir != made
+    question_requests.write_request(store.request_write_folder(), a_request())  # a new temporary folder
+    assert store.write_dir != made
     store.close()
 
     given = tmp_path / "given"
-    with MockStore(given, clock=fixed_clock) as mine:
-        mine.submit_question("q", "simulation")
+    with MockStore(given) as mine:
+        question_requests.write_request(mine.request_write_folder(), a_request())
     mine.close()
-    assert (given / "simulation_agent/questions/sim-20261001-901/goal.json").is_file()
+    assert (given / "console/requests/questions/qr-20261001-120000-abcd.json").is_file()
 
 
 def test_writable_flag():
-    assert MockStore.writable is True and SmaFiles.writable is False
-    assert MockStore().writable and not SmaFiles(MOCK_DATA).writable
+    assert MockStore.writable is True and SmaFiles.writable is True  # question requests only
+    assert MockStore().writable and SmaFiles(MOCK_DATA).writable
 
 
 def test_sample_is_small_and_says_where_it_came_from():

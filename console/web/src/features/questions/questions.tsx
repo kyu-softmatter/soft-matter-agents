@@ -1,78 +1,10 @@
-/** Question list, question detail with card tabs, versions and numbers (ui-spec 7.1). */
+/** Question detail with card tabs, versions and numbers (ui-spec 7.1). The list is the cards (card 010). */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useClient } from "../../app/client";
-import { AGENTS, type Card, PATHS, type QuestionDetail, type QuestionSummary } from "./api";
+import { type Card, PATHS, type QuestionDetail } from "./api";
 import { asArray, Fields, isRecord, Json, Loaded, shortTime, show, useLoad, versionLabel } from "./ui";
-
-// --- list -----------------------------------------------------------------------------------
-
-export function QuestionList({ questions, onOpen }: { questions: QuestionSummary[]; onOpen: (qid: string) => void }) {
-  const [agent, setAgent] = useState("");
-  const [status, setStatus] = useState("");
-  const [from, setFrom] = useState("");
-  const statuses = useMemo(
-    () => [...new Set(questions.map((q) => q.status ?? "").filter((s) => s !== ""))].sort(),
-    [questions],
-  );
-  const shown = questions.filter(
-    (q) =>
-      (agent === "" || q.agent === agent) &&
-      (status === "" || q.status === status) &&
-      (from === "" || (q.created_at ?? "") >= from),
-  );
-  return (
-    <section aria-label="Questions">
-      <div className="console-filters">
-        <label>
-          Agent{" "}
-          <select value={agent} onChange={(e) => setAgent(e.target.value)}>
-            <option value="">All</option>
-            {AGENTS.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
-        <label>
-          Status{" "}
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">All</option>
-            {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </label>
-        <label>
-          Created from <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <span className="console-muted">{shown.length} of {questions.length}</span>
-      </div>
-      <table className="console-table">
-        <thead>
-          <tr>
-            <th>qid</th><th>Agent</th><th>Status</th><th>Title</th><th>Purpose</th><th>Intent</th>
-            <th>Observable</th><th>Created</th><th>Updated</th><th>Latest</th><th>Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          {shown.map((q) => (
-            <tr key={q.qid}>
-              <td><button className="console-link" onClick={() => onOpen(q.qid)}>{q.qid}</button></td>
-              <td>{q.agent}</td>
-              <td>{q.status ?? "—"}</td>
-              <td>{q.title}</td>
-              <td>{q.purpose ?? "—"}</td>
-              <td>{q.intent ?? "—"}</td>
-              <td>{q.observable_name ?? "—"}</td>
-              <td>{shortTime(q.created_at)}</td>
-              <td>{shortTime(q.updated_at)}</td>
-              <td>{versionLabel(q.latest_version)}</td>
-              <td>{q.source}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {shown.length === 0 && <p className="console-muted">No questions match.</p>}
-    </section>
-  );
-}
 
 // --- detail ---------------------------------------------------------------------------------
 

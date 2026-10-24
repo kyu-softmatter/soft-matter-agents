@@ -34,6 +34,8 @@ from pathlib import Path
 from typing import Any
 
 from .layout import run_side_folder
+from .requests import FOLDER_PARTS as REQUEST_PARTS
+from .requests import quantity_names
 from .sma_run import (
     MAX_EVENTS_BYTES,
     NotFollowedError,
@@ -54,7 +56,6 @@ from .store import (
     NotFoundError,
     QuestionDetail,
     QuestionSummary,
-    ReadOnlyStoreError,
     RunsFolderNotFoundError,
     RunDetail,
     RunSummary,
@@ -167,7 +168,7 @@ class SmaFiles:
     dropped.
     """
 
-    writable = False
+    writable = True  # question requests only, into console/requests/questions/ (card 010)
 
     def __init__(self, root: str | os.PathLike[str] | None = None, *,
                  source: str = "soft-matter-agents", max_read_bytes: int = MAX_READ_BYTES):
@@ -536,14 +537,19 @@ class SmaFiles:
             text = None
         return InboxMessage(p.name, rnd, kind, card=None, text=text)
 
-    # -- writing ---------------------------------------------------------------------------
+    # -- question requests (console card 010) -----------------------------------------------------
+    #
+    # The one place the console writes: its own folder, inside console/. No agent's folder, no inbox,
+    # no bridge. Everything else here is read only.
 
-    def submit_question(self, text: str, target: Agent, *, purpose: str | None = None,
-                        observable: str | None = None) -> QuestionSummary:
-        raise ReadOnlyStoreError(
-            f"{self.source} is read only (PLAN.md 6.9); questions go to the mock store "
-            "until the integration decides the real path"
-        )
+    def request_write_folder(self) -> Path:
+        return self._root.joinpath(*REQUEST_PARTS)
+
+    def request_folders(self) -> list[Path]:
+        return [self.request_write_folder()]
+
+    def registered_names(self) -> list[str]:
+        return quantity_names(self._root)
 
 
 def _scan(d: Path) -> dict[int, list[Path]]:

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from sma_console.agents import NotFoundError, ReadOnlyStoreError, SmaFiles
+from sma_console.agents import NotFoundError, SmaFiles
 from sma_console.agents.mock_store import MOCK_DATA
 from sma_console.agents.sma_files import (
     ROOT_ENV,
@@ -83,9 +83,8 @@ def test_reads_a_read_only_copy_and_changes_nothing(readonly_copy):
     s = SmaFiles(readonly_copy)
     assert s.available()
     assert read_everything(s) > 5
-    with pytest.raises(ReadOnlyStoreError):
-        s.submit_question("q", "microscope")
-    assert snapshot(readonly_copy) == before
+    assert s.request_write_folder().parts[-3:] == ("console", "requests", "questions")  # the one place it writes
+    assert snapshot(readonly_copy) == before  # and reading writes nothing
 
 
 def test_same_reading_as_the_mock_store(readonly_copy):
@@ -160,8 +159,7 @@ def test_real_checkout_is_read_and_left_unchanged():
         for r in runs[:5]:
             assert REAL.get_run(agent, r.run_id).files
     assert REAL.list_inbox()
-    with pytest.raises(ReadOnlyStoreError):
-        REAL.submit_question("q", "simulation")
+    assert REAL.request_write_folder().parts[-3:] == ("console", "requests", "questions")  # not written here
 
     assert {str(w): snapshot(w) for w in watched} == before
 
@@ -191,11 +189,16 @@ def test_a_copy_past_max_path_reads_the_same(tmp_path):
 def test_mock_store_writes_and_reads_past_max_path(tmp_path):
     from sma_console.agents import MockStore
 
+    from sma_console.agents import requests as question_requests
+
     deep = tmp_path / ("w" * 100) / ("x" * 100)
     store = MockStore(deep)
-    s = store.submit_question("deep question", "microscope")
-    assert store.list_questions("microscope")[0] == s
-    assert store.get_question(s.qid).goal.data["question"] == "deep question"
+    doc = {"artifact": "question_request", "schema_version": "0.1", "id": "qr-20261001-120000-abcd",
+           "words": "deep question", "asked_by": {"login": "otto", "console_role": {
+               "may_ask": True, "may_draft": True, "agents": [], "may_ask_model_run": False}},
+           "asked_at": "2026-10-01T12:00:00Z", "addressed_to": "agents_decide"}
+    question_requests.write_request(store.request_write_folder(), doc)
+    assert "deep question" in [r["words"] for r in question_requests.read_requests(store.request_folders())]
 
 
 def test_entries_that_cannot_be_stated_are_reported(tmp_path, monkeypatch):

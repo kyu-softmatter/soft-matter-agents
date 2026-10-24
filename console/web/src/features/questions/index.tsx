@@ -1,15 +1,15 @@
 /**
- * Questions area (formerly the Console area): the agents' questions, runs and inbox, and asking a question
- * (PLAN F1, ui-spec 7.1, docs/screens/console.md). Reads only; the one write is a question to
- * the mock store, which the server allows or refuses.
+ * Questions area (formerly the Console area; PLAN F1, ui-spec 7.1, docs/screens/console.md). The
+ * first screen is the question window -- one field, an Ask choice, Send -- with a card per question
+ * below it (console card 010). The one write is a question request into the console's own folder,
+ * which the server allows or refuses; nothing reaches an agent. The rest reads only.
  *
  * `rest` forms (after `#/questions/`):
- *   "" | "questions"          question list
+ *   "" | "questions"          the question window and its cards
  *   "questions/<qid>"         one question, latest version
  *   "runs"                    run list
  *   "runs/<agent>/<run_id>"   one run
  *   "inbox"                   inbox threads
- *   "ask"                     ask a question
  *
  * Data is read when the area opens and on "Refresh"; nothing polls.
  */
@@ -25,7 +25,7 @@ import {
   fetchPermissions,
   type InboxThread,
   PATHS,
-  type QuestionSummary,
+  type QuestionCards,
   READ_ONLY_REMOTE,
   type RunSummary,
   type StoreInfo,
@@ -33,12 +33,13 @@ import {
 } from "./api";
 import "./console.css";
 import { Inbox } from "./inbox";
-import { QuestionDetailView, QuestionList, type QuestionSelection } from "./questions";
+import { AskBox, submitReason } from "./ask";
+import { QuestionCardsView } from "./cards";
+import { QuestionDetailView, type QuestionSelection } from "./questions";
 import { RunDetailView, RunList } from "./runs";
-import { SubmitForm, submitReason } from "./submit";
 import { Loaded, useLoad } from "./ui";
 
-type Tab = "questions" | "runs" | "inbox" | "ask";
+type Tab = "questions" | "runs" | "inbox";
 
 interface View {
   tab: Tab;
@@ -58,8 +59,6 @@ export function parseRest(rest: string): View {
     }
     case "inbox":
       return { tab: "inbox" };
-    case "ask":
-      return { tab: "ask" };
     default:
       return { tab: "questions" };
   }
@@ -69,7 +68,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "questions", label: "Questions" },
   { id: "runs", label: "Runs" },
   { id: "inbox", label: "Inbox" },
-  { id: "ask", label: "Ask" },
 ];
 
 export default function ConsoleScreen() {
@@ -96,7 +94,7 @@ export default function ConsoleScreen() {
 
   const storeInfo = useLoad(() => client.get<StoreInfo>(PATHS.store), [client, refreshKey]);
   const perms = useLoad(() => fetchPermissions(client, [SUBMIT_OP]), [client, refreshKey]);
-  const questions = useLoad(() => client.get<QuestionSummary[]>(PATHS.questions()), [client, refreshKey]);
+  const cards = useLoad(() => client.get<QuestionCards>(PATHS.questionCards), [client, refreshKey]);
   const runs = useLoad(() => client.get<RunSummary[]>(PATHS.runs()), [client, refreshKey]);
   const inbox = useLoad(() => client.get<InboxThread[]>(PATHS.inbox), [client, refreshKey]);
 
@@ -138,9 +136,16 @@ export default function ConsoleScreen() {
       </div>
 
       {view.tab === "questions" && view.qid === undefined && (
-        <Loaded state={questions}>
-          {(qs) => <QuestionList questions={qs} onOpen={(q) => setRest(`questions/${encodeURIComponent(q)}`)} />}
-        </Loaded>
+        <>
+          <AskBox
+            reason={submitReason(readOnly, perms, storeInfo)}
+            refreshKey={refreshKey}
+            onWritten={() => setRefreshKey((k) => k + 1)}
+          />
+          <Loaded state={cards}>
+            {(c) => <QuestionCardsView cards={c} onOpen={(q) => setRest(`questions/${encodeURIComponent(q)}`)} />}
+          </Loaded>
+        </>
       )}
       {view.tab === "questions" && view.qid !== undefined && (
         <>
@@ -162,9 +167,6 @@ export default function ConsoleScreen() {
         </>
       )}
       {view.tab === "inbox" && <Loaded state={inbox}>{(ts) => <Inbox threads={ts} />}</Loaded>}
-      {view.tab === "ask" && (
-        <SubmitForm reason={submitReason(readOnly, perms, storeInfo)} onSubmitted={() => setRefreshKey((k) => k + 1)} />
-      )}
     </div>
   );
 }

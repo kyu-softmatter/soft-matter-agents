@@ -37,3 +37,13 @@ and their numbers are made up (a model curve plus noise):
 |---|---|
 | `simulation_agent/questions/sim-20260923-001/v3_result_psi6_relaxation.json` | psi6 relaxation and an MSD, each with a `<y>_theory` column |
 | `microscope_agent/questions/mic-20260925-001/result_well_occupancy.json` | well occupancy over time and a dwell survival, each with a `<y>_theory` column |
+
+Two question requests were written here in dino-autofocus, not copied (console card 010), so the
+Questions screen has earlier questions to show and to offer. They follow
+`contracts/schemas/question_request.schema.json`; the second is the repository's own example
+(`contracts/examples/question_request.json`). They are practice data: nothing reads them.
+
+| Path | What |
+|---|---|
+| `console/requests/questions/qr-20261023-091500-w3k8.json` | a question addressed to the microscope, by a practice login |
+| `console/requests/questions/qr-20261024-174512-k3p9.json` | the contract's example request |

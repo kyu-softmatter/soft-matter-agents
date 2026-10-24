@@ -50,7 +50,7 @@ def test_mock_store_answers_no_approvals(engine, make_client):
 def test_store_flag(tmp_path, root, monkeypatch):
     assert agent_store_of(parse_args([])) is None  # create_app's own MockStore
     s = agent_store_of(parse_args(["--store", "sma", "--sma-root", str(root)]))
-    assert isinstance(s, SmaFiles) and s.root == root and not s.writable
+    assert isinstance(s, SmaFiles) and s.root == root and s.writable  # requests only (card 010)
     monkeypatch.setenv("DINO_AF_SMA_ROOT", str(root))
     assert agent_store_of(parse_args(["--store", "sma"])).root == root
     with pytest.raises(SystemExit, match="no microscope_agent"):

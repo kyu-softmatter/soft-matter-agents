@@ -87,8 +87,8 @@ def test_only_the_remote_refusal_carries_remote_view(engine, make_client):
         "foreign_origin": local.post(WRITE, json={}, headers={"origin": "https://example.com"}),
     }
     viewer = make_client(engine, login=VERA)
-    marks["role"] = viewer.post("/api/console/questions",
-                                json={"text": "q", "target": "microscope"})
+    marks["role"] = viewer.post("/api/console/question-requests",
+                                json={"words": "q", "addressed_to": "microscope"})
     for code, r in marks.items():
         assert (r.status_code, detail(r)["code"], r.headers["X-DinoAF-Refusal"]) == \
             (403, code, code)

@@ -381,8 +381,8 @@ def _opt(c: Card | None) -> dict[str, Any] | None:
 class AgentStore(Protocol):
     """What the console reads. Lists are newest first.
 
-    `writable` says whether `submit_question` can succeed, so a caller need not test the
-    class: MockStore True, SmaFiles False.
+    `writable` says whether a question request can be written (console card 010): both stores
+    write one, into the console's own folder and nowhere else; MockStore into its practice copy.
     """
 
     writable: bool
@@ -403,13 +403,14 @@ class AgentStore(Protocol):
         """The seat's `approvals/` cards, newest first. Read only, like everything here."""
         ...
 
-    def submit_question(
-        self,
-        text: str,
-        target: Agent,
-        *,
-        purpose: str | None = None,
-        observable: str | None = None,
-    ) -> QuestionSummary:
-        """Leave a question for a seat. A read-only store raises ReadOnlyStoreError."""
+    def request_write_folder(self) -> Path:
+        """Where a question request is written: the console's own `console/requests/questions/`."""
+        ...
+
+    def request_folders(self) -> list[Path]:
+        """Every folder question requests are read from, the one written to first."""
+        ...
+
+    def registered_names(self) -> list[str]:
+        """The quantity names in `contracts/quantities.json`, for autocomplete; none if unreadable."""
         ...

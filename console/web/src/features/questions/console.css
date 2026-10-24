@@ -177,3 +177,78 @@
   display: block;
   background: #000;
 }
+
+/* -- the question window and its cards (console card 010) -- */
+.ask-suggestions {
+  margin: 0 0 8px;
+  padding: 4px;
+  max-width: 640px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.ask-suggestions li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ask-suggestions li:hover {
+  background: var(--bg);
+}
+
+.ask-cards {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  max-width: 760px;
+}
+
+.ask-card {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.ask-card p {
+  margin: 4px 0;
+}
+
+.ask-words {
+  white-space: pre-wrap;
+}
+
+.ask-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ask-steps li {
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ask-steps li[data-done="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.ask-steps li[data-done="unknown"] {
+  border-style: dashed;
+}

@@ -21,10 +21,6 @@ SIM_RUN = "run-20260924-001-smoke-g2k2"
 MIC_RUN = "run-20260924-003"
 
 
-def ask(c, **body):
-    return c.post("/api/console/questions", json={"text": "q", "target": "microscope", **body})
-
-
 def refusal(r) -> tuple[int, str]:
     assert r.headers[REFUSAL_HEADER] == r.json()["detail"]["code"]
     return r.status_code, r.json()["detail"]["code"]
@@ -32,8 +28,8 @@ def refusal(r) -> tuple[int, str]:
 
 @pytest.fixture
 def fresh_store(tmp_path):
-    """A MockStore of its own, so submits do not leak into the shared one."""
-    return MockStore(tmp_path / "submitted")
+    """A MockStore of its own, so writes do not leak into the shared one."""
+    return MockStore(tmp_path / "practice")
 
 
 @pytest.fixture
@@ -48,7 +44,7 @@ def test_store_info(engine, make_client, read_only_store):
     mock = make_client(engine).get("/api/console/store").json()
     assert mock == {"store": "mock", "writable": True}
     c = make_client(engine, agent_store=read_only_store)
-    assert c.get("/api/console/store").json() == {"store": "soft-matter-agents", "writable": False}
+    assert c.get("/api/console/store").json() == {"store": "soft-matter-agents", "writable": True}
 
 
 def test_questions_both_agents_or_one(engine, make_client):
@@ -126,77 +122,21 @@ def test_openapi_has_the_console_models(engine, make_client):
         <= set(schema["components"]["schemas"])
 
 
-# -- submit (D16) ----------------------------------------------------------------------------
+# -- the old submit is gone (card 010: a question is a request, see test_question_requests.py) --------
 
 
-def test_local_operator_submits_to_the_mock_store(engine, make_client, fresh_store, seat):
+def test_the_old_question_post_is_gone(engine, make_client, fresh_store):
     c = make_client(engine, agent_store=fresh_store)
-    r = c.post("/api/console/questions", json={"text": "How fast do tracers move?",
-                                               "target": "simulation", "purpose": "characterize"})
-    assert r.status_code == 201, r.text
-    q = r.json()
-    assert q["agent"] == "simulation" and q["source"] == "mock-submitted" and q["status"] == "DRAFT"
-    listed = c.get("/api/console/questions", params={"agent": "simulation"}).json()
-    assert q["qid"] in [x["qid"] for x in listed]
-    goal = c.get(f"/api/console/questions/{q['qid']}").json()["goal"]["data"]
-    assert goal["question"] == "How fast do tracers move?"
-    assert goal["origin"] == "dino-autofocus mock"
-    # written only under the store's own folder
-    assert all(fresh_store.write_dir in p.parents for p in fresh_store.write_dir.rglob("*.json"))
-    audit = [json.loads(x) for x in seat.audit.path.read_text(encoding="utf-8").splitlines()]
-    entry = [e for e in audit if e["kind"] == "question_submitted"][-1]
-    assert (entry["user_id"], entry["qid"], entry["target"]) == (OPERATOR, q["qid"], "simulation")
-    assert entry["session_id"] is None
-
-
-def test_submit_records_the_open_experiment_session(engine, make_client, fresh_store, seat):
-    c = make_client(engine, agent_store=fresh_store)
-    c.app.state.sessions.set(SimpleNamespace(info=SimpleNamespace(session_id="ses-1")))
-    assert ask(c).status_code == 201
-    audit = [json.loads(x) for x in seat.audit.path.read_text(encoding="utf-8").splitlines()]
-    assert [e for e in audit if e["kind"] == "question_submitted"][-1]["session_id"] == "ses-1"
-
-
-def test_admin_may_submit(engine, make_client, fresh_store):
-    c = make_client(engine, agent_store=fresh_store, login=ADMIN)
-    assert ask(c).status_code == 201
-
-
-def test_viewer_may_not_submit(engine, make_client, fresh_store):
-    """D16: the server refuses; hiding the button is not the check."""
-    c = make_client(engine, agent_store=fresh_store, login=VIEWER)
     r = c.post("/api/console/questions", json={"text": "q", "target": "microscope"})
-    assert refusal(r) == (403, "role")
-    assert not fresh_store.write_dir.exists() or not any(fresh_store.write_dir.rglob("goal.json"))
+    assert r.status_code in (404, 405)
+    assert not fresh_store.write_dir.exists() or not any(fresh_store.write_dir.rglob("*.json"))
 
 
-def test_remote_operator_may_not_submit(engine, make_client, fresh_store):
-    c = make_client(engine, agent_store=fresh_store, remote=True, remote_view=True, login=OPERATOR)
-    r = c.post("/api/console/questions", json={"text": "q", "target": "microscope"})
-    assert refusal(r) == (403, "remote_view")
-    assert not fresh_store.write_dir.exists() or not any(fresh_store.write_dir.rglob("goal.json"))
-
-
-def test_logged_out_may_not_submit(engine, make_client, fresh_store):
-    c = make_client(engine, agent_store=fresh_store, login=None)
-    r = c.post("/api/console/questions", json={"text": "q", "target": "microscope"})
-    assert refusal(r) == (401, "login_required")
-
-
-def test_read_only_store_refuses_submit(engine, make_client, read_only_store):
-    c = make_client(engine, agent_store=read_only_store)
-    r = c.post("/api/console/questions", json={"text": "q", "target": "microscope"})
+def test_a_store_that_cannot_write_requests_refuses_in_words(engine, make_client):
+    c = make_client(engine, agent_store=SimpleNamespace(writable=False))
+    r = c.post("/api/console/question-requests", json={"words": "q", "addressed_to": "agents_decide"})
     assert refusal(r) == (409, "read_only_store")
     assert r.json()["detail"]["message"] == READ_ONLY_MESSAGE
-
-
-def test_bad_submit_bodies_are_422(engine, make_client, fresh_store):
-    c = make_client(engine, agent_store=fresh_store)
-    r = c.post("/api/console/questions", json={"text": "   ", "target": "microscope"})
-    assert refusal(r) == (422, "invalid")
-    r = ask(c, purpose="guess")
-    assert refusal(r) == (422, "invalid")
-    assert ask(c, target="nobody").status_code == 422
 
 
 def test_permissions_answer_submit_question(engine, make_client):

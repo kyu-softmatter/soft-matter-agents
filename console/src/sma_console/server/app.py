@@ -36,6 +36,9 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from pydantic.json_schema import models_json_schema
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -196,6 +199,16 @@ def create_app(
         await asyncio.to_thread(stopper.quietly, "server stopping")
 
     app = FastAPI(title="dino-autofocus", version=_package_version(), lifespan=lifespan)
+
+    @app.exception_handler(RequestValidationError)
+    async def _invalid_request(request: Request, exc: RequestValidationError) -> JSONResponse:
+        """FastAPI's own 422, except that an input which cannot be written back (a lone surrogate
+        in a JSON string) is left out of the echo instead of making the answer a server error."""
+        try:
+            return await request_validation_exception_handler(request, exc)
+        except UnicodeEncodeError:
+            errors = [{k: v for k, v in e.items() if k not in ("input", "ctx")} for e in exc.errors()]
+            return JSONResponse({"detail": errors}, status_code=422)
     app.state.engine = engine
     app.state.agent_store = agent_store if agent_store is not None else MockStore()
     # soft-matter-agents' live-view host (its card 062): an address file, or a fixed address

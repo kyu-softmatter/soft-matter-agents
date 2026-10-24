@@ -1,0 +1,20 @@
+{
+  "artifact": "question_request",
+  "schema_version": "0.1",
+  "id": "qr-20261023-091500-w3k8",
+  "words": "How far apart are the wells at 4x, and is it the same across the dish?",
+  "asked_by": {
+    "login": "member-2",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": true,
+      "agents": [
+        "microscope",
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-23T09:15:00Z",
+  "addressed_to": "microscope"
+}

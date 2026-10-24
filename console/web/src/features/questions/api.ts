@@ -26,7 +26,15 @@ export type StoreInfo = Schemas["StoreOut"];
 /** One answer of `GET /api/permissions?ops=...` (T-009b): may I, and if not, why and the code. */
 export type Permission = Schemas["PermissionOut"];
 export type Permissions = Record<string, Permission>;
-export type SubmitIn = Schemas["QuestionIn"];
+/** What the question window sends: the words as typed and the Ask choice. Nothing else. */
+export type AskIn = Schemas["QuestionRequestIn"];
+/** What was written: `contracts/schemas/question_request.schema.json`, exactly. */
+export type QuestionRequest = Schemas["QuestionRequestOut"];
+export type RequestCard = Schemas["RequestCardOut"];
+export type QuestionProgress = Schemas["QuestionProgressOut"];
+export type QuestionCards = Schemas["QuestionCardsOut"];
+export type Suggestion = Schemas["SuggestionOut"];
+export type Addressee = AskIn["addressed_to"];
 /** A run soft-matter-agents executes, as its events.jsonl says so far (plan.md 11-25). */
 export type RunStream = Schemas["RunStreamOut"];
 export type StopResult = Schemas["StopOut"];
@@ -38,9 +46,6 @@ export type LiveOnResult = Schemas["LiveOnOut"];
 export type Agent = QuestionSummary["agent"];
 export const AGENTS: readonly Agent[] = ["microscope", "simulation"];
 
-/** goal.schema.json "purpose" (mock_store.PURPOSES) */
-export const PURPOSES = ["screen", "characterize", "compare", "verify", "troubleshoot", "feed"] as const;
-
 /** The permission op for asking a question (D16: operator on the microscope PC). */
 export const SUBMIT_OP = "submit_question";
 
@@ -50,6 +55,18 @@ export const PERMISSION_CHECK_UNAVAILABLE = "Permission check unavailable";
 export const READ_ONLY_REMOTE = "Read-only: remote view";
 /** ui-spec 7.1: the console's own rule, a store that is not the mock store. */
 export const READ_ONLY_STORE_REASON = "Submitting to soft-matter-agents is not connected yet (read-only)";
+
+/** The Ask choice, in the order the person sees it. */
+export const ADDRESSEES: readonly { value: Addressee; label: string }[] = [
+  { value: "agents_decide", label: "Let the agents decide" },
+  { value: "microscope", label: "The microscope" },
+  { value: "simulation", label: "The simulation" },
+  { value: "librarian", label: "The librarian" },
+];
+
+/** What the screen says once a request is written: it reaches no agent yet (Q-20261022-office-04). */
+export const NOT_PICKED_UP_SENTENCE =
+  "Nothing reaches an agent until the agents' new inbox opens. Every run from this question waits for the person's signature.";
 
 const seg = encodeURIComponent;
 
@@ -63,6 +80,9 @@ function query(params: Record<string, string | number | undefined>): string {
 export const PATHS = {
   store: "/api/console/store",
   questions: (agent?: Agent) => `/api/console/questions${query({ agent })}`,
+  questionRequests: "/api/console/question-requests",
+  questionCards: "/api/console/question-cards",
+  suggestions: "/api/console/suggestions",
   question: (qid: string, version?: number) => `/api/console/questions/${seg(qid)}${query({ version })}`,
   runs: (agent?: Agent) => `/api/console/runs${query({ agent })}`,
   run: (agent: Agent, runId: string) => `/api/console/runs/${seg(agent)}/${seg(runId)}`,
@@ -86,15 +106,15 @@ export async function fetchPermissions(client: Client, ops: readonly string[]): 
 }
 
 /**
- * `POST /api/console/questions`: the console's one write (mock store only, D16 on the server).
- * Goes through the shell's `client.post`: only a 403 with code `remote_view` switches the app to
- * read-only; any other refusal (a viewer, a read-only store) is thrown with its reason and shown
- * next to the form.
+ * `POST /api/console/question-requests`: the console's one write, a question request into its own
+ * folder. Goes through the shell's `client.post`: only a 403 with code `remote_view` switches the app
+ * to read-only; any other refusal (a viewer, a store that cannot take it) is thrown with its reason
+ * and shown next to the form.
  */
-export async function submitQuestion(client: Client, body: SubmitIn): Promise<QuestionSummary> {
-  const q = await client.post<QuestionSummary>("/api/console/questions", body);
-  if (q === null) throw new CommandRefused(502, "the server returned no question");
-  return q;
+export async function askQuestion(client: Client, body: AskIn): Promise<QuestionRequest> {
+  const r = await client.post<QuestionRequest>(PATHS.questionRequests, body);
+  if (r === null) throw new CommandRefused(502, "the server returned no request");
+  return r;
 }
 
 /**
