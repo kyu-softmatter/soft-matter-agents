@@ -55,16 +55,16 @@
   "proof": {
     "fixtures": [
       {
-        "path": "history row: a core change landed on a valid console word passes check 89",
+        "path": "contracts/history_fixtures.py, fixture_89_a_change_to_the_core_landed_on_a_console_word (flipped from refused to accepted)",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "HEAD's validator before 8868c806: refused (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "8868c806: passes (manager-microscope-20261003-1's run)"
       },
       {
-        "path": "history row: a console word on a tighten touching nothing in the core is refused",
+        "path": "contracts/history_fixtures.py, fixture_89_a_console_word_on_a_tightening",
         "reproduces": "INC-20261023-01",
-        "watched_failing_before": null,
-        "watched_passing_after": null
+        "watched_failing_before": "HEAD's validator before 8868c806: answered the other way (manager-microscope-20261003-1's run)",
+        "watched_passing_after": "8868c806: refused, a tighten touching nothing in the core needs no word (manager-microscope-20261003-1's run)"
       }
     ],
     "replay": {
