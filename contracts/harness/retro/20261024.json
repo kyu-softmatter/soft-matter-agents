@@ -1,0 +1,152 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-24",
+  "trigger": "daily",
+  "tree": "7c33b8c3 plus 2 uncommitted paths [dirty e54aaa93], which is nobody's commit -- the run before this pass's record was written; the two paths are two managers' unfinished task cards",
+  "verdict": "verdict: 225 passed, 0 failed, 11 undecided, 110 pending, 1 lost, 8 not applicable",
+  "observed": [
+    {
+      "source": "this computer's commit tool record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-23T18:50Z to 2026-10-24T17:00Z, 80 lines",
+      "found": "30 commit attempts, all 30 committed, none refused. HEAD moves per attempt: 0: 25, 1: 5. Gate runs per commit: 1: 25, 2: 5. 25 push lines: 16 pushed, 9 refused, all 9 for listing other seats' commits not yet named. No hold or release. Counted by tools/count_window.py."
+    },
+    {
+      "source": "commits this computer's log cannot see",
+      "path": null,
+      "window": "git log --first-parent origin/main, 2026-10-23T18:50Z to 2026-10-24T17:00Z, 28 commits",
+      "found": "All 28 are in this computer's log. None came from the microscope computer in this window."
+    },
+    {
+      "source": "commits touching contracts/harness/ by any other seat",
+      "path": "contracts/harness/",
+      "window": "origin/main, all history",
+      "found": "0 of 31. The second harness seat (harness-scope-20261019-1) has not committed."
+    },
+    {
+      "source": "failures.jsonl in each agent, and the librarian's query log",
+      "path": null,
+      "window": "2026-10-23T18:50Z to 2026-10-24T17:00Z",
+      "found": "No commit touched any failures.jsonl or librarian_agent/queries/log.jsonl, which stays at 1478 lines."
+    },
+    {
+      "source": "the three landings since the last pass, each read back by this seat",
+      "path": "contracts/harness/ledger.jsonl",
+      "window": "2026-10-23T23:04Z to 2026-10-24T01:42Z",
+      "found": "HP-016 at ffef9a67, a loosening on the person's word at 659c2214: a permission given on the console's administrator screen may stand as the person's word, through a harness_permission file under microscope_runtime/approvals/harness/ committed under human. HP-017 at c94debd4, a reshape: check 89 reads the person's login as committed with that file, not from the working copy (INC-20261023-02, found reading HP-016's code). HP-018 at 8868c806, a loosening on the person's word at 881f5119: the console word counts for a change to the core too. Each landed after rule 1's words (ca9d24a6, f85327b2), and each was listed to the person through the intake seat the same day with its revert command."
+    },
+    {
+      "source": "whether the console word can be used yet",
+      "path": "microscope_runtime/",
+      "window": "at 7c33b8c3",
+      "found": "No permission file exists and microscope_runtime/approvals/harness/ does not exist. microscope_runtime/envelope/console_login.json is not committed and not on this computer's disk. So no proposal can land on a console word yet, and the person has been told that the login file is committed first. A manager card in progress, uncommitted (microscope_agent/tasks/088), asks the runtime seat to watch the three approval readers ignore that subfolder. That is the guarantee HP-016 rested on without a test."
+    },
+    {
+      "source": "the person's word on the console",
+      "path": "docs/ideas/20261024.md",
+      "window": "7c33b8c3",
+      "found": "The person asked for the console to be finished. The console manager builds it; this seat checks its permission writer against harness_permission when that card lands."
+    },
+    {
+      "source": "the harness2 trial",
+      "path": null,
+      "window": "-",
+      "found": "No word on the account or the model. Nothing was built further and nothing has run."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261023-01",
+    "INC-20261023-02"
+  ],
+  "measured": [
+    {
+      "class": "limit-refuses-correct-work",
+      "since": "51feb21b",
+      "recurrences": 0,
+      "method": "refusals at the rebuild limit in this computer's tool log in the window; the most HEAD moves on one attempt was 1"
+    },
+    {
+      "class": "confirmation-pre-supplied",
+      "since": "a65d262e",
+      "recurrences": 0,
+      "method": "push lines that published another seat's commit without naming it: none; 9 refusals asked for the names"
+    },
+    {
+      "class": "boundary-narrows-one-side-only",
+      "since": "0cfd1d85",
+      "recurrences": 0,
+      "method": "commits touching contracts/harness/ by a seat other than a harness seat, on origin/main"
+    },
+    {
+      "class": "two-writers-one-keyspace",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "duplicate incident ids or two harness seats on one retro file; the second seat has not written, so untested by use"
+    },
+    {
+      "class": "class-fixed-not-swept",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "check 89's INCIDENT_ID and $defs/incident_id agree on the same 12 sample ids, re-run this pass"
+    },
+    {
+      "class": "rule-reaches-less-than-written",
+      "since": "7ca41a48",
+      "recurrences": 0,
+      "method": "the scratch probe, a four-field retro and no card, still gives ten check 1 FAILs; covers only HP-015's member of the class"
+    },
+    {
+      "class": "platform-assumption-breaks-on-another-machine",
+      "since": "c94debd4",
+      "recurrences": 0,
+      "method": "console words judged against a login read from the working copy: none, because no console word exists yet; untested by use"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-016",
+      "this_pass": "Drafted, revised to the 8.3 holder's folder, handed and landed at ffef9a67 on the person's word."
+    },
+    {
+      "id": "HP-017",
+      "this_pass": "Drafted, handed and landed at c94debd4."
+    },
+    {
+      "id": "HP-018",
+      "this_pass": "Drafted, handed and landed at 8868c806 on the person's word."
+    },
+    {
+      "id": "HP-012",
+      "this_pass": "Still open: the check and the bridge twin."
+    }
+  ],
+  "landed_today": [
+    {
+      "proposal": "HP-016",
+      "kind": "loosen",
+      "commit": "ffef9a67",
+      "revert_command": "git revert ffef9a67"
+    },
+    {
+      "proposal": "HP-017",
+      "kind": "reshape",
+      "commit": "c94debd4",
+      "revert_command": "git revert c94debd4"
+    },
+    {
+      "proposal": "HP-018",
+      "kind": "loosen",
+      "commit": "8868c806",
+      "revert_command": "git revert 8868c806"
+    }
+  ],
+  "next": [
+    "The scheduling question still waits for the person's answer in this seat's own window (INC-20261022-02).",
+    "When the console's permission writer lands, check it against harness_permission's nine fields, its folder, and its refusal while console_login.json is uncommitted.",
+    "When the first permission file is committed, read check 89's verdict on it and its ledger line before anything else lands on it.",
+    "When the second harness seat first commits, check its ids carry 'scope'.",
+    "harness2 trial: wait for the account and the model. HP-012: still open. HP-001 to HP-004 files: still unwritten."
+  ]
+}
