@@ -1,0 +1,21 @@
+{
+  "artifact": "question_request",
+  "schema_version": "0.1",
+  "id": "qr-20261024-174512-k3p9",
+  "words": "Does this gel keep flowing more easily the longer it rests after mixing?",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": true,
+      "agents": [
+        "microscope",
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    },
+    "password": "never-here"
+  },
+  "asked_at": "2026-10-24T17:45:12Z",
+  "addressed_to": "agents_decide"
+}

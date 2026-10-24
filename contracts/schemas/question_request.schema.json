@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "question_request.schema.json",
+  "title": "question_request — a question typed in the console, written as typed (plan.md 4.5)",
+  "description": "What the console's question window writes into its own folder, console/requests/questions/. It is not an ask: ask.schema.json is the bridge's envelope. It holds the asker's words verbatim, the asking login and that login's console-side role, the time, and the agent addressed if one was chosen. It makes no claim that the asker is the person's own: that claim counts only with a proof no session can forge (plan.md 4.5, 6.2), which is not built, so a reader treats every request as another login's (plan.md 15.1). Nothing reads a request until the agents' new inbox, designed on its own and approved by the person, opens (Q-20261022-office-04). No secret goes in, so no object admits a key it does not name.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "question_request"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^qr-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$",
+      "description": "qr-<UTC date>-<UTC time>-<four random characters>; also the file's name."
+    },
+    "words": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "description": "The question exactly as typed. Nothing rewrites it, and autocomplete only ever inserted strings the asker accepted."
+    },
+    "asked_by": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "description": "A plain login id, never an email, in the same pattern as plan_approval's signed_through.login."
+        },
+        "console_role": {
+          "type": "object",
+          "description": "What this login may do inside the console when it asked (Q-20261022-office-06). Recorded for the agents to honour; the console enforces none of it on an agent.",
+          "properties": {
+            "may_ask": {
+              "type": "boolean"
+            },
+            "may_draft": {
+              "type": "boolean"
+            },
+            "agents": {
+              "type": "array",
+              "items": {
+                "enum": ["microscope", "simulation", "librarian"]
+              },
+              "uniqueItems": true
+            },
+            "may_ask_model_run": {
+              "type": "boolean"
+            }
+          },
+          "required": ["may_ask", "may_draft", "agents", "may_ask_model_run"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["login", "console_role"],
+      "additionalProperties": false
+    },
+    "asked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "addressed_to": {
+      "enum": ["agents_decide", "microscope", "simulation", "librarian"]
+    }
+  },
+  "required": ["artifact", "schema_version", "id", "words", "asked_by", "asked_at", "addressed_to"],
+  "additionalProperties": false
+}

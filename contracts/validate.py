@@ -295,6 +295,11 @@ ARTIFACT_SCHEMA = {
     # this line the person's first approval would fail check 1 as an unknown
     # artifact, which the runtime seat reported when it built the gate.
     "mm_config_approval": "mm_config_approval.schema.json",
+    # 2026-10-24, console card 007 (plan.md 4.5): what the console's question
+    # window writes into its own folder. Not an ask -- that is the bridge's
+    # envelope. It claims nothing about being the person's own, so a reader
+    # treats every one as another login's until a proof exists.
+    "question_request": "question_request.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -1824,6 +1829,10 @@ ALLOWED_PATHS = [
     r"^console/tasks/[A-Za-z0-9_.-]+$",
     r"^console/\.claude/.*$",
     r"^console/(src|web|tests|docs)/.+$",
+    # The console's one folder of written records (plan.md 4.5): the question
+    # requests its question window writes, named by their id. Nothing reads
+    # them until the agents' new inbox, approved by the person, opens.
+    r"^console/requests/questions/qr-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json$",
     r"^\.claude/.*$",
     # The public page (7). It is outside every agent and outside contracts/,
     # so nothing about it is shared code: it is the repository's own front
