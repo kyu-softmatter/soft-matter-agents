@@ -1,0 +1,82 @@
+.inst-laser {
+  font-weight: 600;
+}
+
+.inst-picture {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.inst-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.inst-row-label {
+  flex: 0 0 140px;
+  color: var(--muted);
+  align-self: center;
+}
+
+.inst-part {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inst-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inst-part-draft,
+.inst-allowed {
+  border: 1px solid var(--line);
+  padding: 8px;
+}
+
+.inst-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.inst-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inst-plots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.inst-plot {
+  width: 220px;
+  height: 120px;
+}
+
+.inst-cameras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.inst-draft .console-text {
+  max-height: 320px;
+  overflow: auto;
+}

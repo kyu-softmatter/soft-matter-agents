@@ -1,0 +1,78 @@
+# Instruments screens (console card 012)
+
+Area `instruments` (`web/src/features/instruments/`, hash `#/instruments/<tab>`). Six sub-tabs that do
+three things only: **show, draft and stop**. Nothing here sends a command to an instrument, connects to the
+live-view host, or saves a draft. A piece the runtime has not built yet says "not built yet", and the console
+builds no stand-in for it.
+
+Server routes (`server/api/instruments.py`), all reads except the draft, which composes and writes nothing:
+
+| Route | What |
+|---|---|
+| `GET /api/instruments/status` | `microscope_runtime/.runtime_status/idle_status.json` as data, checked against `contracts/schemas/idle_status.schema.json` read from the tree. Absent is `none`, an invalid file is `invalid` with why, and no reading is taken from either |
+| `GET /api/instruments/limits` | the person's own limits from `microscope_runtime/envelope/safety.json`: the piezo range and the tweezers ranges. Never written into code; a limit the file lacks is `null` |
+| `GET /api/instruments/latest-run` | the newest microscope run's events: the traps and strengths last sent (all "sent": the tweezers report nothing back) and the piezo snapshots (read back) |
+| `POST /api/instruments/draft` | a plan draft built from what the person chose, checked against `contracts/schemas/plan.schema.json` read from the tree, **returned and saved nowhere** (`saved` is always false). The login must be one that may draft, on the microscope computer |
+
+The schema is checked by `agents/schema_lite.py`, because the console's environment has no `jsonschema` and
+installs nothing. It supports the keywords the contract schemas use and **raises on one it does not know**
+instead of passing over it; its tests run it against every example and every rejected fixture in
+`contracts/examples/`.
+
+## Status
+
+- Absent file: **No status yet**, which does not mean that nothing is connected.
+- Present: "As of <written_at>, from <written_by_run>", then each reading's name, value, how it was read and
+  when. `read_back` reads "read back", `not_readable` reads "sent, cannot be read", `not_read` reads "not
+  read" with the value unknown. Nothing is carried forward from an older file.
+- "Which program holds which instrument" reads "not checked yet" while ownership is `not_built`.
+- **One row always**: "Tweezers laser · set by hand · not known · assumed on". The trap strength last sent, if
+  any, is "sent through the tweezers program".
+- **Check now** is offered to the person's login only. Until the runtime has it, and the person has connected
+  the console to the live-view host, pressing it says "not built yet" and sends nothing.
+
+## Optics and control
+
+A picture of the stand in three rows, each part showing the reading of its channel in the status file, or
+"unknown". Four parts take no channel: the stand's parts share one channel, and which of the two widefield
+channels is the LED and which the lamp is not recorded, so neither part takes either. Double-clicking a part
+opens the tab it belongs to (Light source, Filters, Magnification, Camera).
+
+A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
+transmitted lamp (state and intensity) and the red camera's exposure. Each says **refused until you write a
+limit**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
+was sent; assumed open until a shutter that reads back shows it blocked".
+
+`plan.schema.json` has no operation that sets a light or an exposure, so these three drafts are composed,
+checked and **shown with the schema's refusal, never offered for signing**. Nothing is bent to make one pass.
+A schema change for them is architecture's.
+
+## Cameras
+
+Four panels. Camera 1 (red) shows a frame through today's live-view code only while a signed run is
+acquiring; Live view is offered to the person's login and **connects to nothing until it is pressed**. The
+blue camera is not opened by software yet. The fourth panel draws no traps: their mapping onto the camera is
+not measured. The exposure draft is the one in Optics.
+
+## Tweezers
+
+The laser row, then the traps, strengths and the t-x, t-y and x-y plots from the latest run's events, each
+labelled "sent". No click-to-hold and no dragging. A pattern (line, circle or grid) is a `trap_steps` draft.
+Beside it are the ranges the person's safety file holds, "from your safety file"; a limit the file lacks is
+shown as refused, and trap count and flicker rate are refused until a limit exists.
+
+## Confocal
+
+State only, from the spinning-disk channel. The shutter reads "read back; which value means closed is not
+recorded".
+
+## Piezo stage
+
+x, y and z of the last snapshot, with when and from which run. The range is read from the safety file and
+shown as "from your safety file". The time window and the screen refresh change only the screen (refresh is
+off until turned on), and the read rate is a plan field. The pattern generator is "designed later".
+
+## Where a draft goes
+
+Where a console draft goes before the person signs it is **still to be designed**. Until then a draft exists
+only on the screen it was made on.

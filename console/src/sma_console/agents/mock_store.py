@@ -112,6 +112,9 @@ class MockStore:
         mine = [] if self._write_dir is None else [long_path(self._write_dir).joinpath(*REQUEST_PARTS)]
         return [*mine, self.sample.root.joinpath(*REQUEST_PARTS)]
 
+    def runtime_root(self) -> Path | None:
+        return None  # the sample has no runtime: nothing here stands in for its files
+
     def approvals_target_present(self) -> bool:
         return True  # practice: there is nothing to look for, and nothing is written
 

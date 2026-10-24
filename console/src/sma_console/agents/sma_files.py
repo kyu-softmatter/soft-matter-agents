@@ -551,6 +551,10 @@ class SmaFiles:
     def registered_names(self) -> list[str]:
         return quantity_names(self._root)
 
+    def runtime_root(self) -> Path | None:
+        """The tree the runtime's own files (status, safety file) are read from."""
+        return self._root
+
     def approvals_target_present(self) -> bool:
         """`microscope_runtime/approvals/` and only it: the old place, `microscope_agent/approvals/`, is
         read for display and is not a place to sign into (card 011)."""

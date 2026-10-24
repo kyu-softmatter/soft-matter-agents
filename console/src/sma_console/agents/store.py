@@ -415,6 +415,10 @@ class AgentStore(Protocol):
         """The quantity names in `contracts/quantities.json`, for autocomplete; none if unreadable."""
         ...
 
+    def runtime_root(self) -> Path | None:
+        """The tree the runtime's own files are read from, or None when this store has no runtime."""
+        ...
+
     def approvals_target_present(self) -> bool:
         """Whether the one place an approval is signed into, `microscope_runtime/approvals/`, is in the
         tree this store reads. No other place counts. (Nothing is written by the console yet.)"""

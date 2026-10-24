@@ -340,10 +340,10 @@ describe("the sign dialog", () => {
     expect(d.textContent).toContain("revision 1");
     expect(d.textContent).toContain("move_to_wall_distance");
     expect(d.textContent).toContain("set_power");
-    const light = within(d).getByRole("group", { name: "Light" });
-    expect(light.textContent).toContain("dia_lamp");
-    expect(light.textContent).toContain("illumination_power");
-    expect(light.textContent).toContain("12 mW");
+    expect(within(d).queryByRole("group", { name: "Light" })).toBeNull(); // no role is read from a name
+    const touched = within(d).getByRole("group", { name: "Devices this plan touches" });
+    expect(touched.textContent).toContain("dia_lamp");
+    expect(touched.textContent).toContain("motor_stage");
     const undo = within(d).getByRole("group", { name: "What cannot be undone" });
     expect(undo.textContent).toContain("bleach_reference_field");
     expect(undo.textContent).not.toContain("move_to_wall_distance");
@@ -357,7 +357,56 @@ describe("the sign dialog", () => {
     show({ detail: detailOf({ plan: calm }) });
     const d = await openDialog();
     expect(within(d).getByRole("group", { name: "What cannot be undone" }).textContent).toContain("Nothing in this plan is irreversible");
-    expect(within(d).getByRole("group", { name: "Light" }).textContent).toContain("dia_lamp");
+    expect(within(d).getByRole("group", { name: "Devices this plan touches" }).textContent).toContain("motor_stage");
+  });
+
+  it("lists every device the plan touches with the value it sets, a light named any way at all included", async () => {
+    const odd = card(PLAN.name, "plan", {
+      ...(PLAN.data as Record<string, unknown>),
+      system_configuration: { config: "x", devices: ["beacon_9"] },
+      actions: [{ id: "a1", device: "beacon_9", action: "set_output", reversible: true, parameters: ["output_level"] }],
+      conditions: [{ parameter: "hold_time", number: "hold_time", device: "relay_3" }],
+      numbers: [
+        { name: "output_level", value: 3, unit: "mW", source: "computed:from_budget", grade: "E4", precision: "order_of_magnitude" },
+        { name: "hold_time", value: 20, unit: "s", source: "assumed:x", grade: "E5", precision: "order_of_magnitude" },
+      ],
+    });
+    show({ detail: detailOf({ plan: odd }) });
+    const d = await openDialog();
+    const touched = within(d).getByRole("group", { name: "Devices this plan touches" });
+    expect(touched.textContent).toContain("beacon_9");
+    expect(touched.textContent).toContain("set_output");
+    expect(touched.textContent).toContain("output_level: 3 mW (computed)");
+    expect(touched.textContent).toContain("relay_3");
+    expect(touched.textContent).toContain("hold_time: 20 s (guessed)");
+  });
+
+  it("says when a value a step names is not in the plan, never inventing one", async () => {
+    const bare = card(PLAN.name, "plan", {
+      ...(PLAN.data as Record<string, unknown>),
+      actions: [{ id: "a1", device: "beacon_9", action: "set_output", reversible: true, parameters: ["missing_number"] }],
+      numbers: [],
+    });
+    show({ detail: detailOf({ plan: bare }) });
+    const d = await openDialog();
+    expect(within(d).getByRole("group", { name: "Devices this plan touches" }).textContent).toContain(
+      "missing_number: no value given in the plan",
+    );
+  });
+
+  it("lists the operation's moves and the trap steps' traps as what is set", async () => {
+    const op = card(PLAN.name, "plan", {
+      card: "plan", status: "PROPOSED", revision: 1, numbers: [], actions: [],
+      operation: { device: "piezo_stage", moves: [{ id: "m1", axis: "x", kind: "step", target_um: 310, role: "verify_mapping" }] },
+      trap_steps: { device: "optical_tweezers", objective: "100x", steps: [{ id: "s1", kind: "create", trap: "trap_1", x_um: 2, y_um: 0, strength: 1 }] },
+    });
+    show({ detail: detailOf({ plan: op }) });
+    const d = await openDialog();
+    const touched = within(d).getByRole("group", { name: "Devices this plan touches" });
+    expect(touched.textContent).toContain("piezo_stage");
+    expect(touched.textContent).toContain("step x to 310 um");
+    expect(touched.textContent).toContain("optical_tweezers");
+    expect(touched.textContent).toContain("create trap_1 at 2, 0 um, strength 1");
   });
 
   it("lists an action that does not say it is reversible among what cannot be undone", async () => {

@@ -172,8 +172,8 @@ The app is a **left sidebar** and a **footer on every screen**; the header with 
   Library, Results, and **Admin below a rule, for an administrator only**. At phone width it stacks above
   the screen. An administrator-only area is not opened for anyone else: `#/admin` opens Questions.
   Old hashes (`#/console`, `#/hardware`, `#/map`, `#/accounts`, ...) land on Questions, as an unknown one
-  does. Instruments, Experiments and Library are plain screens (title, one sentence, "not built yet")
-  that request nothing.
+  does. Experiments and Library are plain screens (title, one sentence, "not built yet") that request
+  nothing. Instruments has its six screens since card 012 (`docs/screens/instruments.md`).
 - **Footer**: STOP at the left (`StopAllRuns`, the one stop the lock screen has; one request to
   `POST /api/console/runs/stop`, no confirmation), a chip "Example data" while `GET /api/console/store`
   says the store is `mock` (never on a guess: an unreachable or other store shows none), and at the right

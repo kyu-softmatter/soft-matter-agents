@@ -19,9 +19,6 @@ import { asArray, errorText, isRecord, provenanceWord, show } from "./ui";
 export const NO_FOLDER_SENTENCE =
   "Nothing can be signed here: the folder microscope_runtime/approvals/ is not in the tree this console reads, and no other place is used.";
 
-const LIGHT_DEVICE = /lamp|led|laser|light|illum|lumin/i;
-const LIGHT_NUMBER = /power|illumination|laser|intensity|exposure/i;
-
 interface Action {
   id: string;
   device: string;
@@ -42,19 +39,59 @@ export function actionsOf(plan: Card | null): Action[] {
     }));
 }
 
-/** The light the plan uses: the light sources among its devices, and the numbers named for light. */
-export function lightOf(plan: Card | null): { devices: string[]; numbers: { name: string; text: string }[] } {
+/** One device a plan touches, and what the plan sets on it, line by line. */
+export interface DeviceTouched {
+  device: string;
+  lines: string[];
+}
+
+/**
+ * Every device the plan touches, with the value the plan sets (console card 012, step 0). It does not
+ * decide what a device is for from how its name is written -- that is a role the registry gives, and a
+ * light named another way would have been left out, which is the unsafe direction. A device is here
+ * because an action, a condition, an operation or a trap step names it.
+ */
+export function devicesTouched(plan: Card | null): DeviceTouched[] {
   const data = plan !== null && isRecord(plan.data) ? plan.data : {};
-  const config = isRecord(data.system_configuration) ? data.system_configuration : {};
-  const names = new Set<string>([
-    ...asArray(config.devices).map(show),
-    ...actionsOf(plan).map((a) => a.device),
-  ]);
-  const numbers = asArray(data.numbers)
-    .filter(isRecord)
-    .filter((n) => LIGHT_NUMBER.test(show(n.name)))
-    .map((n) => ({ name: show(n.name), text: `${show(n.value)} ${show(n.unit)} (${provenanceWord(n.source)})` }));
-  return { devices: [...names].filter((d) => LIGHT_DEVICE.test(d)), numbers };
+  const numbers = new Map<string, string>();
+  for (const n of asArray(data.numbers).filter(isRecord)) {
+    numbers.set(show(n.name), `${show(n.value)} ${show(n.unit)} (${provenanceWord(n.source)})`.replace("  ", " "));
+  }
+  const order: string[] = [];
+  const lines = new Map<string, string[]>();
+  const touch = (device: unknown, line?: string) => {
+    const name = show(device);
+    if (!lines.has(name)) {
+      lines.set(name, []);
+      order.push(name);
+    }
+    if (line !== undefined && !lines.get(name)!.includes(line)) lines.get(name)!.push(line);
+  };
+  const setting = (name: unknown) => `${show(name)}: ${numbers.get(show(name)) ?? "no value given in the plan"}`;
+  for (const a of asArray(data.actions).filter(isRecord)) {
+    touch(a.device, `${show(a.action)}${a.reversible === true ? "" : " (cannot be undone)"}`);
+    for (const p of asArray(a.parameters)) touch(a.device, setting(p));
+  }
+  for (const c of asArray(data.conditions).filter(isRecord)) {
+    if (c.device !== undefined) touch(c.device, setting(c.number ?? c.parameter));
+  }
+  const op = isRecord(data.operation) ? data.operation : undefined;
+  if (op !== undefined) {
+    touch(op.device);
+    for (const m of asArray(op.moves).filter(isRecord)) {
+      touch(op.device, `${show(m.kind)} ${show(m.axis)} to ${show(m.target_um)} um (${show(m.role)})`);
+    }
+  }
+  const traps = isRecord(data.trap_steps) ? data.trap_steps : undefined;
+  if (traps !== undefined) {
+    touch(traps.device);
+    for (const s of asArray(traps.steps).filter(isRecord)) {
+      const where = s.x_um !== undefined ? ` at ${show(s.x_um)}, ${show(s.y_um)} um` : "";
+      const strength = s.strength !== undefined ? `, strength ${show(s.strength)}` : "";
+      touch(traps.device, `${show(s.kind)} ${show(s.trap ?? "")}${where}${strength}`.replace("  ", " ").trim());
+    }
+  }
+  return order.map((device) => ({ device, lines: lines.get(device) ?? [] }));
 }
 
 export function SignDialog({
@@ -73,7 +110,7 @@ export function SignDialog({
   const plan = detail.plan;
   const data = plan !== null && isRecord(plan.data) ? plan.data : {};
   const steps = actionsOf(plan);
-  const light = lightOf(plan);
+  const devices = devicesTouched(plan);
   const irreversible = steps.filter((s) => !s.reversible);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -123,18 +160,22 @@ export function SignDialog({
           </ol>
         )}
       </fieldset>
-      <fieldset aria-label="Light">
-        <legend>Light</legend>
-        {light.devices.length === 0 && light.numbers.length === 0 ? (
-          <p className="console-muted">No light source is used.</p>
+      <fieldset aria-label="Devices this plan touches">
+        <legend>Devices this plan touches, and what it sets</legend>
+        {devices.length === 0 ? (
+          <p className="console-muted">The plan names no device.</p>
         ) : (
           <ul>
-            {light.devices.map((d) => (
-              <li key={d}>{d}</li>
-            ))}
-            {light.numbers.map((n) => (
-              <li key={n.name}>
-                {n.name}: {n.text}
+            {devices.map((d) => (
+              <li key={d.device}>
+                {d.device}
+                {d.lines.length > 0 && (
+                  <ul>
+                    {d.lines.map((l) => (
+                      <li key={l}>{l}</li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

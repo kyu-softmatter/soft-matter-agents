@@ -301,7 +301,6 @@ describe("the retired routes are still named by no source", () => {
 describe("the new plain screens", () => {
   const modules = import.meta.glob<{ default: ComponentType }>("../features/*/index.tsx");
   const CASES = [
-    { id: "instruments", title: "Instruments", sentence: "Shown, drafted and stopped from here. Nothing moves or lights from these screens." },
     { id: "experiments", title: "Experiments", sentence: "Runs on the microscope, and drafts waiting for your signature." },
     { id: "library", title: "Library", sentence: "Send the librarian a request. The librarian decides, and nothing is ever erased." },
   ];

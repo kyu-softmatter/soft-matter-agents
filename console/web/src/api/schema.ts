@@ -865,6 +865,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/instruments/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status
+         * @description The idle status file the runtime writes, as data. Absent: "no status yet", not "nothing connected".
+         */
+        get: operations["status_api_instruments_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/instruments/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Limits
+         * @description The person's own limits the screens show: the piezo range and the tweezers ranges, from the safety
+         *     file. Never written into code; a limit the file lacks is None.
+         */
+        get: operations["limits_api_instruments_limits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/instruments/latest-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Latest Run
+         * @description What the newest microscope run's events say about the tweezers (sent) and the piezo stage (read back).
+         */
+        get: operations["latest_run_api_instruments_latest_run_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/instruments/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Draft
+         * @description Build a plan draft from the person's choice and check it against plan.schema.json. **It writes nothing:
+         *     the draft is returned and saved nowhere.** Where a console draft goes before signing is still to be designed.
+         */
+        post: operations["draft_api_instruments_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/simulation/runs": {
         parameters: {
             query?: never;
@@ -1219,6 +1301,71 @@ export interface components {
             text: string;
         };
         /**
+         * DraftIn
+         * @description What the person chose; nothing else is accepted.
+         */
+        DraftIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "trap_steps" | "aura" | "dialamp" | "camera_exposure";
+            /** Pattern */
+            pattern?: ("line" | "circle" | "grid") | null;
+            /** Objective */
+            objective?: ("40x" | "60x" | "100x") | null;
+            /** N */
+            n?: number | null;
+            /** Spacing Um */
+            spacing_um?: number | null;
+            /** Strength */
+            strength?: number | null;
+            /** Color */
+            color?: string | null;
+            /** Power Mw */
+            power_mw?: number | null;
+            /** State */
+            state?: ("on" | "off") | null;
+            /** Intensity Percent */
+            intensity_percent?: number | null;
+            /** Exposure Ms */
+            exposure_ms?: number | null;
+        };
+        /** DraftOut */
+        DraftOut: {
+            /** Kind */
+            kind: string;
+            /** Card */
+            card: {
+                [key: string]: unknown;
+            };
+            /**
+             * Valid
+             * @description the schema accepts it and every position and strength is inside the person's limits
+             */
+            valid: boolean;
+            /**
+             * Problems
+             * @description what plan.schema.json refuses, as its checker words it
+             */
+            problems: string[];
+            /**
+             * Range Problems
+             * @description what the person's safety file refuses, in words
+             */
+            range_problems: string[];
+            /** Refused Today */
+            refused_today: string[];
+            /**
+             * Saved
+             * @default false
+             * @constant
+             */
+            saved: false;
+            /** Note */
+            note: string;
+        };
+        /**
          * FrameOut
          * @description The frame both viewers draw (web/src/features/simulation/frame.ts FrameJson).
          */
@@ -1354,6 +1501,37 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** LatestRunOut */
+        LatestRunOut: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "ok" | "no_run" | "runs_not_found";
+            /** Message */
+            message?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Traps
+             * @default []
+             */
+            traps: components["schemas"]["SentTrapOut"][];
+            /**
+             * Trap Series
+             * @default []
+             */
+            trap_series: components["schemas"]["TrapPointOut"][];
+            /** Strength Last Sent */
+            strength_last_sent?: number | null;
+            /**
+             * Piezo
+             * @default []
+             */
+            piezo: components["schemas"]["PiezoPointOut"][];
+        };
         /**
          * Lights
          * @description The one light shape (light_changed, snapshot, records).
@@ -1371,6 +1549,38 @@ export interface components {
             error?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** LimitsOut */
+        LimitsOut: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "none" | "present" | "invalid" | "unreadable";
+            /** Policy Version */
+            policy_version?: string | null;
+            /** Written By */
+            written_by?: string | null;
+            /** Written At */
+            written_at?: string | null;
+            /**
+             * Piezo
+             * @description axis -> {min, max} each {value, unit}; None when the file holds no limit
+             */
+            piezo?: {
+                [key: string]: {
+                    [key: string]: unknown;
+                } | null;
+            };
+            /** Tweezers */
+            tweezers?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Problems
+             * @default []
+             */
+            problems: string[];
         };
         /** LiveListOut */
         LiveListOut: {
@@ -1540,6 +1750,21 @@ export interface components {
             reason?: string | null;
             /** Code */
             code?: string | null;
+        };
+        /** PiezoPointOut */
+        PiezoPointOut: {
+            /** T S */
+            t_s: number | null;
+            /** T Wall */
+            t_wall: string | null;
+            /** X Um */
+            x_um: number | null;
+            /** Y Um */
+            y_um: number | null;
+            /** Z Um */
+            z_um: number | null;
+            /** Label */
+            label?: string | null;
         };
         /** PiezoPositionOut */
         PiezoPositionOut: {
@@ -2011,6 +2236,19 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** SentTrapOut */
+        SentTrapOut: {
+            /** Trap */
+            trap: string;
+            /** X Um */
+            x_um: number | null;
+            /** Y Um */
+            y_um: number | null;
+            /** Strength */
+            strength: number | null;
+            /** On */
+            on: boolean | null;
+        };
         /** SeriesOut */
         SeriesOut: {
             /** Run Id */
@@ -2215,6 +2453,26 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** StatusOut */
+        StatusOut: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "none" | "present" | "invalid" | "unreadable";
+            /**
+             * Data
+             * @description the idle status file, as the runtime wrote it and its schema accepted it
+             */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Problems
+             * @default []
+             */
+            problems: string[];
+        };
         /**
          * StepsOut
          * @description The five steps of an agents' question, each from the file that says it is done.
@@ -2338,6 +2596,17 @@ export interface components {
             power_pct?: number | null;
         } & {
             [key: string]: unknown;
+        };
+        /** TrapPointOut */
+        TrapPointOut: {
+            /** T S */
+            t_s: number | null;
+            /** Trap */
+            trap: string;
+            /** X Um */
+            x_um: number | null;
+            /** Y Um */
+            y_um: number | null;
         };
         /**
          * TweezersState
@@ -4428,6 +4697,99 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    status_api_instruments_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+        };
+    };
+    limits_api_instruments_limits_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitsOut"];
+                };
+            };
+        };
+    };
+    latest_run_api_instruments_latest_run_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LatestRunOut"];
+                };
+            };
+        };
+    };
+    draft_api_instruments_draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
