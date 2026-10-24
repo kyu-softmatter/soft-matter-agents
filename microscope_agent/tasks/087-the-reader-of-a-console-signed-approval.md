@@ -2,10 +2,15 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261017-1`, the runtime seat.** It touches
-`operator.py`'s approval reader, which cards 084 to 086 do not, so it may be
-done between them, as its own commit. If you are not that seat, take nothing
-from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. Do this card
+first, before 084.** The console's approval writer is being built now (the
+person, `b4f340ee`). Until this card lands, the operator would take a
+console-written approval on the console's own checks alone. So the writer
+writes only into a test root and never into `microscope_runtime/approvals/`,
+and this card is what lets it write for real (plan.md 15.1 item 4 at
+`0607b848`). It touches `operator.py`'s approval reader, which cards 084 to
+086 do not. If you are not that seat, take nothing from this card and report
+up.
 
 ## Why
 

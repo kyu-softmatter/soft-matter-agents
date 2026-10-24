@@ -2,8 +2,10 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261017-1`, the runtime seat.** If you are
-not that seat, take nothing from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. Start after
+card 087**, which gates the console's approval writer and comes first
+(plan.md 15.1 item 4 at `0607b848`). If you are not that seat, take nothing
+from this card and report up.
 
 ## Why
 
