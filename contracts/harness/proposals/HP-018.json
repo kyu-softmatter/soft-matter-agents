@@ -1,0 +1,88 @@
+{
+  "artifact": "harness_proposal",
+  "schema_version": "0.1",
+  "id": "HP-018",
+  "title": "A console word also counts for a proposal that changes the core, on the same conditions",
+  "drafted_by": "harness-office-20261016-1",
+  "drafted_on": "2026-10-24",
+  "kind": "loosen",
+  "class": "contract-has-no-slot-for-it",
+  "answers": [
+    "INC-20261023-01"
+  ],
+  "classification": {
+    "members_found": [
+      "INC-20261023-01"
+    ],
+    "looked_in": [
+      "check 89 at c94debd4: the console reading refuses unless kind is loosen or retire and touches_core is empty",
+      "the person's answer to Q-20261023-office-04, committed verbatim at 881f5119",
+      "HP-016's notes, which kept a core change as words in a window until the person said otherwise"
+    ]
+  },
+  "changes": [
+    {
+      "path": "contracts/validate.py, check 89",
+      "owner": "manager-microscope-20261003-1 (check 89's holder)",
+      "change": "Item 6 becomes: the console form counts for every proposal that needs the person's word, that is kind loosen or retire, or touches_core not empty, whatever its kind. A tighten or reshape with an empty touches_core needs no word, and a console word on it is still refused, so the record never carries a permission nothing asked for. Items 1 to 5 and HP-017's login reading are unchanged."
+    },
+    {
+      "path": "contracts/history_fixtures.py",
+      "owner": "check 89's holder",
+      "change": "The row refusing a console word on a proposal touching the core becomes accepted: a core change of kind tighten landed on a valid console word passes. A new refused row: a console word on a tighten with an empty touches_core."
+    },
+    {
+      "path": "console/ (the administrator screen)",
+      "owner": "manager-console-office-20261017-1",
+      "change": "The sign step also appears for a proposal touching the core, on the same conditions; the 'no decision here' panel goes. Still none for a tighten or reshape that touches nothing in the core."
+    },
+    {
+      "path": "plan.md 8.3 rule 1, the console paragraph, 6.2 rule 4",
+      "owner": "architecture-20261003-1",
+      "change": "The words saying a core change stays words in a window change to the person's line at 881f5119."
+    }
+  ],
+  "touches_core": [
+    "harness_rules_1_to_5"
+  ],
+  "needs_threshold": false,
+  "person_word": {
+    "quote": "10-2: 가장 중요한 부분을 바꾸는 제안도 관리자 화면에서 로그인과 비밀번호로 허락한다.",
+    "said_in_window_of": "architecture-office-20261017-2",
+    "on": "2026-10-23",
+    "recorded_in": "docs/ideas/20261023.md@881f5119"
+  },
+  "proof": {
+    "fixtures": [
+      {
+        "path": "history row: a core change landed on a valid console word passes check 89",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      },
+      {
+        "path": "history row: a console word on a tighten touching nothing in the core is refused",
+        "reproduces": "INC-20261023-01",
+        "watched_failing_before": null,
+        "watched_passing_after": null
+      }
+    ],
+    "replay": {
+      "range": null,
+      "new_fail_on_accepted": null,
+      "run_line": null
+    },
+    "equivalence": null
+  },
+  "reach": {
+    "already_running": [
+      "check 89's holder",
+      "the console seats",
+      "both harness seats"
+    ],
+    "how_they_learn": "This seat tells check 89's holder, the console manager and the 8.3 holder directly, and the microscope computer through the intake seats.",
+    "use_site": "check 89, at a landing line citing a console word for a core change"
+  },
+  "revert": "git revert <landing commit>",
+  "notes": "A loosening that touches rule 1, on the person's word said in the intake seat's window and committed verbatim at 881f5119. It answers the part of INC-20261023-01 that HP-016 left to the person. What it does not reach: a harness proposal is landed by its owner seat. The person's own files stay the person's hand, held by check 41 whatever a proposal says: the safety policy, the approvals and the login file. So a console permission lets an owner land a core proposal. It never writes a safety value or hands over the bench, which the plan-approval decision kept as the person's own acts. Nothing lands a core change on a console word until 8.3's words and this check both say so."
+}
