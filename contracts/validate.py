@@ -300,6 +300,12 @@ ARTIFACT_SCHEMA = {
     # envelope. It claims nothing about being the person's own, so a reader
     # treats every one as another login's until a proof exists.
     "question_request": "question_request.schema.json",
+    # 2026-10-24, plan.md 7.1.1 rule 8 (approved at f59f7b45, not open): the
+    # question item the console's server will write into microscope_agent/ or
+    # simulation_agent/ console_inbox/. Its file also holds the envelope that
+    # the librarian's store requests $ref. No folder exists until the inbox
+    # opens; this line lets a schema be judged before then.
+    "console_question": "console_inbox_item.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]

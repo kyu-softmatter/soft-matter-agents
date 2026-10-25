@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "console_inbox_item.schema.json",
+  "title": "console inbox item — what the console's server writes into an agent's console_inbox/ (plan.md 7.1.1)",
+  "description": "The common envelope of plan.md 7.1.1 rule 4, and the question item for microscope_agent/ and simulation_agent/. The librarian's three store requests are console_store_request.schema.json (manager-librarian's), which $refs #/$defs/envelope. The inbox is approved (f59f7b45) and not open: no console_inbox/ folder exists until both runners refuse, by code, an unapproved run from another login's question. An item is append-only, never rewritten or removed. It carries no plan, approval, safety value or command; every concrete schema closes with unevaluatedProperties false, and the forbidden-keys check reads every depth besides.",
+  "$defs": {
+    "login": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "description": "A plain login id, never an email; the pattern of plan_approval's signed_through.login and console_login."
+    },
+    "envelope": {
+      "type": "object",
+      "description": "Rule 4: the asker's words verbatim, the asking login with its time and its console-side permissions, whether it is the person's own, and the attached files by sha256.",
+      "properties": {
+        "schema_version": {
+          "const": "0.1"
+        },
+        "item_id": {
+          "type": "string",
+          "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$",
+          "description": "ci-<UTC date>-<UTC time>-<four random characters>; also the item's file name."
+        },
+        "words": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "description": "Exactly as the asker typed them; nothing rewrites them."
+        },
+        "asked_by": {
+          "type": "object",
+          "properties": {
+            "login": {
+              "$ref": "#/$defs/login"
+            },
+            "console_role": {
+              "type": "object",
+              "properties": {
+                "may_ask": {
+                  "type": "boolean"
+                },
+                "may_draft": {
+                  "type": "boolean"
+                },
+                "agents": {
+                  "type": "array",
+                  "items": {
+                    "enum": ["microscope", "simulation", "librarian"]
+                  },
+                  "uniqueItems": true
+                },
+                "may_ask_model_run": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["may_ask", "may_draft", "agents", "may_ask_model_run"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["login", "console_role"],
+          "additionalProperties": false
+        },
+        "asked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "asker_mark": {
+          "type": "object",
+          "description": "Rule 4: whether the asker is the person's own. Only the proof of plan.md 6.2 could make that count, and it is not built, so the first build writes every item as another login's; a persons_own form is added with the proof, never before.",
+          "properties": {
+            "kind": {
+              "const": "other_login"
+            }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        "attachments": {
+          "type": "array",
+          "description": "Each attached file kept beside the item in the same folder, named by its own file name, with the sha256 of its bytes.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": ["file", "sha256"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["schema_version", "item_id", "words", "asked_by", "asked_at", "asker_mark", "attachments"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/envelope"
+    }
+  ],
+  "properties": {
+    "artifact": {
+      "const": "console_question"
+    },
+    "question_id": {
+      "type": "string",
+      "pattern": "^(mic|sim)-[0-9]{8}-c[0-9]{3}$",
+      "description": "Rule 9: minted by the console's server per agent per day; the c marks a console question, so the runtime and the simulation runner key on it, and the agent's first stage uses it for the goal card it makes."
+    }
+  },
+  "required": ["artifact", "question_id"],
+  "unevaluatedProperties": false
+}
