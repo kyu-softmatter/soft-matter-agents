@@ -323,6 +323,18 @@ render overwrites. `--check` also fails on a page the store no longer
 renders, and rendering removes it. (Wording by librarian-20261007-1 for task
 054.)
 
+**The console shows these pages, so their form is a promise** (`plan.md`
+4.3.1, `527376c3`). The console may display `kb/wiki/` as data, and nothing
+else of the store. It shows a page as it stands, and it reads the footer to
+notice when `kb/index.json` has moved past that page. So a change to `wiki.py`
+keeps the four rules the console relies on:
+- provenance and grade beside each number, as the entry records them;
+- the one footer line;
+- no raw or inline HTML;
+- ASCII filenames, with links only inside `kb/`.
+A change that would break one goes to manager-librarian first, who tells the
+console's manager before it lands.
+
 **COMMIT `queries/log.jsonl` OFTEN, AND BEFORE YOU GO IDLE.** The log is
 append-only and it is **the only thing that can back another agent's card.**
 Check 45 tests a card's empty `degraded` against the log, and the commit gate
