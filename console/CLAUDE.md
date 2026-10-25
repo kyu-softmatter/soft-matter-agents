@@ -9,26 +9,18 @@ and 11-25 are the specification; this file is the session's standing orders.
 
 ## Where it stands
 
-This folder holds instructions and nothing else yet. The console's code is
-still inside `microscope_agent/autofocus/`, imported from dino-autofocus, and
-reaches here in three steps (`plan.md` 15, step 5):
+The console's code arrived here from `microscope_agent/autofocus/` in
+2026-10-18's three steps, after the cut from dino's engine (card 077):
+- the additions, card 001;
+- the rename to `sma_console`, card 002;
+- the deletions, card 078.
 
-1. **The cut**, by a microscope seat on that agent's card 077: the server is
-   severed from dino's engine, and nothing that stays may import anything
-   that crosses. dino's command path is retired, not kept locked, and the six
-   areas that existed only to drive that engine go with it: hardware
-   detection, the sample map, the objective change, motion patterns, the
-   sample page and experiment sessions.
-2. **The additions**, by this seat: the console's part goes under `console/`
-   as pure renames. Its package keeps its name for that commit and is renamed
-   in the next, because two distributions providing one top-level name
-   collide.
-3. **The deletions** of the originals, by a microscope seat.
-
-Steps 2 and 3 are two commits because no seat may write two boundaries in
-one. Each carries the old-to-new path list in its message, because rename
-detection does not cross two commits. **Nothing under `console/` other than
-these instructions is written before a card in `tasks/` names it.**
+The person then asked for the console to be pared down and redesigned
+(I-20261022-office-04, `c84c0f32`) and finished (`7c33b8c3`). **Card 006, as
+revised by 007, is the specification.** The canvas it cites is version 58.
+The app cards run in 007's order, from 008 on. **Nothing under `console/`
+other than these instructions is written before a card in `tasks/` names
+it.**
 
 ## The four standing rules
 
@@ -89,10 +81,18 @@ card.
 
 A console has no question, so it holds no `caller_id` and does not call the
 librarian's service: a query that leaves a log line and no `kb_refs` on any
-card is what the card contract exists to prevent. Whether the console may
-show `kb/` files as data for display -- which keeps nothing and lands nothing
-on a card -- is open, for the holder of `plan.md` 4.3.1. Until a sentence there
-says so, the console shows no store contents.
+card is what the card contract exists to prevent. **What it may show is
+`plan.md` 4.3.1's display sentence** (`527376c3`): the generated wiki pages
+under `librarian_agent/kb/wiki/`, read as data and nothing else of the store.
+- A page is shown as it stands, and the console says so when `kb/index.json`
+  has moved past the version in the page's footer.
+- Entries, the query log and exports are not shown.
+- A link to an entry or a guide is shown as text and never followed.
+- Nothing shown is kept or lands on a card. A fact is cited by its entry,
+  never by a page.
+- What an account may ask of the store is only the three requests of
+  `plan.md` 7.1.1, and none reaches the librarian until that inbox is
+  approved and open.
 
 ## Tier 0 only
 
