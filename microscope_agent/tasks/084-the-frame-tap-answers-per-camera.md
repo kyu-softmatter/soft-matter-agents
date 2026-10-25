@@ -4,8 +4,10 @@ Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
 **Assigned to `microscope-office-20261017-1`, the runtime seat. Start after
 card 087**, which gates the console's approval writer and comes first
-(plan.md 15.1 item 4 at `0607b848`), **and after card 086's items 1 to 4**,
-the mock the console's screens are built against (the person, `5f88eab4`). If you are not that seat, take nothing
+(plan.md 15.1 item 4 at `0607b848`), **and after card 086's items 2 to 4**.
+Land it as a pair with card 086's item 1, the second mock camera: the two
+show nothing apart (the person, `5f88eab4`; the order agreed with
+architecture-office-20261017-1). If you are not that seat, take nothing
 from this card and report up.
 
 ## Why

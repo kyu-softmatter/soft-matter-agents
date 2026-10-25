@@ -3,11 +3,15 @@
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
 **Assigned to `microscope-office-20261017-1`, the runtime seat. It comes in
-two parts.**
+three parts**, in the order that shows the console's screens the most
+soonest. The person asked for the Instruments and Experiments screens on a
+mock first (`5f88eab4`), and the order is agreed with the runtime holder,
+architecture-office-20261017-1:
 
-- **Items 1 to 4 come second, right after card 087 and before 084.** The
-  person asked for the console's Instruments and Experiments screens on a
-  mock first (`5f88eab4`), and those screens run against this mock.
+- **Items 2 to 4 come second, right after card 087.** They reach the screens
+  at once through `events.jsonl`, which already exists.
+- **Item 1 lands as a pair with card 084.** A second camera's frames reach
+  the console only through 084's tap, so item 1 alone shows nothing.
 - **Item 5 comes after card 085**, because it exercises 085's check-now run.
 
 Each part is its own commit. If you are not that seat, take nothing from
@@ -52,7 +56,12 @@ view where they meet it:
    - It has **no read-back**, as on the instrument: a screen showing a trap
      position shows what was sent, and the mock must not make that look
      observed.
-   - A test shows that `read()` on it carries no position.
+   - Each echoed command carries the trap channel's `verification: none`,
+     exactly as the real driver's events do. The mock invents no read-back
+     anywhere, or screens built on it learn to show trap positions as
+     observed, and that habit carries over to the instrument.
+   - A test shows that `read()` on it carries no position, and that every
+     trap event in the log says `verification: none`.
 4. **The confocal elements.** The confocal unit's elements, as the registry
    lists them, are settable and readable on mock with the registry's names.
    Unknown elements refuse, as on any channel.
@@ -66,13 +75,13 @@ does not imply, as `FOCUS_Z_UM`'s does.
 
 ## Tests, each watched failing first
 
-1. A two-camera mock run: each camera's frames reach the run's sink under
-   that camera's name, and the two cameras' frames differ. When card 084
-   lands, its own test 1 adds that the tap returns each camera's frame.
+1. (With card 084.) A two-camera mock run: each camera's frames reach the
+   run's sink under that camera's name, the two cameras' frames differ, and
+   the tap returns each camera's own frame.
 2. A piezo move on mock: snapshots during the move lie between the start and
    the target, and are monotone along the path.
-3. A trap command on mock is logged as sent, and `read()` on the trap
-   channel carries no position.
+3. A trap command on mock is logged as sent with `verification: none`, and
+   `read()` on the trap channel carries no position.
 4. Each confocal element in the registry is settable and readable on mock,
    and an unknown one refuses.
 5. (Part two, after card 085.) A check-now run on mock, with a list in the

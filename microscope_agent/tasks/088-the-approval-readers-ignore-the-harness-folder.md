@@ -2,7 +2,7 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261017-1`, the runtime seat.** It is small and touches only `tests/`, so it may go between any two of cards 084 to 087, as its own commit. If you are not that seat, take nothing from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. It rides on card 087**, first in the order: it touches the same three readers, and the runtime holder asked that the two go together. It touches only `tests/`, as its own commit. If you are not that seat, take nothing from this card and report up.
 
 ## Why
 
