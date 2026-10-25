@@ -2,9 +2,16 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261017-1`, the runtime seat. Start after
-cards 084 and 085.** It builds on both, and like them it touches the mock
-backend. If you are not that seat, take nothing from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. It comes in
+two parts.**
+
+- **Items 1 to 4 come second, right after card 087 and before 084.** The
+  person asked for the console's Instruments and Experiments screens on a
+  mock first (`5f88eab4`), and those screens run against this mock.
+- **Item 5 comes after card 085**, because it exercises 085's check-now run.
+
+Each part is its own commit. If you are not that seat, take nothing from
+this card and report up.
 
 ## Why
 
@@ -59,16 +66,18 @@ does not imply, as `FOCUS_Z_UM`'s does.
 
 ## Tests, each watched failing first
 
-1. A two-camera mock run: the tap returns each camera's own frame, and the
-   two differ.
+1. A two-camera mock run: each camera's frames reach the run's sink under
+   that camera's name, and the two cameras' frames differ. When card 084
+   lands, its own test 1 adds that the tap returns each camera's frame.
 2. A piezo move on mock: snapshots during the move lie between the start and
    the target, and are monotone along the path.
 3. A trap command on mock is logged as sent, and `read()` on the trap
    channel carries no position.
 4. Each confocal element in the registry is settable and readable on mock,
    and an unknown one refuses.
-5. A check-now run on mock, with a list in the temp folder, opens, reads and
-   closes every listed channel, with zero `apply`.
+5. (Part two, after card 085.) A check-now run on mock, with a list in the
+   temp folder, opens, reads and closes every listed channel, with zero
+   `apply`.
 6. The existing suite is unchanged.
 
 ## Boundaries
