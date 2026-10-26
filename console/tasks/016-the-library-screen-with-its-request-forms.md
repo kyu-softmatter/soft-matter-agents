@@ -78,15 +78,24 @@ day:
    - When the map's `kb_version` is behind `kb/index.json`'s, say so, as for
      pages.
 
-3. **A window for writing a question: wait for the person.** The store's
-   manager is asking what it is:
-   - a search over the wiki;
-   - a question to the librarian answered with its sources, once the inbox
-     opens;
-   - card 010's question window placed in the Library.
+3. **A window for writing a question to the librarian**, answered with
+   the records it rests on. The person, at `52b839b0`
+   (Q-20261025-office-02):
 
-   Until a committed answer, the part shows that it is being decided. The
-   three store requests below are built as their own forms either way.
+   > 질문 2: (나) 사서에게 묻고 사서가 근거 기록을 밝혀 답하는 창으로 한다. 새 입구가 열린 뒤에 된다.
+
+   ("Question 2: (b) a window for asking the librarian, where the librarian
+   answers naming the records the answer rests on. It works after the new
+   inbox opens.")
+   - Build the window: a field for the question, Send, and a list for the
+     answers.
+   - **Until the console inbox opens it does nothing**, and says so. Send
+     writes no file and sends nothing.
+   - The item it will send is not among plan.md 7.1.1's three store
+     requests yet. Its kind, and the shape of its answer, are for
+     architecture-20261007-1 and manager-librarian, raised by this seat.
+     Invent no shape.
+   - The three store requests below are built as their own forms.
 
 ## What to do
 
