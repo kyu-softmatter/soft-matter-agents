@@ -382,6 +382,16 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
                              card.get("id"), "plan_approval", max_tier=2,
                              approval_file=_approval_file(card))
 
+    if is_console(plan.get("qid")):
+        # Another login's question (plan.md 15.1 item 5): no scope_approval is even looked at.
+        reasons.append(
+            f"{plan.get('qid')} is another login's question (the `c` in its id). It waits for the "
+            "person's own OK at every tier: only a plan_approval naming this plan's id, revision and "
+            "hash covers it, and a scope_approval never does"
+        )
+        reasons.append(f"no plan_approval on disk names ({plan_id}, revision {revision})")
+        return Authorisation(False, reasons)
+
     irreversible = [a for a in plan.get("actions", []) if a.get("reversible") is False]
     if irreversible:
         reasons.append(
@@ -404,6 +414,126 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
 
     reasons.append(f"no plan_approval on disk names ({plan_id}, revision {revision})")
     return Authorisation(False, reasons)
+
+
+#: A question id the console minted (plan.md 7.1.1 rule 9): `<agent>-<YYYYMMDD>-c<NNN>`. The runtime
+#: keys on this mark alone -- never on what the plan says about who asked, never on the console's
+#: settings -- and in the first build every console question is another login's (plan.md 15.1 item 5).
+CONSOLE_QID = re.compile(r"-c[0-9]{3}$")
+CONSOLE_ITEM_NAME = re.compile(r"^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}[.]json$")
+
+
+def is_console(qid) -> bool:
+    """Whether a question id carries the console's mark. An absent id is the window form, as before."""
+    return qid is not None and bool(CONSOLE_QID.search(str(qid)))
+
+
+def console_inbox(agent: Path | None = None) -> Path:
+    """Where the console's items are read: beside the design's folder, in the root of whichever tree."""
+    return (Path(agent) if agent is not None else AGENT).parent / "microscope_agent" / "console_inbox"
+
+
+def _where(path: Path) -> str:
+    """A path as the run log names it: repo-relative where it can be."""
+    try:
+        return path.relative_to(REPO).as_posix()
+    except ValueError:                                          # a scratch root, outside the tree
+        return path.as_posix()
+
+
+def read_console_item(qid: str, inbox: Path) -> dict:
+    """The inbox item that asked this question, read to confirm it (card 089).
+
+    Every way of not finding exactly one readable item refuses: no folder (the inbox is not open),
+    no item with this question_id, more than one, an item that cannot be read or parsed -- since
+    then nobody can say it was not this question's -- and an attachment that cannot be read or
+    whose bytes do not have the sha256 the item names. Ambiguity stops (P0). The item's own
+    `asker_mark` is not read: whose question it is was decided by the `c` in the id.
+
+    Returns what the run log's `console_item` carries: the item's path and the sha256 of the bytes
+    that were parsed, so an item changed after the run leaves a trace.
+    """
+    inbox = Path(inbox)
+    if not inbox.is_dir():
+        raise Refusal(
+            f"{qid} is a console question and {_where(inbox)} does not exist, so the item that asked "
+            "it cannot be read. The inbox is not open; a console plan does not run until it is, even "
+            "under an approval")
+    found, unreadable = [], []
+    for path in sorted(inbox.iterdir()):
+        if not CONSOLE_ITEM_NAME.match(path.name):
+            continue                                            # attachments carry `--<name>`; read below
+        try:
+            raw = path.read_bytes()
+            item = json.loads(raw)
+        except (OSError, ValueError) as exc:
+            unreadable.append(f"{path.name} ({type(exc).__name__})")
+            continue
+        if isinstance(item, dict) and item.get("question_id") == qid:
+            found.append((path, raw, item))
+    if unreadable:
+        raise Refusal(
+            f"{qid} is a console question and the console inbox holds items that cannot be read: "
+            f"{', '.join(unreadable)}. Any of them could be the one that asked it, so the run does "
+            "not start until they read")
+    if len(found) != 1:
+        raise Refusal(
+            f"{qid} is a console question and the console inbox holds {len(found)} items with that "
+            f"question_id{': ' + ', '.join(p.name for p, _, _ in found) if found else ''}. Exactly one "
+            "item asks a question; with none there is nothing to confirm and with more nobody can "
+            "say which one this plan answers")
+    path, raw, item = found[0]
+    if path.name != f"{item.get('item_id')}.json":
+        raise Refusal(f"{path.name} carries item_id {item.get('item_id')!r}; an item's file is named by its id")
+    attachments = []
+    for att in item.get("attachments") or []:
+        name = str((att or {}).get("file") or "")
+        if not name or Path(name).name != name:
+            raise Refusal(f"{path.name} names an attachment {name!r}, which is not a plain file name beside it")
+        try:
+            got = hashlib.sha256((inbox / name).read_bytes()).hexdigest()
+        except OSError as exc:
+            raise Refusal(f"{path.name} names the attachment {name}, which cannot be read "
+                          f"({type(exc).__name__})") from exc
+        if got != att.get("sha256"):
+            raise Refusal(f"{path.name} names the attachment {name} with sha256 {att.get('sha256')} and its "
+                          f"bytes hash to {got}. The file is not the one that was asked with")
+        attachments.append({"file": name, "sha256": got})
+    return {"path": _where(path), "sha256": hashlib.sha256(raw).hexdigest(),
+            "item_id": item.get("item_id"), "question_id": qid, "attachments": attachments}
+
+
+def plan_path_of(plan_path: Path) -> str:
+    """The plan file a run opened, as its log names it: repo-relative with forward slashes (card 089).
+
+    Check 91 finds a run's question through this path, so a backslash here names no card. A plan
+    outside the repository (a scratch root, in a test) is named by its absolute path in forward
+    slashes, which joined to the repository root is still that file.
+    """
+    return _where(Path(plan_path).resolve())
+
+
+def console_gate(plan: dict, decision: Authorisation, agent: Path | None = None) -> dict | None:
+    """Another login's question runs only under an exact plan_approval and a readable item (card 089).
+
+    None for a window question, which stays under the tier table unchanged. Refuses before anything
+    is built, so no command is sent and no run folder exists.
+    """
+    qid = plan.get("qid")
+    if not is_console(qid):
+        return None
+    if not (decision.permitted and decision.kind == "plan_approval"):
+        raise Refusal(
+            f"plan {plan.get('id')} answers {qid}, another login's question (the `c` in its id), and "
+            "another login's question waits for the person's own OK at every tier, Tier 0 included: "
+            "only a plan_approval naming this plan's id, revision and hash covers it, and a "
+            "scope_approval never does. " + "; ".join(decision.reasons))
+    try:
+        return read_console_item(qid, console_inbox(agent))
+    except Refusal as exc:
+        # Whichever way the confirming read failed, the reason names the question and the rule.
+        raise Refusal(f"plan {plan.get('id')} answers {qid}, another login's question, and the item that "
+                      f"asked it cannot be confirmed (it is read before the run, never after): {exc}") from None
 
 
 def highest_tier(plan: dict) -> int:
@@ -1354,6 +1484,9 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     # The approvals are read ONCE here: the file the log names is the file this decision judged.
     decision = (authorise(plan) if root is None and approvals_dir is None
                 else authorise(plan, approvals_on_disk(agent, approvals_dir)))
+    # ANOTHER LOGIN'S QUESTION is judged first and before anything else is looked at (card 089).
+    console_item = console_gate(plan, decision, agent)
+    plan_file = plan_path_of(plan_path)
     tier = highest_tier(plan)
     if "trap_steps" in plan and not decision.permitted:
         # Trap motion is motion, whatever tier its actions carry (check 85).
@@ -1433,7 +1566,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                 o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent, approvals_dir))
             record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
                                tweezers_link, safety, decision, monitors, commands,
-                               agent=None if root is None else agent, mm_load=mm_load)
+                               agent=None if root is None else agent, mm_load=mm_load,
+                               console_item=console_item, plan_file=plan_file)
             monitor_abort, failed = record.pop("_monitor_abort"), record.pop("_failed")
             how = ("stopped_from_outside" if getattr(o, "stopped_from_outside", False)
                    else "aborted_by_monitor" if monitor_abort
@@ -1456,7 +1590,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
             if folder is not None:
                 o.end_run(how)
                 if refusal is not None:
-                    write_run(_refused_record(o, plan, run_id, decision, safety, refusal),
+                    write_run(_refused_record(o, plan, run_id, decision, safety, refusal, console_item, plan_file),
                               runs_root=folder.parent)
     finally:
         lock.release()
@@ -1467,12 +1601,15 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
 _SENT_EVENTS = frozenset({"apply", "apply_failed", "dispatch", "focus_search_readback"})
 
 
-def _refused_record(o, plan: dict, run_id: str, decision, safety: dict, refusal: str) -> dict:
+def _refused_record(o, plan: dict, run_id: str, decision, safety: dict, refusal: str,
+                    console_item: dict | None = None, plan_file: str | None = None) -> dict:
     """The log of a run refused inside operator.run, before anything went out (card 065)."""
     return {
         "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
         "plan_id": plan.get("id"), "revision": plan.get("revision"),
         "approval": approval_block(decision),
+        **({"plan_path": plan_file} if plan_file else {}),
+        **({"console_item": console_item} if console_item else {}),
         "safety_policy_version": safety.get("policy_version"),
         "stop_criteria": [c.get("id") for c in plan.get("stop_criteria") or []],
         **o.log_header(), "events": o.log,
@@ -1516,7 +1653,8 @@ def _load_mm_config(o, checked: dict, folder: Path, config_loader=None) -> dict:
 
 def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_person,
               tweezers_link, safety: dict, decision, monitors, commands,
-              agent: Path | None = None, mm_load=None) -> dict:
+              agent: Path | None = None, mm_load=None, console_item: dict | None = None,
+              plan_file: str | None = None) -> dict:
     """run()'s body from the hand-over on, so run() can close the stream however it ends."""
     # The approved configuration is loaded first, and its event is the first thing the run
     # records: before the hand-over, before any preflight or focus read, so nothing is asked of
@@ -1549,6 +1687,10 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
         "plan_id": plan.get("id"),
         "revision": plan.get("revision"),
         "approval": approval_block(decision),
+        # The inbox item that asked another login's question, read before the run (card 089):
+        # present for such a plan only, since the record's schema has no null for it.
+        **({"plan_path": plan_file} if plan_file else {}),
+        **({"console_item": console_item} if console_item else {}),
         # envelope_safety.schema.json calls it `policy_version`, and this read
         # `version` -- a key no envelope has ever carried -- so every run would
         # have recorded null for the one field that says which ceilings it ran
@@ -2049,6 +2191,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  approval {record['approval']['id']}: {file['path']} sha256 {file['sha256']}"
               + (f", signed through the console under login {file['signed_through']['login']}"
                  if file.get("signed_through") else ""))
+    if record.get("console_item"):
+        item = record["console_item"]
+        print(f"  console item {item['item_id']} for {item['question_id']}: {item['path']} sha256 {item['sha256']}")
     refused = [e for e in record["events"] if e["event"] == "apply_failed"]
     for event in record["events"]:
         line = f"  {event['t_mono']:>9.3f}s {event['event']}"
