@@ -12,3 +12,9 @@ microscope_agent/autofocus/configs/micromanager/*.cfg -text
 # No end-of-line conversion for any of them, so disk bytes equal committed bytes.
 microscope_runtime/approvals/** -text
 microscope_runtime/envelope/safety.json -text
+
+# The console inbox (plan.md 7.1.1). A run log holds console_item.sha256 to the
+# bytes of the item as the runner read them, and attachments are hashed too, so
+# a checkout under core.autocrlf true must not rewrite line endings: disk bytes
+# equal committed bytes, as for the approvals above. At any depth.
+**/console_inbox/** -text
