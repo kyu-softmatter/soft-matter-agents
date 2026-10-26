@@ -64,25 +64,45 @@ view where they meet it:
    - A test shows that `read()` on it carries no position, and that every
      trap event in the log says `verification: none`.
 4. **The confocal elements.** The confocal unit's elements, as the registry
-   lists them, are settable and readable on mock with the registry's names.
-   Unknown elements refuse, as on any channel.
+   lists them, are readable on mock with the registry's names.
+   - The ones in `micromanager.NAMED_REFUSALS` (CSUW1-Filter_Red and _Blue,
+     CSUW1-Dichroic, CSUW1-Port, CSUW1-Bright, CSUW1-Shutter) are state the
+     mock reports. A test-only parameter sets them, standing for the
+     person's hand, as item 7 sets connection states.
+   - A plan that commands one is refused on mock with the instrument's own
+     refusal, because `check_software_motion` loads that one list on every
+     backend.
+   - Unknown elements refuse, as on any channel.
 5. **The check-now list, on mock.** A mock registry channel set that a
    check-now list in a test's temp folder can name, so the console's "check
    now" can be exercised end to end on mock. Card 085's run does the work;
    this card adds only what the mock needs for it.
 6. **The optical path's elements** (added for the person's Instruments page,
    `1641323a`).
-   - The registry's light-path selectors are settable and readable on mock,
-     by the registry's names: the filter turret, the two emission wheels,
-     the port/splitter and the confocal dichroic turret.
-   - They are set only by a run's `apply`, derived from a plan like every
-     other command. "Control" from the console's optical-path page is a
-     drafted plan run on mock, never a set-point path (hand control is
-     deferred, Q-20261022-office-07).
-   - The orchestrator's ordering interlocks apply on mock exactly as on the
-     instrument: Z retracts before a turret rotates, and PFS is disabled
-     across a path change. The mock reports the order back so a test can
-     see it.
+   - The registry's light-path selectors are readable on mock, by the
+     registry's names: the filter turrets, the two emission wheels, the
+     LightPath and port, and the confocal dichroic.
+   - **None of them can be set by a plan, on mock or on the instrument.**
+     All are in `micromanager.NAMED_REFUSALS` or are moved by hand, and
+     `orchestrator.check_software_motion` loads that list on every backend,
+     so a plan refuses on mock exactly as on the instrument. On the mock
+     they are state it reports, set by a test-only parameter standing for
+     the person's hand. They are never set by `apply` (ruled by
+     architecture-office-20261017-1, 2026-10-25).
+   - "Control" from the console's optical-path page is a drafted plan run on
+     mock, never a set-point path, since hand control is deferred
+     (Q-20261022-office-07). A draft can change only what
+     `SOFTWARE_MAY_COMMAND` allows: Aura, the DiaLamp's State and Intensity,
+     and Kinetix_red, with the Core roles pinned. A draft touching any
+     light-path element is refused with the instrument's refusal, and the
+     mock's state does not change.
+   - If the person ever opens one of these elements to software, as the
+     trap-step and focus-search exemptions opened theirs, this item changes
+     then, by a plan exemption written into the design first.
+   - The orchestrator's ordering interlocks (Z retracts before a turret
+     rotates, PFS disabled across a path change) are tested at the
+     orchestrator level, not through a page: no plan can reach them while
+     the Nosepiece and PFS are refused.
    - The registry's known traps stay visible: the turret label that names
      the wrong position, and the splitter states that send no light to one
      camera. A position read back from the mock is the mock's, and does not
@@ -106,14 +126,18 @@ does not imply, as `FOCUS_Z_UM`'s does.
    the target, and are monotone along the path.
 3. A trap command on mock is logged as sent with `verification: none`, and
    `read()` on the trap channel carries no position.
-4. Each confocal element in the registry is settable and readable on mock,
-   and an unknown one refuses.
+4. Each confocal element in the registry is readable on mock. Setting one
+   by the test-only parameter changes what the mock reports. A plan
+   commanding a refused one is refused on mock with the instrument's
+   refusal, the state unchanged. An unknown one refuses.
 5. (Part two, after card 085.) A check-now run on mock, with a list in the
    temp folder, opens, reads and closes every listed channel, with zero
    `apply`.
-6. An optical-path change in a mock plan: each element reads back what was
-   applied, a turret change on mock retracts Z first and the log shows that
-   order, and an unknown element refuses.
+6. A mock plan touching any light-path element is refused before any
+   command, with the same refusal the instrument gives, and the mock's state
+   is unchanged. A plan using only what SOFTWARE_MAY_COMMAND allows runs. At
+   the orchestrator level, an interlock test shows Z retracting before a
+   turret rotates and PFS disabled across a path change.
 7. With channels set answering, absent and busy, a mock plan run writes a
    status file that validates and shows each state, and no absent or busy
    channel carries a value.
