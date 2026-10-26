@@ -20,9 +20,17 @@ rule 9; task 028). This builds plans in a temporary tree, runs them through
    as a window question, and whose item is marked as the person's own, is
    still refused without an approval.
 
+Task 029 adds what check 91 reads: test 1's log carries the item at its top
+level, equal to the gate event's copy, and validates against
+run_log.schema.json; tests 4 and 5's window logs carry no `console_item` key
+anywhere; and 7, an item under the real `simulation_agent/console_inbox/` is
+recorded with a repo-relative, slash-separated path (the folder is not
+created).
+
     PYTHONUTF8=1 python -m src.check_other_login_refusal      # from simulation_agent/
 
-It needs numpy and not `contracts`. Approvals, console inbox, runs, envelope
+It needs numpy, and jsonschema with referencing for test 1's schema check,
+and not `contracts`. Approvals, console inbox, runs, envelope
 and the question's directory are all in a temporary folder; the template plan
 and the budget are read from this tree and never written. It ends by showing
 that `git status --short -- simulation_agent` did not change. Exit 0 when every
@@ -57,7 +65,8 @@ except ImportError:
     _stub.getrusage = lambda who: types.SimpleNamespace(ru_maxrss=0)
     sys.modules["resource"] = _stub
 
-REAL_REPO = cards.REPO
+REAL_REPO, REAL_AGENT = cards.REPO, cards.AGENT
+REAL_INBOX = operator.CONSOLE_INBOX           # as imported, before any case points it into a temp tree
 TEMPLATE = cards.AGENT / "questions" / "sim-20260917-001" / "v3_plan_simulation_sim-20260917-001.json"
 BUDGET = cards.AGENT / "envelope" / "budget.json"
 CONSOLE_QID = "sim-20261024-c001"
@@ -192,6 +201,25 @@ def gate_event(log: dict) -> dict:
     return next(e for e in log["events"] if e["event"] == "gate")
 
 
+def no_console_item(log: dict) -> None:
+    """A window run's log carries no console_item key, at the top or in the gate event (task 029)."""
+    assert "console_item" not in log, f"a window run's log.json carries console_item: {log['console_item']!r}"
+    assert "console_item" not in gate_event(log), "a window run's gate event carries console_item"
+
+
+def run_log_errors(log: dict) -> list[str]:
+    """What run_log.schema.json says against `log`, read from this tree's contracts/ and never written."""
+    import jsonschema
+    from referencing import Registry, Resource
+    schemas = cards.CONTRACTS / "schemas"
+    registry = Registry().with_resources(
+        (p.name, Resource.from_contents(json.loads(p.read_text(encoding="utf-8"))))
+        for p in schemas.glob("*.schema.json"))
+    schema = json.loads((schemas / "run_log.schema.json").read_text(encoding="utf-8"))
+    validator = jsonschema.Draft202012Validator(schema, registry=registry)
+    return [f"/{'/'.join(map(str, e.absolute_path))}: {e.message}" for e in validator.iter_errors(log)]
+
+
 def test1(tmp: Path) -> str:
     agent = sandbox(tmp, "t1")
     plan = make_plan(CONSOLE_QID, tier=2)
@@ -204,7 +232,12 @@ def test1(tmp: Path) -> str:
     f = log["approval"].get("file") or {}
     assert f.get("path", "").endswith(f"approvals/{a.name}") and f.get("sha256") == sha(a), \
         f"the log does not name the approval file by path and sha256: {log['approval']}"
-    return "1: console plan, exact plan_approval, readable item: ran as a smoke run; log names the item and the approval file"
+    assert log.get("console_item") == got, \
+        f"log.json's top-level console_item is not the gate event's: {log.get('console_item')!r}"
+    errors = run_log_errors(log)
+    assert not errors, f"log.json does not validate against run_log.schema.json: {errors}"
+    return ("1: console plan, exact plan_approval, readable item: ran as a smoke run; log names the item "
+            "at its top level and in the gate event, and the approval file; the log validates")
 
 
 def test2(tmp: Path) -> str:
@@ -247,22 +280,26 @@ def test4(tmp: Path) -> str:
     scope(agent, WINDOW_QID)
     log = log_of(runs_it(WINDOW_QID))
     assert log["approval"]["kind"] == "scope_approval", log["approval"]
+    no_console_item(log)
     sandbox(tmp, "t4c")
     make_plan(WINDOW_QID, tier=1)
     log = log_of(runs_it(WINDOW_QID))
     assert log["approval"] == {"id": None, "kind": None}, log["approval"]
-    assert "console_item" not in gate_event(log)
+    no_console_item(log)
     return "4: window plan as before: Tier 2 refused with none, ran under a scope_approval, ran autonomously at Tier 1"
 
 
 def test5(tmp: Path) -> str:
     agent = sandbox(tmp, "t5a")
     approve(agent, make_plan(WINDOW_QID, tier=2))
-    assert log_of(runs_it(WINDOW_QID))["approval"]["kind"] == "plan_approval"
+    log = log_of(runs_it(WINDOW_QID))
+    assert log["approval"]["kind"] == "plan_approval"
+    no_console_item(log)
     agent = sandbox(tmp, "t5b")
     approve(agent, make_plan(WINDOW_QID, tier=2, arms=True))
     log = log_of(runs_it(WINDOW_QID, arm="b", budget=operator.FULL))
     assert log["approval"]["kind"] == "plan_approval" and gate_event(log)["compare_arm"] == "b"
+    no_console_item(log)
     return "5: window Tier 2 plan with a correct plan_approval ran as a smoke run and as arm b"
 
 
@@ -274,6 +311,20 @@ def test6(tmp: Path) -> str:
     return "6: only the qid carries the c, the item says persons_own: still refused without an approval"
 
 
+def test7(tmp: Path) -> str:
+    """The record's path for an item in the real inbox is repo-relative, with forward slashes.
+
+    Check 91 compares it with the item's own path in the tree. The folder is
+    not created: `_where` only spells the path.
+    """
+    cards.REPO, cards.AGENT = REAL_REPO, REAL_AGENT
+    item = REAL_INBOX / f"{ITEM_ID}.json"
+    got = operator._where(item)
+    want = f"simulation_agent/console_inbox/{ITEM_ID}.json"
+    assert got == want, f"an item in the real inbox is recorded as {got!r}, not {want!r}"
+    return f"7: an item in the real inbox is recorded as {got}"
+
+
 def main() -> int:
     before = git_status()
     # getattr, so the same script can be run against the operator from before task 028, which has no inbox
@@ -282,7 +333,7 @@ def main() -> int:
     failed = 0
     with tempfile.TemporaryDirectory() as t:
         try:
-            for test in (test1, test2, test3, test4, test5, test6):
+            for test in (test1, test2, test3, test4, test5, test6, test7):
                 try:
                     print("PASS", test(Path(t)))
                 except AssertionError as exc:

@@ -1345,6 +1345,11 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         # naming the resolved path would say it directly and is the manager's.
         "revision": revision,
         "approval": approval,
+        # The inbox item a console run read, as read_console_item returned it
+        # (task 029). Check 91 judges this top-level copy and not the gate
+        # event's. The schema closes it, so a window run carries no key at
+        # all, not a null.
+        **({"console_item": console_item} if console_item else {}),
         # The field is named in run_log.schema.json and the value now comes out of
         # envelope/budget.json, so the name says `safety` about a file that is
         # deliberately not one. Renaming it is the manager's and would strand the
