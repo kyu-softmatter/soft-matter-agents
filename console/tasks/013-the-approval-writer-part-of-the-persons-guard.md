@@ -26,26 +26,44 @@ the runtime's half: one folder and one reader, the login checked against the
 person's own file, and no fallback. The mark's shape landed at `e2f5b08b`.
 Card 011's dialog is the screen this writer serves.
 
-## Until the runtime's own checks land: a test root only
+## Where it writes: the person's approvals folder (revised 2026-10-26)
 
-Revised the same day, after architecture-office-20261017-1 wrote one order
-into plan.md 15.1 item 4 (`0607b848`):
-- The console's refusals below are the first guard.
-- The runtime reader's three checks are the second. They are card 087,
-  committed at `4e61cf96` and not yet in `operator.py`.
-- Until 087 lands, the operator would accept a console-written file on the
-  console's checks alone.
+On 2026-10-24 this card wrote only into a test root (`d4ec508f`). The
+reason was plan.md 15.1 item 4 (`0607b848`): until card 087 landed, the
+operator would have accepted a console-written file on the console's checks
+alone.
+
+**Card 087 landed at `549867d2`, and 088 at `78574ee7`.** The operator now
+does three things for a file that carries the console's mark:
+- it checks the mark;
+- it reads the person's own login from `envelope/console_login.json`,
+  beside the folder the approval was read from;
+- it compares the two byte for byte, and refuses when the file is missing
+  or invalid.
+
+That meets item 4's condition for the real folder. The writer is not built
+yet, so it is built once, writing where the person said at `b4f340ee`: into
+their approvals folder. Nothing that exists changes, so this needs no
+further word from the person. Any change after it lands still does.
 
 So:
-- **The writer's target folder is a setting whose default is none, and
-  with none it refuses**: "signing into the approvals folder waits for the
-  runtime's own checks".
-- It writes only into a folder named explicitly in a test, or in the mock
-  stage's scratch root. **Never into `microscope_runtime/approvals/`** in
-  this card.
-- Pointing it at the real folder is a later card, after card 087 lands. It
-  is a change to this module, so it needs the person's word the same way.
-- Every rule below still holds, inside whatever folder is configured.
+- **The one target is `<tree>/microscope_runtime/approvals/`**, where
+  `<tree>` is the root the console's real store reads.
+  - There is no target setting and no fallback.
+  - It never writes into the old `microscope_agent/approvals/`.
+  - Against a scratch copy (card 063's form), it writes into that copy's
+    folder and nowhere else.
+- **Under the mock store it writes nothing**, as before.
+- **Practice on the runtime's mock** (card 087 item 5):
+  - The console, run against a scratch copy, writes into that copy's
+    approvals folder.
+  - A mock run started with
+    `--approvals <copy>/microscope_runtime/approvals` reads it. Every
+    backend but the mock refuses that option.
+  - The runtime takes the login from
+    `<copy>/microscope_runtime/envelope/console_login.json`.
+  - Whoever sets up the copy places that file. The console never writes it.
+- Every rule below holds.
 
 ## What to do
 
@@ -69,10 +87,18 @@ So:
    - The plan's fingerprint, recomputed from the plan card on disk by
      `card_sha`'s rule, equals the fingerprint the screen showed and sent.
      Otherwise "the plan changed; review it again".
-   - The configured target folder is set and exists. Default none means
-     refuse. When the real folder is allowed later, it is
-     `microscope_runtime/approvals/` only, with no fallback to the old
-     place.
+   - `<tree>/microscope_runtime/approvals/` exists. Otherwise "your
+     approvals folder is not there", and it creates nothing.
+   - **The person's login file** is in place and agrees with the session:
+     - `<tree>/microscope_runtime/envelope/console_login.json` exists;
+     - it is valid against `contracts/schemas/console_login.schema.json`,
+       read from the repository;
+     - its `login` equals the session's login, byte for byte.
+
+     Otherwise refuse, because the runtime would refuse the approval for
+     the same reason. Say which: "your own login file, placed by hand
+     beside the safety policy, is missing", "is not valid" or "names
+     another login". The console reads that file and never writes it.
    - No approval file of that name is there yet. Otherwise "already
      approved".
 3. **What it writes**: one plan approval.
@@ -83,7 +109,9 @@ So:
    - `approved_by` is the login, and `approved_at` is UTC now. Add
      `signed_through: {"via": "console", "login": <login>}`. Nothing else
      beyond the schema's own fields.
-   - Written whole to a temporary name in that folder, then renamed. Never
+   - Written whole to a temporary name in that folder, then renamed. The
+     temporary name does not end in `.json`, because the runtime reads
+     every `*.json` there and must never read a half-written file. Never
      rewritten, and nothing else in the folder is touched.
 4. **After writing**, the screen says: written; the runtime reads it from
    disk now; commit it yourself when you choose. No seat may commit a file
@@ -97,10 +125,15 @@ So:
    - refuses under the mock store, and a practice or test login;
    - refuses a wrong password, throttled;
    - refuses a changed plan, by fingerprint;
-   - refuses when no target folder is configured, which is the default;
-   - refuses a configured folder that does not exist;
-   - never writes into `microscope_runtime/approvals/`, even when it
-     exists;
+   - refuses when the tree has no `microscope_runtime/approvals/`, and
+     creates none;
+   - refuses a missing login file, an invalid one, and one that names
+     another login;
+   - writes only into the test tree's `microscope_runtime/approvals/`:
+     nothing lands in that tree's old `microscope_agent/approvals/`, and the
+     repository's own `microscope_runtime/approvals/` is unchanged after the
+     whole suite, compared by listing and by hashes;
+   - the temporary file's name does not end in `.json`;
    - refuses an existing file of that name;
    - on success, exactly one file, valid against the schema, carrying the
      mark, with nothing written outside that folder;
@@ -108,8 +141,8 @@ So:
 
 ## What not to do
 
-- Write nothing else into `microscope_runtime/` or any agent's folder, and
-  never commit an approval.
+- Write nothing else into `microscope_runtime/` or any agent's folder.
+  Never write the login file, and never commit an approval.
 - Change nothing in the runtime. Its reader is card 087's, in the runtime
   seat's hands.
 - No change to this module after it lands without the person's word, asked

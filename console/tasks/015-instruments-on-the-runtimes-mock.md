@@ -86,10 +86,12 @@ From the runtime holder, the same day:
   the objective, the condenser, the light path, the CSU-W1 and the Spectra
   III stay "moved by hand" on the mock pages too. The mock may show their
   state, labelled as the mock's, but the page never offers to change them.
-- **Signing on the mock** goes through card 013's writer into the
-  configured test folder, never `microscope_runtime/approvals/`. If the
-  runtime's mock run cannot yet read approvals from that folder, the page
-  says so, and that point goes to manager-microscope.
+- **Signing on the mock** goes through card 013's writer, as revised on
+  2026-10-26. The console, run against a scratch copy, writes into that
+  copy's `microscope_runtime/approvals/`. A mock run started with
+  `--approvals` on that folder reads it (card 087 item 5, landed at
+  `549867d2`). This changes nothing in this card's build: until 013
+  lands, signing reads "not built yet".
 - **The connection-state page reads the last run's `events.jsonl` now**,
   and card 085's status file once it lands.
 
