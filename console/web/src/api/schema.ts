@@ -643,7 +643,9 @@ export interface paths {
         /**
          * Run Frame
          * @description The run's latest frame from its frame tap, which hands over a copy and commands
-         *     nothing; the console opens no camera of its own (OD-13).
+         *     nothing; the console opens no camera of its own (OD-13). A frame is the person's to see:
+         *     any other login is refused here, before the tap is asked or the run is looked at
+         *     (logged out and locked are refused for every route before this one is reached).
          */
         get: operations["run_frame_api_console_runs__agent___run_id__frame_get"];
         put?: never;
@@ -4357,6 +4359,20 @@ export interface operations {
             };
             /** @description no frame yet: the run has acquired nothing */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description logged out */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description not the person's login, or no login is named as the person's */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

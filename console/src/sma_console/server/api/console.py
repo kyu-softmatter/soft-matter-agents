@@ -545,12 +545,23 @@ def run_stream(agent: AgentName, run_id: str, store: AgentStoreDep,
                      "description": "the run's latest frame, binned and JPEG'd; header "
                                     "X-DinoAF-Frame holds its metadata as JSON"},
                204: {"description": "no frame yet: the run has acquired nothing"},
+               401: {"description": "logged out"},
+               403: {"description": "not the person's login, or no login is named as the person's"},
                409: {"description": "not followed, ended, or no frame tap"},
                502: {"description": "the frame tap did not answer"}},
 )
-def run_frame(agent: AgentName, run_id: str, store: AgentStoreDep) -> Response:
+def run_frame(agent: AgentName, run_id: str, store: AgentStoreDep, me: Login,
+              seat: Auth) -> Response:
     """The run's latest frame from its frame tap, which hands over a copy and commands
-    nothing; the console opens no camera of its own (OD-13)."""
+    nothing; the console opens no camera of its own (OD-13). A frame is the person's to see:
+    any other login is refused here, before the tap is asked or the run is looked at
+    (logged out and locked are refused for every route before this one is reached)."""
+    state = _signing_state(store, me, seat)
+    if not state.person_named:
+        raise Refusal(403, "person_not_named",
+                      "The person's login is not named yet, so no one is shown the camera.").http()
+    if not state.is_person:
+        raise Refusal(403, "not_person", "Only the person's own login is shown the camera.").http()
     st = _stream(store, agent, run_id)
     try:
         got = sma_run.latest_frame(st)

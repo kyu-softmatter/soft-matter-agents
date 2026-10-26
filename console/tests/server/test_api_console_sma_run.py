@@ -8,7 +8,7 @@ import json
 
 import numpy as np
 import pytest
-from server_fakes import OPERATOR, VIEWER
+from server_fakes import OPERATOR, OPERATOR2, VIEWER
 from sma_fake_run import FakeSmaRun, sma_tree, tree_state
 
 from sma_console.agents import SmaFiles
@@ -38,6 +38,12 @@ def run(root):
 @pytest.fixture
 def client(engine, make_client, root):
     return lambda **kw: make_client(engine, agent_store=SmaFiles(root), **kw)
+
+
+def settle(seat, **settings) -> None:
+    folder = seat.accounts.config_dir
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "settings.json").write_text(json.dumps(settings), encoding="utf-8")
 
 
 def base(run) -> str:
@@ -113,7 +119,8 @@ def test_stop_after_the_end_and_simulation(client, run):
     assert refusal(r) == (409, "not_followed")
 
 
-def test_frame_none_then_jpeg(client, run):
+def test_frame_none_then_jpeg(client, run, seat):
+    settle(seat, person_login=OPERATOR)
     c = client()
     assert c.get(f"{base(run)}/frame").status_code == 204
     run.put((np.arange(300 * 200, dtype=np.uint16) % 1000).reshape(200, 300), {"camera": "c1"}, 3.0)
@@ -124,15 +131,17 @@ def test_frame_none_then_jpeg(client, run):
     assert head["shape"] == [200, 300] and head["t_mono"] == 3.0
 
 
-def test_frame_after_end_is_refused(client, run):
+def test_frame_after_end_is_refused(client, run, seat):
+    settle(seat, person_login=OPERATOR)
     c = client()
     run.end()
     assert refusal(c.get(f"{base(run)}/frame")) == (409, "run_ended")
 
 
-def test_viewing_sends_no_stop_and_writes_nothing(client, run, root):
+def test_viewing_sends_no_stop_and_writes_nothing(client, run, root, seat):
     """OD-30 and the one-way rule: polling and frames, then the viewer leaves; no stop, and
     no file in the soft-matter-agents tree changes."""
+    settle(seat, person_login=OPERATOR)
     before = tree_state(root)
     c = client()
     for _ in range(3):
@@ -141,3 +150,39 @@ def test_viewing_sends_no_stop_and_writes_nothing(client, run, root):
     c.close()
     assert run.stop_server.connections == 0
     assert tree_state(root) == before
+
+
+def test_frame_is_the_persons_login_only_and_the_tap_is_not_asked_otherwise(client, run, seat):
+    """A gate in the web alone is not a guard: the server refuses before the tap is asked."""
+    run.put(np.zeros((20, 30), dtype=np.uint16), {"camera": "c1"}, 1.0)
+    settle(seat, person_login=OPERATOR)
+    other = client(login=OPERATOR2)
+    r = other.get(f"{base(run)}/frame")
+    assert refusal(r) == (403, "not_person")
+    assert "person" in r.json()["detail"]["message"]
+    assert run.tap_server.connections == 0
+    assert client(login=OPERATOR).get(f"{base(run)}/frame").status_code == 200
+    assert run.tap_server.connections == 1
+
+
+def test_frame_is_refused_when_no_login_is_named_the_person(client, run, seat):
+    run.put(np.zeros((20, 30), dtype=np.uint16), {"camera": "c1"}, 1.0)
+    r = client().get(f"{base(run)}/frame")
+    assert refusal(r) == (403, "person_not_named")
+    assert "not named" in r.json()["detail"]["message"]
+    assert run.tap_server.connections == 0
+
+
+def test_frame_is_refused_logged_out(client, run, seat):
+    settle(seat, person_login=OPERATOR)
+    for anon in (client(login=None), client(remote=True, remote_view=True, login=None)):
+        assert refusal(anon.get(f"{base(run)}/frame")) == (401, "login_required")
+    assert run.tap_server.connections == 0
+
+
+def test_the_gate_comes_before_the_run_is_looked_at(client, run, seat):
+    """A second login learns nothing about a run, not even that it has ended."""
+    settle(seat, person_login=OPERATOR)
+    run.end()
+    assert refusal(client(login=OPERATOR2).get(f"{base(run)}/frame")) == (403, "not_person")
+    assert refusal(client(login=OPERATOR2).get(f"/api/console/runs/microscope/nope/frame")) == (403, "not_person")
