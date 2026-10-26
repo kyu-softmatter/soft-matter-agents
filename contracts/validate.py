@@ -1810,7 +1810,7 @@ ALLOWED_PATHS = [
     # as a prefix: a folder per section made every page depth 5, which 7.1
     # rule 6 refuses inside an agent tree (check 13) -- found by
     # librarian-20261007-1 rendering the first 87 pages, 2026-10-18.
-    r"^librarian_agent/kb/wiki/(index\.md|unfiled\.md|evidence\.md|map\.json|"
+    r"^librarian_agent/kb/wiki/(index\.md|unfiled\.md|evidence\.md|map\.md|map\.json|"
     r"(device|quantity|observable|sample|configuration)_[a-z0-9_]+\.md)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",

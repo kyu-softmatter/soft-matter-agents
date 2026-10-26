@@ -84,10 +84,27 @@ and statuses, as the entries record them.
 - **Deterministic**: nodes sorted by id; edges sorted by (type, from, to,
   stated_by); `json.dumps(..., indent=1, sort_keys=True, ensure_ascii=True)`
   plus one LF. The same store version gives the same bytes.
-- **Expertise** waits on the person. If the person says it means how well
-  the store knows each subject, a later card adds per-page counts by grade to
-  the subject nodes. If it means who knows what, nothing is added, because
-  that concerns logins, not the store. **Add nothing for it now.**
+- **Expertise: how much the store knows about each subject.** The person
+  settled it at `e1170a36` (`docs/ideas/20261025.md`, Q-20261025-office-01):
+  "데이터 맵은 사서가 저장소에 관계도 페이지를 만들어 두고 콘솔은 보여 주기만
+  하는 방식으로 한다. '전문성'은 어떤 주제에 대해 저장소가 얼마나 알고 있는지를
+  뜻한다." ("The librarian makes the relationship-map pages in the store and
+  the console only shows them. 'Expertise' means how much the store knows
+  about a subject.") So each subject node carries `coverage`:
+  - `{"E1": n, "E2": n, "E3": n, "E4": n, "E5": n}`, the count of entries on
+    that page by grade, with zeros written and not omitted;
+  - and `disputed: n`, the entries on the page that are refuted, superseded
+    or in conflict.
+  These are counts of entries, not numbers taken from one, so the check's
+  `value` rule does not touch them. No score, no ranking and no single
+  "expertise" number: the console shows the counts as they stand. Who knows
+  what among people is not the store's, and nothing about logins enters.
+- **The person's "pages".** The person calls them "relationship-map pages".
+  `map.json` is the data the console draws. Also generate
+  `kb/wiki/map.md`, a page in the usual form: one section per subject
+  section, one row per subject with its coverage counts and the pages it
+  shares entries with, linked. It is for the reader with no drawing. It
+  needs its own `ALLOWED_PATHS` line, which I add with the rest.
 - The ontology's relations (alias, is-a, part-of, read-back-label-of,
   measured-by) join as new edge types when the ontology lands. The format
   leaves room by having `type` be an open string here; the check pins the
@@ -102,14 +119,18 @@ and statuses, as the entries record them.
    - an edge to a missing entry goes to `dangling` and is not drawn;
    - `evidence.md` puts an E2 entry under the calibrated section and shows
      its status;
-   - the map holds no key named `value` or `values` anywhere.
+   - the map holds no key named `value` or `values` anywhere;
+   - a subject page with one E1 entry and one refuted E3 entry reads
+     coverage E1 1, E3 1, the rest 0, and disputed 1.
 3. Re-render at the current version and commit `wiki.py`, `evidence.md`,
-   `map.json` and the re-rendered `index.md` together. No `kb_version` move.
+   `map.json`, `map.md` and the re-rendered `index.md` together. No
+   `kb_version` move.
 
 ## CONTRACT
 
-- **`kb/wiki/evidence.md` and `kb/wiki/map.json` are new paths.** Before your
-  commit of them I add both to the validator's `ALLOWED_PATHS` and extend
+- **`kb/wiki/evidence.md`, `kb/wiki/map.md` and `kb/wiki/map.json` are new
+  paths.** Before your commit of them I add them to the validator's
+  `ALLOWED_PATHS` and extend
   check 87, which judges the map's `kb_version`, and its `footer`, as it
   judges a page's footer line. The check and its fixture land in one commit,
   watched failing first. **Do not commit the two files until I tell you
