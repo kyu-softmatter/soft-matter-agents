@@ -235,6 +235,216 @@ def read(wait: bool = True) -> dict:
         _LOCK.release()
 
 
+# --- the channel-aware pair (card 086 items 2-4 and 6) ------------------------ #
+#
+# The three functions above take no channel, so every channel reads the same dict. The Instruments
+# tab needs the piezo to be somewhere between two positions while it moves, the tweezers to say they
+# cannot be read, and an element nobody set to read as unset. The orchestrator calls apply_for /
+# read_for when this file has them and falls back to apply / read for any other module, so a
+# channel with nothing special here behaves exactly as it always did.
+#
+# What these add is behaviour a reader will meet on the instrument, never a number. Every constant
+# below is synthetic, and the mock still holds no policy: a position is not refused here, and an
+# element is not allowed or disallowed here -- the allow-list and the envelope are the orchestrator's.
+
+#: How fast the mock stage moves toward a commanded position, um per second. Synthetic: no stage's
+#: slew rate is implied. A test that needs a slow or a fast one sets it.
+PIEZO_RATE_UM_PER_S = 2000.0
+
+#: Seconds between a point being sent and the mock stage starting toward it. Synthetic: no
+#: controller's latency is implied.
+PIEZO_LAG_S = 0.01
+
+#: Seconds a move polls for the mock stage to settle within the tolerance before it gives up and
+#: reports a disagreement. Synthetic: not the instrument's settle wait.
+PIEZO_SETTLE_WAIT_S = 2.0
+
+#: Where each axis stands before anything has moved it, um. Synthetic: not a rest position of any
+#: stage, and not a value inside or outside anyone's envelope.
+PIEZO_START_UM = 0.0
+
+#: Held only for an instant to read or advance the mock stage, never across a move, so a watcher's
+#: read that is asked not to wait still gets a position while a move is under way.
+_PIEZO_LOCK = threading.Lock()
+_PIEZO: dict[str, dict] = {}                    # axis -> {pos, t, target, queue[(t_effective, target)]}
+_PIEZO_AXES = ("x", "y", "z")
+
+#: (channel, element) -> what a hand set it to. Written only by set_by_hand, which stands for the
+#: person turning something at the instrument; no command ever writes it.
+_HAND: dict[tuple[str, str], object] = {}
+
+
+def _axis(axis: str, now: float) -> dict:
+    """The state of one axis, created at the start position the first time anything asks."""
+    state = _PIEZO.get(axis)
+    if state is None:
+        state = _PIEZO[axis] = {"pos": PIEZO_START_UM, "t": now, "target": None, "queue": []}
+    return state
+
+
+def _advance(axis: str, now: float) -> dict:
+    """Move one axis to `now`: toward the active target at the rate, switching targets as each lag ends.
+
+    Exact between events rather than stepped, so a read at any instant sees where a stage with
+    this rate and this lag would be, and never a position beyond the target it was last sent.
+    Call with _PIEZO_LOCK held.
+    """
+    state = _axis(axis, now)
+    t = state["t"]
+    while t < now or (state["queue"] and state["queue"][0][0] <= now):
+        nxt = state["queue"][0][0] if state["queue"] else None
+        end = now if nxt is None or nxt > now else max(nxt, t)
+        if state["target"] is not None and end > t:
+            reach = PIEZO_RATE_UM_PER_S * (end - t)
+            error = state["target"] - state["pos"]
+            state["pos"] += max(-reach, min(reach, error))
+        t = end
+        if nxt is not None and nxt <= now:
+            state["target"] = state["queue"].pop(0)[1]
+    state["t"] = now
+    return state
+
+
+def _piezo_pos(axis: str) -> float:
+    import time
+    with _PIEZO_LOCK:
+        return _advance(axis, time.monotonic())["pos"]
+
+
+def _piezo_trajectory(params: dict) -> dict:
+    """python_serial._run_trajectory's shape, run against the mock stage in real time.
+
+    Point i goes out at t0 + (i - first) * dt, the stage starts toward it PIEZO_LAG_S later, and
+    each sample's `measured_um` is read right after the send, so it lags the target as a real
+    read does. The move then polls for the last target within the plan's tolerance for at most
+    PIEZO_SETTLE_WAIT_S. With no tolerance neither `verified` nor `disagreed` has anything in it:
+    the mock does not pick one. Every axis is treated alike -- whether Z may move is not asked here.
+    """
+    import time
+    if _ABORTED:
+        raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    trajectory = params["trajectory"]
+    axis, dt = str(trajectory["axis"]), float(trajectory["dt_s"])
+    points = [(int(p[0]), float(p[1])) for p in trajectory["points"]]
+    tolerance = (params.get("tolerance_um") or {}).get("value")
+    before = _piezo_pos(axis)
+    first = points[0][0]
+    t0 = time.monotonic()
+    samples, late = [], 0
+    for i, target in points:
+        planned = (i - first) * dt
+        wait = t0 + planned - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        if _ABORTED:
+            break
+        sent = time.monotonic()
+        with _PIEZO_LOCK:
+            state = _advance(axis, sent)
+            state["queue"].append((sent + PIEZO_LAG_S, target))
+            state["queue"].sort(key=lambda e: e[0])
+        sample = {"i": i, "t_planned_s": planned, "t_sent_s": sent - t0, "target_um": target,
+                  "measured_um": _piezo_pos(axis)}
+        if sent - t0 > planned + dt:
+            sample["late"] = True
+            late += 1
+        samples.append(sample)
+    final = points[-1][1]
+    settle, read = [], _piezo_pos(axis)
+    sent_all = time.monotonic()
+    if tolerance is not None:
+        deadline = sent_all + PIEZO_SETTLE_WAIT_S
+        while True:
+            read = _piezo_pos(axis)
+            settle.append({"t_s": time.monotonic() - t0, "measured_um": read})
+            if abs(read - final) <= float(tolerance) or time.monotonic() >= deadline or _ABORTED:
+                break
+            time.sleep(max(dt, 0.001))
+    out: dict[str, object] = {
+        "move": trajectory.get("move_id"), "axis": axis, "channel": "piezo_stage",
+        "before_um": before, "after_um": read, "points_sent": len(samples),
+        "points_planned": len(points), "late_points": late, "dt_s": dt, "samples": samples,
+        "settle": settle, "settle_wait_s": PIEZO_SETTLE_WAIT_S, "verified": [], "disagreed": [],
+        "backend": "mock"}
+    if tolerance is not None and len(samples) == len(points):
+        record = {"axis": axis, "target_um": final, "read_um": read, "tolerance_um": tolerance,
+                  "settled_after_s": time.monotonic() - sent_all}
+        (out["verified"] if abs(read - final) <= float(tolerance) else out["disagreed"]).append(record)
+    elif tolerance is not None:
+        out["disagreed"].append({"axis": axis, "target_um": final, "read_um": read,
+                                 "tolerance_um": tolerance, "note": "stopped before every point was sent"})
+    return out
+
+
+def _piezo_read() -> dict:
+    """Where the mock stage is now, and whether it is still on its way.
+
+    The position is the mock's: it says nothing about where any stage is, and it is observed on
+    the mock only.
+    """
+    import time
+    now = time.monotonic()
+    with _PIEZO_LOCK:
+        states = {a: _advance(a, now) for a in _PIEZO_AXES}
+        moving = any(s["queue"] or (s["target"] is not None and abs(s["target"] - s["pos"]) > 1e-9)
+                     for s in states.values())
+        position = {a: s["pos"] for a, s in states.items()}
+    return {"position_um": position, "moving": moving, "aborted": _ABORTED, "backend": "mock",
+            "note": "a synthetic position, observed on the mock only"}
+
+
+def apply_for(channel_id: str, params: dict) -> dict:
+    """apply(), for a channel that behaves differently from the generic one; apply() for the rest.
+
+    The piezo moves in time and reports as python_serial does. The tweezers echo the commands as
+    sent and say nothing about them having been seen: the Tweez 300 interface has no query of any
+    kind, and an echo that carried `verified` would give a screen a read-back the instrument
+    cannot give.
+    """
+    if channel_id == "piezo_stage" and isinstance(params.get("trajectory"), dict):
+        return _piezo_trajectory(params)
+    if channel_id == "optical_tweezers":
+        if _ABORTED:
+            raise RuntimeError("aborted: this backend refuses commands until it is reset")
+        return {"applied": dict(params), "commands_sent": [list(c) for c in params.get("commands") or []],
+                "backend": "mock"}
+    return apply(params)
+
+
+def read_for(channel_id: str, wait: bool = True, elements=()) -> dict:
+    """read(), for a channel that is not the generic one; read() plus `elements` for the rest.
+
+    `elements` is the channel's registry ids. Each is reported with what a hand set it to, or
+    None if nothing did: the mock never invents a position for a turret, a wheel or a splitter,
+    and a position read from it would not say which element is in the beam. The piezo is read
+    without waiting even during a move, and the tweezers' read is empty on purpose -- no
+    `state`, no `position_um`, so what was sent is never offered back as what is there.
+    """
+    if channel_id == "piezo_stage":
+        return _piezo_read()
+    if channel_id == "optical_tweezers":
+        return {"read_back": False, "verification": "none", "aborted": _ABORTED, "backend": "mock",
+                "note": "the Tweez 300 interface has no query of any kind; this is not a state"}
+    if not _LOCK.acquire(blocking=wait):
+        raise ReadWouldWait("mock: a command, a sequence or another read holds this device's lock, and this read was asked not to wait")
+    try:
+        out: dict[str, object] = {"state": dict(_STATE), "aborted": _ABORTED, "backend": "mock"}
+        if elements:
+            out["elements"] = {str(e): _HAND.get((channel_id, str(e))) for e in elements}
+            out["note"] = ("an element reads as None until a hand set it on the mock; a position "
+                           "read from the mock is the mock's and does not establish which element "
+                           "is in the beam")
+        return out
+    finally:
+        _LOCK.release()
+
+
+def set_by_hand(channel_id: str, element_id: str, value: object) -> None:
+    """Stand for the person turning one element at the instrument. Never reached by a command."""
+    with _LOCK:
+        _HAND[(str(channel_id), str(element_id))] = value
+
+
 def abort() -> dict:
     """Stop, and stay stopped until reset(), so nothing quietly continues."""
     global _ABORTED
@@ -248,5 +458,8 @@ def reset() -> None:
     with _LOCK:
         _STATE.clear()
         _PROPS.clear()
+        _HAND.clear()
         _SNAPS[0] = 0
+    with _PIEZO_LOCK:
+        _PIEZO.clear()
     _ABORTED = False

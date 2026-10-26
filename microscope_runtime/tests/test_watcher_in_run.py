@@ -3,7 +3,8 @@
     python -m unittest microscope_runtime/tests/test_watcher_in_run.py
 
 A run on the mock backend whose `observe` hook takes real time, so ticks fall due while it runs.
-The orchestrator takes the watcher's snapshots, with `read(wait=False)` and nothing else, only on
+The orchestrator takes the watcher's snapshots, with `read(wait=False)` -- or, for a module that reads
+per channel, `read_for(channel, wait=False, elements=...)` -- and nothing else, only on
 channels this run's preflight reached; it feeds the watcher the run's frames through the same tee as
 the frame tap; and it closes the watcher before `run_ended`. Written BEFORE the code and watched
 failing without it, then each rule switched off in turn.
@@ -54,6 +55,11 @@ def stream_plan(watcher=True, **kw):
     if watcher:
         plan["watcher"] = TW.make_plan(**kw)["watcher"]
     return plan
+
+
+#: What counts as a read at the device boundary: the generic one, and the per-channel one the mock
+#: offers (card 086), which the orchestrator prefers when a module has it.
+READS = ("read", "read_for")
 
 
 class Spy:
@@ -218,7 +224,7 @@ class T3OnlyReadsAndOnlyOnOpenInterfaces(_Run):
         o.preflight(["stand_ti2e"])
 
     def non_reads(self):
-        return [(m, a, args, kw) for (m, a, args, kw) in self.calls if a != "read"]
+        return [(m, a, args, kw) for (m, a, args, kw) in self.calls if a not in READS]
 
     def test_with_the_watcher_on_the_only_device_calls_a_run_gains_are_reads_with_wait_false(self):
         def during(o):
@@ -228,15 +234,17 @@ class T3OnlyReadsAndOnlyOnOpenInterfaces(_Run):
         off_calls, self.calls[:] = list(self.calls), []
         self.run_it(stream_plan(), watcher_backend="test_double", hold=0.4, during=during, run_id="run-test-on")
         on = list(self.calls)
-        on_non_reads = [(m, a) for (m, a, args, kw) in on if a != "read"]
-        off_non_reads = [(m, a) for (m, a, args, kw) in off_calls if a != "read"]
+        on_non_reads = [(m, a) for (m, a, args, kw) in on if a not in READS]
+        off_non_reads = [(m, a) for (m, a, args, kw) in off_calls if a not in READS]
         self.assertEqual(on_non_reads, off_non_reads, "the watcher added a device call that is not a read")
-        extra = [(m, args, kw) for (m, a, args, kw) in on if a == "read"]
+        extra = [(m, args, kw) for (m, a, args, kw) in on if a in READS]
         self.assertTrue(extra, "the watcher took no reads")
         watcher_reads = [(args, kw) for (_, args, kw) in extra if kw.get("wait") is False]
         self.assertTrue(watcher_reads, "none of the extra reads was a no-wait read")
         for args, kw in watcher_reads:
-            self.assertEqual((args, kw), ((), {"wait": False}))
+            self.assertLessEqual(len(args), 1, "a read took more than the channel it is for")
+            self.assertEqual(set(kw) - {"elements"}, {"wait"})
+            self.assertIs(kw["wait"], False)
 
     def test_a_channel_this_run_did_not_open_is_recorded_as_not_open_and_never_read(self):
         self.run_it(stream_plan(), hold=0.4, during=self.open_stand)
@@ -246,7 +254,7 @@ class T3OnlyReadsAndOnlyOnOpenInterfaces(_Run):
         self.assertTrue(closed)
         self.assertNotIn("stand_ti2e", closed)
         self.assertIn("state", states["stand_ti2e"])
-        no_wait_reads = [c for c in self.calls if c[1] == "read" and c[3].get("wait") is False]
+        no_wait_reads = [c for c in self.calls if c[1] in READS and c[3].get("wait") is False]
         self.assertEqual(len(no_wait_reads), len(snaps),
                          "the watcher read more than the one channel preflight opened")
 
@@ -255,17 +263,17 @@ class T3OnlyReadsAndOnlyOnOpenInterfaces(_Run):
         for event in self.watcher_snapshots():
             for state in event["states"].values():
                 self.assertTrue(state.get("not_open"), state)
-        self.assertEqual([c for c in self.calls if c[1] == "read" and c[3].get("wait") is False], [])
+        self.assertEqual([c for c in self.calls if c[1] in READS and c[3].get("wait") is False], [])
 
     def test_the_snapshot_reads_nothing_once_an_abort_has_begun_even_when_called_directly(self):
         o = orch.Orchestrator(backend="mock")
         o._preflight_state["stand_ti2e"] = {}
         before = o.watcher_snapshot()
         self.assertIn("state", before["stand_ti2e"])
-        reads_before = len([c for c in self.calls if c[1] == "read" and c[3].get("wait") is False])
+        reads_before = len([c for c in self.calls if c[1] in READS and c[3].get("wait") is False])
         o._aborted.set()
         after = o.watcher_snapshot()
-        self.assertEqual(len([c for c in self.calls if c[1] == "read" and c[3].get("wait") is False]), reads_before,
+        self.assertEqual(len([c for c in self.calls if c[1] in READS and c[3].get("wait") is False]), reads_before,
                          "a read was taken after the abort began")
         for cid, state in after.items():
             self.assertTrue(state.get("not_read"), (cid, state))
@@ -308,7 +316,10 @@ class T4NeverWaitsAndNeverCarriesALastValue(_Run):
         def during(o):
             o.preflight(["stand_ti2e"])
             raw = o._modules["mock"]
-            raw.read = lambda wait=True: (_ for _ in ()).throw(RuntimeError("the interface went away"))
+            def gone(*a, **k):
+                raise RuntimeError("the interface went away")
+            raw.read = gone
+            raw.read_for = gone
         record = self.run_it(stream_plan(), hold=0.3, during=during)
         self.assertEqual(record["ended"], "completed")
         state = self.watcher_snapshots()[-1]["states"]["stand_ti2e"]
@@ -462,6 +473,7 @@ class T9TheAbortDelay(_Run):
                     finally:
                         raw._LOCK.release()
                 raw.read = slow_read
+                raw.read_for = lambda cid, wait=True, elements=(): slow_read(wait)
                 self.assertTrue(entered.wait(3.0), "the watcher never began a read")
             else:
                 time.sleep(0.2)

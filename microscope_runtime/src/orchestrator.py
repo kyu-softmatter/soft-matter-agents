@@ -2045,7 +2045,9 @@ class Orchestrator:
                             self.check_turret_rotation_allowed(command)
                             self.check_acquisition_allowed(command)
                             module = self.module_for(cid)
-                            value = module.apply(command.params)
+                            apply_for = getattr(module, "apply_for", None)
+                            value = (apply_for(cid, command.params) if apply_for
+                                     else module.apply(command.params))
                             verification, why = self.verification_of(cid, value)
                             out.append({"command": command.action, "ok": True, "returned": value,
                                         "verification": verification})
@@ -2442,7 +2444,7 @@ class Orchestrator:
                                                          "interface was not opened and is not opened to be read")}
             else:
                 try:
-                    states[cid] = self.module_for(cid).read(wait=False)
+                    states[cid] = self._read_channel(cid, wait=False)
                 except Exception as exc:                # noqa: BLE001 - an unread channel is a fact
                     states[cid] = {"not_read": True,
                                    "why": str(exc) if getattr(exc, "would_wait", False)
@@ -2450,12 +2452,42 @@ class Orchestrator:
         self.record(event="snapshot", label="watcher", t_mono=began, states=states)
         return states
 
+    def _read_channel(self, cid: str, wait: bool) -> dict:
+        """One channel's read. A module that reads per channel is asked with the channel's element ids."""
+        module = self.module_for(cid)
+        read_for = getattr(module, "read_for", None)
+        if read_for is None:
+            return module.read(wait=wait)
+        return read_for(cid, wait=wait, elements=self.channels[cid].element_ids())
+
+    def set_element_by_hand(self, channel_id: str, element_id: str, value: object) -> None:
+        """Mock only: stand for the person turning one registry element at the instrument.
+
+        This is not a command. It goes through no check, no lock and no `apply`, because on the
+        instrument nothing in this program turns these elements; it exists so a screen on mock can
+        show an element that something other than the mock set. The event says so, and the id has to
+        be one the registry gives this channel -- a name the registry does not hold is not made up.
+        """
+        if self.backend != "mock":
+            raise InterlockError(
+                f"refusing to set {element_id!r} on {channel_id!r} by hand: this is not the mock "
+                "backend, and nothing here may stand for a hand on the instrument")
+        channel = self.channels.get(channel_id)
+        if channel is None or element_id not in channel.elements:
+            raise GapError(
+                f"{element_id!r} is not an element of channel {channel_id!r} in the registry "
+                f"(it has {channel.element_ids() if channel else 'no such channel'}); the mock does "
+                "not invent one")
+        self.module_for(channel_id).set_by_hand(channel_id, element_id, value)
+        self.record(event="element_set_by_hand", channel=channel_id, element=element_id, value=value,
+                    note="set by a hand on the mock, not by a command; nothing was dispatched")
+
     def snapshot(self, label: str) -> dict:
         """read() from every channel, gathered into the log around each step."""
         states = {}
         for cid in self.channels:
             try:
-                states[cid] = self.module_for(cid).read()
+                states[cid] = self._read_channel(cid, wait=True)
             except Exception as exc:                            # noqa: BLE001 - an unreadable channel is a fact
                 states[cid] = {"error": str(exc)}
         self.record(event="snapshot", label=label, states=states)
