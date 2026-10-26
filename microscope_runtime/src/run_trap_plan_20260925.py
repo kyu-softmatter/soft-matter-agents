@@ -66,6 +66,15 @@ def _load(name, path):
 
 
 def main(run_id: str, answer_dir: str) -> int:
+    # `--approvals <folder>` is a mock-only test folder (card 087) and this script is hardware only:
+    # refused before anything is made or opened, with the operator's own reason. The runtime's own
+    # folder named outright is no change, and is taken out of the arguments.
+    if "--approvals" in sys.argv:
+        at = sys.argv.index("--approvals")
+        if at + 1 >= len(sys.argv):
+            raise SystemExit("--approvals needs a folder")
+        _load("_mic_operator_run", Path(_HERE) / "operator.py").approvals_source(Path(sys.argv[at + 1]), "hardware")
+        del sys.argv[at:at + 2]
     ans = Path(answer_dir)
     ans.mkdir(parents=True, exist_ok=True)
 

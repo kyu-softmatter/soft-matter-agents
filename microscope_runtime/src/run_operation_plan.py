@@ -48,8 +48,12 @@ def _load(name, path):
     return mod
 
 
-def run(plan_path: Path, run_id: str, bench: str, address: str = "COM4") -> Path:
+def run(plan_path: Path, run_id: str, bench: str, address: str = "COM4",
+        approvals: Path | None = None) -> Path:
     op = _load("_op_runner", Path(_HERE) / "operator.py")
+    # `--approvals` is a mock-only test folder (card 087) and this script is hardware only: refused
+    # before the port is opened, with the operator's own reason.
+    op.approvals_source(approvals, "hardware")
     serial = _load("_serial_runner", Path(_HERE) / "devices" / "python_serial.py")
     link = serial.open_link("dll", address=address, bench=bench, read_only=False)
     try:
@@ -159,13 +163,16 @@ def main(argv=None) -> int:
     ap.add_argument("--run-id")
     ap.add_argument("--bench", help="the person's words handing over the bench")
     ap.add_argument("--graph", type=Path, help="draw an existing run log")
+    ap.add_argument("--approvals", type=Path, default=None,
+                    help="mock only; this script runs the hardware, so any folder but the runtime's own "
+                         "is refused before the port opens (card 087)")
     args = ap.parse_args(argv)
     if args.graph:
         print(graph(args.graph))
         return 0
     if not (args.plan and args.run_id and args.bench):
         ap.error("--plan, --run-id and --bench are all required to run")
-    folder = run(args.plan, args.run_id, args.bench)
+    folder = run(args.plan, args.run_id, args.bench, approvals=args.approvals)
     print(folder, graph(folder / "log.json"))
     return 0
 

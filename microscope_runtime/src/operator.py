@@ -52,9 +52,11 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.curdir) != _HERE]
 
 import argparse                                                  # noqa: E402
+import hashlib                                                   # noqa: E402
 import importlib.util                                            # noqa: E402
 import json                                                      # noqa: E402
 import math                                                      # noqa: E402
+import re                                                        # noqa: E402
 from fractions import Fraction                                   # noqa: E402
 from dataclasses import dataclass, field                         # noqa: E402
 from datetime import datetime, timezone                          # noqa: E402
@@ -124,6 +126,9 @@ class Authorisation:
     approval_id: str | None = None
     kind: str | None = None          # plan_approval | scope_approval
     max_tier: int = 0
+    #: The file that authorised, as the reader read it: {path, sha256[, signed_through]} -- what
+    #: the run log's approval.file carries (card 087). None for a run no approval authorised.
+    approval_file: dict | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -176,27 +181,151 @@ def load_safety(agent: Path | None = None) -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def approvals_on_disk(agent: Path | None = None) -> list[dict]:
-    """approvals/ is the one folder a person writes and the agent does not (7.1 rule 5)."""
+def approvals_on_disk(agent: Path | None = None, folder: Path | None = None) -> list[dict]:
+    """approvals/ is the one folder a person writes and the agent does not (7.1 rule 5).
+
+    Each file is read ONCE, as bytes, and the sha256 kept beside `__path` is of exactly those bytes
+    (card 087): the hash a run log names is of what was judged, never of a second read. `folder`
+    is a test folder a mock run was pointed at (`--approvals`); without it the runtime's own.
+    Nothing here ever falls back to the planning agent's old approvals folder (plan.md 15).
+    """
     out = []
-    folder = (agent or AGENT) / "approvals"
+    folder = Path(folder) if folder is not None else (agent or AGENT) / "approvals"
     if not folder.exists():
         return out
     for path in sorted(folder.glob("*.json")):
+        raw = path.read_bytes()
         try:
             # utf-8-sig, card 041 item 3: PowerShell 5.1's `Set-Content -Encoding
             # utf8` writes a byte-order mark, and the person writes approvals from
             # there. The mark is accepted and nothing else changes; a file that is
             # malformed for any other reason is still refused below.
-            card = json.loads(path.read_text(encoding="utf-8-sig"))
+            card = json.loads(raw.decode("utf-8-sig"))
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise Refusal(f"{path.name} is not readable JSON: {exc}. An unreadable approval is not an approval")
         try:
             card["__path"] = str(path.relative_to(REPO))
         except ValueError:                                      # a scratch root, outside the tree
             card["__path"] = str(path)
+        card["__sha256"] = hashlib.sha256(raw).hexdigest()
+        # The person's own login lives beside the policy of the folder this approval was read from.
+        card["__login_path"] = str(folder.parent / "envelope" / "console_login.json")
         out.append(card)
     return out
+
+
+#: A console login, as plan_approval's signed_through and console_login.json both spell it.
+_LOGIN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
+
+
+def console_login_problem(doc) -> str | None:
+    """Why `doc` is not a valid console_login.json (console_login.schema.json), or None.
+
+    Written out by hand because the operator depends on nothing else; a test holds it to the
+    schema, case by case.
+    """
+    if not isinstance(doc, dict):
+        return "it is not a JSON object"
+    wanted = {"artifact", "schema_version", "login", "written_by", "written_at"}
+    if set(doc) != wanted:
+        return f"its keys are {sorted(doc)}, and the schema admits exactly {sorted(wanted)}"
+    if doc["artifact"] != "console_login":
+        return "`artifact` is not 'console_login'"
+    if doc["schema_version"] != "0.1":
+        return "`schema_version` is not '0.1'"
+    if not isinstance(doc["login"], str) or not _LOGIN.fullmatch(doc["login"]):
+        return "`login` is not a plain id (letters, digits, '.', '_', '-', at most 64, never an email)"
+    if not isinstance(doc["written_by"], str) or not doc["written_by"]:
+        return "`written_by` is not a non-empty string"
+    at = doc["written_at"]
+    if not isinstance(at, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", at):
+        return "`written_at` is not a date (YYYY-MM-DD)"
+    try:
+        datetime.strptime(at, "%Y-%m-%d")
+    except ValueError:
+        return "`written_at` is not a real date"
+    return None
+
+
+def _console_mark_problem(mark) -> str | None:
+    """Why an approval's `signed_through` is not the console mark {via: console, login}, or None."""
+    if not isinstance(mark, dict) or set(mark) != {"via", "login"}:
+        return "it is not an object with exactly `via` and `login`"
+    if mark["via"] != "console":
+        return "`via` is not 'console'"
+    if not isinstance(mark["login"], str) or not _LOGIN.fullmatch(mark["login"]):
+        return "`login` is not a plain id"
+    return None
+
+
+def _signed_through_reasons(card: dict) -> list[str]:
+    """The three checks a console-signed approval adds to the plan hash (plan.md 15.1 item 4).
+
+    [] when the approval carries no `signed_through` (judged as ever) or when its login is the
+    one the person placed by hand. A test login is just another login: nothing here treats one
+    specially, and it binds only if the person put it in the file themselves.
+    """
+    if "signed_through" not in card:
+        return []
+    where = card["__path"]
+    mark = card["signed_through"]
+    bad = _console_mark_problem(mark)
+    if bad:
+        return [f"{where}: `signed_through` is not the console's mark ({bad}), so it says nothing "
+                "about who signed and the approval covers nothing"]
+    login_path = Path(card.get("__login_path") or AGENT / "envelope" / "console_login.json")
+    if not login_path.exists():
+        return [f"{where} is signed through the console under login {mark['login']!r}, and "
+                f"{login_path.name} is absent: the person's own login is placed by hand beside the "
+                "safety policy, and without it nothing says whose login that is. It covers nothing"]
+    try:
+        doc = json.loads(login_path.read_bytes().decode("utf-8-sig"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        return [f"{where} is signed through the console, and {login_path.name} is not valid: {exc}. "
+                "It covers nothing"]
+    bad = console_login_problem(doc)
+    if bad:
+        return [f"{where} is signed through the console, and {login_path.name} is not valid: {bad}. "
+                "It covers nothing"]
+    if doc["login"] != mark["login"]:
+        return [f"{where} is signed through the console under login {mark['login']!r}, and the login "
+                f"the person placed in {login_path.name} is {doc['login']!r}. They are compared byte "
+                "for byte and these differ, so it covers nothing"]
+    return []
+
+
+def _approval_file(card: dict) -> dict | None:
+    """What a run log's approval.file names: the file as it was read, never a second read of it."""
+    if "__sha256" not in card:
+        return None
+    out = {"path": Path(card["__path"]).as_posix(), "sha256": card["__sha256"]}
+    if "signed_through" in card:
+        out["signed_through"] = dict(card["signed_through"])
+    return out
+
+
+def approval_block(decision: "Authorisation") -> dict:
+    """The run log's `approval`: id, kind, and the file that authorised (card 087)."""
+    block = {"id": decision.approval_id, "kind": decision.kind}
+    if decision.approval_file is not None and decision.approval_id is not None:
+        block["file"] = decision.approval_file
+    return block
+
+
+def approvals_source(folder: Path | None, backend: str) -> Path | None:
+    """`--approvals <folder>`: a test folder, honoured only with the mock backend (card 087 item 5).
+
+    Refused before anything is read or opened for any other backend, unless the folder named is
+    the runtime's own, which is no change at all. A hardware run reads approvals/ and nothing else.
+    """
+    if folder is None:
+        return None
+    folder = Path(folder)
+    if backend != "mock" and folder.resolve() != (AGENT / "approvals").resolve():
+        raise Refusal(f"--approvals {folder} is for the mock backend only, and this run asks for "
+                      f"{backend!r}. A hardware run reads microscope_runtime/approvals/ and nothing "
+                      "else: a test folder's approvals never authorise the instrument")
+    return folder
 
 
 def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
@@ -236,6 +365,12 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
             continue
         if card.get("plan_revision") != revision:
             continue
+        # A console-signed approval adds three checks before the hash (card 087). An approval that
+        # fails any covers nothing, and the reason says which.
+        signed = _signed_through_reasons(card)
+        if signed:
+            reasons.extend(signed)
+            continue
         got = card.get("plan_hash")
         if got != wanted:
             reasons.append(
@@ -244,7 +379,8 @@ def authorise(plan: dict, approvals: list[dict] | None = None) -> Authorisation:
             )
             continue
         return Authorisation(True, ["individual approval matches this revision and hash"],
-                             card.get("id"), "plan_approval", max_tier=2)
+                             card.get("id"), "plan_approval", max_tier=2,
+                             approval_file=_approval_file(card))
 
     irreversible = [a for a in plan.get("actions", []) if a.get("reversible") is False]
     if irreversible:
@@ -1152,7 +1288,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         handover: dict | None = None, ask_person=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
         root: Path | None = None, mm_config: Path | None = None,
-        config_loader=None, watcher_backend=None, judgement_backend=None) -> dict:
+        config_loader=None, watcher_backend=None, judgement_backend=None,
+        approvals_dir: Path | None = None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1166,6 +1303,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     run id is never reused -- and `run_ended` closes the file however the
     run ends. Without it, nothing is written, as before.
     """
+    # A TEST APPROVALS FOLDER IS MOCK ONLY (card 087), refused before anything is read or opened.
+    approvals_dir = approvals_source(approvals_dir, backend)
     # A SCRATCH ROOT IS MOCK ONLY (card 063), refused before anything is read:
     # a TEST envelope, approval or list must never reach the instrument.
     if root is not None and backend != "mock":
@@ -1212,7 +1351,9 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     pre_stop_length = pre_stop_buffer_length(plan)      # refuses before any lock, folder or command
 
     safety = load_safety() if root is None else load_safety(agent)     # refuses when absent
-    decision = authorise(plan) if root is None else authorise(plan, approvals_on_disk(agent))
+    # The approvals are read ONCE here: the file the log names is the file this decision judged.
+    decision = (authorise(plan) if root is None and approvals_dir is None
+                else authorise(plan, approvals_on_disk(agent, approvals_dir)))
     tier = highest_tier(plan)
     if "trap_steps" in plan and not decision.permitted:
         # Trap motion is motion, whatever tier its actions carry (check 85).
@@ -1288,8 +1429,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         how = "failed"
         refusal = None
         try:
-            if root is not None:
-                o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent))
+            if root is not None or approvals_dir is not None:
+                o.plan_authoriser = lambda p: authorise(p, approvals_on_disk(agent, approvals_dir))
             record = _run_body(o, plan, run_id, backend, observe, handover, ask_person,
                                tweezers_link, safety, decision, monitors, commands,
                                agent=None if root is None else agent, mm_load=mm_load)
@@ -1331,7 +1472,7 @@ def _refused_record(o, plan: dict, run_id: str, decision, safety: dict, refusal:
     return {
         "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
         "plan_id": plan.get("id"), "revision": plan.get("revision"),
-        "approval": {"id": decision.approval_id, "kind": decision.kind},
+        "approval": approval_block(decision),
         "safety_policy_version": safety.get("policy_version"),
         "stop_criteria": [c.get("id") for c in plan.get("stop_criteria") or []],
         **o.log_header(), "events": o.log,
@@ -1407,7 +1548,7 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
         "run_id": run_id,
         "plan_id": plan.get("id"),
         "revision": plan.get("revision"),
-        "approval": {"id": decision.approval_id, "kind": decision.kind},
+        "approval": approval_block(decision),
         # envelope_safety.schema.json calls it `policy_version`, and this read
         # `version` -- a key no envelope has ever carried -- so every run would
         # have recorded null for the one field that says which ceilings it ran
@@ -1868,6 +2009,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mm-config", type=Path, default=None,
                         help="hardware only, with --write: a Micro-Manager configuration file the "
                              "person approved by sha256 under approvals/ (card 069)")
+    parser.add_argument("--approvals", type=Path, default=None,
+                        help="mock only: a test folder of approvals to read instead of "
+                             "microscope_runtime/approvals/ (card 087). Refused with any other backend")
     parser.add_argument("--watcher-backend", default=None, choices=["none", "test_double"],
                         help="which backend answers the run-time watcher (card 076): none records states and "
                              "asks nobody; test_double is refused on every backend but mock. Never a plan field")
@@ -1889,7 +2033,7 @@ def main(argv: list[str] | None = None) -> int:
         record = run(args.plan, run_id=args.run_id, backend=args.backend,
                      runs_root=AGENT / "runs" if args.write else None,
                      handover=handover, mm_config=args.mm_config, watcher_backend=args.watcher_backend,
-                     judgement_backend=args.judgement_backend)
+                     judgement_backend=args.judgement_backend, approvals_dir=args.approvals)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
@@ -1900,6 +2044,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"run {record['run_id']}: plan {record['plan_id']} revision {record['revision']}, "
           f"backend {record['backend']}, policy {record['safety_policy_version']}")
     print(f"  registry {record['registry_source']}")
+    if record["approval"].get("file"):
+        file = record["approval"]["file"]
+        print(f"  approval {record['approval']['id']}: {file['path']} sha256 {file['sha256']}"
+              + (f", signed through the console under login {file['signed_through']['login']}"
+                 if file.get("signed_through") else ""))
     refused = [e for e in record["events"] if e["event"] == "apply_failed"]
     for event in record["events"]:
         line = f"  {event['t_mono']:>9.3f}s {event['event']}"
