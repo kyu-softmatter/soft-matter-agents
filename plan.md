@@ -3038,7 +3038,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 90 reached declaration on 2026-10-17; **an empty table is the normal state** |  |
+| 91 | Console questions are linked and answered (7.1.1 rules 3, 5, 6 and 9): a card or plan carrying a `-c` question id has the inbox item that asked it; every console question item has an `answers/` item naming its item id and question id; an answer names an item that exists, and a `taken_up` answer's goal card carries the item's id; every inbox item's id is in `-c` form; nothing under an agent's `console_inbox/` or `answers/` changes or disappears between commits (each commit under `--commit-range`, the staged set under `--staged`). Lands with `console_answer.schema.json` and the `c?[0-9]{3}` widening, three rejected groups and a history fixture | manager-microscope-20261003-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
