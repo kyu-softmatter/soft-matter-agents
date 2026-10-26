@@ -9326,7 +9326,9 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
          question nobody asked;
       2. every console question item has an answer naming its item id and its
          question id, so a session cannot drop one -- and renaming a console
-         question into window form leaves exactly that orphan;
+         question into window form leaves exactly that orphan; likewise every
+         librarian store request has at least one store answer naming its
+         item id, and a store answer names a request that exists;
       3. an answer that takes a question up names a goal card carrying the
          item's question id, and an answer names an item that exists;
       4. nothing under an agent's console_inbox/ or answers/ is modified or
@@ -9380,6 +9382,27 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                                          "naming it; every item is taken up or refused, and a refusal is written "
                                          "back, never silent (7.1.1 rules 5 and 9)", item.rel))
 
+    # The librarian's store requests (7.1.1 rules 4 and 8) are joined on the
+    # item id alone: a store answer carries no question id and no goal card,
+    # and one request may have several answers (waiting_for_a_name, then one
+    # that follows it), so the rule is at least one.
+    requests = {}
+    for c in b.of_artifact("console_store_request"):
+        if "__unreadable__" not in c.data:
+            requests.setdefault(c.data.get("item_id"), c)
+    store_answers = [c for c in b.of_artifact("store_answer") if "__unreadable__" not in c.data]
+    store_answered = set()
+    for a in store_answers:
+        iid = a.data.get("item_id")
+        if iid not in requests:
+            out.append(Finding(91, FAIL, f"the store answer names item {iid}, which no store request is", a.rel))
+        store_answered.add(iid)
+    for iid, req in sorted(requests.items(), key=lambda kv: str(kv[0])):
+        if iid not in store_answered:
+            out.append(Finding(91, FAIL, f"store request {iid} has no store answer naming it; every request is "
+                                         "answered, and a refusal is written back, never silent (7.1.1 rule 8)",
+                               req.rel))
+
     if commit_range or staged:
         import subprocess
 
@@ -9407,10 +9430,12 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                                                  "(7.1.1 rule 3)", parts[1]))
 
     if not any(f.status == FAIL for f in out):
-        out.append(Finding(91, PASS if items or answers else NA,
+        seen = items or answers or requests or store_answers
+        out.append(Finding(91, PASS if seen else NA,
                            f"{len(items)} console question items, each answered, and {len(answers)} answers, each "
-                           "naming its item; every console question id has its item"
-                           if items or answers else "no console question items or answers in this tree"))
+                           f"naming its item; every console question id has its item; {len(requests)} store "
+                           f"requests, each answered, and {len(store_answers)} store answers, each naming its request"
+                           if seen else "no console question items, store requests or answers in this tree"))
     return out
 
 
