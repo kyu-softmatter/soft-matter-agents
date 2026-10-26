@@ -8,11 +8,12 @@ soonest. The person asked for the Instruments and Experiments screens on a
 mock first (`5f88eab4`), and the order is agreed with the runtime holder,
 architecture-office-20261017-1:
 
-- **Items 2 to 4 come next, right after cards 087 and 089.** They reach the screens
+- **Items 2 to 4 and 6 come next, right after cards 087 and 089.** They reach the screens
   at once through `events.jsonl`, which already exists.
 - **Item 1 lands as a pair with card 084.** A second camera's frames reach
   the console only through 084's tap, so item 1 alone shows nothing.
-- **Item 5 comes after card 085**, because it exercises 085's check-now run.
+- **Items 5 and 7 come after card 085**: 5 exercises its check-now run, and
+  7 writes its status file.
 
 Each part is its own commit. If you are not that seat, take nothing from
 this card and report up.
@@ -69,6 +70,29 @@ view where they meet it:
    check-now list in a test's temp folder can name, so the console's "check
    now" can be exercised end to end on mock. Card 085's run does the work;
    this card adds only what the mock needs for it.
+6. **The optical path's elements** (added for the person's Instruments page,
+   `1641323a`).
+   - The registry's light-path selectors are settable and readable on mock,
+     by the registry's names: the filter turret, the two emission wheels,
+     the port/splitter and the confocal dichroic turret.
+   - They are set only by a run's `apply`, derived from a plan like every
+     other command. "Control" from the console's optical-path page is a
+     drafted plan run on mock, never a set-point path (hand control is
+     deferred, Q-20261022-office-07).
+   - The orchestrator's ordering interlocks apply on mock exactly as on the
+     instrument: Z retracts before a turret rotates, and PFS is disabled
+     across a path change. The mock reports the order back so a test can
+     see it.
+   - The registry's known traps stay visible: the turret label that names
+     the wrong position, and the splitter states that send no light to one
+     camera. A position read back from the mock is the mock's, and does not
+     establish which element is in the beam.
+7. **Connection states to show.** For the console's connection-state page,
+   each mock channel can be set, by a test-only parameter and never from the
+   console, to answer its preflight, to be absent, or to be busy
+   (`ReadWouldWait`). A plan run, a live view or a check-now run on mock then
+   writes card 085's status file with each state as it is, so the page reads
+   only that file.
 
 Every addition is synthetic, and its docstring says what real behaviour it
 does not imply, as `FOCUS_Z_UM`'s does.
@@ -87,7 +111,13 @@ does not imply, as `FOCUS_Z_UM`'s does.
 5. (Part two, after card 085.) A check-now run on mock, with a list in the
    temp folder, opens, reads and closes every listed channel, with zero
    `apply`.
-6. The existing suite is unchanged.
+6. An optical-path change in a mock plan: each element reads back what was
+   applied, a turret change on mock retracts Z first and the log shows that
+   order, and an unknown element refuses.
+7. With channels set answering, absent and busy, a mock plan run writes a
+   status file that validates and shows each state, and no absent or busy
+   channel carries a value.
+8. The existing suite is unchanged.
 
 ## Boundaries
 
