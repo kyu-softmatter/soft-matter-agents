@@ -38,11 +38,28 @@ In `microscope_runtime/src/orchestrator.py`:
      export, then staging, as `REGISTRY_LOOKUP` orders them.
    - No second copy of the mapping: no table in `src/`, nothing beside
      `LIGHT_SOURCES`, and no label taken from a plan.
-   - Until the librarian's form lands, it reads the form the card the
-     librarian writes names. If that card has not landed when you start,
-     build against a test registry in a temp folder with a field you name
-     in one place, and report the name up: the librarian's card then either
-     matches it or this one function changes.
+   - **The form is fixed** (librarian card 061, `2621655c`): a registry row
+     carries `"mm_label": {"label": "<exact Micro-Manager label>",
+     "entry_ref": "<entry id>"}`. The grade is the cited entry's, read from
+     the same snapshot. Each label sits on at most one row. A row with no
+     `mm_label` has no label. The field is not in the snapshot yet, so build
+     against a test registry in a temp folder that carries it, and read the
+     field name in one place.
+   - **`orchestrator.CAMERA_DEVICES` goes.** It was added at `00c00824`
+     (card 084) as a stopgap, because the registry carried no labels. It is
+     the second copy this card forbids. The camera tap and the operator's
+     camera lookup both read through the new function. A camera with no
+     label taps nothing and says why. Test 6 finds it if it stays.
+   - **The lookup returns the label with its `entry_ref` and grade, and
+     decides nothing from the grade.** Whether a label at E3, read on the
+     prior project's configuration and never re-read here, may let software
+     command a device is an open question put to design (2026-10-26). So is
+     matching an entry's "with configuration X loaded" against the
+     configuration actually loaded. This card neither gates on the grade nor
+     waives it. It records `entry_ref` and the grade in the check's
+     `software_motion_checked` or `software_motion_refused` event for each
+     name resolved, so whichever rule is
+     decided applies to records that already say what they stood on.
 2. **The check resolves before it asks.** For each name a command reaches
    (the channel, the element if named, and each device under
    `params.settings`), `check_software_motion` asks `refusal()`:
@@ -100,6 +117,12 @@ In `microscope_runtime/src/orchestrator.py`:
 7. The existing suite is unchanged.
 8. A run log's `registry_source`, and the source a missing-label refusal
    names, carry no backslash on Windows.
+9. With `CAMERA_DEVICES` gone, card 084's per-camera tap tests still pass
+   against a test registry whose two camera rows carry `mm_label`. With
+   the label removed from one row, that camera's tap answers with no frame
+   and names the missing label.
+10. Every resolved name's `entry_ref` and grade appear in the run's
+    events, and no test makes a plan's outcome depend on the grade.
 
 ## Boundaries
 
@@ -117,4 +140,4 @@ To this seat, 4 lines at most:
 - the commit;
 - each test, watched failing, then passing;
 - the suite's counts;
-- the field name the lookup reads, if the librarian's form had not landed.
+- every place card 061's form did not fit, with the field.
