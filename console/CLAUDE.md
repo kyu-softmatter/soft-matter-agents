@@ -91,7 +91,8 @@ under `librarian_agent/kb/wiki/`, read as data and nothing else of the store.
 - Nothing shown is kept or lands on a card. A fact is cited by its entry,
   never by a page.
 - What an account may ask of the store is only the three requests of
-  `plan.md` 7.1.1, and none reaches the librarian until that inbox is
+  `plan.md` 7.1.1 and a question to the librarian (its rule 4), and none
+  reaches the librarian until that inbox is
   approved and open.
 
 ## Tier 0 only

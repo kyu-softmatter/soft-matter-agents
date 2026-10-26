@@ -91,10 +91,12 @@ day:
      answers.
    - **Until the console inbox opens it does nothing**, and says so. Send
      writes no file and sends nothing.
-   - The item it will send is not among plan.md 7.1.1's three store
-     requests yet. Its kind, and the shape of its answer, are for
-     architecture-20261007-1 and manager-librarian, raised by this seat.
-     Invent no shape.
+   - Its kind is now in plan.md 7.1.1, rules 1 and 4 (`ccad00ed`): a
+     fourth item kind, a question to the librarian, written into
+     `librarian_agent/console_inbox/`. It makes no caller id and no
+     query-log line; the answer item is the trace. The item's and the
+     answer's schemas are manager-librarian's and not committed yet. Build
+     the window to them when they land, and invent no shape before.
    - From the store's manager, the shape to build toward:
      - an item carries the question and, optionally, conditions in words;
      - an answer in `librarian_agent/answers/` is one of two outcomes.

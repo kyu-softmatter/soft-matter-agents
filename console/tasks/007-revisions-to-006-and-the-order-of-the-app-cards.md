@@ -110,7 +110,11 @@ watches each new test fail before it passes.
    stop only.
 6. **Experiments**: runs, sample, sample map. Drafts waiting for a
    signature. Hand steps shown, never confirmed.
-7. **Simulation and Results**, pared to one screen each.
+7. **Simulation and Results**, pared to one screen each. Results gains a
+   search over the results the console already reads, so an earlier one
+   can be found by question, date, instrument, sample or registry name
+   (the person, I-20261026-office-03, `4582f29d`). It searches the
+   console's own data and never the knowledge store.
 8. **Library**: the three requests. Their schemas are manager-librarian's,
    once the inbox route exists. Until then the screen draws them and sends
    nothing.

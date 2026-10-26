@@ -93,6 +93,53 @@ From the runtime holder, the same day:
 - **The connection-state page reads the last run's `events.jsonl` now**,
   and card 085's status file once it lands.
 
+## The live optical path (`4582f29d`)
+
+The person's words, read about 09:59 -0700 on 2026-10-26
+(I-20261026-office-03):
+
+> 장비 탭 안에 실시간 광경로에 대한 것도 기존것을 참고해서 만들어
+
+("Inside the Instruments tab, also build the real-time optical path,
+referring to the existing one.")
+- **It goes on page 2, Optics and control.** It is not a new tab.
+- **What it shows** is the path's present state, updated as the run's
+  events and snapshots arrive:
+  - the filter turrets, the two emission wheels, the LightPath and its
+    port, and the confocal dichroic, by the registry's names;
+  - the lamp and the LED, on or off with intensity, as read back;
+  - beside each, the time it was read.
+- **Where it comes from** is the running run's read-back, and nothing else.
+  - On the mock, that is the state the mock reports (runtime card 086,
+    item 6), labelled the mock's.
+  - Until 086's item 6 lands, each element the run does not report reads
+    "not built yet". Nothing is filled from the console's side.
+  - A run that has ended leaves its last path marked "as of <time>, from
+    <run>", as on the other tabs.
+- **The model.** The old console had no separate optical-path screen. Its
+  hardware page's read-back panels are the model:
+  `git show 2964d0f27^:console/web/src/features/hardware/panels.tsx`,
+  `LightsPanel`, `CurrentStatePanel` and `lightText`.
+  - Take the read-back wording, the "not confirmed" warning and the read
+    time.
+  - Leave its Brightfield, Aura and Lights-off buttons: they sent
+    commands.
+- **It may be drawn as a path**, in the order the registry gives the
+  elements. If the registry gives no order, show a list. Invent no order
+  and no element.
+- **The registry's known traps stay visible** (086): the turret label that
+  names the wrong position, and the splitter states that send no light to
+  one camera. A position read back is that element's position, and not
+  proof of which element is in the beam. Say so beside the path.
+- **Hands-on (1) holds.** The lamp and LED carry this page's draft link.
+  Every other element is shown "moved by hand", with no control.
+- Tests, each watched failing first, from a recorded events fixture:
+  - each element's state and read time come from the fixture;
+  - an element the fixture does not report shows "not built yet" and no
+    value;
+  - no element marked "moved by hand" offers a control;
+  - on the mock, every state is labelled the mock's.
+
 ## What to do
 
 1. **Attach to a running mock run.**

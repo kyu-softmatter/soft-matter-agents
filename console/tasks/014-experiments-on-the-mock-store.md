@@ -71,17 +71,30 @@ For Experiments, **two pages**: **Plan** (실험 계획서) and **Sample map**.
   console only points at one signed plan and can send nothing else. On the
   real instrument, the run starts only after the person hands the bench
   over in person at the microscope.")
-  - It is of the live-on kind. It names one signed plan, by its id and
-    fingerprint, and sends nothing else: no parameter, no command, no
-    approval of its own.
+  - It is of the live-on kind. It names one signed plan and sends nothing
+    else: no parameter, no command, no approval of its own.
+  - **Its shape landed at `30036d9a`**: `run_interface.schema.json`,
+    `$defs` `run_request` and `run_reply`. Read them there, not from this
+    card.
+    - The request, to the live-view host, is
+      `{"run": "<sha256 of the plan_approval file's raw bytes>"}`, and that
+      key only. The console reads the approval file from `approvals/` as
+      data and hashes its bytes. It never sends a path, a backend, a plan
+      or a hand-over.
+    - The reply is one of three: started, with its run id; waiting for the
+      bench, until the person types the hand-over at the microscope's own
+      terminal; or refused, with a reason. Show each as it came, in words.
+      For "waiting for the bench", say the run waits for the person at the
+      microscope, and offer nothing that would stand for the hand-over.
   - The runtime starts the run from the signed plan and its approval. On
     the real instrument it starts only after the person's hand-over at the
     microscope.
-  - The request is a new run-interface kind. Its shape is the runtime
-    holder's and manager-microscope's to write into
-    `run_interface.schema.json`. **Until that lands, the button shows "not
-    built yet" and sends nothing.**
-  - It is offered only on an APPROVED plan, under `person_login`.
+  - **The host's side is runtime card 090, after 087, and not built.**
+    Build the request and the three replies to the schema, and validate
+    them against it in tests. In the app, the button shows "not built yet"
+    and sends nothing until 090 lands. Pointing it live is a later card.
+  - It is offered only on an APPROVED plan with its approval file on disk,
+    under `person_login`.
 - **Sample map** takes the old `features/map` as its model.
   - The sample's record view below is a panel on this page, not a tab of
     its own.
