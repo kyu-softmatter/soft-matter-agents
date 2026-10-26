@@ -325,6 +325,47 @@ def test7(tmp: Path) -> str:
     return f"7: an item in the real inbox is recorded as {got}"
 
 
+def strings_of(node, at: str = ""):
+    """Every string in a JSON value, with where it sits."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            yield from strings_of(v, f"{at}/{k}")
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from strings_of(v, f"{at}/{i}")
+    elif isinstance(node, str):
+        yield at, node
+
+
+def test8(tmp: Path) -> str:
+    """The paths a run log names are repo-relative with forward slashes (task 030).
+
+    Check 91 finds a run's plan by `plan_path` exactly, so a backslash there
+    makes a console run read as a window question's. The backslash appears
+    only where str() of a path runs on Windows, so this fails only there.
+    """
+    agent = sandbox(tmp, "t8")
+    plan = make_plan(CONSOLE_QID, tier=2)
+    approve(agent, plan)
+    inbox_item(agent, CONSOLE_QID)
+    log = log_of(runs_it(CONSOLE_QID))
+    want = f"simulation_agent/questions/{CONSOLE_QID}/plan_simulation_{CONSOLE_QID}.json"
+    assert (cards.REPO / want).is_file(), f"{want} is not the plan file this test wrote"
+    assert log.get("plan_path") == want, f"plan_path is {log.get('plan_path')!r}, not {want!r}"
+    # An absolute path outside the repository, such as the engine build's
+    # interpreter, is a machine's path and not a repo path; it is left alone.
+    def outside(s: str) -> bool:
+        p = Path(s)
+        return p.is_absolute() and not p.is_relative_to(cards.REPO) and not p.is_relative_to(REAL_REPO)
+    slashed = [f"{at}: {s!r}" for at, s in strings_of(log) if "\\" in s and not outside(s)]
+    assert not slashed, f"log.json holds a backslash in a repo path: {slashed}"
+    named = {"plan_path": log["plan_path"], "approval/file/path": log["approval"]["file"]["path"],
+             "console_item/path": log["console_item"]["path"]}
+    absolute = [f"{k}: {v}" for k, v in named.items() if Path(v).is_absolute() or ":" in v]
+    assert not absolute, f"log.json names a path that is not repo-relative: {absolute}"
+    return f"8: the run log's paths are repo-relative with forward slashes; plan_path is {want}"
+
+
 def main() -> int:
     before = git_status()
     # getattr, so the same script can be run against the operator from before task 028, which has no inbox
@@ -333,7 +374,7 @@ def main() -> int:
     failed = 0
     with tempfile.TemporaryDirectory() as t:
         try:
-            for test in (test1, test2, test3, test4, test5, test6, test7):
+            for test in (test1, test2, test3, test4, test5, test6, test7, test8):
                 try:
                     print("PASS", test(Path(t)))
                 except AssertionError as exc:

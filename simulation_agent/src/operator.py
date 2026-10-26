@@ -1328,7 +1328,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
         # believed itself to be and none said which file that came from. The
         # two agree exactly while the resolution is right, which is why the
         # day they stop agreeing is the day nobody would notice.
-        "plan_path": str(plan_path.relative_to(cards.REPO)),
+        # With forward slashes on every platform (task 030): check 91 looks the
+        # plan up by this string exactly, and str() of a Windows path is not a
+        # path the validator ever names.
+        "plan_path": plan_path.relative_to(cards.REPO).as_posix(),
         # Likewise, and here it is the point of the card: a later reader has to
         # be able to tell "ran revision 1 on purpose" from "ran revision 1
         # because the code could not see revision 2". Taken from the plan's own
