@@ -57,7 +57,13 @@ In `microscope_runtime/src/orchestrator.py`:
      That is today's refusal, with its reason.
    - Every refusal is still collected, and the whole plan is still refused
      before the first command.
-3. **`widefield_source_a` gets no label from this card.** If a test
+3. **The registry's source is written with forward slashes.** The refusal in
+   item 2 names the registry file, and the run log's `registry_source`
+   names the same file. Today, on Windows, it reads
+   `microscope_agent\envelope\snapshot.json` (you flagged this at
+   `f977c927`). Write both repo-relative with `as_posix()`, the way
+   `plan_path` is written. Records already written keep what they say.
+4. **`widefield_source_a` gets no label from this card.** If a test
    registry gives it one, that is the test's. The real registry gives it
    none while `lapp_branch_assignment` is open, so a plan on the Aura stays
    refused, now naming the missing label.
@@ -92,6 +98,8 @@ In `microscope_runtime/src/orchestrator.py`:
    greps `src/` for each `SOFTWARE_MAY_COMMAND` key outside `micromanager.py`
    and the existing `LIGHT_SOURCES` abort pairing, and finds none.
 7. The existing suite is unchanged.
+8. A run log's `registry_source`, and the source a missing-label refusal
+   names, carry no backslash on Windows.
 
 ## Boundaries
 
