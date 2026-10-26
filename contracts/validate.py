@@ -1810,7 +1810,8 @@ ALLOWED_PATHS = [
     # as a prefix: a folder per section made every page depth 5, which 7.1
     # rule 6 refuses inside an agent tree (check 13) -- found by
     # librarian-20261007-1 rendering the first 87 pages, 2026-10-18.
-    r"^librarian_agent/kb/wiki/(index\.md|unfiled\.md|(device|quantity|observable|sample|configuration)_[a-z0-9_]+\.md)$",
+    r"^librarian_agent/kb/wiki/(index\.md|unfiled\.md|evidence\.md|map\.json|"
+    r"(device|quantity|observable|sample|configuration)_[a-z0-9_]+\.md)$",
     r"^librarian_agent/queries/[A-Za-z0-9_.-]+$",
     r"^librarian_agent/tasks/[A-Za-z0-9_.-]+$",
     r"^bridge/tasks/[A-Za-z0-9_.-]+$",
@@ -8502,7 +8503,16 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
     # same defect. Their footer must be the page's whole last line.
     wiki_dir = KB_DIR / "wiki"
     pages = sorted(p for p in wiki_dir.rglob("*.md")) if wiki_dir.is_dir() else []
-    if not guides and not pages:
+    # AND THE MAP (2026-10-25, librarian task 060): kb/wiki/map.json, the
+    # store's relations as nodes and typed edges for the console to draw. It
+    # trails the store the same way a page can, so it is judged the same way;
+    # its version is a field, and its `footer` field must be the pages' one
+    # line naming that same version. It carries no number taken from an
+    # entry -- values stay on the pages beside their provenance -- so a
+    # `value` or `values` key anywhere in it fails.
+    wiki_map = wiki_dir / "map.json"
+    maps = [wiki_map] if wiki_map.is_file() else []
+    if not guides and not pages and not maps:
         return [Finding(87, NA, "no safety guide or wiki page has been rendered, so none can trail the store")]
 
     try:
@@ -8557,6 +8567,43 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
             out.append(Finding(87, FAIL, f"was rendered from {v}, and {where} -- behind both, which is a publish "
                                          f"that did not regenerate the wiki. Run librarian_agent/src/wiki.py and "
                                          f"commit the pages with the publish or before it", _rel(g)))
+    map_at: str | None = None
+    for g in maps:
+        try:
+            doc = json.loads(g.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError) as e:
+            out.append(Finding(87, FAIL, f"does not parse as JSON ({e}), so which store it shows cannot be read. "
+                                         f"Regenerate it with librarian_agent/src/wiki.py", _rel(g)))
+            continue
+        mv = doc.get("kb_version") if isinstance(doc, dict) else None
+        footer = doc.get("footer") if isinstance(doc, dict) else None
+        fm = WIKI_FOOTER.fullmatch(footer) if isinstance(footer, str) else None
+        if not isinstance(doc, dict) or doc.get("artifact") != "kb_map" or fm is None or fm.group(1) != mv:
+            out.append(Finding(87, FAIL, "is not a kb_map whose kb_version and footer name the same store in the "
+                                         "wiki's one footer form, so which store it shows cannot be read. "
+                                         "Regenerate it with librarian_agent/src/wiki.py; the map is never "
+                                         "edited by hand", _rel(g)))
+            continue
+        stack, valued = [doc], False
+        while stack and not valued:
+            x = stack.pop()
+            if isinstance(x, dict):
+                valued = bool({"value", "values"} & set(x))
+                stack.extend(x.values())
+            elif isinstance(x, list):
+                stack.extend(x)
+        if valued:
+            out.append(Finding(87, FAIL, "carries a value key: the map shows how entries relate and holds no "
+                                         "number taken from one, because a number shown away from its page is "
+                                         "shown without its provenance. Drop it in librarian_agent/src/wiki.py",
+                               _rel(g)))
+            continue
+        if mv not in allowed:
+            out.append(Finding(87, FAIL, f"was rendered from {mv}, and {where} -- behind both, which is a publish "
+                                         f"that did not regenerate the wiki. Run librarian_agent/src/wiki.py and "
+                                         f"commit the map with the publish or before it", _rel(g)))
+            continue
+        map_at = mv
     if out:
         return out
 
@@ -8567,8 +8614,12 @@ def check_87_safety_guides_follow_the_store(b: Bundle) -> list[Finding]:
     for v, n in sorted(at.items()):
         role = " and ".join(r for r, ok in (("the store's own", v == store), ("the published", v in published)) if ok)
         parts.append(f"{n} at {v}, {role} version")
+    if map_at:
+        role = " and ".join(r for r, ok in (("the store's own", map_at == store), ("the published", map_at in published))
+                            if ok)
+        parts.append(f"the map at {map_at}, {role} version")
     note = ""
-    if store and store not in at and store not in wiki_at and published:
+    if store and store not in at and store not in wiki_at and store != map_at and published:
         note = (f"; the store has moved to {store} since, and the guides follow at the next publish, which is "
                 f"when they have to")
     return [Finding(87, PASS, f"{len(guides)} safety guides and {len(pages)} wiki pages name the store they show: "
