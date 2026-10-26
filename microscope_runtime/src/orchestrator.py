@@ -1648,7 +1648,19 @@ class Orchestrator:
         for a scratch root (card 063), on mock only -- so a gate reads the same approvals
         as the run that called it."""
         authoriser = getattr(self, "plan_authoriser", None)
-        return authoriser(plan) if authoriser is not None else _operator().authorise(plan)
+        decision = authoriser(plan) if authoriser is not None else _operator().authorise(plan)
+        # Every ask is logged with the file the reader judged: its path and the sha256 of the bytes
+        # it read, taken from the decision and never from a second read of the folder, so a file
+        # rewritten between this ask and the run's first one cannot make the log name another.
+        fields = {"plan_id": plan.get("id"), "plan_revision": plan.get("revision"),
+                  "permitted": decision.permitted,
+                  "approval_id": getattr(decision, "approval_id", None),
+                  "kind": getattr(decision, "kind", None),
+                  "file": getattr(decision, "approval_file", None)}
+        if not decision.permitted:
+            fields["reasons"] = list(getattr(decision, "reasons", ()))
+        self.record(event="authorisation", **fields)
+        return decision
 
     def _focus_gate(self, plan: dict, commands: list[Command],
                     candidates: dict[int, str]) -> dict[int, str]:
