@@ -37,8 +37,9 @@ from pathlib import Path
 from typing import Any
 
 EVENTS_FILE = "events.jsonl"
-#: run_ended's `how`, as soft-matter-agents' Orchestrator.end_run documents it
-RUN_ENDED_HOW = ("completed", "aborted_by_monitor", "stopped_from_outside", "failed")
+#: run_ended's `how`, as contracts/schemas/run_interface.schema.json lists it. `refused` is a run
+#: the operator refused before any command went out
+RUN_ENDED_HOW = ("completed", "aborted_by_monitor", "stopped_from_outside", "failed", "refused")
 #: the longest stop message the run accepts (Orchestrator.STOP_MAX_BYTES)
 STOP_MAX_BYTES = 1024
 STOP_LINE_PREFIX = "the dino console: "

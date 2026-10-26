@@ -8,6 +8,7 @@ import type { ComponentType } from "react";
 export const AREAS = [
   { id: "questions", label: "Questions" },
   { id: "instruments", label: "Instruments" },
+  // Plan and Sample map pages (console card 014): reads plans, runs and the sample on disk; Run sends nothing yet
   { id: "experiments", label: "Experiments" },
   { id: "simulation", label: "Simulation" },
   { id: "library", label: "Library" },

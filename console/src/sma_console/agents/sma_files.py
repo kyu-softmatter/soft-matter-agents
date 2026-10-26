@@ -430,6 +430,36 @@ class SmaFiles:
             return {}
         return data if isinstance(data, dict) else {}
 
+    #: the run files the console reads as text, beside the JSON records `get_run` opens
+    RUN_TEXT_FILES = ("manual_steps.md",)
+
+    def read_run_text(self, agent: Agent, run_id: str, name: str) -> str | None:
+        """One of `RUN_TEXT_FILES` of a run (the hand-step sheet), or None when it is absent, too big or
+        not text. Any other name is refused: this is not a way to open arbitrary files."""
+        if name not in self.RUN_TEXT_FILES:
+            raise NotFoundError(f"{name!r} is not a run file the console reads as text")
+        p = self._run_dir(agent, run_id) / name
+        try:
+            if not p.is_file() or p.stat().st_size > self.max_read_bytes:
+                return None
+            return p.read_text(encoding="utf-8-sig")
+        except (OSError, UnicodeDecodeError):
+            return None
+
+    def approval_file_sha256(self, agent: Agent, name: str) -> str | None:
+        """The sha256 (lower-case hex) of an approval file's raw bytes, BOM included: what a run request
+        names. None when there is no such file."""
+        base = run_side_folder(self._root, check_agent(agent), "approvals")
+        if base is None or not name or "/" in name or "\\" in name or not name.endswith(".json"):
+            return None
+        p = base / name
+        try:
+            if not p.is_file() or p.stat().st_size > self.max_read_bytes:
+                return None
+            return hashlib.sha256(p.read_bytes()).hexdigest()
+        except OSError:
+            return None
+
     # -- approvals -------------------------------------------------------------------------
 
     def list_approvals(self, agent: Agent) -> list[Approval]:

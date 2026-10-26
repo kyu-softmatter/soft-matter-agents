@@ -35,6 +35,7 @@ def approval(qid: str, rev: int, h: str, when: str) -> dict:
 def tree(tmp_path):
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
+    shutil.rmtree(root / "microscope_runtime")  # its approvals: these tests write their own
     plan = json.loads((root / "microscope_agent/questions" / QID / PLAN_FILE).read_text("utf-8"))
     appr = root / "microscope_agent" / "approvals"
     appr.mkdir()
@@ -90,5 +91,7 @@ def test_reading_approvals_writes_nothing(tree):
     assert snapshot(root) == before
 
 
-def test_mock_store_has_no_approvals(tmp_path):
-    assert MockStore(tmp_path / "w").list_approvals("microscope") == []
+def test_mock_store_holds_the_two_practice_approvals_of_one_question(tmp_path):
+    got = MockStore(tmp_path / "w").list_approvals("microscope")
+    assert {a.qid for a in got} == {QID} and sorted(a.name for a in got) == [
+        f"appr-{QID}-r1.json", f"appr-{QID}-r2.json"]

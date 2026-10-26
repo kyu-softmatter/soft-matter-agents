@@ -122,8 +122,14 @@ def test_unknown_questions_raise(store):
 
 
 def test_runs(store):
-    (mic,) = store.list_runs("microscope")
-    assert mic.run_id == "run-20260924-003"
+    # newest first; the sample's microscope runs are in the current layout (microscope_runtime/runs/)
+    runs = store.list_runs("microscope")
+    assert [(r.run_id, r.status) for r in runs[:2]] == [("run-20261013-004", "refused"),
+                                                         ("run-20261013-001", "refused")]
+    mic = runs[2]
+    assert len(runs) == 3 and mic.run_id == "run-20260924-003"
+    assert (DATA / "microscope_runtime" / "runs" / mic.run_id / "log.json").is_file()
+    assert not (DATA / "microscope_agent" / "runs").exists()  # one place, never both
     assert mic.status.startswith("stopped:")  # the outcome of its run_end event
     assert mic.created_at == "2026-09-24T19:06:52.466+00:00"
     assert mic.qid is None and mic.plan_id is None  # this run had no plan
@@ -244,7 +250,7 @@ def test_writable_flag():
 
 def test_sample_is_small_and_says_where_it_came_from():
     files = [p for p in DATA.rglob("*") if p.is_file()]
-    assert sum(p.stat().st_size for p in files) < 200_000
+    assert sum(p.stat().st_size for p in files) < 400_000
     source = (DATA / "SOURCE.md").read_text(encoding="utf-8")
     assert re.search(r"\b[0-9a-f]{40}\b", source)
 

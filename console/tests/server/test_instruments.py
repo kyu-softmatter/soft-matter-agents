@@ -79,6 +79,7 @@ def tree(tmp_path):
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
     shutil.rmtree(root / "console")
+    shutil.rmtree(root / "microscope_runtime")  # its runs: these tests write their own
     shutil.copytree(REPO / "contracts" / "schemas", root / "contracts" / "schemas")
     (root / "microscope_runtime" / "envelope").mkdir(parents=True)
     safety = json.loads((REPO / "microscope_runtime" / "envelope" / "safety.json").read_text(encoding="utf-8-sig"))

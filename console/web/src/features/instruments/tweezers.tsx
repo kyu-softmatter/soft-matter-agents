@@ -4,7 +4,7 @@
  * nothing back), and a pattern as a `trap_steps` plan draft. No click-to-hold and no dragging.
  */
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { shortTime } from "../questions/ui";
 import type { LatestRun, LimitsOut } from "./api";
@@ -68,13 +68,48 @@ function Plots({ run }: { run: LatestRun }) {
 const onText = (on: boolean | null) => (on === null ? "unknown" : on ? "on" : "off");
 const cell = (v: number | null) => (v === null ? "unknown" : String(v));
 
-export function Tweezers({ run, limits }: { run: LatestRun; limits: LimitsOut }) {
+/** The trap-pattern draft form and its result. Shared with the Experiments plan page; it saves nothing. */
+export function TrapDraft({ between }: { between?: ReactNode }) {
   const { draft, error, busy, make } = useDraft();
   const [pattern, setPattern] = useState<"line" | "circle" | "grid">("line");
   const [n, setN] = useState("3");
   const [spacing, setSpacing] = useState("5");
   const [strength, setStrength] = useState("0.3");
   const [objective, setObjective] = useState<"40x" | "60x" | "100x">("100x");
+  return (
+    <>
+      <div className="inst-form" role="group" aria-label="Draft a pattern">
+        <label className="inst-field">
+          Pattern
+          <select value={pattern} onChange={(e) => setPattern(e.target.value as typeof pattern)}>
+            <option value="line">Line</option><option value="circle">Circle</option><option value="grid">Grid</option>
+          </select>
+        </label>
+        <NumberField label="Number of traps" value={n} onChange={setN} />
+        <NumberField label="Spacing (µm)" value={spacing} onChange={setSpacing} />
+        <NumberField label="Strength (0 to 1)" value={strength} onChange={setStrength} />
+        <label className="inst-field">
+          Objective
+          <select value={objective} onChange={(e) => setObjective(e.target.value as typeof objective)}>
+            <option value="40x">40x</option><option value="60x">60x</option><option value="100x">100x</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void make({ kind: "trap_steps", pattern, n: num(n), spacing_um: num(spacing), strength: num(strength), objective })}
+        >
+          Draft trap pattern
+        </button>
+      </div>
+      {between}
+      <DraftError error={error} />
+      {draft !== undefined && <DraftView draft={draft} />}
+    </>
+  );
+}
+
+export function Tweezers({ run, limits }: { run: LatestRun; limits: LimitsOut }) {
   return (
     <section aria-label="Tweezers" className="inst-tweezers">
       <RunBanner run={run} />
@@ -102,33 +137,7 @@ export function Tweezers({ run, limits }: { run: LatestRun; limits: LimitsOut })
       ) : (
         <p>no trap sent</p>
       )}
-      <div className="inst-form" role="group" aria-label="Draft a pattern">
-        <label className="inst-field">
-          Pattern
-          <select value={pattern} onChange={(e) => setPattern(e.target.value as typeof pattern)}>
-            <option value="line">Line</option><option value="circle">Circle</option><option value="grid">Grid</option>
-          </select>
-        </label>
-        <NumberField label="Number of traps" value={n} onChange={setN} />
-        <NumberField label="Spacing (µm)" value={spacing} onChange={setSpacing} />
-        <NumberField label="Strength (0 to 1)" value={strength} onChange={setStrength} />
-        <label className="inst-field">
-          Objective
-          <select value={objective} onChange={(e) => setObjective(e.target.value as typeof objective)}>
-            <option value="40x">40x</option><option value="60x">60x</option><option value="100x">100x</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void make({ kind: "trap_steps", pattern, n: num(n), spacing_um: num(spacing), strength: num(strength), objective })}
-        >
-          Draft trap pattern
-        </button>
-      </div>
-      <PatternAllowed limits={limits} />
-      <DraftError error={error} />
-      {draft !== undefined && <DraftView draft={draft} />}
+      <TrapDraft between={<PatternAllowed limits={limits} />} />
     </section>
   );
 }

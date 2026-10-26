@@ -196,3 +196,14 @@ def test_send_stop_connects_only_to_the_announced_loopback_port(run, monkeypatch
     st = sma_run.read_stream(run.folder)
     sma_run.send_stop(st, "x")
     assert seen == [("127.0.0.1", st.stop_channel.port)]
+
+
+# -- how a run ends: the words are the contract's -------------------------------------------
+
+
+def test_the_ways_a_run_ends_are_the_contracts_and_include_a_refusal():
+    from sma_console.agents.sma_files import repository_root
+    schema = json.loads((repository_root() / "contracts" / "schemas" / "run_interface.schema.json")
+                        .read_text(encoding="utf-8-sig"))
+    assert list(sma_run.RUN_ENDED_HOW) == schema["$defs"]["run_ended"]["properties"]["how"]["enum"]
+    assert "refused" in sma_run.RUN_ENDED_HOW

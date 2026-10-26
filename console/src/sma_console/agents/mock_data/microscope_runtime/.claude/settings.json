@@ -1,0 +1,13 @@
+{
+  "$comment": "Example data (see ../../SOURCE.md). This folder is named like the runtime's, so the validator's guard check reads it as an execution folder and asks for the same six denials. Nothing here is a session's settings: no session is rooted in this folder.",
+  "permissions": {
+    "deny": [
+      "Edit(/envelope/safety.json)",
+      "Edit(/envelope/console_login.json)",
+      "Edit(/approvals/**)",
+      "Edit(/tasks/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/.claude/**)"
+    ]
+  }
+}

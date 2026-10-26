@@ -40,9 +40,9 @@ server address. The built app served by the server itself needs no `--dev-origin
 
 The areas and their order are fixed in `src/app/areas.ts`: `questions`, `instruments`,
 `experiments`, `simulation`, `library`, `results`, and `admin` (shown to an administrator only).
-Login (`src/app/login/`, T-105) is not an area and has no navigation entry. `experiments` and
-`library` are plain "not built yet" screens until their own cards; `instruments` has its six screens
-(console cards 012 and 015). To give an
+Login (`src/app/login/`, T-105) is not an area and has no navigation entry. `library` is a plain "not built yet" screen until its own
+card; `experiments` has its two pages, Plan and Sample map (console card 014: it reads files, and its one
+POST, Run, sends nothing); `instruments` has its six screens (console cards 012 and 015). To give an
 area its screen:
 
 1. Create `src/features/<area>/index.tsx`.

@@ -99,6 +99,12 @@ class MockStore:
     def list_approvals(self, agent: Agent) -> list[Approval]:
         return self.sample.list_approvals(agent)
 
+    def read_run_text(self, agent: Agent, run_id: str, name: str) -> str | None:
+        return self.sample.read_run_text(agent, run_id, name)
+
+    def approval_file_sha256(self, agent: Agent, name: str) -> str | None:
+        return self.sample.approval_file_sha256(agent, name)
+
     # -- question requests (console card 010) -----------------------------------------------------
     #
     # A request goes into the store's own write folder, in the layout soft-matter-agents' console

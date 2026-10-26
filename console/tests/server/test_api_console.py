@@ -89,8 +89,8 @@ def test_runs_and_run_detail(engine, make_client):
     pairs = {(r["agent"], r["run_id"]) for r in runs}
     assert pairs >= {("simulation", SIM_RUN), ("microscope", MIC_RUN)}
     assert all("approval_kind" in r for r in runs)
-    assert [r["agent"] for r in c.get("/api/console/runs", params={"agent": "microscope"}).json()] \
-        == ["microscope"]
+    only = c.get("/api/console/runs", params={"agent": "microscope"}).json()
+    assert only and {r["agent"] for r in only} == {"microscope"} and MIC_RUN in {r["run_id"] for r in only}
     sim = c.get(f"/api/console/runs/simulation/{SIM_RUN}").json()
     assert {"config.json", "log.json", "observables.json"} <= set(sim["records"])
     mic = c.get(f"/api/console/runs/microscope/{MIC_RUN}").json()

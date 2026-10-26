@@ -867,6 +867,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/experiments/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Plans
+         * @description Every plan on disk with where it stands, and every run with how it ended. Reads only.
+         */
+        get: operations["plans_api_experiments_plans_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/experiments/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run
+         * @description What the Run button would send for this plan, and that it is not built yet. **Sends nothing and
+         *     writes nothing**: there is no live-view host request in the console until the runtime receives it.
+         */
+        post: operations["run_api_experiments_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/experiments/sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample
+         * @description The sample's record view: there is no record yet, and where one lives is still being designed. A
+         *     loading check a run's hand-step sheet holds (a confirmed step that mentions loading: a guess at what
+         *     the sheet's wording means) is shown with the run it came from.
+         */
+        get: operations["sample_api_experiments_sample_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/experiments/sample-map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample Map
+         * @description The sample map: every part says it is not built and why. Nothing is drawn: no move, no flag, no
+         *     candidate, and a model's guess is never shown as one.
+         */
+        get: operations["sample_map_api_experiments_sample_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/instruments/status": {
         parameters: {
             query?: never;
@@ -1422,6 +1506,13 @@ export interface components {
             /** Note */
             note: string;
         };
+        /** EventsOut */
+        EventsOut: {
+            /** Count */
+            count: number;
+            /** Words */
+            words: string;
+        };
         /**
          * FrameOut
          * @description The frame both viewers draw (web/src/features/simulation/frame.ts FrameJson).
@@ -1461,6 +1552,27 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HandStepOut */
+        HandStepOut: {
+            /** Sheet Id */
+            sheet_id: string;
+            /** Channel */
+            channel: string;
+            /** Element */
+            element: string | null;
+            /** Instruction */
+            instruction: string;
+            /** Opened At */
+            opened_at: string | null;
+            /** Confirmed */
+            confirmed: boolean;
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /** Confirmed By */
+            confirmed_by: string | null;
+            /** Observed */
+            observed: string | null;
         };
         /**
          * HardwareState
@@ -1724,6 +1836,19 @@ export interface components {
             /** Lists */
             lists: components["schemas"]["LiveListOut"][];
         };
+        /** LoadingCheckOut */
+        LoadingCheckOut: {
+            /** Run Id */
+            run_id: string;
+            /** Sheet Id */
+            sheet_id: string;
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /** Confirmed By */
+            confirmed_by: string | null;
+            /** Words */
+            words: string;
+        };
         /** LoginIn */
         LoginIn: {
             /** Login */
@@ -1909,6 +2034,68 @@ export interface components {
             error?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** PlanApprovalOut */
+        PlanApprovalOut: {
+            /** Name */
+            name: string;
+            /** Id */
+            id: string | null;
+            /** Approved By */
+            approved_by: string | null;
+            /** Approved At */
+            approved_at: string | null;
+            /** Signed Through */
+            signed_through: {
+                [key: string]: string;
+            } | null;
+            /** Signed Words */
+            signed_words: string;
+        };
+        /** PlanOut */
+        PlanOut: {
+            /** Plan Id */
+            plan_id: string;
+            /** Revision */
+            revision: number | null;
+            /** Qid */
+            qid: string;
+            /** Version */
+            version: number;
+            /** Card Name */
+            card_name: string;
+            /** Status */
+            status: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "draft" | "waiting_for_signature" | "approved" | "running" | "ended";
+            /** State Words */
+            state_words: string;
+            /** Plan Hash */
+            plan_hash: string;
+            approval: components["schemas"]["PlanApprovalOut"] | null;
+            /** Void Approvals */
+            void_approvals: components["schemas"]["VoidApprovalOut"][];
+            /** Run Ids */
+            run_ids: string[];
+            run_offer: components["schemas"]["RunOfferOut"];
+        };
+        /** PlansOut */
+        PlansOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Drafts Note */
+            drafts_note: string;
+            /** Plans */
+            plans: components["schemas"]["PlanOut"][];
+            /** Runs */
+            runs: components["schemas"]["RunOut"][];
+            /** Problems */
+            problems: string[];
         };
         /**
          * Positions
@@ -2208,6 +2395,21 @@ export interface components {
              */
             role: "admin" | "operator" | "viewer";
         };
+        /** RunApprovalOut */
+        RunApprovalOut: {
+            /** Id */
+            id: string | null;
+            /** Kind */
+            kind: string | null;
+            /** Sha256 */
+            sha256: string | null;
+            /** Signed Through */
+            signed_through: {
+                [key: string]: string;
+            } | null;
+            /** Signed Words */
+            signed_words: string;
+        };
         /** RunDetailOut */
         RunDetailOut: {
             summary: components["schemas"]["RunSummaryOut"];
@@ -2222,6 +2424,13 @@ export interface components {
             files: components["schemas"]["sma_console__server__api__console__FileInfoOut"][];
             /** Not Opened */
             not_opened: string[];
+        };
+        /** RunIn */
+        RunIn: {
+            /** Plan Id */
+            plan_id: string;
+            /** Plan Revision */
+            plan_revision: number;
         };
         /** RunInfoOut */
         RunInfoOut: {
@@ -2240,6 +2449,73 @@ export interface components {
             trajectory_unavailable: string | null;
             /** Source */
             source: string;
+        };
+        /** RunNotBuiltOut */
+        RunNotBuiltOut: {
+            /**
+             * Outcome
+             * @constant
+             */
+            outcome: "not_built";
+            /** Message */
+            message: string;
+            /** Would Send */
+            would_send: {
+                [key: string]: string;
+            };
+        };
+        /** RunOfferOut */
+        RunOfferOut: {
+            /** Offered */
+            offered: boolean;
+            /** Why Not */
+            why_not: string | null;
+            /** Approval Name */
+            approval_name: string | null;
+            /** Approval Sha256 */
+            approval_sha256: string | null;
+            /**
+             * Built
+             * @default false
+             * @constant
+             */
+            built: false;
+            /** Message */
+            message: string;
+        };
+        /** RunOut */
+        RunOut: {
+            /** Run Id */
+            run_id: string;
+            /** Plan Id */
+            plan_id: string | null;
+            /** Qid */
+            qid: string | null;
+            /** Plan On Disk */
+            plan_on_disk: boolean;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "running" | "ended";
+            /** How */
+            how: string | null;
+            /** How Words */
+            how_words: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            approval: components["schemas"]["RunApprovalOut"] | null;
+            /** Refusal */
+            refusal: string | null;
+            events: components["schemas"]["EventsOut"];
+            /** Hand Steps */
+            hand_steps: components["schemas"]["HandStepOut"][];
+            /** Waiting Line */
+            waiting_line: string | null;
+            /** Tweezers Note */
+            tweezers_note: string | null;
         };
         /**
          * RunStreamOut
@@ -2265,7 +2541,7 @@ export interface components {
             state: "running" | "ended" | "not_followed";
             /**
              * Ended How
-             * @description run_ended's how: completed, aborted_by_monitor, stopped_from_outside, failed
+             * @description run_ended's how: completed, aborted_by_monitor, stopped_from_outside, failed, refused
              */
             ended_how: string | null;
             /** Plan Id */
@@ -2331,6 +2607,40 @@ export interface components {
             source: string;
             /** Approval Kind */
             approval_kind?: string | null;
+        };
+        /** SampleMapOut */
+        SampleMapOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Parts */
+            parts: {
+                [key: string]: string;
+            }[];
+            /** Example Map */
+            example_map: null;
+            /** Moves */
+            moves: unknown[];
+            /** Flags */
+            flags: unknown[];
+            /** Candidates */
+            candidates: unknown[];
+            /** Message */
+            message: string;
+        };
+        /** SampleOut */
+        SampleOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Record */
+            record: null;
+            /** Message */
+            message: string;
+            /** Loading Checks */
+            loading_checks: components["schemas"]["LoadingCheckOut"][];
         };
         /** SampleRef */
         SampleRef: {
@@ -2760,6 +3070,13 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VoidApprovalOut */
+        VoidApprovalOut: {
+            /** Name */
+            name: string;
+            /** Why */
+            why: string;
         };
         /** ZipEntryOut */
         ZipEntryOut: {
@@ -4821,6 +5138,120 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    plans_api_experiments_plans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlansOut"];
+                };
+            };
+        };
+    };
+    run_api_experiments_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunNotBuiltOut"];
+                };
+            };
+            /** @description not the person's login, or not at the microscope */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description no such plan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the plan is not approved */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sample_api_experiments_sample_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SampleOut"];
+                };
+            };
+        };
+    };
+    sample_map_api_experiments_sample_map_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SampleMapOut"];
+                };
             };
         };
     };

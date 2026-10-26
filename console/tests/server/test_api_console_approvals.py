@@ -20,6 +20,7 @@ QID = "mic-20260925-002"
 def root(tmp_path):
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
+    shutil.rmtree(root / "microscope_runtime")  # its approvals: these tests write their own
     plan = json.loads((root / "microscope_agent/questions" / QID /
                        f"plan_microscope_{QID}.json").read_text("utf-8"))
     (root / "microscope_agent" / "approvals").mkdir()
@@ -43,8 +44,9 @@ def test_approvals_route_and_question_detail(engine, make_client, root):
     assert [a["id"] for a in d["approvals"]] == [f"appr-{QID}-r1"]
 
 
-def test_mock_store_answers_no_approvals(engine, make_client):
-    assert make_client(engine).get("/api/console/approvals").json() == []
+def test_mock_store_answers_its_two_practice_approvals(engine, make_client):
+    got = make_client(engine).get("/api/console/approvals").json()
+    assert sorted(a["name"] for a in got) == [f"appr-{QID}-r1.json", f"appr-{QID}-r2.json"]
 
 
 def test_store_flag(tmp_path, root, monkeypatch):

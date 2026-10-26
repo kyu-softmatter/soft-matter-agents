@@ -57,6 +57,7 @@ def sma_root(tmp_path):
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
     shutil.rmtree(root / "console")  # the sample's practice requests: these tests start from none
+    shutil.rmtree(root / "microscope_runtime")  # its runs and approvals: these tests write their own
     (root / "contracts").mkdir()
     (root / "contracts" / "quantities.json").write_text(
         json.dumps({"quantities": [{"id": "pixel_size"}, {"id": "refractive_index"}]}), encoding="utf-8")

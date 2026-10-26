@@ -59,10 +59,10 @@ def test_runs_are_found_followed_and_stopped_in_either_place(tmp_path, clients, 
         run.end()
 
 
-def test_the_old_place_is_the_mock_sample_and_old_scratch_copies(engine, make_client):
-    """The mock sample is a tree from before the move; it reads through the same rule."""
+def test_the_mock_sample_is_in_the_current_layout(engine, make_client):
+    """The mock sample's runs are copies in microscope_runtime/runs/ (card 014); they read as runs."""
     runs = make_client(engine).get("/api/console/runs", params={"agent": "microscope"}).json()
-    assert [r["run_id"] for r in runs] == ["run-20260924-003"]
+    assert [r["run_id"] for r in runs] == ["run-20261013-004", "run-20261013-001", "run-20260924-003"]
 
 
 def test_when_both_places_have_runs_only_the_runtime_ones_are_read_and_stopped(tmp_path, clients):

@@ -9,14 +9,14 @@ on 2026-10-01 for T-008. The folder layout is the same as there, so `SmaFiles` r
 folder the way it reads the real one. Nothing here is edited; to refresh, copy again from a
 newer commit and update this file.
 
-What was taken, and what was left out to stay under 200 KB:
+What was taken, and what was left out to keep the sample small:
 
 | Path | Kept | Left out |
 |---|---|---|
 | `simulation_agent/questions/sim-20260923-001/` | goal, v2_goal, v3_goal; axis a7 in all three versions; refusal_s4 (version 1); v3 plan; v3 synthesis; the question's markdown | axes a1–a5 of every version, v2 plan and synthesis, plan markdown |
 | `microscope_agent/questions/mic-20260925-001/` | goal, analysis_method_declared | nothing |
 | `microscope_agent/questions/mic-20260925-002/` | plan (a question with a plan and no goal) | nothing |
-| `microscope_agent/runs/run-20260924-003/` | commands.json, log.json (a run that stopped at its gate) | nothing |
+| `microscope_runtime/runs/run-20260924-003/` | commands.json, log.json (a run that stopped at its gate) | nothing |
 | `simulation_agent/runs/run-20260924-001-smoke-g2k2/` | config, log, observables, trajectory_meta (a run of sim-20260923-001) | the trajectory, which was not in the repository |
 | `microscope_agent/inbox/thr-tracer-diffusivity-001/` | r1 and r2 ask_experiment, markdown | the JSON copies of both asks (50 KB) |
 | `bridge/threads/thr-tracer-diffusivity-001/` | status.json | round hashes, the asks |
@@ -26,6 +26,31 @@ one axis and no plan. That is an artifact of the copy, not of the question.
 
 The cards carry their grades and `numbers` as written. They are sample data for the console;
 none of their numbers is to be used for anything on the bench.
+
+The run row was `microscope_agent/runs/run-20260924-003/` until 2026-10-26: the runtime's runs moved
+to `microscope_runtime/runs/` (soft-matter-agents card 080), and the sample follows, with the one
+folder and never both.
+
+## Refreshed 2026-10-26 for console card 014 (the Experiments screens)
+
+Copied byte for byte from the soft-matter-agents repository on this desktop at commit
+`244274faa207407e08c63caec8663bb2f3131f6f`; each path's content was last changed at the commit
+named, and the copies were checked equal to `git show` of that path at the first commit.
+
+| Path | Last changed at | What |
+|---|---|---|
+| `microscope_runtime/runs/run-20261013-001/` | `a36e49d000ac37f9b81be011042969bc0864a6e0` | deviations.json, events.jsonl, log.json: a run the runtime refused (plan `plan-mic-20261008-001-r1`, no plan card here) |
+| `microscope_runtime/runs/run-20261013-004/` | `a36e49d000ac37f9b81be011042969bc0864a6e0` | the same three files: a second refused run (plan `plan-mic-20261008-004-r1`, no plan card here) |
+| `microscope_runtime/approvals/appr-mic-20260925-002-r1.json` | `1b90be9e5c970064c65f6976e75fc1cf9f1af1f1` | an approval whose plan hash is not the sample plan's |
+| `microscope_runtime/approvals/appr-mic-20260925-002-r2.json` | `1b90be9e5c970064c65f6976e75fc1cf9f1af1f1` | the approval whose plan hash is the sample plan of `mic-20260925-002` |
+
+`microscope_runtime/.claude/settings.json` is written here, not copied: the folder is named like the
+runtime's, so the validator's guard check reads it as an execution folder and asks for the same six
+denials. No session is rooted in this folder.
+
+The sample grew past the earlier 200 KB because the two refused runs carry their event logs; the
+size test now allows 400 KB. Everything in this folder is example data: what a screen shows from it is
+labelled as such, and nothing reads it as a real run, plan or approval.
 
 ## Synthetic additions (not copied)
 

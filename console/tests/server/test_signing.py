@@ -57,6 +57,8 @@ def sma_root(tmp_path):
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
     shutil.rmtree(root / "console")
+    # a tree whose approvals folder the person has not made yet (the sample has one, with practice approvals)
+    shutil.rmtree(root / "microscope_runtime" / "approvals")
     q = root / "microscope_agent" / "questions" / QID
     q.mkdir(parents=True)
     shutil.copy(EXAMPLE_PLAN, q / EXAMPLE_PLAN.name)
@@ -219,7 +221,7 @@ def test_a_missing_approvals_folder_means_nothing_can_be_signed_and_no_other_pla
     message = r.json()["detail"]["message"]
     assert "microscope_runtime/approvals/" in message and "microscope_agent" not in message
     assert tree_hash(sma_root) == before
-    assert not (sma_root / "microscope_runtime").exists()  # not even made
+    assert not (sma_root / "microscope_runtime" / "approvals").exists()  # not even made
 
 
 def test_a_missing_folder_is_said_before_the_password_is_looked_at(sma_client, seat):

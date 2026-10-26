@@ -186,7 +186,8 @@ class RunStreamOut(BaseModel):
     followed: bool = Field(description="the run has an events.jsonl that begins with run_started")
     state: Literal["running", "ended", "not_followed"]
     ended_how: str | None = Field(
-        description="run_ended's how: completed, aborted_by_monitor, stopped_from_outside, failed")
+        description="run_ended's how: completed, aborted_by_monitor, stopped_from_outside, failed, "
+                    "refused")
     plan_id: str | None
     revision: Any = None
     t0_wall: str | None
