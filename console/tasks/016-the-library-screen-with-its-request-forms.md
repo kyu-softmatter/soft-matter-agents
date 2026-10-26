@@ -63,9 +63,20 @@ day:
      under `kb/wiki/` (librarian task 060: `evidence.md`, and the map), as
      it shows every page, footer check included.
    - Until they land, the part shows "not built yet".
-   - If the map arrives as a file that is not a page (`map.json`), it is
-     shown only once plan.md 4.3.1 is widened to cover it. Until then it
-     reads as not built.
+   - plan.md 4.3.1 now covers every generated file under `kb/wiki/`
+     (`49f0f13f`). Task 060 gives three:
+     - `evidence.md`, the store by kind of evidence;
+     - `map.md`, one row per subject, with its coverage and the pages it
+       shares entries with;
+     - `map.json`, of artifact `kb_map`: subject nodes with coverage
+       `{"E1".."E5": count}` and `disputed`, entry nodes with grade, source
+       and status as recorded, and edges typed `about`, `conflict_with`,
+       `refutes`, `supersedes`, `supports` or `input_of`, each naming who
+       stated it.
+   - **Coverage is shown as the counts stand**: no score, no ranking, no
+     single expertise number.
+   - When the map's `kb_version` is behind `kb/index.json`'s, say so, as for
+     pages.
 
 3. **A window for writing a question: wait for the person.** The store's
    manager is asking what it is:
@@ -124,8 +135,9 @@ day:
      entry of that name.
    - Under `--store sma`: "No answers yet."
 5. **Tests, each watched failing first:**
-   - the only paths read under `librarian_agent/` are `kb/wiki/*.md` and
-     `kb/index.json`, for its version alone;
+   - the only paths read under `librarian_agent/` are generated files under
+     `kb/wiki/`, and `kb/index.json` for its version alone;
+   - coverage is shown as counts, never as a score or a rank;
    - a link to an entry or a guide is shown as text and never followed;
    - a page whose footer version is behind `kb/index.json` says so;
    - Send writes nothing and makes no request beyond the console's own
