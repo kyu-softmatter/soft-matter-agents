@@ -32,6 +32,40 @@ Two things frame it:
   login. The request and answer schemas are manager-librarian's, written
   after that approval.
 
+## The person's named pages (`1641323a`): this section holds where it differs from below
+
+The person's words, read 2026-10-25 (I-20261025-office-01):
+
+> instrument 페이지는 기존 콘솔을 참고하면 좋겠어. (목 시스템 연결해줘)
+> 1. 현재 연결상태를 보여주는 페이지 / 2. 광 경로를 보여주고 제어할 수 있는 페이지 (기존것 참고) / 3. 트위저 / 4. 컨포컬 / 5. 피에조 / 6. 카메라 실시간 뷰 (기존것 참고) / 7.
+> 실험 페이지에는 1. 실험 계획서 / 2. 샘플 맵 (기존 것 참고)
+> 라이브러리 1. 질문을 작성할 수 있는 창 / 2. 데이터 종류 별 구분 / 3. 데이터 맵 (관계도, 전문성 등) - 인사이트를 얻으려 함.
+> 이것들을 구현해줘
+
+For the Library, **three parts**. The store's manager read them the same
+day:
+1. **A division by data type: build it now.** Read `kb/wiki/index.md`. Its
+   sections are devices, quantities, observables, samples and
+   configurations, plus unfiled, and each links to its pages. That is inside
+   plan.md 4.3.1 as it stands.
+2. **A data map, of relationships and expertise: wait.**
+   - The store's manager has proposed that the librarian's generator write
+     one file, `kb/wiki/map.json`, holding nodes and typed edges, each edge
+     naming its entry, plus the store version.
+   - architecture-20261007-1 would widen 4.3.1 from "pages" to "generated
+     files under `kb/wiki/`".
+   - Until both land, the part shows "not built yet". **Never build it from
+     entries or `kb/index.json`**, which 4.3.1 forbids the console to read.
+3. **A window for writing a question: wait for the person.** The store's
+   manager is asking what it is:
+   - a search over the wiki;
+   - a question to the librarian answered with its sources, once the inbox
+     opens;
+   - card 010's question window placed in the Library.
+
+   Until a committed answer, the part shows that it is being decided. The
+   three store requests below are built as their own forms either way.
+
 ## What to do
 
 1. **What the library holds: the wiki pages, from `kb/wiki/` only.**

@@ -27,6 +27,55 @@ cards for the runtime seat (plan.md 15.1, "Who takes what"):
 
 Each stays "not built yet" on the screen until its card lands.
 
+## The person's named pages (`1641323a`): this section holds where it differs from below
+
+The person's words, read 2026-10-25 (I-20261025-office-01):
+
+> instrument 페이지는 기존 콘솔을 참고하면 좋겠어. (목 시스템 연결해줘)
+> 1. 현재 연결상태를 보여주는 페이지 / 2. 광 경로를 보여주고 제어할 수 있는 페이지 (기존것 참고) / 3. 트위저 / 4. 컨포컬 / 5. 피에조 / 6. 카메라 실시간 뷰 (기존것 참고) / 7.
+> 실험 페이지에는 1. 실험 계획서 / 2. 샘플 맵 (기존 것 참고)
+> 라이브러리 1. 질문을 작성할 수 있는 창 / 2. 데이터 종류 별 구분 / 3. 데이터 맵 (관계도, 전문성 등) - 인사이트를 얻으려 함.
+> 이것들을 구현해줘
+
+**"The existing console" is the pre-reduction console**, read from history and
+not restored: `git show 2964d0f27^:console/web/src/features/<area>/`
+(`hardware`, `live`, `tweezers`, `map`, `objective`). Take its layout and its
+good parts, and re-enter them under the pared-down shell and every recorded
+answer. **Never bring back what those pages did to the instrument**: the
+old map's click-to-move (`clickMove.ts`), light switching, configuration
+drafting, objective changes and pattern runs.
+
+The six pages are the ones card 012 built, in the person's order:
+1. **connection state**: Status, laid out after the old `features/hardware`;
+2. **optical path, shown and controlled**: Optics and control, after the old
+   hardware page's panels;
+3. **tweezers**: after the old `features/tweezers`;
+4. **confocal**;
+5. **piezo**;
+6. **camera live view**: Cameras, after the old `features/live`.
+
+The empty seventh line is room for a page, not a page to invent.
+
+**"Controlled" stays show, draft and stop.** Hands-on control is decided
+after the reduction (`cd9dcb57`). The runtime holder has asked the person
+through the intake seat whether it is time to decide it. Until a committed
+answer says otherwise, a control on the optical path page makes a draft.
+
+From the runtime holder, the same day:
+- **On the mock a control is a draft, exactly as on the instrument**,
+  because only the backend argument changes. The draftable set is the
+  same: the Aura LED, the transmitted lamp, and the red camera's exposure.
+- The orchestrator's refusal list loads on every backend. So the filters,
+  the objective, the condenser, the light path, the CSU-W1 and the Spectra
+  III stay "moved by hand" on the mock pages too. The mock may show their
+  state, labelled as the mock's, but the page never offers to change them.
+- **Signing on the mock** goes through card 013's writer into the
+  configured test folder, never `microscope_runtime/approvals/`. If the
+  runtime's mock run cannot yet read approvals from that folder, the page
+  says so, and that point goes to manager-microscope.
+- **The connection-state page reads the last run's `events.jsonl` now**,
+  and card 085's status file once it lands.
+
 ## What to do
 
 1. **Attach to a running mock run.**
