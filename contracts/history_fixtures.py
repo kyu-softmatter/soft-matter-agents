@@ -1439,6 +1439,44 @@ def fixture_41_a_seat_commits_a_harness_permission(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def _console_inbox(repo: Path, *, rewrite: bool = False, delete: bool = False) -> str:
+    """7.1.1 rules 3 and 9 (2026-10-24): a console question item and its answer, committed, then left alone or changed.
+
+    The item and the answer are append-only: a correction is a new item. Check 91
+    reads each commit's changes, so an item rewritten or removed in a later
+    commit fails at that commit.
+    """
+    start = base(repo)
+    item = json.loads((repo / "contracts/examples/console_question.json").read_text(encoding="utf-8"))
+    answer = json.loads((repo / "contracts/examples/console_answer.json").read_text(encoding="utf-8"))
+    irel = f"microscope_agent/console_inbox/{item['item_id']}.json"
+    arel = f"microscope_agent/answers/{item['item_id']}.json"
+    write(repo, irel, item)
+    commit(repo, "the console's server writes a question item", irel, seat="human")
+    write(repo, arel, answer)
+    commit(repo, "the microscope agent answers it", arel, seat="microscope-office-20261015-1")
+    if rewrite:
+        item["words"] = item["words"] + " (edited)"
+        write(repo, irel, item)
+        commit(repo, "the item is rewritten", irel, seat="human")
+    if delete:
+        run(repo, "rm", "-q", "--", arel)
+        run(repo, "commit", "-q", "--no-verify", "-m", "the answer is removed", seat="microscope-office-20261015-1")
+    return f"{start}..HEAD"
+
+
+def fixture_91_a_console_question_answered_and_left_alone(repo: Path) -> str:
+    return _console_inbox(repo)
+
+
+def fixture_91_a_console_question_item_rewritten(repo: Path) -> str:
+    return _console_inbox(repo, rewrite=True)
+
+
+def fixture_91_a_console_answer_removed(repo: Path) -> str:
+    return _console_inbox(repo, delete=True)
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1555,6 +1593,10 @@ FIXTURES = [
     (89, "FAIL", "stands only on 'yes'", fixture_89_a_console_no_cited_for_a_landing),
     (89, "PASS", "hold together", fixture_89_a_change_to_the_core_landed_on_a_console_word),
     (89, "FAIL", "touching nothing in the core, which needs no word", fixture_89_a_console_word_on_a_tightening),
+    # 7.1.1 rules 3 and 9 (2026-10-24): console questions only grow.
+    (91, "PASS", "each answered", fixture_91_a_console_question_answered_and_left_alone),
+    (91, "FAIL", "modifies microscope_agent/console_inbox/", fixture_91_a_console_question_item_rewritten),
+    (91, "FAIL", "deletes microscope_agent/answers/", fixture_91_a_console_answer_removed),
     (89, "FAIL", "and only `human` commits the person's word", fixture_89_a_console_word_committed_under_a_seat),
     (41, "FAIL", "commits the person's own file", fixture_41_a_seat_commits_a_harness_permission),
     # HP-017 (2026-10-23): the login as committed with the permission, never as on disk.

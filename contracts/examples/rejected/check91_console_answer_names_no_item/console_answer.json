@@ -1,0 +1,10 @@
+{
+  "artifact": "console_answer",
+  "schema_version": "0.1",
+  "item_id": "ci-20261024-235900-zzzz",
+  "question_id": "mic-20261024-c009",
+  "outcome": "refused",
+  "reason": "EXAMPLE, accepted: the microscope agent cannot plan this yet and says why, rather than silently.",
+  "answered_at": "2026-10-24T23:20:00Z",
+  "answered_by": "microscope-office-20261015-1"
+}

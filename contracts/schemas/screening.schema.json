@@ -8,7 +8,7 @@
     "artifact": { "const": "screening" },
     "schema_version": { "const": "0.1" },
 
-    "qid": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}$" },
+    "qid": { "type": "string", "pattern": "^(mic|sim)-[0-9]{8}-c?[0-9]{3}$" },
     "goal_id": {
       "type": "string",
       "description": "the goal card this screen read. Without it the record cannot say which question it answered"

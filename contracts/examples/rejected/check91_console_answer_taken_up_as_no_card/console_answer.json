@@ -1,0 +1,10 @@
+{
+  "artifact": "console_answer",
+  "schema_version": "0.1",
+  "item_id": "ci-20261024-231500-m7q2",
+  "question_id": "mic-20261024-c001",
+  "outcome": "taken_up",
+  "answered_at": "2026-10-24T23:20:00Z",
+  "answered_by": "microscope-office-20261015-1",
+  "goal_card": "microscope_agent/questions/mic-20261024-c001/goal.json"
+}

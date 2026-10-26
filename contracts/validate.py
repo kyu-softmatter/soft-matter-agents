@@ -306,6 +306,9 @@ ARTIFACT_SCHEMA = {
     # the librarian's store requests $ref. No folder exists until the inbox
     # opens; this line lets a schema be judged before then.
     "console_question": "console_inbox_item.schema.json",
+    # 2026-10-24, plan.md 7.1.1 rules 5, 6 and 9: an agent's answer to a console
+    # question item, written into that agent's answers/ beside console_inbox/.
+    "console_answer": "console_answer.schema.json",
     # 2026-10-26, plan.md 7.1.1 rules 4, 6 and 8 (approved at f59f7b45, not
     # open): the librarian's four console inbox items -- enter a document,
     # withdraw a value, offer a result, ask a question -- and the librarian's
@@ -1593,7 +1596,7 @@ def check_09_md_vs_json(b: Bundle) -> list[Finding]:
         # bridge seat copies when writing its first round, and one did. This is
         # not an attempt to check prose: it is one token, held to the card the
         # way a number is (5.6).
-        for field, id_rx in (("thread", r"\bthr-[a-z0-9-]+"), ("qid", r"\b(?:mic|sim)-[0-9]{8}-[0-9]{3}\b")):
+        for field, id_rx in (("thread", r"\bthr-[a-z0-9-]+"), ("qid", r"\b(?:mic|sim)-[0-9]{8}-c?[0-9]{3}\b")):
             want = c.data.get(field)
             if not want:
                 continue
@@ -9303,6 +9306,114 @@ INWARD_GUARDS = ("Edit(/envelope/safety.json)", "Edit(/envelope/console_login.js
                  "Edit(/tasks/**)", "Edit(/CLAUDE.md)", "Edit(/.claude/**)")
 
 
+#: A console question's id (plan.md 7.1.1 rule 9): the console's server mints the c.
+CONSOLE_QID = re.compile(r"^(mic|sim)-[0-9]{8}-c[0-9]{3}$")
+#: The two console folders in an agent's tree (7.1.1 rules 1 and 6).
+CONSOLE_FOLDERS = re.compile(r"^(microscope|simulation|librarian)_agent/(console_inbox|answers)/")
+
+
+def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: str | None = None,
+                                                       staged: bool = False) -> list[Finding]:
+    """A console question is linked by its id and answered, and its records only grow (plan.md 7.1.1).
+
+    The person approved the console inbox (f59f7b45) to open only once both
+    runners refuse, by code, an unapproved run from another login's question.
+    Rule 9 (469f3e6a) makes the link the question id itself, so the runners key
+    on it and the gate holds the other half, failing closed:
+
+      1. every card carrying a console question id (-c<NNN>) has the inbox
+         item that asked it, so a session cannot mint a console-looking
+         question nobody asked;
+      2. every console question item has an answer naming its item id and its
+         question id, so a session cannot drop one -- and renaming a console
+         question into window form leaves exactly that orphan;
+      3. an answer that takes a question up names a goal card carrying the
+         item's question id, and an answer names an item that exists;
+      4. nothing under an agent's console_inbox/ or answers/ is modified or
+         deleted between commits (rule 3: append-only, a correction is a new
+         item), judged per commit under --commit-range and on the staged set
+         under --staged.
+
+    An item's own id is held to the -c form by its schema. Until the inbox
+    opens no such folder exists, and the only items are the examples.
+    """
+    out: list[Finding] = []
+    items = {}
+    for c in b.of_artifact("console_question"):
+        if "__unreadable__" in c.data:
+            continue
+        items.setdefault(c.data.get("item_id"), c)
+    answers = [c for c in b.of_artifact("console_answer") if "__unreadable__" not in c.data]
+    asked = {c.data.get("question_id"): c for c in items.values()}
+
+    cards = [c for c in b.cards if isinstance(c.data.get("qid"), str)]
+    by_qid: dict[str, list] = {}
+    for c in cards:
+        by_qid.setdefault(c.data["qid"], []).append(c)
+    for qid, cs in sorted(by_qid.items()):
+        if CONSOLE_QID.match(qid) and qid not in asked:
+            for c in cs:
+                out.append(Finding(91, FAIL, f"{qid} is a console question's id and no console inbox item asked "
+                                             "it; only the console's server mints a -c id (7.1.1 rule 9)", c.rel))
+
+    answered: dict[str, list] = {}
+    for a in answers:
+        iid, qid = a.data.get("item_id"), a.data.get("question_id")
+        item = items.get(iid)
+        if item is None:
+            out.append(Finding(91, FAIL, f"the answer names item {iid}, which no console inbox item is", a.rel))
+            continue
+        if item.data.get("question_id") != qid:
+            out.append(Finding(91, FAIL, f"the answer to {iid} names question {qid}, and the item asked "
+                                         f"{item.data.get('question_id')}", a.rel))
+            continue
+        answered.setdefault(iid, []).append(a)
+        if a.data.get("outcome") == "taken_up":
+            goal = str(a.data.get("goal_card") or "")
+            if not any(c.rel == goal and c.data.get("qid") == qid for c in by_qid.get(qid, [])):
+                out.append(Finding(91, FAIL, f"the answer to {iid} says it was taken up as {goal!r}, and no card "
+                                             f"there carries {qid}; the first stage uses the item's id for the goal "
+                                             "card it makes (7.1.1 rule 9)", a.rel))
+    for iid, item in sorted(items.items(), key=lambda kv: str(kv[0])):
+        if iid not in answered:
+            out.append(Finding(91, FAIL, f"console question {iid} ({item.data.get('question_id')}) has no answer "
+                                         "naming it; every item is taken up or refused, and a refusal is written "
+                                         "back, never silent (7.1.1 rules 5 and 9)", item.rel))
+
+    if commit_range or staged:
+        import subprocess
+
+        def git(*args: str) -> str:
+            return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, text=True,
+                                  check=True).stdout
+        try:
+            if staged:
+                rows = [("the staged set", git("diff", "--cached", "--name-status", "--no-renames"))]
+            else:
+                shas = [x for x in git("rev-list", "--reverse", "--no-merges", "--first-parent",
+                                       commit_range or "").split() if x]
+                rows = [(s[:7], git("diff-tree", "-r", "--no-commit-id", "--name-status", "--no-renames", s))
+                        for s in shas]
+        except (OSError, subprocess.CalledProcessError) as exc:
+            rows = []
+            out.append(Finding(91, PENDING, f"cannot read what changed: {exc}"))
+        for label, text in rows:
+            for line in text.splitlines():
+                parts = line.split("\t")
+                if len(parts) >= 2 and parts[0][:1] in ("M", "D") and CONSOLE_FOLDERS.match(parts[1]):
+                    what = "modifies" if parts[0][:1] == "M" else "deletes"
+                    out.append(Finding(91, FAIL, f"{label} {what} {parts[1]}; a console inbox item or answer is "
+                                                 "never rewritten or removed, and a correction is a new item "
+                                                 "(7.1.1 rule 3)", parts[1]))
+
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(91, PASS if items or answers else NA,
+                           f"{len(items)} console question items, each answered, and {len(answers)} answers, each "
+                           "naming its item; every console question id has its item"
+                           if items or answers else "no console question items or answers in this tree"))
+    return out
+
+
 def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Finding]:
     """An execution folder's settings deny writing the person's files (plan.md 15).
 
@@ -9402,6 +9513,7 @@ CHECKS = [
     check_87_safety_guides_follow_the_store, check_88_focus_search,
     check_89_harness_records,
     check_90_an_execution_folder_guards_the_persons_files,
+    check_91_console_questions_are_linked_and_answered,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
@@ -9422,7 +9534,8 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
-            if fn in (check_35_session_boundary, check_41_seat_attribution, check_89_harness_records):
+            if fn in (check_35_session_boundary, check_41_seat_attribution, check_89_harness_records,
+                      check_91_console_questions_are_linked_and_answered):
                 findings.extend(fn(bundle, commit_range, staged))
             else:
                 findings.extend(fn(bundle))

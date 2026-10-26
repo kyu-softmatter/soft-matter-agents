@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "console_answer.schema.json",
+  "title": "console_answer -- an agent's answer to a console question item (plan.md 7.1.1 rules 5, 6 and 9)",
+  "description": "Written by the answering agent alone into its answers/ beside its console_inbox/, read by the console as display, append-only: a second answer to the same item is a new file. A question is taken up -- the agent's first stage made a goal card carrying the item's question id -- or refused, with the reason written back, never silently. Check 91 holds that every console question item has one, and that a taken-up answer names a goal card carrying that id. The librarian's answers to its three store requests are its own schema.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "console_answer"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "item_id": {
+      "type": "string",
+      "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$"
+    },
+    "question_id": {
+      "type": "string",
+      "pattern": "^(mic|sim)-[0-9]{8}-c[0-9]{3}$"
+    },
+    "outcome": {
+      "enum": [
+        "taken_up",
+        "refused"
+      ]
+    },
+    "goal_card": {
+      "type": "string",
+      "pattern": "^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+\\.json$",
+      "description": "for taken_up: the goal card the first stage made, carrying question_id as its qid"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 10,
+      "description": "for refused: why, in words the asker can read"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "answered_by": {
+      "type": "string",
+      "pattern": "^[a-z]+(-[a-z0-9]+)*$"
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "item_id",
+    "question_id",
+    "outcome",
+    "answered_at",
+    "answered_by"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "taken_up"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "goal_card"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "refused"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      }
+    }
+  ]
+}
