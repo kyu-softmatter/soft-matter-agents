@@ -9394,7 +9394,17 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
         if "__unreadable__" in log.data:
             continue
         ci = log.data.get("console_item")
-        plan = by_rel.get(str(log.data.get("plan_path") or ""))
+        pp = log.data.get("plan_path")
+        plan = by_rel.get(str(pp or ""))
+        # A plan_path that names no card leaves whose question ran unknown,
+        # and unknown is not "not a console question": a path written with
+        # backslashes on Windows misses here and would otherwise judge a
+        # console run as a window one. Ambiguity stops.
+        if pp and plan is None:
+            out.append(Finding(91, FAIL, f"plan_path {pp!r} names no card in this tree, so whose question the "
+                                         "run ran cannot be told; a plan path is repo-relative with forward "
+                                         "slashes", log.rel))
+            continue
         qid = plan.data.get("qid") if plan is not None else None
         console = isinstance(qid, str) and bool(CONSOLE_QID.match(qid))
         if ci is None:

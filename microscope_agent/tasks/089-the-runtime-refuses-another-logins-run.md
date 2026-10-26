@@ -29,6 +29,8 @@ In `microscope_runtime/src/operator.py`, in the gate that decides whether a plan
 3. **The confirming read.** Read the inbox item that asked it, in `microscope_agent/console_inbox/`, whose `question_id` equals the plan's qid (`contracts/schemas/console_inbox_item.schema.json`).
    - If the item, or an attachment its sha256 names, cannot be read, refuse.
    - If the item is found, record its path and the sha256 of its bytes in the run log, beside `approval.file` (card 087).
+   - **Record it as `console_item`, in the shape `contracts/schemas/run_log.schema.json` gives** (added 2026-10-26 at `0e151070`): `path`, `sha256` of the raw bytes, `item_id`, `question_id`, and each attachment with the sha256 checked.
+   - **And record `plan_path`, the plan file this run opened, repo-relative with forward slashes** (`Path.relative_to(repo).as_posix()`). The gate finds whose question a run ran through that path, because a run log carries no qid of its own. Today the runtime writes no `plan_path`, so a log carrying `console_item` would be judged a window run borrowing an item and fail, and a `-c` run with no item would pass unseen. A path with backslashes names no card, and the gate fails it.
    - Until the inbox opens, no such folder exists, so every `-c` plan is refused at this step even with an approval. That is the fail-closed direction, and the tests use a temp folder.
 4. **A plan whose qid has no `c` stays under 6's table, unchanged.** Every existing plan is of that form. Run the whole suite to show nothing else moved.
 
@@ -39,6 +41,7 @@ In `microscope_runtime/src/operator.py`, in the gate that decides whether a plan
 3. A `-c` plan with an exact approval and no inbox item, an unreadable item, or an attachment whose sha256 does not match, is refused.
 4. A plan with the window form of qid behaves exactly as today under all three of test 2's cases.
 5. The id is read from the plan's `qid`, not from any other field. A test that sets every other field to look like a window question still sees the `c` and refuses.
+6. Every run log the runtime writes, `-c` or not, refused or not, carries `plan_path` with no backslash, and joined to the repository root it is the file the run opened. Run on Windows, so the backslash case is the real one.
 
 ## Boundaries
 
