@@ -66,11 +66,41 @@ class PiezoPointOut(BaseModel):
     label: str | None = None
 
 
+class ChannelOut(BaseModel):
+    channel: str
+    opened: bool = Field(description="the run's last snapshot read this channel")
+    detail: str | None = Field(default=None, description="why it is not opened, as the run recorded it")
+    backend: str | None = None
+
+
+class ChannelsOut(BaseModel):
+    t_s: float | None = None
+    t_wall: str | None = None
+    label: str | None = None
+    rows: list[ChannelOut] = []
+
+
+class PathRowOut(BaseModel):
+    device: str
+    props: dict[str, str] = Field(description="what the run read back from the device, property by property")
+    t_s: float | None = None
+    t_wall: str | None = Field(default=None, description="when it was read")
+    backend: str | None = Field(default=None, description="which backend answered; `mock` is the mock's own state")
+
+
 class LatestRunOut(BaseModel):
     state: Literal["ok", "no_run", "runs_not_found"]
     message: str | None = None
     run_id: str | None = None
     started_at: str | None = None
+    running: bool = Field(default=False, description="the run's events file has no run_ended yet")
+    ended_how: str | None = None
+    ended_at: str | None = None
+    plan_id: str | None = None
+    frame_tap: bool = Field(default=False, description="running, with a loopback frame tap announced")
+    channels: ChannelsOut | None = None
+    path: list[PathRowOut] = []
+    events_seen: int = 0
     traps: list[SentTrapOut] = []
     trap_series: list[TrapPointOut] = []
     strength_last_sent: float | None = None
@@ -81,7 +111,7 @@ class DraftIn(BaseModel):
     """What the person chose; nothing else is accepted."""
 
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["trap_steps", "aura", "dialamp", "camera_exposure"]
+    kind: Literal["trap_steps", "aura", "dialamp", "camera_exposure", "piezo"]
     pattern: Literal["line", "circle", "grid"] | None = None
     objective: Literal["40x", "60x", "100x"] | None = None
     n: int | None = None
@@ -92,6 +122,18 @@ class DraftIn(BaseModel):
     state: Literal["on", "off"] | None = None
     intensity_percent: float | None = None
     exposure_ms: float | None = None
+    axis: Literal["x", "y", "z"] | None = None
+    move: Literal["step", "sine"] | None = None
+    target_um: float | None = None
+    role: Literal["verify_mapping", "direction_finding", "approach", "return"] | None = None
+    centre_um: float | None = None
+    amplitude_um: float | None = None
+    period_s: float | None = None
+    cycles: int | None = None
+    points_per_period: int | None = None
+    start: Literal["centre", "minimum", "maximum"] | None = None
+    return_um: float | None = None
+    tolerance_um: float | None = None
 
 
 class DraftOut(BaseModel):
@@ -179,6 +221,14 @@ def draft(body: DraftIn, store: AgentStoreDep, me: Login) -> DraftOut:
                 range_problems = ["There is no readable safety file in this tree, so no position or strength can be checked."] + range_problems
             refused = ["Trap count: your safety file has no limit for it yet, so it is refused until you write one.",
                        "Flicker rate: none is sent, and it is refused until a limit exists."]
+        elif body.kind == "piezo":
+            card = drafts.piezo_card(fields=body.model_dump(exclude_none=True), now=now)
+            read = instruments.read_limits(_runtime(store))
+            ranges = instruments.piezo_range(read.limits) if read.state == "present" else {}
+            range_problems = drafts.piezo_range_problems(card, ranges)
+            if read.state != "present":
+                range_problems = ["There is no readable safety file in this tree, so no position can be checked."] + range_problems
+            refused = ["The runtime checks every position against your safety file again before anything is sent."]
         else:
             card = drafts.part_card(part=body.kind, fields=body.model_dump(exclude_none=True), now=now)
             refused = ["Refused until you write a limit: your safety file has none for this part yet."]

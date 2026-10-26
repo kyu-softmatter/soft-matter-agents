@@ -33,15 +33,16 @@ server address. The built app served by the server itself needs no `--dev-origin
 | `src/app/assistant/` | prompt box (T-014) | the prompt box on every screen. Not part of the shell |
 | `src/api/` | generated | OpenAPI types from `npm run gen:api`. Never edited by hand |
 | `src/features/<area>/` | that area's work package | the area's screen |
-| `src/features/live/` | shell (T-010) | the live view. In no navigation until the cameras card places it under Instruments |
+| `src/features/live/` | shell (T-010) | the live-view code. Reached from Instruments, Cameras (console card 012), only when the person presses Live view; in no navigation of its own |
 | `package.json`, `package-lock.json` | T-010 only | ask the manager for a package; one session changes these at a time |
 
 ## Adding an area screen
 
 The areas and their order are fixed in `src/app/areas.ts`: `questions`, `instruments`,
 `experiments`, `simulation`, `library`, `results`, and `admin` (shown to an administrator only).
-Login (`src/app/login/`, T-105) is not an area and has no navigation entry. `instruments`,
-`experiments` and `library` are plain "not built yet" screens until their own cards. To give an
+Login (`src/app/login/`, T-105) is not an area and has no navigation entry. `experiments` and
+`library` are plain "not built yet" screens until their own cards; `instruments` has its six screens
+(console cards 012 and 015). To give an
 area its screen:
 
 1. Create `src/features/<area>/index.tsx`.

@@ -8,13 +8,14 @@
  * which is off until the person turns it on.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useClient } from "../../app/client";
 import { useAreaPath } from "../../app/route";
 import { useScreenContext } from "../../app/screenContext";
 import { PATHS as QUESTION_PATHS } from "../questions/api";
-import { Loaded, useLoad } from "../questions/ui";
+import { Loaded } from "../questions/ui";
+import { useFollow } from "./follow";
 import { idleView, type LatestRun, type LimitsOut, PATHS, type StatusOut } from "./api";
 import "../questions/console.css";
 import "./instruments.css";
@@ -52,11 +53,10 @@ export default function InstrumentsScreen() {
   const client = useClient();
   const [rest, setRest] = useAreaPath();
   const tab = parseTab(rest);
-  const [refreshKey, setRefreshKey] = useState(0);
   const details = useMemo(() => ({ tab }), [tab]);
   useScreenContext(details);
 
-  const data = useLoad<Data>(async () => {
+  const { state: data, reload } = useFollow<Data>(async () => {
     const [status, limits, run, signing] = await Promise.all([
       client.get<StatusOut>(PATHS.status),
       client.get<LimitsOut>(PATHS.limits),
@@ -64,7 +64,7 @@ export default function InstrumentsScreen() {
       client.get<{ is_person?: boolean }>(QUESTION_PATHS.signing).catch(() => ({ is_person: false })),
     ]);
     return { status, limits, run, isPerson: signing?.is_person === true };
-  }, [client, refreshKey]);
+  }, (d) => d.run.state === "ok" && d.run.running);
 
   return (
     <div className="console inst">
@@ -80,18 +80,18 @@ export default function InstrumentsScreen() {
           const view = d.status.state === "present" && d.status.data ? idleView(d.status.data) : null;
           switch (tab) {
             case "optics":
-              return <Optics readings={view?.snapshot ?? []} />;
+              return <Optics readings={view?.snapshot ?? []} run={d.run} />;
             case "cameras":
               return <Cameras run={d.run} isPerson={d.isPerson} />;
             case "tweezers":
               return <Tweezers run={d.run} limits={d.limits} />;
             case "confocal":
-              return <Confocal status={d.status} view={view} />;
+              return <Confocal status={d.status} view={view} run={d.run} />;
             case "piezo":
               return <Piezo run={d.run} limits={d.limits} />;
             default:
               return (
-                <Status status={d.status} view={view} run={d.run} isPerson={d.isPerson} onRefresh={() => setRefreshKey((k) => k + 1)} />
+                <Status status={d.status} view={view} run={d.run} isPerson={d.isPerson} onRefresh={reload} />
               );
           }
         }}

@@ -7,6 +7,8 @@
 import { useState } from "react";
 
 import { shortTime } from "../questions/ui";
+import { RunBanner } from "./follow";
+import { Devices, RuntimePieces } from "./pieces";
 import { HOW_WORDS, type IdleView, type LatestRun, type Reading, type StatusOut, valueText } from "./api";
 
 export const LASER_ROW = "Tweezers laser · set by hand · not known · assumed on";
@@ -77,36 +79,42 @@ export function Status({
   const [answer, setAnswer] = useState<string | null>(null);
   return (
     <section aria-label="Instrument status" className="inst-status">
-      <StatusHead status={status} view={view} />
-      {view !== null && (
-        <>
-          {view.snapshot.length > 0 ? (
-            <ReadingsTable label="Readings" readings={view.snapshot} />
-          ) : (
-            <p className="console-muted">The last run took no snapshot, so there is no reading to show.</p>
-          )}
-          {view.checkNow !== null && (
-            <>
-              <p>Last check now: {view.checkNow.runId}, {shortTime(view.checkNow.at)}</p>
-              <ReadingsTable label="Check now readings" readings={view.checkNow.readings} />
-            </>
-          )}
+      <RunBanner run={run} />
+      <div className="inst-grid">
+        <section aria-label="Summary" className="inst-panel">
+          <h3>Summary</h3>
+          <StatusHead status={status} view={view} />
           <p>
             Which program holds which instrument:{" "}
-            {view.ownership.status === "not_built" ? "not checked yet" : view.ownership.status}
+            {view !== null && view.ownership.status !== "not_built" ? view.ownership.status : "not checked yet"}
           </p>
-        </>
-      )}
-      {view === null && <p>Which program holds which instrument: not checked yet</p>}
-      <LaserRow />
-      <StrengthSent run={run} />
-      <div className="console-bar">
-        {isPerson && (
-          <button type="button" onClick={() => setAnswer(CHECK_NOW_NOT_BUILT)}>Check now</button>
+          <LaserRow />
+          <StrengthSent run={run} />
+          <div className="console-bar">
+            {isPerson && <button type="button" onClick={() => setAnswer(CHECK_NOW_NOT_BUILT)}>Check now</button>}
+            <button type="button" onClick={onRefresh}>Refresh</button>
+          </div>
+          {answer !== null && <p role="status">{answer}</p>}
+        </section>
+        <Devices run={run} />
+        {view !== null && (
+          <section aria-label="Readings of the status file" className="inst-panel">
+            <h3>Readings</h3>
+            {view.snapshot.length > 0 ? (
+              <ReadingsTable label="Readings" readings={view.snapshot} />
+            ) : (
+              <p className="console-muted">The last run took no snapshot, so there is no reading to show.</p>
+            )}
+            {view.checkNow !== null && (
+              <>
+                <p>Last check now: {view.checkNow.runId}, {shortTime(view.checkNow.at)}</p>
+                <ReadingsTable label="Check now readings" readings={view.checkNow.readings} />
+              </>
+            )}
+          </section>
         )}
-        <button type="button" onClick={onRefresh}>Refresh</button>
+        <RuntimePieces status={status} run={run} />
       </div>
-      {answer !== null && <p role="status">{answer}</p>}
     </section>
   );
 }

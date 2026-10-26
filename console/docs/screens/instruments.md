@@ -76,3 +76,33 @@ off until turned on), and the read rate is a plan field. The pattern generator i
 
 Where a console draft goes before the person signs it is **still to be designed**. Until then a draft exists
 only on the screen it was made on.
+
+## On the runtime's mock (card 015)
+
+The screens follow a run the runtime executes, mock or instrument: `GET /api/instruments/latest-run` now
+reads the newest run that is **still running** (its `events.jsonl`, as it grows), and with none running the
+newest run there is. The console starts no run and writes no event; what leaves it is the stop on the stop
+channel and the frame tap's `get`, and only from the screens that already did that.
+
+- **Every live tab opens with what it follows.** "Following run-... (running)", or "No run is running", with the
+  last run's outcome. A run that has ended leaves its values marked "as of <time>, from <run>". With no run
+  there is no value to show.
+- **Following re-reads the files every 2 s, only while a run is running**, and stops when it ends. A refresh
+  that fails keeps what was shown.
+- **Status** is a grid of panels: the summary, **Devices** (the connection state, each channel the run's last
+  snapshot tried: opened with the backend that answered, or not opened and why), the status file's readings,
+  and **Runtime pieces**: the idle status file's writer, check now, latest frames per camera, and the mock's
+  additions (second camera, a piezo trace that moves, trap commands echoed back, confocal elements). Each
+  reads "not built yet" until the files show it; the console fills none in.
+- **Optics and control** gains **the light path, now**: the elements the runtime names (FilterTurret1 and 2,
+  CSUW1-Filter_Red and _Blue, LightPath, CSUW1-Port, CSUW1-Dichroic, DiaLamp, Aura), each with what the run
+  read back and when, "the mock's state" when the mock answered and "read back" when the instrument did. An
+  element the run did not report reads "not built yet". The registry gives no order, so it is a list. The two
+  known traps (the turret label that names the wrong position, splitter states that send no light to one
+  camera) and "a position read back is not proof of which element is in the beam" stay beside it. The lamp
+  and the LED carry the draft link; the rest are "moved by hand" with no control.
+- **Cameras**: the frame is asked for and shown to the person's login only, and only while a run is running.
+- **Piezo stage**: x, y and z as three plots of the run's snapshots ("read back"), and **a piezo move as an
+  `operation` plan draft** (a step with its return, or a host-timed sine behind its approach step; the
+  tolerance is the person's and has no default). It is checked against `plan.schema.json` and the person's
+  range, shown, and saved nowhere.

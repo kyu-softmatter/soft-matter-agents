@@ -9,6 +9,8 @@ import { useState } from "react";
 import { shortTime } from "../questions/ui";
 import type { LatestRun, LimitsOut } from "./api";
 import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
+import { asOf, RunBanner } from "./follow";
+import { Plot } from "./plot";
 import { LaserRow, StrengthSent } from "./status";
 
 type Bound = { value: number; unit: string | null } | null | undefined;
@@ -48,23 +50,6 @@ export function PatternAllowed({ limits }: { limits: LimitsOut }) {
   );
 }
 
-function Plot({ label, points }: { label: string; points: { x: number; y: number }[] }) {
-  const W = 220;
-  const H = 120;
-  const xs = points.map((p) => p.x);
-  const ys = points.map((p) => p.y);
-  const scale = (v: number, lo: number, hi: number, size: number) => (hi === lo ? size / 2 : ((v - lo) / (hi - lo)) * size);
-  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const pts = points.map((p) => `${scale(p.x, x0, x1, W - 10) + 5},${H - 5 - scale(p.y, y0, y1, H - 10)}`).join(" ");
-  return (
-    <svg role="img" aria-label={label} viewBox={`0 0 ${W} ${H}`} className="inst-plot">
-      <rect x="0" y="0" width={W} height={H} fill="none" stroke="currentColor" opacity="0.3" />
-      {points.length > 1 && <polyline points={pts} fill="none" stroke="currentColor" />}
-      {points.map((p, i) => <circle key={i} cx={scale(p.x, x0, x1, W - 10) + 5} cy={H - 5 - scale(p.y, y0, y1, H - 10)} r="2" fill="currentColor" />)}
-    </svg>
-  );
-}
-
 function Plots({ run }: { run: LatestRun }) {
   const series = run.trap_series.filter((p) => p.t_s !== null && p.x_um !== null && p.y_um !== null);
   if (series.length === 0) return null;
@@ -92,13 +77,18 @@ export function Tweezers({ run, limits }: { run: LatestRun; limits: LimitsOut })
   const [objective, setObjective] = useState<"40x" | "60x" | "100x">("100x");
   return (
     <section aria-label="Tweezers" className="inst-tweezers">
+      <RunBanner run={run} />
       <LaserRow />
       <StrengthSent run={run} />
       {run.state === "ok" && run.traps.length > 0 ? (
         <>
-          <p className="console-muted">
-            What was sent, from {run.run_id}{run.started_at ? `, started ${shortTime(run.started_at)}` : ""}. The tweezers report nothing back.
-          </p>
+          {run.running ? (
+            <p className="console-muted">
+              What was sent, from {run.run_id}{run.started_at ? `, started ${shortTime(run.started_at)}` : ""}. The tweezers report nothing back.
+            </p>
+          ) : (
+            <p className="console-muted">{asOf(run)}</p>
+          )}
           <table className="console-table" aria-label="Traps (sent)">
             <thead><tr><th>Trap</th><th>x (µm)</th><th>y (µm)</th><th>Strength</th><th>State</th></tr></thead>
             <tbody>
@@ -110,7 +100,7 @@ export function Tweezers({ run, limits }: { run: LatestRun; limits: LimitsOut })
           <Plots run={run} />
         </>
       ) : (
-        <p>no trap sent{run.state === "runs_not_found" ? ` (${run.message ?? "the runs folder was not found"})` : ""}</p>
+        <p>no trap sent</p>
       )}
       <div className="inst-form" role="group" aria-label="Draft a pattern">
         <label className="inst-field">

@@ -10,17 +10,24 @@ import { useState } from "react";
 import { SmaLiveSwitch } from "../live/smaLive";
 import { FollowedRun } from "../questions/runs";
 import type { LatestRun } from "./api";
+import { RunBanner } from "./follow";
 import { PartDraft } from "./optics";
 
 export function Cameras({ run, isPerson }: { run: LatestRun; isPerson: boolean }) {
   const [live, setLive] = useState(false);
   return (
-    <section aria-label="Cameras" className="inst-cameras">
+    <section aria-label="Cameras">
+      <RunBanner run={run} />
+      <div className="inst-cameras">
       <section aria-label="Camera 1, red" className="inst-panel">
         <h3>Camera 1, red</h3>
         <p className="console-muted">A frame is shown only while a signed run is acquiring.</p>
-        {run.state === "ok" && run.run_id !== null && run.run_id !== undefined && (
-          <FollowedRun agent="microscope" runId={run.run_id} />
+        {isPerson ? (
+          run.state === "ok" && run.running && run.run_id !== null && run.run_id !== undefined && (
+            <FollowedRun agent="microscope" runId={run.run_id} />
+          )
+        ) : (
+          <p className="console-muted">Frames are shown to the person's login only.</p>
         )}
         {isPerson && (
           <button type="button" onClick={() => setLive((v) => !v)}>{live ? "Hide live view" : "Live view"}</button>
@@ -40,6 +47,7 @@ export function Cameras({ run, isPerson }: { run: LatestRun; isPerson: boolean }
         <h3>With traps and stage</h3>
         <p>traps not drawn: their mapping onto the camera is not measured</p>
       </section>
+      </div>
     </section>
   );
 }

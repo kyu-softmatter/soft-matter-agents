@@ -6,9 +6,12 @@
 
 import { useState } from "react";
 
-import { type DraftIn, HOW_WORDS, type Reading, valueText } from "./api";
+import { type DraftIn, HOW_WORDS, type LatestRun, type Reading, valueText } from "./api";
 import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
-import { ALL_PARTS, BY_HAND, COMBINER, COMBINER_SENTENCE, type DraftKind, type Part, ROWS, SECTIONS, type Section } from "./parts";
+import { PathPanel } from "./path";
+import {
+  ALL_PARTS, BY_HAND, COMBINER, COMBINER_SENTENCE, type DraftKind, MOVED_BY_HAND, type Part, PIEZO_PART, PIEZO_SENTENCE, ROWS, SECTIONS, type Section,
+} from "./parts";
 
 export const REFUSED_UNTIL_LIMIT = "Refused until you write a limit: your safety file has none for this part yet.";
 
@@ -76,13 +79,13 @@ function PartRow({ part }: { part: Part }) {
   return (
     <div role="group" aria-label={part.label} className="inst-part-draft">
       <strong>{part.label}</strong>
-      <p className="console-muted">{part.label === COMBINER ? COMBINER_SENTENCE : BY_HAND}</p>
+      <p className="console-muted">{part.label === COMBINER ? COMBINER_SENTENCE : part.label === PIEZO_PART ? PIEZO_SENTENCE : BY_HAND}</p>
       {part.label === COMBINER && <p className="console-muted">{BY_HAND}</p>}
     </div>
   );
 }
 
-export function Optics({ readings }: { readings: Reading[] }) {
+export function Optics({ readings, run }: { readings: Reading[]; run: LatestRun }) {
   const [section, setSection] = useState<Section>("Light source");
   return (
     <section aria-label="Optics and control" className="inst-optics">
@@ -101,6 +104,8 @@ export function Optics({ readings }: { readings: Reading[] }) {
           </div>
         ))}
       </figure>
+      <PathPanel run={run} onDraft={() => setSection("Light source")} />
+      <p className="console-muted">{MOVED_BY_HAND}</p>
       <nav role="tablist" aria-label="Optics sections" className="console-tabs">
         {SECTIONS.map((s) => (
           <button key={s} type="button" role="tab" aria-selected={section === s} onClick={() => setSection(s)}>{s}</button>

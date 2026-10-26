@@ -1245,6 +1245,37 @@ export interface components {
              */
             data: unknown;
         };
+        /** ChannelOut */
+        ChannelOut: {
+            /** Channel */
+            channel: string;
+            /**
+             * Opened
+             * @description the run's last snapshot read this channel
+             */
+            opened: boolean;
+            /**
+             * Detail
+             * @description why it is not opened, as the run recorded it
+             */
+            detail?: string | null;
+            /** Backend */
+            backend?: string | null;
+        };
+        /** ChannelsOut */
+        ChannelsOut: {
+            /** T S */
+            t_s?: number | null;
+            /** T Wall */
+            t_wall?: string | null;
+            /** Label */
+            label?: string | null;
+            /**
+             * Rows
+             * @default []
+             */
+            rows: components["schemas"]["ChannelOut"][];
+        };
         /** ConsoleRoleOut */
         ConsoleRoleOut: {
             /** May Ask */
@@ -1309,7 +1340,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "trap_steps" | "aura" | "dialamp" | "camera_exposure";
+            kind: "trap_steps" | "aura" | "dialamp" | "camera_exposure" | "piezo";
             /** Pattern */
             pattern?: ("line" | "circle" | "grid") | null;
             /** Objective */
@@ -1330,6 +1361,30 @@ export interface components {
             intensity_percent?: number | null;
             /** Exposure Ms */
             exposure_ms?: number | null;
+            /** Axis */
+            axis?: ("x" | "y" | "z") | null;
+            /** Move */
+            move?: ("step" | "sine") | null;
+            /** Target Um */
+            target_um?: number | null;
+            /** Role */
+            role?: ("verify_mapping" | "direction_finding" | "approach" | "return") | null;
+            /** Centre Um */
+            centre_um?: number | null;
+            /** Amplitude Um */
+            amplitude_um?: number | null;
+            /** Period S */
+            period_s?: number | null;
+            /** Cycles */
+            cycles?: number | null;
+            /** Points Per Period */
+            points_per_period?: number | null;
+            /** Start */
+            start?: ("centre" | "minimum" | "maximum") | null;
+            /** Return Um */
+            return_um?: number | null;
+            /** Tolerance Um */
+            tolerance_um?: number | null;
         };
         /** DraftOut */
         DraftOut: {
@@ -1514,6 +1569,35 @@ export interface components {
             run_id?: string | null;
             /** Started At */
             started_at?: string | null;
+            /**
+             * Running
+             * @description the run's events file has no run_ended yet
+             * @default false
+             */
+            running: boolean;
+            /** Ended How */
+            ended_how?: string | null;
+            /** Ended At */
+            ended_at?: string | null;
+            /** Plan Id */
+            plan_id?: string | null;
+            /**
+             * Frame Tap
+             * @description running, with a loopback frame tap announced
+             * @default false
+             */
+            frame_tap: boolean;
+            channels?: components["schemas"]["ChannelsOut"] | null;
+            /**
+             * Path
+             * @default []
+             */
+            path: components["schemas"]["PathRowOut"][];
+            /**
+             * Events Seen
+             * @default 0
+             */
+            events_seen: number;
             /**
              * Traps
              * @default []
@@ -1736,6 +1820,30 @@ export interface components {
         PasswordIn: {
             /** Password */
             password: string;
+        };
+        /** PathRowOut */
+        PathRowOut: {
+            /** Device */
+            device: string;
+            /**
+             * Props
+             * @description what the run read back from the device, property by property
+             */
+            props: {
+                [key: string]: string;
+            };
+            /** T S */
+            t_s?: number | null;
+            /**
+             * T Wall
+             * @description when it was read
+             */
+            t_wall?: string | null;
+            /**
+             * Backend
+             * @description which backend answered; `mock` is the mock's own state
+             */
+            backend?: string | null;
         };
         /**
          * PermissionOut

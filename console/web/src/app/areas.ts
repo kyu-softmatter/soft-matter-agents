@@ -17,8 +17,8 @@ export const AREAS = [
 ] as const;
 
 /**
- * Screen folders that are in the tree and in no navigation. `features/live/` waits for the cameras
- * card, which places it under Instruments (console card 008); until then nothing reaches it.
+ * Screen folders that are in the tree and in no navigation. `features/live/` is reached from Instruments,
+ * Cameras (console card 012), when the person presses Live view; it has no navigation entry of its own.
  */
 export const OUT_OF_NAVIGATION = ["live"] as const;
 

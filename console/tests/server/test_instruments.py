@@ -428,3 +428,265 @@ def test_the_pattern_points_are_what_a_person_would_draw():
     assert sorted(round(abs(x) + abs(y), 3) for x, y in c) == [1.0, 1.0, 1.0, 1.0]
     g = drafts.pattern_points("grid", 4, 2)
     assert sorted(g) == [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)]
+
+
+# -- card 015: following a run, the connection state, the piezo operation draft -------------------------
+
+from sma_fake_run import FakeSmaRun, sma_tree, tree_state  # noqa: E402
+
+
+def ev(run, t, **fields):
+    run._line({"t_mono": t, "time_base": "software", **fields})
+
+
+def snap(run, t, states, label="before"):
+    ev(run, t, event="snapshot", label=label, states=states)
+
+
+@pytest.fixture
+def runs(tree):
+    sma_tree(tree)
+    made = []
+
+    def make(run_id, **kw):
+        r = FakeSmaRun(tree, run_id=run_id, **kw)
+        made.append(r)
+        return r
+
+    yield make
+    for r in made:
+        r.end()
+
+
+def test_the_screens_follow_the_newest_run_that_is_running_not_the_newest_run(client, tree, runs):
+    running = runs("run-20261025-001")
+    ended = runs("run-20261026-001")
+    ended.end()
+    got = client().get(LATEST).json()
+    assert got["run_id"] == running.run_id and got["running"] is True and got["ended_how"] is None
+
+
+def test_with_none_running_the_newest_run_is_shown_as_ended_with_how_and_when(client, tree, runs):
+    old = runs("run-20261025-001")
+    old.end("aborted_by_monitor")
+    new = runs("run-20261026-001")
+    snap(new, 1.0, {"piezo_stage": {"position_um": {"x": 1, "y": 2, "z": 3}, "backend": "mock"}})
+    new.end("completed")
+    got = client().get(LATEST).json()
+    assert got["run_id"] == new.run_id and got["running"] is False and got["ended_how"] == "completed"
+    assert got["ended_at"] is not None and got["frame_tap"] is False
+    assert [(p["x_um"], p["y_um"], p["z_um"]) for p in got["piezo"]] == [(1.0, 2.0, 3.0)]
+
+
+def test_a_running_runs_events_are_read_as_they_grow(client, tree, runs):
+    run = runs("run-20261026-001")
+    c = client()
+    assert c.get(LATEST).json()["piezo"] == []
+    snap(run, 1.0, {"piezo_stage": {"position_um": {"x": 10, "y": 20, "z": 30}, "backend": "mock"}})
+    first = c.get(LATEST).json()
+    snap(run, 2.0, {"piezo_stage": {"position_um": {"x": 11, "y": 21, "z": 31}, "backend": "mock"}}, "after")
+    second = c.get(LATEST).json()
+    assert len(first["piezo"]) == 1 and len(second["piezo"]) == 2 and second["running"] is True
+    assert second["frame_tap"] is True and second["events_seen"] > first["events_seen"]
+
+
+def test_a_run_with_no_frame_tap_says_so(client, tree, runs):
+    runs("run-20261026-001", tap=False)
+    got = client().get(LATEST).json()
+    assert got["running"] is True and got["frame_tap"] is False
+
+
+def test_trap_commands_in_a_running_runs_events_are_sent_not_read_back(client, tree, runs):
+    run = runs("run-20261026-001")
+    ev(run, 1.0, event="apply", channel="optical_tweezers", action="x",
+       params={"commands": [["TRAP_POSITION", "trap_1", 2.0, 3.0], ["TRAP_STRENGTH", "trap_1", 0.4], ["TRAP_ON", "trap_1"]]})
+    got = client().get(LATEST).json()
+    assert got["traps"] == [{"trap": "trap_1", "x_um": 2.0, "y_um": 3.0, "strength": 0.4, "on": True}]
+    assert got["strength_last_sent"] == 0.4
+
+
+def test_the_connection_state_is_read_from_the_runs_last_snapshot(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": {"error": "old"}}, "before")
+    snap(run, 2.0, {"piezo_stage": {"position_um": {"x": 1, "y": 2, "z": 3}, "backend": "python_serial"},
+                    "camera_red": {"error": "not opened"}, "camera_blue": {"error": "not opened"}}, "after")
+    ch = client().get(LATEST).json()["channels"]
+    assert ch["label"] == "after" and ch["t_s"] == 2.0
+    assert {r["channel"]: (r["opened"], r["detail"], r["backend"]) for r in ch["rows"]} == {
+        "piezo_stage": (True, None, "python_serial"), "camera_red": (False, "not opened", None),
+        "camera_blue": (False, "not opened", None)}
+
+
+def test_a_run_with_no_snapshot_has_no_connection_state(client, tree, runs):
+    runs("run-20261026-001")
+    ch = client().get(LATEST).json()["channels"]
+    assert ch["rows"] == [] and ch["t_wall"] is None
+
+
+def test_following_a_run_writes_nothing_starts_nothing_and_stops_nothing(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"piezo_stage": {"position_um": {"x": 1, "y": 2, "z": 3}, "backend": "mock"}})
+    before = tree_state(tree)
+    c = client()
+    for path in (STATUS, LIMITS, LATEST):
+        assert c.get(path).status_code == 200
+    assert post(c, kind="piezo", axis="x", move="step", target_um=100, tolerance_um=1).status_code == 200
+    assert tree_state(tree) == before and run.stops == [] and run.refused == []
+
+
+def test_a_run_not_followed_falls_back_to_its_log(client, tree):
+    write_run(tree, "run-20261024-001", log_with([snapshot(1.0, 1, 2, 3)]))
+    got = client().get(LATEST).json()
+    assert got["running"] is False and got["frame_tap"] is False and len(got["piezo"]) == 1
+
+
+# the piezo operation draft ---------------------------------------------------------------------------
+
+
+def piezo_body(**over):
+    return {"kind": "piezo", "axis": "x", "move": "step", "target_um": 100, "tolerance_um": 1, **over}
+
+
+def test_a_piezo_step_is_an_ordinary_operation_plan_the_schema_accepts(client, tree):
+    d = post(client(), **piezo_body(return_um=50)).json()
+    assert d["valid"] is True and d["problems"] == [] and d["range_problems"] == [] and d["saved"] is False
+    assert Schemas(REPO / "contracts" / "schemas").validate(d["card"], "plan.schema.json") == []
+    op = d["card"]["operation"]
+    assert op["device"] == "piezo_stage" and op["read_back"] == "before_and_after_each_move"
+    assert [(m["axis"], m["kind"], m["target_um"], m["role"]) for m in op["moves"]] == [
+        ("x", "step", 100, "verify_mapping"), ("x", "step", 50, "return")]
+    assert [a["id"] for a in d["card"]["actions"]] == [m["id"] for m in op["moves"]]
+    assert d["card"]["targets"][0]["value"] == 1 and "goal_id" not in d["card"]
+
+
+def test_a_piezo_sine_comes_with_the_approach_step_to_where_it_starts(client, tree):
+    body = piezo_body(axis="y", move="sine", centre_um=100, amplitude_um=5, period_s=10, cycles=2,
+                      points_per_period=16, start="minimum")
+    del body["target_um"]
+    d = post(client(), **body).json()
+    assert d["problems"] == [] and d["range_problems"] == []
+    moves = d["card"]["operation"]["moves"]
+    assert [(m["kind"], m.get("role")) for m in moves] == [("step", "approach"), ("sine", None)]
+    assert moves[0]["target_um"] == 95 and moves[1]["host_timed"] is True
+    assert [m["id"] for m in moves] == ["approach_y", "sine_y"]
+    assert [a["id"] for a in d["card"]["actions"]] == ["approach_y", "sine_y"]
+
+
+def test_a_step_on_z_may_only_find_a_direction_or_return(client, tree):
+    assert post(client(), **piezo_body(axis="z", role="direction_finding")).json()["problems"] == []
+    r = post(client(), **piezo_body(axis="z"))
+    assert r.status_code == 422 and "direction_finding" in r.json()["detail"]["message"]
+
+
+def test_a_sine_on_z_is_refused(client, tree):
+    body = piezo_body(axis="z", move="sine", centre_um=100, amplitude_um=5, period_s=10, cycles=1, points_per_period=8)
+    r = post(client(), **body)
+    assert r.status_code == 422 and "x or y only" in r.json()["detail"]["message"]
+
+
+@pytest.mark.parametrize("tol", [None, 0, -1])
+def test_the_readback_tolerance_is_the_persons_and_never_defaulted(client, tree, tol):
+    body = piezo_body()
+    del body["tolerance_um"]
+    if tol is not None:
+        body["tolerance_um"] = tol
+    r = post(client(), **body)
+    assert r.status_code == 422 and "tolerance" in r.json()["detail"]["message"]
+
+
+def test_a_position_outside_the_persons_piezo_range_is_refused_from_the_file(client, tree):
+    d = post(client(), **piezo_body(target_um=9999)).json()
+    assert d["valid"] is False and any("11 to 555" in p for p in d["range_problems"]), d["range_problems"]
+    assert post(client(), **piezo_body(target_um=12)).json()["range_problems"] == []
+
+
+def test_a_sine_is_checked_at_both_ends_of_its_swing(client, tree):
+    body = piezo_body(move="sine", centre_um=550, amplitude_um=10, period_s=10, cycles=1, points_per_period=8)
+    del body["target_um"]
+    d = post(client(), **body).json()
+    assert any("560" in p for p in d["range_problems"]), d["range_problems"]
+
+
+def test_a_missing_piezo_range_refuses_every_position(client, tree):
+    path = tree / "microscope_runtime" / "envelope" / "safety.json"
+    safety = json.loads(path.read_text(encoding="utf-8"))
+    for t in safety["targets"]:
+        for k in [k for k in t["limits"] if k.startswith("piezo_x_position")]:
+            del t["limits"][k]
+    path.write_text(json.dumps(safety), encoding="utf-8")
+    d = post(client(), **piezo_body()).json()
+    assert d["valid"] is False and any("no piezo range for x" in p for p in d["range_problems"])
+
+
+def test_a_piezo_draft_saves_nothing(client, tree):
+    before = tree_hash(tree)
+    assert post(client(), **piezo_body()).status_code == 200
+    assert tree_hash(tree) == before
+
+
+@pytest.mark.parametrize("body", [dict(axis="w"), dict(move="spin"), dict(role="whenever"), dict(start="middle")])
+def test_a_bad_piezo_choice_is_refused(client, tree, body):
+    assert post(client(), **piezo_body(**body)).status_code == 422
+
+
+# the live optical path (card 015) -----------------------------------------------------------------------
+
+
+def stand(devices, backend="mock"):
+    return {"state": devices, "aborted": False, "backend": backend}
+
+
+def test_each_path_element_comes_with_what_the_run_read_back_and_when(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2", "Label": "DAPI"}, "LightPath": {"State": "1"}}),
+                    "confocal_csuw1": stand({"CSUW1-Dichroic": {"State": "3"}}),
+                    "widefield_source_b": stand({"DiaLamp": {"State": "1", "Intensity": "12"}})})
+    rows = {r["device"]: r for r in client().get(LATEST).json()["path"]}
+    assert rows["FilterTurret1"]["props"] == {"State": "2", "Label": "DAPI"}
+    assert rows["DiaLamp"]["props"] == {"State": "1", "Intensity": "12"}
+    assert rows["CSUW1-Dichroic"]["props"] == {"State": "3"}
+    assert rows["LightPath"]["t_wall"].startswith("2026-10-05T17:00:01") and rows["LightPath"]["t_s"] == 1.0
+    assert {r["backend"] for r in rows.values()} == {"mock"}
+
+
+def test_a_device_no_snapshot_reported_is_absent_and_nothing_is_filled_in(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2"}})})
+    got = client().get(LATEST).json()["path"]
+    assert [r["device"] for r in got] == ["FilterTurret1"]
+
+
+def test_the_latest_read_of_a_device_replaces_the_earlier_one_and_keeps_its_own_time(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "1"}, "FilterTurret2": {"State": "5"}})})
+    snap(run, 4.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2"}})}, "after")
+    rows = {r["device"]: r for r in client().get(LATEST).json()["path"]}
+    assert rows["FilterTurret1"]["props"] == {"State": "2"} and rows["FilterTurret1"]["t_s"] == 4.0
+    assert rows["FilterTurret2"]["props"] == {"State": "5"} and rows["FilterTurret2"]["t_s"] == 1.0
+
+
+def test_a_channel_that_could_not_be_read_reports_no_device(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": {"error": "no Micro-Manager configuration is loaded"}})
+    assert client().get(LATEST).json()["path"] == []
+
+
+def test_the_instruments_own_backend_is_carried_so_the_screen_can_say_whose_state_it_is(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "1"}}, backend="micromanager")})
+    assert client().get(LATEST).json()["path"][0]["backend"] == "micromanager"
+
+
+def test_an_ended_runs_last_path_is_kept(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"LightPath": {"State": "1"}})})
+    run.end()
+    got = client().get(LATEST).json()
+    assert got["running"] is False and [r["device"] for r in got["path"]] == ["LightPath"]
+
+
+def test_no_run_has_no_path(engine, make_client, tmp_path):
+    root = tmp_path / "bare"
+    (root / "microscope_agent" / "runs").mkdir(parents=True)
+    got = make_client(engine, agent_store=SmaFiles(root, source="soft-matter-agents")).get(LATEST).json()
+    assert got["path"] == []

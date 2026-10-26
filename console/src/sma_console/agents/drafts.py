@@ -8,6 +8,8 @@ this module writes no file. Console drafts have no goal, so the question number 
 
 * `trap_steps_card` is a goal-less `trap_steps` plan, a shape the schema holds: traps created at absolute
   positions and switched on, then a hold for the person.
+* `piezo_card` is an `operation` plan: a step (and, if asked, the return step) or a host-timed sine on the fine
+  piezo stage, the one thing a draft may command here that has both a software path and a schema shape.
 * `part_card` composes what a change to the Aura LED, the transmitted lamp or the red camera's exposure
   would be. `plan.schema.json` has no operation that sets a light or an exposure, so such a card is
   checked and its refusal shown, not offered for signing; nothing is bent to make it pass.
@@ -25,6 +27,9 @@ from typing import Any
 PATTERNS = ("line", "circle", "grid")
 OBJECTIVES = ("40x", "60x", "100x")
 MAX_TRAPS = 64  # a screen-side sanity ceiling on what is composed; the instrument's own count limit does not exist yet
+PIEZO_DEVICE = "piezo_stage"
+PIEZO_STEP_ROLES = ("verify_mapping", "direction_finding", "approach", "return")
+PIEZO_Z_ROLES = ("direction_finding", "return")  # until the piezo-Z direction is recorded (plan.schema.json)
 PARTS = {
     "aura": {"device": "Aura", "label": "Aura III LED"},
     "dialamp": {"device": "DiaLamp", "label": "Transmitted lamp"},
@@ -173,3 +178,97 @@ def part_card(*, part: str, fields: dict[str, Any], now: datetime) -> dict[str, 
         "stop_criteria": [], "success_criteria": [], "open_risks": [],
     })
     return card
+
+
+def _plain(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+
+def piezo_card(*, fields: dict[str, Any], now: datetime) -> dict[str, Any]:
+    """An `operation` plan for the fine piezo stage: one step on x, y or z (with its return step if
+    `return_um` is given), or a host-timed sine on x or y behind the approach step the schema asks for.
+    Positions are absolute, in um. The read-back tolerance is the person's number and is never defaulted."""
+    axis, move = fields.get("axis"), fields.get("move")
+    if axis not in ("x", "y", "z"):
+        raise DraftError("the axis is x, y or z")
+    if move not in ("step", "sine"):
+        raise DraftError("the move is a step or a sine")
+    tol = fields.get("tolerance_um")
+    if not _plain(tol) or not tol > 0:
+        raise DraftError("the read-back tolerance is a number of micrometres above zero, and it is yours to say")
+    moves: list[dict[str, Any]] = []
+    if move == "step":
+        role = fields.get("role") or "verify_mapping"
+        if role not in PIEZO_STEP_ROLES:
+            raise DraftError(f"the role of a step is one of {', '.join(PIEZO_STEP_ROLES)}")
+        if axis == "z" and role not in PIEZO_Z_ROLES:
+            raise DraftError("a step on z has the role direction_finding or return until the piezo-Z direction is recorded")
+        if not _plain(fields.get("target_um")):
+            raise DraftError("the target is a number of micrometres")
+        moves.append({"id": f"step_{axis}_out", "axis": axis, "kind": "step", "target_um": fields["target_um"], "role": role})
+        if fields.get("return_um") is not None:
+            if not _plain(fields["return_um"]):
+                raise DraftError("the position to return to is a number of micrometres")
+            moves.append({"id": f"step_{axis}_back", "axis": axis, "kind": "step", "target_um": fields["return_um"], "role": "return"})
+    else:
+        if axis == "z":
+            raise DraftError("a sine is on x or y only: z never takes periodic motion under an operation plan")
+        for name in ("centre_um", "amplitude_um", "period_s"):
+            if not _plain(fields.get(name)):
+                raise DraftError(f"{name} is a number")
+        if not fields["amplitude_um"] > 0 or not fields["period_s"] > 0:
+            raise DraftError("the amplitude and the period are above zero")
+        cycles, ppp = fields.get("cycles"), fields.get("points_per_period")
+        if not isinstance(cycles, int) or isinstance(cycles, bool) or cycles < 1:
+            raise DraftError("the number of cycles is a whole number, at least 1")
+        if not isinstance(ppp, int) or isinstance(ppp, bool) or ppp < 4:
+            raise DraftError("points per period is a whole number, at least 4")
+        start = fields.get("start") or "centre"
+        if start not in ("centre", "minimum", "maximum"):
+            raise DraftError("the sine starts at its centre, minimum or maximum")
+        first = fields["centre_um"] + {"centre": 0.0, "minimum": -fields["amplitude_um"], "maximum": fields["amplitude_um"]}[start]
+        moves.append({"id": f"approach_{axis}", "axis": axis, "kind": "step", "target_um": round(first, 6) + 0.0, "role": "approach"})
+        moves.append({"id": f"sine_{axis}", "axis": axis, "kind": "sine", "centre_um": fields["centre_um"],
+                      "amplitude_um": fields["amplitude_um"], "period_s": fields["period_s"], "cycles": cycles,
+                      "points_per_period": ppp, "host_timed": True, "start": start})
+    card = _head(now, "piezo")
+    what = (f"That the piezo stage moves along {axis} to the {'position' if move == 'step' else 'positions'} asked for "
+            f"and reads back within {tol} um.")
+    card.update({
+        "purpose": "verify", "intent": "confirm",
+        "operation": {
+            "device": PIEZO_DEVICE, "verifies": what,
+            "falsified_by": "the read-back after a move differs from its target by more than the tolerance, or the image does not move along the axis",
+            "read_back": "before_and_after_each_move", "moves": moves,
+        },
+        "actions": [{"id": m["id"], "device": PIEZO_DEVICE, "action": "move_absolute" if m["kind"] == "step" else "sine_positions",
+                     "reversible": True, "parameters": [], "tier": 1} for m in moves],
+        "envelope_check": {"checked_against": [f"piezo_{axis}_position_min", f"piezo_{axis}_position_max"], "status": "unavailable",
+                           "note": "The console does not check limits. The runtime checks every position against the person's safety file before anything is sent."},
+        "targets": [{"metric": "position_readback_error", "kind": "uncertainty", "value": tol, "unit": "um",
+                     "note": "the person's choice for this operation"}],
+        "stop_criteria": [{"id": "sc_readback", "metric": "position_readback_error", "comparator": ">", "target": "position_readback_error",
+                           "on_met": "fault", "statement": "stop if a read-back after a move differs from its target by more than the tolerance"}],
+        "success_criteria": [{"id": "ok_readback", "metric": "position_readback_error", "comparator": "<=", "target": "position_readback_error",
+                              "statement": "each move read back within the tolerance"}],
+        "open_risks": ["the piezo-Z direction is unmeasured" if axis == "z" else "the piezo-Z direction is unmeasured; this plan commands no Z"],
+        "pre_stop_buffer": {"length_s": 10},
+    })
+    return card
+
+
+def piezo_range_problems(card: dict[str, Any], ranges: dict[str, Any]) -> list[str]:
+    """Why the positions of a piezo draft are outside the person's range, in words (a missing range refuses)."""
+    op = card["operation"]
+    axis = op["moves"][0]["axis"]
+    span = ranges.get(axis)
+    if span is None:
+        return [f"Your safety file has no piezo range for {axis}, so every position on it is refused."]
+    lo, hi = span["min"]["value"], span["max"]["value"]
+    problems: list[str] = []
+    for m in op["moves"]:
+        pts = [m["target_um"]] if m["kind"] == "step" else [m["centre_um"] - m["amplitude_um"], m["centre_um"] + m["amplitude_um"]]
+        for p in pts:
+            if not lo <= p <= hi:
+                problems.append(f"{m['id']}: {axis} = {p} um is outside {lo} to {hi} um (from your safety file).")
+    return problems

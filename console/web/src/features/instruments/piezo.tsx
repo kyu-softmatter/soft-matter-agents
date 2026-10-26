@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 import { useClient } from "../../app/client";
 import { shortTime } from "../questions/ui";
 import { type LatestRun, type LimitsOut, PATHS, piezoRange } from "./api";
+import { RunBanner } from "./follow";
+import { Plot } from "./plot";
+import { PiezoDraft } from "./piezoDraft";
 
 export const SCREEN_ONLY =
   "The window and refresh change only this screen. How often the stage is read is part of the plan you sign.";
@@ -52,6 +55,7 @@ export function Piezo({ run: first, limits }: { run: LatestRun; limits: LimitsOu
   const cell = (v: number | null) => (v === null ? "unknown" : String(v));
   return (
     <section aria-label="Piezo stage" className="inst-piezo">
+      <RunBanner run={run} />
       <div role="group" aria-label="Position now">
         <strong>Position now</strong>
         {last === null ? (
@@ -82,6 +86,17 @@ export function Piezo({ run: first, limits }: { run: LatestRun; limits: LimitsOu
       </div>
       <p className="console-muted">{SCREEN_ONLY}</p>
       {kept.length > 0 && (
+        <div className="inst-plots">
+          {(["x", "y", "z"] as const).map((a) => (
+            <Plot
+              key={a}
+              label={`t-${a} (read back)`}
+              points={kept.flatMap((p) => (p.t_s !== null && p[`${a}_um`] !== null ? [{ x: p.t_s, y: p[`${a}_um`] as number }] : []))}
+            />
+          ))}
+        </div>
+      )}
+      {kept.length > 0 && (
         <table className="console-table" aria-label="Piezo positions">
           <thead><tr><th>t (s)</th><th>x (µm)</th><th>y (µm)</th><th>z (µm)</th></tr></thead>
           <tbody>
@@ -91,6 +106,7 @@ export function Piezo({ run: first, limits }: { run: LatestRun; limits: LimitsOu
           </tbody>
         </table>
       )}
+      <PiezoDraft />
       <p>Pattern generator: <span>designed later</span></p>
     </section>
   );

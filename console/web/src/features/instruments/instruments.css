@@ -80,3 +80,18 @@
   max-height: 320px;
   overflow: auto;
 }
+
+.inst-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.inst-grid > * {
+  min-width: 0;
+}
+
+.inst-banner {
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}

@@ -215,10 +215,83 @@ def latest_run_readings(store: Any) -> dict[str, Any]:
         return {"state": "runs_not_found", "message": str(e)}
     if not runs:
         return {"state": "no_run"}
-    latest = runs[0]
-    detail = store.get_run("microscope", latest.run_id)
-    events, t0 = _events(detail)
+    # the screens follow the newest run that is still running; with none running, the newest run there is
+    latest = next((r for r in runs if r.status == "running"), runs[0])
+    stream = _followed_stream(store, latest.run_id)
+    if stream is not None:
+        events, t0 = [e for e in stream.events if isinstance(e, dict)], stream.t0_wall
+        running, how, plan_id = stream.running, stream.ended_how, stream.plan_id
+        ended_at = _wall(t0, stream.ended.get("t_mono")) if stream.ended is not None else None
+        frame_tap = stream.running and stream.frame_tap is not None
+    else:
+        detail = store.get_run("microscope", latest.run_id)
+        events, t0 = _events(detail)
+        running, how, plan_id, ended_at, frame_tap = False, latest.status, latest.plan_id, latest.finished_at, False
     tw = tweezers_sent(events)
     return {"state": "ok", "run_id": latest.run_id, "started_at": latest.created_at or t0, "traps": tw["traps"],
             "trap_series": tw["series"], "strength_last_sent": tw["strength_last_sent"],
-            "piezo": piezo_snapshots(events, t0)}
+            "piezo": piezo_snapshots(events, t0), "running": running, "ended_how": how, "ended_at": ended_at,
+            "plan_id": plan_id, "frame_tap": frame_tap, "channels": channel_states(events, t0),
+            "path": path_state(events, t0),
+            "events_seen": len(events)}
+
+
+def _followed_stream(store: Any, run_id: str) -> Any:
+    """The run's events.jsonl as written so far, or None when the run was not followed (it then has its
+    `log.json` only, which is a finished run's record)."""
+    from .sma_run import NotFollowedError, SmaRunError
+    from .store import NotFoundError
+
+    reader = getattr(store, "run_stream", None)
+    if reader is None:
+        return None
+    try:
+        return reader("microscope", run_id)
+    except (NotFollowedError, SmaRunError, NotFoundError):
+        return None
+
+
+def channel_states(events: list[dict[str, Any]], t0: str | None) -> dict[str, Any]:
+    """What the run's last snapshot says about each channel it tried to open: opened (with the backend the
+    reading came from) or not opened (with the reason it gives). This is the connection state, read from the
+    run's own events; nothing is asked of any instrument. `None` when the run took no snapshot."""
+    last: dict[str, Any] | None = None
+    for e in events:
+        if e.get("event") == "snapshot" and isinstance(e.get("states"), dict):
+            last = e
+    if last is None:
+        return {"t_s": None, "t_wall": None, "label": None, "rows": []}
+    rows: list[dict[str, Any]] = []
+    for channel, state in last["states"].items():
+        st = state if isinstance(state, dict) else {}
+        err = st.get("error")
+        backend = st.get("backend")
+        rows.append({"channel": str(channel), "opened": err is None,
+                     "detail": str(err) if err is not None else None,
+                     "backend": backend if isinstance(backend, str) else None})
+    return {"t_s": _num(last.get("t_mono")), "t_wall": _wall(t0, last.get("t_mono")),
+            "label": last.get("label") if isinstance(last.get("label"), str) else None, "rows": rows}
+
+
+def path_state(events: list[dict[str, Any]], t0: str | None) -> list[dict[str, Any]]:
+    """The optical path's present state as the run read it back: for each Micro-Manager device a channel's
+    snapshot reports (`states[<channel>]["state"][<device>]`, the shape `micromanager.read` gives), the
+    properties it read, when, and which backend answered (`mock` is the mock's own state, labelled as
+    such by the screen). A device keeps the latest snapshot that reported it; one no snapshot reported is
+    absent, and the screen says "not built yet" for it. Nothing here is filled from anywhere else."""
+    latest: dict[str, dict[str, Any]] = {}
+    for e in events:
+        if e.get("event") != "snapshot" or not isinstance(e.get("states"), dict):
+            continue
+        for channel_state in e["states"].values():
+            devices = channel_state.get("state") if isinstance(channel_state, dict) else None
+            if not isinstance(devices, dict):
+                continue
+            backend = channel_state.get("backend")
+            for device, props in devices.items():
+                if isinstance(props, dict):
+                    latest[str(device)] = {
+                        "device": str(device), "props": {str(k): "" if v is None else str(v) for k, v in props.items()},
+                        "t_s": _num(e.get("t_mono")), "t_wall": _wall(t0, e.get("t_mono")),
+                        "backend": backend if isinstance(backend, str) else None}
+    return list(latest.values())

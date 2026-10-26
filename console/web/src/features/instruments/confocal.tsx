@@ -3,16 +3,18 @@
  * channel. Nothing here is a control.
  */
 
-import { type IdleView, type StatusOut } from "./api";
+import { type IdleView, type LatestRun, type StatusOut } from "./api";
+import { RunBanner } from "./follow";
 import { ReadingsTable, StatusHead } from "./status";
 
 export const SHUTTER_NOTE = "read back; which value means closed is not recorded";
 export const DISK_CHANNEL = "confocal_csuw1";
 
-export function Confocal({ status, view }: { status: StatusOut; view: IdleView | null }) {
+export function Confocal({ status, view, run }: { status: StatusOut; view: IdleView | null; run: LatestRun }) {
   const disk = view?.snapshot.filter((r) => r.channel === DISK_CHANNEL) ?? [];
   return (
     <section aria-label="Confocal" className="inst-confocal">
+      <RunBanner run={run} />
       <StatusHead status={status} view={view} />
       {view !== null && (disk.length > 0 ? (
         <ReadingsTable label="Spinning disk" readings={disk} />

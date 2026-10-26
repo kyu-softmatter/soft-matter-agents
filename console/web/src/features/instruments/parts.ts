@@ -23,6 +23,10 @@ export interface Part {
 export const BY_HAND = "set by hand; software may not move it";
 export const COMBINER_SENTENCE = "close was sent; assumed open until a shutter that reads back shows it blocked";
 export const COMBINER = "Laser combiner";
+export const PIEZO_PART = "Piezo stage";
+export const PIEZO_SENTENCE = "a move is a plan draft: see the Piezo stage tab";
+export const MOVED_BY_HAND =
+  "Moved by hand: the filters, the objectives, the light path, the spinning disk, the large XY stage and the trap laser. Software does not move them, and no draft is offered for them.";
 
 export const ROWS: readonly { label: string; parts: readonly Part[] }[] = [
   {
