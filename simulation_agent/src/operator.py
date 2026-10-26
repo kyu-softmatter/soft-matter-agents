@@ -20,6 +20,11 @@ Tier 1-2.
   model. It takes a `plan_approval` naming this exact `(plan_id, revision)`
   with a matching hash, or a live `scope_approval`. Nothing in this agent can
   write either.
+* **A question from another login waits for the person at every tier**
+  (plan.md 6, after the tier table; 7.1.1 rule 9; task 028). A plan whose
+  `qid` ends `-c<NNN>` came through the console, and it runs only under a
+  `plan_approval` for that exact card -- no scope approval, no autonomous
+  smoke run -- and only once its console inbox item has been read.
 
 **The limits are re-read here, not trusted from the plan.** O1 re-confirms
 them (4.6), so the ceilings come off `envelope/budget.json` at run time rather
@@ -44,6 +49,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -58,6 +64,20 @@ from . import trajectory
 APPROVALS = cards.AGENT / "approvals"
 RUNS = cards.AGENT / "runs"
 ENVELOPE = cards.AGENT / "envelope" / "budget.json"
+# Where the console's server delivers another login's question (7.1.1 rule 4).
+# The folder does not exist until the inbox opens, and its absence refuses
+# every console plan: that is the fail-closed direction, so nothing here
+# creates it.
+CONSOLE_INBOX = cards.AGENT / "console_inbox"
+
+# The console's mark on a question id (7.1.1 rule 9): the server mints
+# sim-<YYYYMMDD>-c<NNN>, and a question typed into this session's own window
+# never carries the `c`. It is the ONLY thing that says whose question a plan
+# answers -- not the inbox item's asker_mark, and not any other field of the
+# plan -- so a later console that marks an item as the person's own still
+# changes nothing here.
+CONSOLE_QID = re.compile(r"-c[0-9]{3}$")
+CONSOLE_ITEM_NAME = re.compile(r"^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json$")
 
 # Which budget a run is measured against. A smoke run that may spend the full
 # allowance tells you nothing before the run it is supposed to precede, so the
@@ -110,21 +130,48 @@ def plan_hash(plan: dict) -> str:
     return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
 
 
-def find_approval(plan: dict) -> dict:
+def is_console(qid: str) -> bool:
+    """Whether a question id carries the console's mark (7.1.1 rule 9)."""
+    return bool(CONSOLE_QID.search(str(qid)))
+
+
+def _where(path: Path) -> str:
+    """A path as the run record names it: repo-relative where it can be."""
+    try:
+        return path.relative_to(cards.REPO).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def find_approval(plan: dict, exact_only: bool = False) -> dict:
     """The person's approval for this exact plan and revision (6.1).
 
     A plan_approval is looked for first, then a live scope_approval. Absence
     is the normal state until a person writes one, and it is a refusal rather
     than a warning: the gate is the reason the designer and the operator are
     separate things at all (4.6).
+
+    **`plan` is the card as read from disk, never a view of it.** The hash is
+    taken here, and the arm and smoke views are copies with their numbers or
+    conditions changed, so hashing a view refused a correct plan_approval for
+    every smoke run and every arm run (task 028). Nobody met it because no
+    plan here had an approval card until console plans needed one.
+
+    `exact_only` is the console's rule: only a plan_approval naming this card
+    covers it, and a scope_approval is passed over whatever it lists.
+
+    The returned card carries `__file`: its path and the sha256 of the bytes
+    that were parsed, so an approval changed after the run leaves a trace.
     """
     if not APPROVALS.exists():
         raise Refused(
-            f"{APPROVALS.relative_to(cards.REPO)} does not exist. Only a person writes an "
+            f"{_where(APPROVALS)} does not exist. Only a person writes an "
             "approval card (6.1); no seat may create one, including this one."
         )
     for path in sorted(APPROVALS.glob("*.json")):
-        card = json.loads(path.read_text())
+        raw = path.read_bytes()
+        card = json.loads(raw)
+        card["__file"] = {"path": _where(path), "sha256": hashlib.sha256(raw).hexdigest()}
         if card.get("card") == "plan_approval":
             if card.get("plan_id") != plan["id"] or card.get("plan_revision") != plan["revision"]:
                 continue
@@ -137,14 +184,80 @@ def find_approval(plan: dict) -> dict:
                 )
             return card
         elif card.get("card") == "scope_approval":
-            if card.get("voided"):
+            if card.get("voided") or exact_only:
                 continue
             if plan["qid"] in (card.get("qids") or []) or card.get("applies_to_all_qids"):
                 return card
     raise Refused(
-        f"no approval card names {plan['id']} revision {plan['revision']}. An approval is "
-        "valid for one (plan_id, revision) only, so a changed plan needs a new one (5.5)."
+        f"no {'plan_approval' if exact_only else 'approval card'} names {plan['id']} revision "
+        f"{plan['revision']}. An approval is valid for one (plan_id, revision) only, so a changed "
+        "plan needs a new one (5.5)."
     )
+
+
+def read_console_item(qid: str) -> dict:
+    """The inbox item that asked this question, read to confirm it (task 028).
+
+    Every way of not finding exactly one readable item refuses: no folder (the
+    inbox is not open), no item with this question_id, more than one, an item
+    that cannot be read or parsed -- since then nobody can say it was not this
+    question's -- and an attachment that cannot be read or whose bytes do not
+    have the sha256 the item names. Ambiguity stops (P0).
+
+    The item's `asker_mark` is not read. Whose question it is was decided by
+    the `c` in the id before this was called.
+    """
+    if not CONSOLE_INBOX.is_dir():
+        raise Refused(
+            f"{qid} is a console question and {_where(CONSOLE_INBOX)} does not exist, so the item "
+            "that asked it cannot be read. The inbox is not open; a console plan does not run "
+            "until it is, even under an approval."
+        )
+    found, unreadable = [], []
+    for path in sorted(CONSOLE_INBOX.iterdir()):
+        if not CONSOLE_ITEM_NAME.match(path.name):
+            continue                            # attachments carry `--<name>` and are read below
+        try:
+            raw = path.read_bytes()
+            item = json.loads(raw)
+        except (OSError, ValueError) as exc:
+            unreadable.append(f"{path.name} ({type(exc).__name__})")
+            continue
+        if isinstance(item, dict) and item.get("question_id") == qid:
+            found.append((path, raw, item))
+    if unreadable:
+        raise Refused(
+            f"{qid} is a console question and the console inbox holds items that cannot be read: "
+            f"{', '.join(unreadable)}. Any of them could be the one that asked it, so the run "
+            "does not start until they read."
+        )
+    if len(found) != 1:
+        raise Refused(
+            f"{qid} is a console question and the console inbox holds {len(found)} items with that "
+            f"question_id{': ' + ', '.join(p.name for p, _, _ in found) if found else ''}. Exactly "
+            "one item asks a question; with none there is nothing to confirm and with more nobody "
+            "can say which one this plan answers."
+        )
+    path, raw, item = found[0]
+    if path.name != f"{item.get('item_id')}.json":
+        raise Refused(f"{path.name} carries item_id {item.get('item_id')!r}; an item's file is named by its id")
+    attachments = []
+    for att in item.get("attachments") or []:
+        name = str((att or {}).get("file") or "")
+        if not name or Path(name).name != name:
+            raise Refused(f"{path.name} names an attachment {name!r}, which is not a plain file name beside it")
+        try:
+            got = hashlib.sha256((CONSOLE_INBOX / name).read_bytes()).hexdigest()
+        except OSError as exc:
+            raise Refused(f"{path.name} names the attachment {name}, which cannot be read ({type(exc).__name__})") from exc
+        if got != att.get("sha256"):
+            raise Refused(
+                f"{path.name} names the attachment {name} with sha256 {att.get('sha256')} and its bytes "
+                f"hash to {got}. The file is not the one that was asked with."
+            )
+        attachments.append({"file": name, "sha256": got})
+    return {"path": _where(path), "sha256": hashlib.sha256(raw).hexdigest(),
+            "item_id": item.get("item_id"), "question_id": qid, "attachments": attachments}
 
 
 def max_tier(plan: dict) -> int:
@@ -306,19 +419,53 @@ def check_budget(plan: dict, budget: str, target: str) -> dict:
     }
 
 
-def gate(plan: dict, budget: str, target: str) -> tuple[dict, dict]:
+def gate(plan: dict, budget: str, target: str,
+         on_disk: dict | None = None) -> tuple[dict, dict, dict | None]:
     """What this plan needs before it may run, by tier (6, standing orders).
 
-    Returns (approval_record, envelope_record). The approval record is what the
-    run log carries: a null id and kind is the honest state of an autonomous
-    run, not a missing field.
+    `plan` is the view the run will execute and the envelope is checked
+    against it; `on_disk` is the card as read, and it is what an approval is
+    looked up and hashed against (task 028). Absent, the two are the same.
+
+    Returns (approval_record, envelope_record, console_item). The approval
+    record is what the run log carries: a null id and kind is the honest state
+    of an autonomous run, not a missing field. console_item is None for a
+    question asked in this session's window.
+
+    **A console question waits for the person at every tier** (plan.md 6,
+    after the table). Only an exact plan_approval covers it, so neither a
+    scope_approval nor the Tier 0-1 autonomy below lets it run, and its inbox
+    item is then read to confirm it. The approval is what the rule adds: the
+    envelope check a Tier 0-1 plan is gated on still applies on top of it.
     """
-    tier = max_tier(plan)
+    on_disk = plan if on_disk is None else on_disk
+    tier = max_tier(on_disk)
     envelope = check_budget(plan, budget, target)
 
+    if is_console(on_disk["qid"]):
+        try:
+            approval = find_approval(on_disk, exact_only=True)
+        except Refused as exc:
+            raise Refused(
+                f"{on_disk['qid']} is a question from another login, through the console, and such "
+                "a question's run waits for the person's OK at every tier, smoke runs included: "
+                "only a plan_approval naming this plan's id, revision and hash covers it. "
+                f"{exc}"
+            ) from exc
+        item = read_console_item(on_disk["qid"])
+        record = {"id": approval["id"], "kind": "plan_approval", "file": approval["__file"]}
+        if tier >= 2 or envelope["status"] == "inside":
+            return record, envelope, item
+        raise Refused(
+            f"{on_disk['qid']} is approved, and tier {tier} is still gated on being inside the "
+            f"envelope, which reports {envelope['status']}: "
+            f"{(envelope.get('reason') or '; '.join(envelope.get('exceeded', []))).rstrip('.')}."
+        )
+
     if tier >= 2:
-        approval = find_approval(plan)
-        return {"id": approval["id"], "kind": approval.get("card", "plan_approval")}, envelope
+        approval = find_approval(on_disk)
+        return ({"id": approval["id"], "kind": approval.get("card", "plan_approval"),
+                 "file": approval["__file"]}, envelope, None)
 
     if envelope["status"] != "inside":
         raise Refused(
@@ -327,7 +474,7 @@ def gate(plan: dict, budget: str, target: str) -> tuple[dict, dict]:
             f"{(envelope.get('reason') or '; '.join(envelope.get('exceeded', []))).rstrip('.')}. "
             "An unavailable ceiling is not a satisfied one."
         )
-    return {"id": None, "kind": None}, envelope
+    return {"id": None, "kind": None}, envelope, None
 
 
 def check_md_agrees(plan_path: Path, plan: dict) -> None:
@@ -693,6 +840,16 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
             "by its own field; one of the two is wrong and this run cannot say which plan it "
             "carried out until that is settled (5.5)"
         )
+    # The id asked for and the id the card carries are two claims about whose
+    # question this is, and the console rule keys on that alone (task 028).
+    # A card that disagrees with the folder it was opened from cannot say, so
+    # it does not run; a `c` on either side would have made it a console plan.
+    if plan.get("qid") != qid:
+        raise Refused(
+            f"{plan_path.name} was opened as {qid} and carries qid {plan.get('qid')!r}. Whose "
+            "question a plan answers is read off its qid, so a card that disagrees with the "
+            f"question it was opened for does not run{' (a console id is on one side)' if is_console(qid) or is_console(plan.get('qid')) else ''}."
+        )
 
     if plan["status"] not in ("VALIDATED", "APPROVED"):
         raise Refused(
@@ -723,7 +880,9 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     if budget == SMOKE:
         # after arm_view, so the estimates it scales are the arm's own
         view, smoke = smoke_view(view)
-    approval, envelope = gate(view, budget, target)
+    # The view is what the envelope is measured against; the approval is looked
+    # up against the plan as read, which is the card a person approved.
+    approval, envelope, console_item = gate(view, budget, target, on_disk=plan)
 
     # The status flip is bookkeeping and belongs to the agent; the decision it
     # records belongs to a person. APPROVED has exactly two routes in (6.1): a
@@ -916,7 +1075,10 @@ def run(qid: str, run_id: str, backend=None, seed: int = 1,
     # O1 -- preflight. Nothing has been commanded yet.
     record("gate", tier=max_tier(plan), approval=approval, envelope=envelope,
            **({"compare_arm": arm, "arm_cost": arm_cost} if arm is not None else {}),
-           **({"smoke": smoke} if smoke else {}))
+           **({"smoke": smoke} if smoke else {}),
+           # The item that asked a console question, by path and the sha256 of
+           # its bytes; the approval's own file is in `approval.file`.
+           **({"console_item": console_item} if console_item else {}))
     if engine_missing is not None:
         # The name of the backend that actually took over, not a constant:
         # with the fallback per configuration, `mock_backend.NAME` would record
