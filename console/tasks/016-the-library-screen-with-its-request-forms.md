@@ -48,14 +48,25 @@ day:
    sections are devices, quantities, observables, samples and
    configurations, plus unfiled, and each links to its pages. That is inside
    plan.md 4.3.1 as it stands.
-2. **A data map, of relationships and expertise: wait.**
-   - The store's manager has proposed that the librarian's generator write
-     one file, `kb/wiki/map.json`, holding nodes and typed edges, each edge
-     naming its entry, plus the store version.
-   - architecture-20261007-1 would widen 4.3.1 from "pages" to "generated
-     files under `kb/wiki/`".
-   - Until both land, the part shows "not built yet". **Never build it from
-     entries or `kb/index.json`**, which 4.3.1 forbids the console to read.
+2. **A data map, of relationships and expertise: the librarian's pages,
+   shown like any wiki page.** The person decided this at `e1170a36`
+   (Q-20261025-office-01):
+
+   > 데이터 맵은 사서가 저장소에 관계도 페이지를 만들어 두고 콘솔은 보여 주기만 하는 방식으로 한다. '전문성'은 어떤 주제에 대해 저장소가 얼마나 알고 있는지를 뜻한다.
+
+   ("The data map is done by the librarian making relationship pages in the
+   store, and the console only shows them. 'Expertise' means how much the
+   store knows about a subject.")
+   - The console computes nothing: no graph from entries, no measure of
+     expertise of its own.
+   - It shows the relationship and evidence pages the librarian generates
+     under `kb/wiki/` (librarian task 060: `evidence.md`, and the map), as
+     it shows every page, footer check included.
+   - Until they land, the part shows "not built yet".
+   - If the map arrives as a file that is not a page (`map.json`), it is
+     shown only once plan.md 4.3.1 is widened to cover it. Until then it
+     reads as not built.
+
 3. **A window for writing a question: wait for the person.** The store's
    manager is asking what it is:
    - a search over the wiki;
