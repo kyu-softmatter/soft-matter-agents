@@ -173,6 +173,30 @@
       "type": "string",
       "description": "The plan file this run actually opened, repo-relative. `plan_id` and `revision` are copied from inside the card and agree with themselves whichever file was opened, so until 3eda760 nothing in a run record could distinguish 'ran revision 1 deliberately' from 'ran revision 1 because operator.py built the filename without a revision and could not see revision 2'. That second case ran the discarded experiment and finished green (tasks/009).\n\nOptional, because three runs predate the field and P1 does not rewrite them; absent means the record cannot make that distinction, which is a fact about the record and not a defect in it. The operator now refuses a mismatch between the filename and the card's own `revision` at the one point where both are in hand, so this field and that refusal are two halves: the refusal stops the pair from lying, this says which file the pair came from."
     },
+    "console_item": {
+      "type": "object",
+      "description": "a run of another login's question only (plan.md 7.1.1 rule 9; microscope card 089, simulation card 028): the console inbox item the runner read to confirm the question was asked, as it read it -- its path, the sha256 of its raw bytes, its ids, and each attachment with the sha256 it checked. Check 91 requires it on a run whose plan carries a -c question id and refuses it on any other, and holds its sha256 to the item's bytes in the tree. Optional in the schema because a run log carries no question id of its own; the plan it names does.",
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "item_id": {"type": "string", "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$"},
+        "question_id": {"type": "string", "pattern": "^(mic|sim)-[0-9]{8}-c[0-9]{3}$"},
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            },
+            "required": ["file", "sha256"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["path", "sha256", "item_id", "question_id", "attachments"],
+      "additionalProperties": false
+    },
     "no_plan_because": {
       "type": "string",
       "minLength": 20,

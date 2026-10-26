@@ -9382,6 +9382,51 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                                          "naming it; every item is taken up or refused, and a refusal is written "
                                          "back, never silent (7.1.1 rules 5 and 9)", item.rel))
 
+    # A run of a console question records the item its runner read
+    # (microscope card 089, simulation card 028). A run log carries no
+    # question id, so the plan it opened says whose question it was. A
+    # refused run is exempt from the requirement, since its item may never
+    # have been read, and never from the other direction: a run of a
+    # window question carrying an item is borrowing one.
+    by_rel = {c.rel: c for c in b.cards}
+    logs_with_item = 0
+    for log in b.of_artifact("run_log"):
+        if "__unreadable__" in log.data:
+            continue
+        ci = log.data.get("console_item")
+        plan = by_rel.get(str(log.data.get("plan_path") or ""))
+        qid = plan.data.get("qid") if plan is not None else None
+        console = isinstance(qid, str) and bool(CONSOLE_QID.match(qid))
+        if ci is None:
+            if console and log.data.get("ended") != "refused":
+                out.append(Finding(91, FAIL, f"the run ran {qid}, a console question, and its log carries no "
+                                             "console_item; the item the runner read is recorded with the run "
+                                             "(7.1.1 rule 9)", log.rel))
+            continue
+        logs_with_item += 1
+        if not console:
+            out.append(Finding(91, FAIL, f"the log carries a console_item and its plan's question is "
+                                         f"{qid if qid else 'unknown'}, not a console question; only a run of "
+                                         "a console question reads an inbox item (7.1.1 rule 9)", log.rel))
+            continue
+        item = items.get(ci.get("item_id"))
+        if ci.get("question_id") != qid:
+            out.append(Finding(91, FAIL, f"the log's console_item names question {ci.get('question_id')} and "
+                                         f"the plan it ran is {qid}", log.rel))
+        elif item is None or item.data.get("question_id") != qid:
+            out.append(Finding(91, FAIL, f"the log's console_item names item {ci.get('item_id')}, and no "
+                                         f"console inbox item by that id asked {qid}", log.rel))
+        elif ci.get("path") != item.rel:
+            out.append(Finding(91, FAIL, f"the log's console_item names {ci.get('path')} and the item "
+                                         f"{ci.get('item_id')} is {item.rel}", log.rel))
+        else:
+            import hashlib
+            got = hashlib.sha256(item.path.read_bytes()).hexdigest()
+            if got != ci.get("sha256"):
+                out.append(Finding(91, FAIL, f"the log's console_item records sha256 {ci.get('sha256')} for "
+                                             f"{item.rel} and its bytes hash to {got}; the run read other "
+                                             "bytes than the item holds (7.1.1 rule 3)", log.rel))
+
     # The librarian's store requests (7.1.1 rules 4 and 8) are joined on the
     # item id alone: a store answer carries no question id and no goal card,
     # and one request may have several answers (waiting_for_a_name, then one
@@ -9434,7 +9479,8 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
         out.append(Finding(91, PASS if seen else NA,
                            f"{len(items)} console question items, each answered, and {len(answers)} answers, each "
                            f"naming its item; every console question id has its item; {len(requests)} store "
-                           f"requests, each answered, and {len(store_answers)} store answers, each naming its request"
+                           f"requests, each answered, and {len(store_answers)} store answers, each naming its request; "
+                           f"{logs_with_item} run logs naming the item they read, each matching it"
                            if seen else "no console question items, store requests or answers in this tree"))
     return out
 
