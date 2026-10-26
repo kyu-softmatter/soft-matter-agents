@@ -63,6 +63,25 @@ For Experiments, **two pages**: **Plan** (실험 계획서) and **Sample map**.
   `trap_steps` draft validates. A light or exposure draft shows the
   schema's refusal. Drafts are saved nowhere until a draft's home is
   designed.
+- **A Run button on a signed plan** (Q-20261026-office-01, `ddbb95c4`):
+
+  > 서명한 계획의 시작: (2) 콘솔에 '실행' 버튼을 만든다. 콘솔은 서명된 계획 하나를 가리키기만 하고 다른 것은 보낼 수 없다. 실제 장비에서는 현미경 앞에서 장비 인계를 직접 해야 시작된다.
+
+  ("Starting a signed plan: (2) put a 'run' button in the console. The
+  console only points at one signed plan and can send nothing else. On the
+  real instrument, the run starts only after the person hands the bench
+  over in person at the microscope.")
+  - It is of the live-on kind. It names one signed plan, by its id and
+    fingerprint, and sends nothing else: no parameter, no command, no
+    approval of its own.
+  - The runtime starts the run from the signed plan and its approval. On
+    the real instrument it starts only after the person's hand-over at the
+    microscope.
+  - The request is a new run-interface kind. Its shape is the runtime
+    holder's and manager-microscope's to write into
+    `run_interface.schema.json`. **Until that lands, the button shows "not
+    built yet" and sends nothing.**
+  - It is offered only on an APPROVED plan, under `person_login`.
 - **Sample map** takes the old `features/map` as its model.
   - The sample's record view below is a panel on this page, not a tab of
     its own.
