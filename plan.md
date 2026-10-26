@@ -3038,7 +3038,7 @@ is never touched. The revision comes later, with `013`, and then the corrected c
 
 | Number | What | Seat holding it |
 |---|---|---|
-| _(empty)_ | 91 reached declaration on 2026-10-26; **an empty table is the normal state** |  |
+| 92 | A console store request carries what it names (7.1.1 rules 4 and 8): a document a `console_store_request` names is one of its envelope's attachments, and a document path outside the item's own folder fails. Owed by `console_store_request.schema.json` for when the inbox opens, to land with its fixtures in the sitting that opens it. A number of its own and not a branch of 91: 91 relates records to each other and across commits, this judges one item against the files it lists, and it has another holder. Whether it also takes rule 4's general half -- every listed attachment present beside its item with the bytes its sha256 names, for all three agents' items -- is open; that half reads the console's envelope schema | manager-librarian-20261007-1 |
 
 **When the implementation is done, the declaration goes into the list below and it leaves this table.** The order is §8's own — agree → implement → declare.
 
