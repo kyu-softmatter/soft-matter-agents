@@ -65,7 +65,7 @@ class _Rig:
         self.mock = self.o.module_for("camera_red")
         self.mock.reset()
         self.addrs = self.o.begin_run(Path(self.tmp.name) / "run-tap", run_id="run-tap",
-                                      plan_id="p", revision=1)
+                                      plan_id="p", revision=1, tap_cameras=["Kinetix_red"])
         test.addCleanup(self.end)
 
     @property

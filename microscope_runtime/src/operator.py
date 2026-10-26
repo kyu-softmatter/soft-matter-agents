@@ -948,6 +948,28 @@ POWER_DOWN = {"ramp_down", "close_shutter", "disable", "blank"}
 ACQUIRE = {"acquire", "acquire_series", "snap", "stream"}
 
 
+def derive_tap_cameras(plan: dict) -> list[str]:
+    """The cameras a plan's run will acquire on, in the order the plan first names them (card 084).
+
+    Read from the plan's own acquiring actions, never from a frame: an action whose verb acquires and
+    whose device is a camera. A focus search grabs from the red camera, so it names that one if the
+    plan's actions have not. A plan that acquires nothing gives [], and the tap then says it takes
+    no camera instead of answering for one it was never going to feed.
+    """
+    cameras: list[str] = []
+    for action in plan.get("actions") or []:
+        if not isinstance(action, dict) or action.get("action") not in ACQUIRE:
+            continue
+        device = action.get("device")
+        # A plan names a camera by its registry channel, or by the device label the allow-list holds.
+        camera = orch.CAMERA_DEVICES.get(device, device if device in orch.CAMERA_DEVICES.values() else None)
+        if camera is not None and camera not in cameras:
+            cameras.append(camera)
+    if "focus_search" in plan and LIVE_VIEW_CAMERA not in cameras:
+        cameras.append(LIVE_VIEW_CAMERA)
+    return cameras
+
+
 # --------------------------------------------------------------------------- #
 # operation plans (plan.md 11-21, card 040): a move that verifies
 # --------------------------------------------------------------------------- #
@@ -1544,7 +1566,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                                                        orch.is_light_command)
             judgements, judgements_event = judgements_mod.build(plan, judge_obj, folder, o.clock.offset)
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
-                        revision=plan.get("revision"), watcher=watcher, watcher_event=watcher_event,
+                        revision=plan.get("revision"), tap_cameras=derive_tap_cameras(plan),
+                        watcher=watcher, watcher_event=watcher_event,
                         judgements=judgements, judgements_event=judgements_event)
         elif plan.get("watcher") is not None:
             o.record(event="watcher_off", watcher={"why": "did_not_start", "detail": (
@@ -1881,6 +1904,7 @@ def _run_trap_steps(o, plan: dict, commands: list, ask_person) -> list[dict]:
 #: exactly these two devices; a list naming another is refused before this
 #: table is read.
 LIVE_VIEW_ROUTES = {"DiaLamp": "stand_ti2e", "Kinetix_red": "camera_red"}
+LIVE_VIEW_CAMERA = "Kinetix_red"
 
 LIVE_VIEW_NO_PLAN = (
     "live view: the person switched the camera on from the console to find the sample "
@@ -1987,7 +2011,7 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
         o = orch.Orchestrator(backend=backend)
         if on_orchestrator is not None:
             on_orchestrator(o)
-        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None)
+        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None, tap_cameras=[values["camera"]])
         if started is not None:
             started.set()
         how = "failed"

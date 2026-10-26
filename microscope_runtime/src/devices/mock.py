@@ -134,12 +134,22 @@ FRAME_BYTES = 64
 FRAME_SHAPE: tuple[int, int] | None = None
 
 
-def _frame(i: int):
+#: Channel -> (the camera's device name in its metadata, a stripe phase), for the two cameras. The
+#: phase only makes one camera's frames differ from the other's, so a screen showing both can be
+#: seen to show both. Synthetic, like every frame here: no sensor, no count and no image of anything.
+CAMERAS = {"camera_red": ("Kinetix_red", 0), "camera_blue": ("Kinetix_blue", 32)}
+
+
+def _camera(channel_id):
+    return CAMERAS.get(channel_id, ("mock", 0))
+
+
+def _frame(i: int, phase: int = 0):
     if FRAME_SHAPE is None:
-        return bytes([i % 256]) * FRAME_BYTES
+        return bytes([(i + phase) % 256]) * FRAME_BYTES
     import numpy as np
     rows, cols = FRAME_SHAPE
-    stripes = (np.add.outer(np.arange(rows), np.arange(cols)) + 4 * i) % 64
+    stripes = (np.add.outer(np.arange(rows), np.arange(cols)) + 4 * i + phase) % 64
     return (stripes * 1000).astype(np.uint16)
 
 
@@ -160,15 +170,25 @@ def snap():
     Synthetic bytes by default. With FRAME_SHAPE set, a 2-D uint16 frame;
     with FOCUS_Z_UM set too, its structure depends on the mock encoder's Z.
     """
+    return _snap(None)
+
+
+def snap_for(channel_id: str):
+    """snap(), for a channel that is a camera: its frames carry its own name and stripe phase (card 084)."""
+    return _snap(channel_id)
+
+
+def _snap(channel_id):
     if _ABORTED:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
+    name, phase = _camera(channel_id)
     n = _SNAPS[0]
     _SNAPS[0] += 1
-    meta = {"camera": "mock", "exposure_ms": None, "ImageNumber": str(n)}
+    meta = {"camera": name, "exposure_ms": None, "ImageNumber": str(n)}
     if FRAME_SHAPE is None:
-        return bytes(64), meta
+        return bytes([phase % 256]) * 64, meta
     if FOCUS_Z_UM is None:
-        return _frame(n), meta
+        return _frame(n, phase), meta
     import math
     import numpy as np
     with _LOCK:
@@ -179,7 +199,7 @@ def snap():
     rng = np.random.default_rng(1234)                   # the same noise floor in every frame
     noise = rng.normal(0.0, 1.0, (rows, cols))
     yy, xx = np.mgrid[0:rows, 0:cols]
-    blobs = np.sin(xx / 3.0) * np.sin(yy / 3.0)          # structure that blur would remove
+    blobs = np.sin((xx + phase) / 3.0) * np.sin(yy / 3.0)    # structure that blur would remove
     image = 2000 + 300 * noise + 1500 * sharp * blobs
     meta["z_um_mock"] = z
     return np.clip(image, 0, 65535).astype(np.uint16), meta
@@ -191,7 +211,17 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
     Counted by integer, as the real one is. The frames are bytes, not sensor
     data; each carries the ImageNumber the real metadata would.
     """
+    return _sequence(None, n, sink)
+
+
+def sequence_for(channel_id: str, n: int, sink, timeout_s: float | None = None) -> dict:
+    """sequence(), for a channel that is a camera: its frames carry its own name and stripe phase (card 084)."""
+    return _sequence(channel_id, n, sink)
+
+
+def _sequence(channel_id, n: int, sink) -> dict:
     import time as _time
+    name, phase = _camera(channel_id)
     if _ABORTED:
         raise RuntimeError("aborted: this backend refuses commands until it is reset")
     numbers = []
@@ -202,9 +232,9 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
             break
         if FRAME_DELAY_S:
             _time.sleep(FRAME_DELAY_S)
-        meta = {"Camera": "mock", "ImageNumber": str(i)}
+        meta = {"Camera": name, "ImageNumber": str(i)}
         numbers.append(meta["ImageNumber"])
-        sink(i, _frame(i), meta)
+        sink(i, _frame(i, phase), meta)
     return {"wanted": int(n), "received": len(numbers), "image_numbers": numbers,
             "gaps": [], "overflowed": False, "aborted": _ABORTED}
 

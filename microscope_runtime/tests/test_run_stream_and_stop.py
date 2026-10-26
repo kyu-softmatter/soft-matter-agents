@@ -180,7 +180,7 @@ class T6AValidStopMidDispatch(unittest.TestCase):
                 time.sleep(0.05)
             return original(params)
         mock.apply = slow
-        addr = o.begin_run(Path(tmp.name) / "run-x", run_id="run-x", plan_id="p", revision=1)
+        addr = o.begin_run(Path(tmp.name) / "run-x", run_id="run-x", plan_id="p", revision=1, tap_cameras=[])
         commands = [orch.Command(channel="stand_ti2e", action="t", params={"n": i},
                                  from_field=f"test[{i}]") for i in range(40)]
         worker = threading.Thread(target=o.dispatch, args=(commands,))
@@ -238,7 +238,7 @@ class T8NothingListensOutsideARun(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         o = orch.Orchestrator(backend="mock")
         self.assertIsNone(o.stop_channel_address())
-        addr = o.begin_run(Path(tmp.name) / "run-y", run_id="run-y", plan_id="p", revision=1)
+        addr = o.begin_run(Path(tmp.name) / "run-y", run_id="run-y", plan_id="p", revision=1, tap_cameras=[])
         socket.create_connection((addr["host"], addr["port"]), timeout=1).close()
         o.end_run("completed")
         self.assertIsNone(o.stop_channel_address())

@@ -22,6 +22,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import re
 import socket
 import sys
 import threading
@@ -289,6 +290,12 @@ class Command:
 #: against it at the moment of the move yet.
 OPERATION_EXEMPT_DEVICE = "piezo_stage"
 OPERATION_EXEMPT_AXES = ("x", "y")
+
+#: The two cameras, by registry channel and by the device name the console and the run log use
+#: (run_interface.schema.json `tap_cameras`). The frame tap keys each camera's latest frame by the
+#: device name of the CHANNEL a call served, never by a name read from a frame's metadata. The
+#: registry carries no device names, so the mapping is declared here, as LIVE_VIEW_ROUTES is.
+CAMERA_DEVICES = {"camera_red": "Kinetix_red", "camera_blue": "Kinetix_blue"}
 
 #: Card 040 item 3 and plan.md 4.6.6 rule 5: the two channels with no read-back
 #: that the PERSON named as exceptions, routed to their wrappers with
@@ -689,33 +696,49 @@ class _PreStopBuffer:
 
 
 class _FrameTap(threading.Thread):
-    """The latest frame a run's own acquisition produced, served on loopback (card 058).
+    """The latest frame of each camera a run takes, served on loopback (cards 058 and 084).
 
     IT COMMANDS NOTHING, AND IT HOLDS NO CORE. It is handed frames by the
     orchestrator's tee on the run's own sink and snap(), keeps a COPY of the
-    most recent one, and serves that copy. There is no reference here to any
-    device module or core, so it cannot start, stop, configure or even read
-    an acquisition; when no frame is arriving it says so and never snaps.
+    most recent one of each camera, and serves that copy. There is no
+    reference here to any device module or core, so it cannot start, stop,
+    configure or even read an acquisition; when no frame is arriving it says
+    so and never snaps.
+
+    The camera a frame belongs to is the one the orchestrator's own call
+    served (`put(..., camera)`), never a name read out of the frame's
+    metadata. Only the cameras `run_started` lists as `tap_cameras` are kept
+    or answered for.
 
     `put()` is the only thing the run's thread calls: it copies the frame,
     swaps one reference under a lock and returns. Serving -- serialising the
-    copy and writing it to the socket -- happens on this thread, so a reader
-    that is slow, never sends, or never reads holds up this thread and
-    nothing else.
+    copy and writing it to the socket -- happens on a thread of its own per
+    connection, so a reader that is slow, never sends, or never reads holds
+    up its own thread and nothing else: not the run, and not a reader of
+    another camera.
 
-    One request: one line of JSON, exactly {"get": "latest_frame"}. The
-    reply is one header line, then the frame's bytes; or a header saying no
-    frame yet. Anything else is refused, recorded, and closed unanswered.
+    Two request forms, one line of JSON each: {"get": "latest_frame"}, which
+    answers for the first camera listed, and the same with "camera": <name>.
+    The reply is one header line, then the frame's bytes; or a header saying
+    there is no frame (yet), or that the run does not take that camera.
+    Anything else is refused, recorded, and closed unanswered.
     """
 
     MAX_REQUEST_BYTES = 256
+    #: Readers served at once. The tap is on loopback and its readers are the console's own; a
+    #: connection past this is closed unanswered, so a flood cannot grow threads without bound.
+    MAX_READERS = 16
+    #: run_interface.schema.json $defs/camera_name
+    CAMERA_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 
-    def __init__(self, orchestrator, run_id: str) -> None:
+    def __init__(self, orchestrator, run_id: str, cameras=()) -> None:
         super().__init__(name=f"frame-tap:{run_id}", daemon=True)
         self._o = orchestrator
+        self._cameras = tuple(cameras)
         self._closed = threading.Event()
         self._lock = threading.Lock()
-        self._latest: tuple | None = None
+        self._latest: dict[str, tuple] = {}
+        self._readers: set[threading.Thread] = set()
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.bind(("127.0.0.1", 0))
         self._sock.listen(4)
@@ -726,19 +749,37 @@ class _FrameTap(threading.Thread):
     def address(self) -> dict:
         return dict(self._addr)
 
-    def put(self, image, metadata: dict, t_mono: float) -> None:
-        """Copy one frame in, replacing the last. Nothing queues."""
+    def cameras(self) -> list[str]:
+        return list(self._cameras)
+
+    def put(self, image, metadata: dict, t_mono: float, camera: str | None = None) -> None:
+        """Copy one frame in, replacing that camera's last. Nothing queues.
+
+        A camera the run does not list is not kept: nothing would ever serve it.
+        """
+        if camera not in self._cameras:
+            return
         copy = image.copy() if hasattr(image, "copy") else bytes(image)
         latest = (copy, dict(metadata or {}), t_mono)
         with self._lock:
-            self._latest = latest
+            self._latest[camera] = latest
 
-    def _reply(self) -> bytes:
+    def _no_frame(self, asked: str | None, note: str) -> bytes:
+        head = {"frame": False, "note": note}
+        if asked is not None:
+            head["camera"] = asked
+        return json.dumps(head).encode() + b"\n"
+
+    def _reply(self, asked: str | None) -> bytes:
+        camera = asked if asked is not None else (self._cameras[0] if self._cameras else None)
+        if camera is None:
+            return self._no_frame(asked, "no frame: this run takes no camera, so nothing is "
+                                  "acquired in it, and the tap never acquires")
         with self._lock:
-            latest = self._latest
+            latest = self._latest.get(camera)
         if latest is None:
-            return json.dumps({"frame": False, "note": "no frame yet: nothing has been "
-                               "acquired in this run, and the tap never acquires"}).encode() + b"\n"
+            return self._no_frame(asked, "no frame yet: nothing has been "
+                                  "acquired in this run, and the tap never acquires")
         image, metadata, t_mono = latest
         if hasattr(image, "tobytes"):
             body = image.tobytes()
@@ -746,7 +787,7 @@ class _FrameTap(threading.Thread):
         else:
             body, shape, dtype = bytes(image), [len(image)], "bytes"
         head = {"frame": True, "metadata": metadata, "t_mono": t_mono, "bytes": len(body),
-                "shape": shape, "dtype": dtype}
+                "shape": shape, "dtype": dtype, "camera": camera}
         return json.dumps(head, default=str).encode() + b"\n" + body
 
     def _judge(self, raw: bytes) -> bytes | None:
@@ -764,9 +805,47 @@ class _FrameTap(threading.Thread):
             message = json.loads(text)
         except ValueError:
             return refuse("not JSON")
-        if message != {"get": "latest_frame"}:
-            return refuse('not the one request this tap answers, {"get": "latest_frame"}')
-        return self._reply()
+        if (not isinstance(message, dict) or message.get("get") != "latest_frame"
+                or set(message) not in ({"get"}, {"get", "camera"})):
+            return refuse('not one of the two requests this tap answers, {"get": "latest_frame"} '
+                          'and the same with "camera"')
+        asked = message.get("camera")
+        if "camera" in message and not (isinstance(asked, str) and self.CAMERA_NAME.match(asked)):
+            return refuse("camera is not a camera name")
+        if asked is not None and asked not in self._cameras:
+            # Well formed, and not one this run takes: said by name, and recorded. No device is asked.
+            taken = ", ".join(self._cameras) if self._cameras else "none"
+            why = f"{asked} is not a camera this run takes (it takes: {taken}); the tap never acquires"
+            self._o.record(event="frame_tap_refused", reason=why, camera=asked, bytes=len(raw))
+            return self._no_frame(asked, f"this run does not take {asked}: the tap answers "
+                                  f"for {taken} and never acquires")
+        return self._reply(asked)
+
+    def _serve(self, conn) -> None:
+        with conn:
+            try:
+                conn.settimeout(1.0)
+                cap = self.MAX_REQUEST_BYTES + 1
+                raw = b""
+                while len(raw) < cap and b"\n" not in raw:
+                    chunk = conn.recv(cap - len(raw))
+                    if not chunk:
+                        break
+                    raw += chunk
+                if b"\n" in raw and len(raw) < cap:
+                    conn.settimeout(0.05)
+                    try:
+                        raw += conn.recv(cap - len(raw))
+                    except (socket.timeout, OSError):
+                        pass
+                reply = self._judge(raw)
+                if reply is not None:
+                    conn.settimeout(1.0)
+                    conn.sendall(reply)
+            except OSError:
+                # A reader that went away or never read: its loss, and not
+                # a fact about the run, so nothing is recorded.
+                pass
 
     def run(self) -> None:
         while not self._closed.is_set():
@@ -774,30 +853,17 @@ class _FrameTap(threading.Thread):
                 conn, _ = self._sock.accept()
             except (socket.timeout, OSError):
                 continue
-            with conn:
-                try:
-                    conn.settimeout(1.0)
-                    cap = self.MAX_REQUEST_BYTES + 1
-                    raw = b""
-                    while len(raw) < cap and b"\n" not in raw:
-                        chunk = conn.recv(cap - len(raw))
-                        if not chunk:
-                            break
-                        raw += chunk
-                    if b"\n" in raw and len(raw) < cap:
-                        conn.settimeout(0.05)
-                        try:
-                            raw += conn.recv(cap - len(raw))
-                        except (socket.timeout, OSError):
-                            pass
-                    reply = self._judge(raw)
-                    if reply is not None:
-                        conn.settimeout(1.0)
-                        conn.sendall(reply)
-                except OSError:
-                    # A reader that went away or never read: its loss, and not
-                    # a fact about the run, so nothing is recorded.
-                    pass
+            with self._lock:
+                self._readers = {t for t in self._readers if t.is_alive()}
+                full = len(self._readers) >= self.MAX_READERS
+            if full:
+                conn.close()
+                continue
+            reader = threading.Thread(target=self._serve, args=(conn,),
+                                      name=f"{self.name}:reader", daemon=True)
+            with self._lock:
+                self._readers.add(reader)
+            reader.start()
 
     def close(self) -> None:
         self._closed.set()
@@ -807,6 +873,11 @@ class _FrameTap(threading.Thread):
             pass
         if self.is_alive():
             self.join(3.0)
+        with self._lock:
+            readers = list(self._readers)
+        deadline = time.monotonic() + 3.0
+        for reader in readers:
+            reader.join(max(0.0, deadline - time.monotonic()))
 
 
 # --------------------------------------------------------------------------- #
@@ -918,10 +989,15 @@ class Orchestrator:
         self._stream.write(json.dumps(event, default=str) + "\n")
         self._stream.flush()
 
-    def begin_run(self, folder: Path, run_id: str, plan_id, revision, watcher=None,
+    def begin_run(self, folder: Path, run_id: str, plan_id, revision, tap_cameras, watcher=None,
                   watcher_event: dict | None = None, judgements=None,
                   judgements_event: dict | None = None) -> dict:
         """Open runs/<run_id>/events.jsonl and the stop channel; announce both in one line.
+
+        `tap_cameras` is what the frame tap answers for, in order (card 084): the cameras the run
+        will acquire, derived by the caller from the plan or the live-view list, never from a
+        frame's metadata. It is required, so a caller that has not decided cannot leave it out;
+        a run that acquires nothing passes `[]`.
 
         The first line is `run_started`, carrying the stop channel's address,
         which is written NOWHERE else. Events recorded before this call are
@@ -933,7 +1009,7 @@ class Orchestrator:
         self._stop_run_id = run_id
         self.stopped_from_outside = False
         self._stop = _StopChannel(self, run_id)
-        self._tap = _FrameTap(self, run_id)
+        self._tap = _FrameTap(self, run_id, tap_cameras)
         self._folder = folder
         self._pre_stop = None if self.pre_stop_length_s is None else _PreStopBuffer(self.pre_stop_length_s)
         addr = self._stop.address()
@@ -941,7 +1017,8 @@ class Orchestrator:
             self._stream = open(folder / "events.jsonl", "a", encoding="utf-8")
             self._stream_line({"event": "run_started", "run_id": run_id, "plan_id": plan_id,
                                "revision": revision, "t0_wall": self.clock.t0_wall,
-                               "stop_channel": addr, "frame_tap": self._tap.address()})
+                               "stop_channel": addr, "frame_tap": self._tap.address(),
+                               "tap_cameras": self._tap.cameras()})
             for event in self.log:
                 self._stream_line(event)
         self._stop.start()
@@ -1017,10 +1094,10 @@ class Orchestrator:
         tap = getattr(self, "_tap", None)
         return None if tap is None else tap.address()
 
-    def _tap_frame(self, image, metadata) -> None:
+    def _tap_frame(self, image, metadata, camera: str | None = None) -> None:
         tap = getattr(self, "_tap", None)
         if tap is not None:
-            tap.put(image, metadata, self.clock.offset())
+            tap.put(image, metadata, self.clock.offset(), camera)
         ring = getattr(self, "_pre_stop", None)
         if ring is not None:
             try:
@@ -1092,16 +1169,41 @@ class Orchestrator:
         the run's data. The tap adds no camera call: this is the run's
         acquisition, and the tee is the only thing added to it.
         """
+        camera = CAMERA_DEVICES.get(channel_id)         # the call's own camera, never the metadata's
+
         def tee(i, image, metadata):
             sink(i, image, metadata)
-            self._tap_frame(image, metadata)
-        return self.module_for(channel_id).sequence(n, tee, timeout_s=timeout_s)
+            self._tap_frame(image, metadata, camera)
+        module = self.module_for(channel_id)
+        sequence_for = getattr(module, "sequence_for", None)
+        if sequence_for is not None:
+            return sequence_for(channel_id, n, tee, timeout_s=timeout_s)
+        return module.sequence(n, tee, timeout_s=timeout_s)
 
     def acquire_snap(self, channel_id: str):
         """The channel's own snap(); its frame is copied into the tap and returned unchanged."""
-        image, metadata = self.module_for(channel_id).snap()
-        self._tap_frame(image, metadata)
+        module = self.module_for(channel_id)
+        snap_for = getattr(module, "snap_for", None)
+        image, metadata = snap_for(channel_id) if snap_for is not None else module.snap()
+        self._tap_frame(image, metadata, CAMERA_DEVICES.get(channel_id))
         return image, metadata
+
+    #: Frames the mock takes for an acquisition that is a series. Synthetic: no plan's frame count.
+    MOCK_SERIES_FRAMES = 3
+
+    def _mock_acquire(self, channel_id: str, command) -> None:
+        """What a plan's acquiring command does on the mock: it takes frames, through the run's own tee.
+
+        `apply` alone moves no frame, so a mock run of a plan that acquires on a camera showed the
+        console nothing (card 086 item 1). The frames go through acquire_snap / acquire_sequence,
+        the one acquisition path the tap is fed from, and the run discards them: no plan field
+        says where a mock frame would be written. On hardware an acquisition is not driven from
+        here, so nothing else calls this.
+        """
+        if command.action in ("snap", "acquire"):
+            self.acquire_snap(channel_id)
+        else:
+            self.acquire_sequence(channel_id, self.MOCK_SERIES_FRAMES, lambda i, image, metadata: None)
 
     def _stop_request(self, raw: bytes) -> bytes | None:
         """Judge one message on the stop channel. A reply for a valid stop, None for a refusal.
@@ -2088,6 +2190,8 @@ class Orchestrator:
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,
                                         **detail, **{"from": command.from_field})
+                            if command.acquires and self.backend == "mock" and cid in CAMERA_DEVICES:
+                                self._mock_acquire(cid, command)
                             if from_operation_move(command) and verification != "readback":
                                 # Card 040 item 2: an operation move whose read-back
                                 # is not within the plan's tolerance stops the run
