@@ -1,0 +1,32 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261026-091500-k4p8",
+  "words": "Please enter the numerical aperture of the 40x water objective from the maker's sheet attached.",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": false,
+      "agents": [
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-26T09:15:00Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [
+    {
+      "file": "ci-20261026-091500-k4p8--objective_sheet.pdf",
+      "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+    }
+  ],
+  "request": {
+    "kind": "withdraw_value",
+    "entry_id": "objective_working_distance_40x",
+    "reason": "it looks wrong"
+  }
+}

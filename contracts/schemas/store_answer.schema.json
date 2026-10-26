@@ -1,0 +1,425 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "store_answer.schema.json",
+  "title": "store_answer -- the librarian's answer to one console inbox item, in librarian_agent/answers/ (plan.md 7.1.1 rule 6)",
+  "description": "The librarian alone writes it and the console reads it as display. It is append-only: a second answer to the same request is a new item, and a `waiting_for_a_name` answer is always followed by one. An answer is written only after the store change it reports is published, so `kb_version` names a published version and every entry id it names is in that version. That is a validator check, not a schema rule. The item is pinned by its item_id and sha256, because the request is part of the provenance of what the answer reports. An ask is answered `answered` (citing the entries it rests on, every number beside its provenance) or `not_in_the_store` (the gaps, with where they were looked for); an ask never makes or marks an entry.",
+  "type": "object",
+  "properties": {
+    "artifact": {
+      "const": "store_answer"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "answer_id": {
+      "type": "string",
+      "pattern": "^ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$",
+      "description": "ca-<UTC date>-<UTC time>-<four random characters>; also the answer's file name"
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "follows": {
+      "type": "string",
+      "pattern": "^librarian_agent/answers/ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\\.json$",
+      "description": "the earlier answer to the same request that this one completes; required after waiting_for_a_name"
+    },
+    "answered_by": {
+      "type": "string",
+      "pattern": "^seat:librarian-[A-Za-z0-9-]+$"
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "outcome": {
+      "enum": [
+        "entered",
+        "waiting_for_a_name",
+        "refuted",
+        "superseded",
+        "in_conflict",
+        "kept",
+        "no_entry_of_that_name",
+        "answered",
+        "not_in_the_store"
+      ],
+      "description": "the seven outcomes of 7.1.1 rule 6. waiting_for_a_name is not a refusal: the fact is entered after the managers register the quantity name, and a second answer follows."
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "in words, for the console to show beside the outcome"
+    },
+    "entries_made": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "uniqueItems": true
+    },
+    "entries_marked": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "uniqueItems": true,
+      "description": "existing entries whose status this request changed: the refuted, the superseded, or those now in conflict"
+    },
+    "other_side": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "uniqueItems": true,
+      "description": "the entries on the other side of a refutation (the observation), a supersession (the replacement) or a conflict"
+    },
+    "quantity_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "the name waiting to be registered"
+    },
+    "kb_version": {
+      "type": "string",
+      "pattern": "^kbv-[0-9a-f]{12}$"
+    },
+    "answer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "for an ask: the librarian's answer in words. Every number in it is one of `numbers`; a number no entry holds is not given."
+    },
+    "numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entry_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "grade": {
+            "allOf": [
+              {
+                "$ref": "common.schema.json#/$defs/grade"
+              },
+              {
+                "not": {
+                  "const": "E6"
+                }
+              }
+            ],
+            "description": "as the entry records it; E6, a number a model made up, never appears"
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "covers_conditions": {
+            "enum": [
+              "yes",
+              "no",
+              "not_stated"
+            ],
+            "description": "whether the entry's validity covers the asked conditions, as matching reports it"
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "unit",
+          "entry_id",
+          "grade",
+          "source",
+          "covers_conditions"
+        ],
+        "additionalProperties": false
+      },
+      "description": "each number the answer gives, beside its provenance as the entry records it"
+    },
+    "entries_cited": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "uniqueItems": true
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "asked_for": {
+            "type": "string",
+            "minLength": 1
+          },
+          "looked_in": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "asked_for",
+          "looked_in"
+        ],
+        "additionalProperties": false
+      },
+      "description": "what was asked for and not found, with where it was looked for -- looked-for-and-absent, not nobody-checked"
+    },
+    "item_id": {
+      "type": "string",
+      "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$",
+      "description": "the console inbox item this answers, by its item_id (also its file name under librarian_agent/console_inbox/), as console_answer names its item"
+    }
+  },
+  "required": [
+    "artifact",
+    "schema_version",
+    "answer_id",
+    "item_id",
+    "request_sha256",
+    "answered_by",
+    "answered_at",
+    "outcome",
+    "reason"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "entered",
+              "refuted",
+              "superseded",
+              "in_conflict",
+              "kept",
+              "answered",
+              "not_in_the_store"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "kb_version"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "entered"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "entries_made"
+        ],
+        "properties": {
+          "entries_made": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "refuted",
+              "superseded",
+              "in_conflict"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "entries_marked",
+          "other_side"
+        ],
+        "properties": {
+          "entries_marked": {
+            "minItems": 1
+          },
+          "other_side": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "waiting_for_a_name"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "quantity_name"
+        ],
+        "not": {
+          "required": [
+            "entries_made"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "kept",
+              "no_entry_of_that_name"
+            ]
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "entries_made"
+              ]
+            },
+            {
+              "required": [
+                "entries_marked"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "answered"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "answer",
+          "entries_cited"
+        ],
+        "properties": {
+          "entries_cited": {
+            "minItems": 1
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "entries_made"
+              ]
+            },
+            {
+              "required": [
+                "entries_marked"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "not_in_the_store"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "gaps"
+        ],
+        "properties": {
+          "gaps": {
+            "minItems": 1
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "numbers"
+              ]
+            },
+            {
+              "required": [
+                "entries_made"
+              ]
+            },
+            {
+              "required": [
+                "entries_marked"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "outcome": {
+              "enum": [
+                "answered",
+                "not_in_the_store"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "answer"
+              ]
+            },
+            {
+              "required": [
+                "numbers"
+              ]
+            },
+            {
+              "required": [
+                "entries_cited"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

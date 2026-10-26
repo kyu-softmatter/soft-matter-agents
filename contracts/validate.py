@@ -306,6 +306,13 @@ ARTIFACT_SCHEMA = {
     # the librarian's store requests $ref. No folder exists until the inbox
     # opens; this line lets a schema be judged before then.
     "console_question": "console_inbox_item.schema.json",
+    # 2026-10-26, plan.md 7.1.1 rules 4, 6 and 8 (approved at f59f7b45, not
+    # open): the librarian's four console inbox items -- enter a document,
+    # withdraw a value, offer a result, ask a question -- and the librarian's
+    # answer in librarian_agent/answers/. Only the committed examples exist
+    # until the inbox opens.
+    "console_store_request": "console_store_request.schema.json",
+    "store_answer": "store_answer.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]

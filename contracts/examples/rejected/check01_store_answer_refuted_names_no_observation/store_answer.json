@@ -1,0 +1,15 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-101000-r2t9",
+  "item_id": "ci-20261026-091500-k4p8",
+  "request_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "answered_by": "seat:librarian-20261007-1",
+  "answered_at": "2026-10-26T10:10:00Z",
+  "outcome": "refuted",
+  "reason": "entered from the maker's sheet, graded as a maker's document",
+  "kb_version": "kbv-0123456789ab",
+  "entries_marked": [
+    "pixel_size_red_camera"
+  ]
+}

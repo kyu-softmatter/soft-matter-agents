@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "console_store_request.schema.json",
+  "title": "console_store_request -- one of the librarian's four console inbox items: enter a document, withdraw a value, offer a result, or ask a question (plan.md 7.1.1 rules 4, 6 and 8; the person, 0a387d1b, f34fd9dd, f59f7b45, 52b839b0)",
+  "description": "The console's common item (the asker's words verbatim, login, time, console-side permissions, the person's-own proof or the other-login mark, attachments with sha256) comes from console_inbox_item.schema.json's envelope by $ref (810a07fc). This schema adds `artifact` and `request`, which is one of four kinds. Every allowed login may send every kind, and the librarian decides each one without the person's word, withdrawals included (0a387d1b). A request is never an instruction to write: the librarian enters, marks or keeps by the store's own rules, and answers in librarian_agent/answers/. Once it lands, the item is part of the provenance of any entry made from it (7.1.1 rule 3), which is why the item is append-only and why the entry's source names it. WHAT THE SCHEMA CANNOT SAY, owed as a check when the inbox opens: that a `document` named in a request is one of the envelope's attachments. No librarian_agent/console_inbox/ exists until then (7.1.1 status), so the only items judged today are the committed examples.",
+  "allOf": [
+    {
+      "$ref": "console_inbox_item.schema.json#/$defs/envelope"
+    }
+  ],
+  "properties": {
+    "artifact": {
+      "const": "console_store_request"
+    },
+    "request": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/enter_document"
+        },
+        {
+          "$ref": "#/$defs/withdraw_value"
+        },
+        {
+          "$ref": "#/$defs/offer_result"
+        },
+        {
+          "$ref": "#/$defs/ask"
+        }
+      ]
+    }
+  },
+  "required": [
+    "artifact",
+    "request"
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "file_name": {
+      "type": "string",
+      "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "an attached file, as the envelope's attachments list names it, kept beside the item; that it appears there with its sha256 is a check owed when the inbox opens"
+    },
+    "entry_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "an entry id as kb_entry.schema.json shapes it, typed or pasted by the asker. Whether it exists is the librarian's to answer, as `no_entry_of_that_name`; the console does not check."
+    },
+    "value_with_unit": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "as the asker wrote it; the librarian maps it to contracts/units.json or answers waiting_for_a_name"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "enter_document": {
+      "type": "object",
+      "description": "Hand in a document or a value. The source kind decides the grade the store derives (spec and literature and operator_read are E3, operator_recall is E5), so it is stated by the asker and never guessed. The librarian may enter less than asked, or nothing, and says why.",
+      "properties": {
+        "kind": {
+          "const": "enter_document"
+        },
+        "source_kind": {
+          "enum": [
+            "spec",
+            "literature",
+            "operator_read",
+            "operator_recall"
+          ],
+          "description": "the store's own source prefixes: spec = a maker's document, literature = a paper, operator_read = read off the instrument, operator_recall = remembered"
+        },
+        "read_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "who read the document or the instrument, or who remembers the value"
+        },
+        "fact_wanted": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the fact the asker wants taken out, in the asker's words"
+        },
+        "document": {
+          "$ref": "#/$defs/file_name"
+        },
+        "value": {
+          "$ref": "#/$defs/value_with_unit"
+        }
+      },
+      "required": [
+        "kind",
+        "source_kind",
+        "read_by",
+        "fact_wanted"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "enum": [
+                  "spec",
+                  "literature"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "document"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "operator_recall"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value"
+            ],
+            "not": {
+              "required": [
+                "document"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "operator_read"
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "value"
+                ]
+              },
+              {
+                "required": [
+                  "document"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "withdraw_value": {
+      "type": "object",
+      "description": "Ask the librarian to withdraw an entry. Words alone cannot refute an entry: refuted needs an observation, superseded needs the replacing entry, two sources that disagree with nothing settling them stand in conflict, and otherwise the entry is kept with the reason. Nothing is erased.",
+      "properties": {
+        "kind": {
+          "const": "withdraw_value"
+        },
+        "entry_id": {
+          "$ref": "#/$defs/entry_id"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "in the asker's words"
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "none"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "description": "a reading that contradicts the entry; it would enter as its own entry",
+              "properties": {
+                "kind": {
+                  "const": "reading"
+                },
+                "read_by": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "$ref": "#/$defs/value_with_unit"
+                },
+                "document": {
+                  "$ref": "#/$defs/file_name"
+                }
+              },
+              "required": [
+                "kind",
+                "read_by",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "document"
+                },
+                "source_kind": {
+                  "enum": [
+                    "spec",
+                    "literature"
+                  ]
+                },
+                "document": {
+                  "$ref": "#/$defs/file_name"
+                }
+              },
+              "required": [
+                "kind",
+                "source_kind",
+                "document"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "replacing_entry"
+                },
+                "entry_id": {
+                  "$ref": "#/$defs/entry_id"
+                }
+              },
+              "required": [
+                "kind",
+                "entry_id"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "entry_id",
+        "reason",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "offer_result": {
+      "type": "object",
+      "description": "Offer a result card as a candidate fact. The run behind it already waited for the person when it came from another login's question (plan.md 6.2), so the store adds no second gate; the librarian enters it on its ordinary result path.",
+      "properties": {
+        "kind": {
+          "const": "offer_result"
+        },
+        "result_card": {
+          "type": "string",
+          "pattern": "^(microscope_agent|simulation_agent)/questions/[a-z0-9-]+/result_[A-Za-z0-9_.-]+\\.json$"
+        },
+        "fact_in_words": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "result_card",
+        "fact_in_words"
+      ],
+      "additionalProperties": false
+    },
+    "ask": {
+      "type": "object",
+      "description": "A question to the librarian, from the Library's question window (the person, 52b839b0; 7.1.1 rule 4, dc187853). It asks and changes nothing in the store. Its answer cites the entries it rests on, each number beside its grade and source as the entry records it, says whether each entry's validity covers the asked conditions, and answers what the store does not hold as a gap with where it was looked for, never filled.",
+      "properties": {
+        "kind": {
+          "const": "ask"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the question, in the asker's words; the envelope's `words` stays the verbatim record"
+        },
+        "conditions": {
+          "type": "string",
+          "description": "optional: the conditions the asker means, in words (an objective, a temperature), so the librarian can say whether an entry's validity covers them"
+        }
+      },
+      "required": [
+        "kind",
+        "question"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

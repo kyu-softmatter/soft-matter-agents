@@ -1,0 +1,28 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261026-091500-k4p8",
+  "words": "Please enter the numerical aperture of the 40x water objective from the maker's sheet attached.",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": false,
+      "agents": [
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-26T09:15:00Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [],
+  "request": {
+    "kind": "enter_document",
+    "source_kind": "operator_recall",
+    "read_by": "member-1",
+    "fact_wanted": "the bead diameter"
+  }
+}
