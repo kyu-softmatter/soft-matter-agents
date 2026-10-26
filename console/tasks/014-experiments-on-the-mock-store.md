@@ -2,8 +2,9 @@
 
 Written by `manager-console-office-20261017-1`. You read this; you do not edit it.
 
-**Assigned to `console-office-20261017-1` (Console 1)**, after card 013. If you
-are not that seat, take nothing from this card and report up.
+**Assigned to `console-office-20261017-1` (Console 1)**, after card 015, which
+the person's "connect the mock system" moved first (`aeea9d60`). If you are
+not that seat, take nothing from this card and report up.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window.**

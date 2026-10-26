@@ -2,8 +2,11 @@
 
 Written by `manager-console-office-20261017-1`. You read this; you do not edit it.
 
-**Assigned to `console-office-20261017-1` (Console 1)**, after card 014. If you
-are not that seat, take nothing from this card and report up.
+**Assigned to `console-office-20261017-1` (Console 1)**, next, ahead of cards
+013 and 014. The person said "목 시스템 연결해" (connect the mock system),
+on its own (I-20261026-office-01, `aeea9d60`), so the mock connection comes
+first. Until card 013 lands, signing on the mock reads "not built yet". If
+you are not that seat, take nothing from this card and report up.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window.**
