@@ -56,10 +56,24 @@ The six pages are the ones card 012 built, in the person's order:
 
 The empty seventh line is room for a page, not a page to invent.
 
-**"Controlled" stays show, draft and stop.** Hands-on control is decided
-after the reduction (`cd9dcb57`). The runtime holder has asked the person
-through the intake seat whether it is time to decide it. Until a committed
-answer says otherwise, a control on the optical path page makes a draft.
+**"Controlled" means show, draft and stop, and that is now the person's
+decision** (Q-20261025-office-04, `b8beabd7`):
+
+> 손 제어: (1) 보기·초안·정지만으로 한다. 바꾸고 싶은 것은 계획 초안으로 만들어 비밀번호로 서명해 실행한다.
+
+("Hands-on control: (1) show, draft and stop only. What I want changed is
+made into a plan draft, signed with the password, and run.")
+- No hands-on session, no plan per click, and no live set-point.
+- **What a draft may cover** is what has a software path:
+  - the Aura LED, the transmitted lamp and the red camera's exposure, each
+    refused until the person's limit is in the safety file;
+  - **the fine piezo stage**, as an `operation` plan card. The schema's
+    operation block, a step or a sine on x, y or z, holds it, and the
+    orchestrator exempts the piezo operation.
+  - Card 012 left the piezo draft out. This card adds it, validated against
+    `plan.schema.json` and saved nowhere, as the other drafts are.
+- **Marked "moved by hand"**: the filters, the objectives, the light path,
+  the spinning disk, the large XY stage and the trap laser.
 
 From the runtime holder, the same day:
 - **On the mock a control is a draft, exactly as on the instrument**,
