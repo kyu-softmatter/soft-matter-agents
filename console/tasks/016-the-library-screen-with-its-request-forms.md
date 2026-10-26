@@ -95,6 +95,18 @@ day:
      requests yet. Its kind, and the shape of its answer, are for
      architecture-20261007-1 and manager-librarian, raised by this seat.
      Invent no shape.
+   - From the store's manager, the shape to build toward:
+     - an item carries the question and, optionally, conditions in words;
+     - an answer in `librarian_agent/answers/` is one of two outcomes.
+       - **answered**: the answer in words. Each number comes with its
+         entry id, grade and source as recorded, and whether the entry
+         covers the asked conditions: yes, no, or not stated. Show every
+         number beside its provenance, as on the wiki pages.
+       - **not in the store**: what was looked for, and where.
+     - No number appears without its entry, and an answer can never carry
+       a number graded as made up.
+   - **No search over the store is added.** The person did not ask for one;
+     the wiki display stands on its own.
    - The three store requests below are built as their own forms.
 
 ## What to do
