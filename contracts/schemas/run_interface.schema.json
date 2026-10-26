@@ -683,6 +683,125 @@
           "check_now": "started"
         }
       ]
+    },
+    "run_request": {
+      "type": "object",
+      "description": "the third message the live-view host accepts (the person, Q-20261026-office-01, ddbb95c4: a 'run' button that points at one signed plan and can send nothing else; on the real instrument the run starts only after the bench is handed over at the microscope). It is the sha256 of a plan_approval file's raw bytes in the approvals folder the host reads. The host finds the plan that approval names and starts it through operator.run, under the approval reader's checks and the run lock, exactly as a run started by command. The console cannot send a plan, a path, a value, a backend or the bench hand-over",
+      "properties": {
+        "run": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "run"
+      ],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "run": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      ],
+      "x_refused": [
+        {
+          "run": "approvals/appr-mic-20260925-002-r1.json"
+        },
+        {
+          "run": "2222222222222222222222222222222222222222222222222222222222222222",
+          "backend": "hardware"
+        },
+        {
+          "run": "2222222222222222222222222222222222222222222222222222222222222222",
+          "bench": "handed over"
+        },
+        {
+          "run": "2222222222222222222222222222222222222222222222222222222222222222",
+          "plan": {}
+        }
+      ]
+    },
+    "run_reply": {
+      "description": "started is sent once that run's run_started is written; waiting_for_bench while a run on the instrument waits for the hand-over typed at the microscope; refused says why",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "run": {
+              "const": "started"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            }
+          },
+          "required": [
+            "run",
+            "run_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "run": {
+              "const": "waiting_for_bench"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            }
+          },
+          "required": [
+            "run",
+            "run_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "run": {
+              "const": "refused"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "run",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "run": "started",
+          "run_id": "run-20261026-907"
+        },
+        {
+          "run": "waiting_for_bench",
+          "run_id": "run-20261026-908"
+        },
+        {
+          "run": "refused",
+          "reason": "no approval in the folder has that sha256"
+        }
+      ],
+      "x_refused": [
+        {
+          "run": "refused"
+        },
+        {
+          "run": "started"
+        },
+        {
+          "run": "started",
+          "run_id": "run-20261026-907",
+          "bench": "x"
+        }
+      ]
     }
   }
 }
