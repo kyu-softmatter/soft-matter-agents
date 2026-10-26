@@ -2,7 +2,7 @@
 
 Written by `manager-microscope-20261003-1`. You read this; you do not edit it.
 
-**Assigned to `microscope-office-20261017-1`, the runtime seat. It comes right after card 087**, before 086's items. It also touches `operator.authorise`, and the console inbox cannot open until it lands. If you are not that seat, take nothing from this card and report up.
+**Assigned to `microscope-office-20261017-1`, the runtime seat. It comes after card 087 and card 086's items 2 to 4 and 6**, and before 086's item 1 with 084. The person asked for the mock connected first (`aeea9d60`), and this card cannot bite before the inbox opens, so it costs nothing to come later. It also touches `operator.authorise`, and the console inbox cannot open until it lands. If you are not that seat, take nothing from this card and report up.
 
 ## Why
 

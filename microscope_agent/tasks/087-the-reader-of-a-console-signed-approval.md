@@ -83,6 +83,17 @@ In `microscope_runtime/src/operator.py`:
 4. **No fallback.** If `microscope_runtime/approvals/` is absent, refuse as
    today. Never read `microscope_agent/approvals/`, and never read the
    console's settings.
+5. **A mock run can read a test approvals folder; a hardware run cannot.**
+   Until this card lands, the console's writer writes only into a test root
+   (`0607b848`). The person asked for the mock connected (`aeea9d60`). But
+   the plan-run entry points (`run_operation_plan.py` and its siblings)
+   expose no folder option, while `operator.run` takes `root` and
+   `live_view.py` takes `--approvals`.
+   - Give each plan-run entry point an `--approvals` option.
+   - It is honoured only with `--backend mock`. With any other backend, a
+     non-default folder is refused before anything opens, with a reason
+     naming this rule.
+   - The default stays `microscope_runtime/approvals/`.
 
 ## Tests, each watched failing first
 
@@ -100,6 +111,10 @@ In `microscope_runtime/src/operator.py`:
    log keeps the bytes that were judged.
 6. Every run log a test writes validates against `run_log.schema.json`, and
    every one with a non-null approval id carries `approval.file`.
+7. A mock plan run with `--approvals <temp folder>` is authorised by a
+   console-signed approval there, and its log's `approval.file` names that
+   path. The same option with a non-mock backend is refused before any
+   device opens.
 
 ## Boundaries
 

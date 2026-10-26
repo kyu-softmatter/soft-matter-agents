@@ -8,7 +8,9 @@ soonest. The person asked for the Instruments and Experiments screens on a
 mock first (`5f88eab4`), and the order is agreed with the runtime holder,
 architecture-office-20261017-1:
 
-- **Items 2 to 4 and 6 come next, right after cards 087 and 089.** They reach the screens
+- **Items 2 to 4 and 6 come next, right after card 087**, and before card
+  089 (the person, "connect the mock system", `aeea9d60`; the swap agreed
+  with architecture-office-20261017-1). They reach the screens
   at once through `events.jsonl`, which already exists.
 - **Item 1 lands as a pair with card 084.** A second camera's frames reach
   the console only through 084's tap, so item 1 alone shows nothing.
