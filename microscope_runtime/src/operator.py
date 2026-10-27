@@ -1365,6 +1365,7 @@ def derive_commands(plan: dict) -> list[orch.Command]:
             lowers_power=verb in POWER_DOWN,
             acquires=verb in ACQUIRE,
             tier=int(action.get("tier", 0)),
+            line=action.get("line"),
         ))
     return commands
 
@@ -1375,7 +1376,8 @@ def _worse_grade(*grades) -> str | None:
 
 
 def _binding_text(binding: dict) -> str:
-    return (f"{binding['quantity']} -> {binding['name']}.{binding['property']} "
+    line = f"[{binding['line']}]" if binding.get("line") else ""
+    return (f"{binding['quantity']}{line} -> {binding['name']}.{binding['property']} "
             f"via {binding['entry_ref']}")
 
 
@@ -1409,10 +1411,10 @@ def classify_parameters(o, plan: dict, commands: list[orch.Command]) -> tuple[li
                 kept.append(command)         # not a registry name: the motion check refuses it
                 continue
             if label in may_command:
-                binding = o.mm_binding(element, element)
+                binding, no_binding = o.mm_binding_pick(element, element)
                 state = o.mm_state(element, word)
                 if binding is None:
-                    why = f"{element!r} has no binding keyed {element!r} to write its mode through"
+                    why = no_binding or f"{element!r} has no binding keyed {element!r} to write its mode through"
                 elif state is None:
                     why = f"{element!r} has no state label for {word!r}"
                 else:
@@ -1443,6 +1445,7 @@ def classify_parameters(o, plan: dict, commands: list[orch.Command]) -> tuple[li
                               "state": state["state_label"]})
             continue                                    # a required state is read, never written
         kept.append(command)
+        refused_before = len(refusals)
         for name, param in command.params.items():
             origin = param["from"]
             row = {"action": command.from_field, "name": name, "from": origin}
@@ -1464,6 +1467,9 @@ def classify_parameters(o, plan: dict, commands: list[orch.Command]) -> tuple[li
             else:
                 parameters.append({**row, "class": "setting",
                                    "binding": command.written[-1]["binding"]})
+        if command.line is not None and not command.written and len(refusals) == refused_before:
+            refusals.append(f"{command.from_field}: names the line {command.line!r} and has no parameter "
+                            "written through a binding, so the line applies to nothing")
 
     derivation = {"plan_hash": validate.plan_hash(plan), "parameters": parameters,
                   "selectors": selectors, "unused_numbers": validate.unused_numbers(plan)}
@@ -1479,10 +1485,10 @@ def _write_parameter(o, command, name: str, param: dict) -> str | None:
         return (f"{name} is a verb argument of acquire_series only; on {command.action!r} it is "
                 "neither that nor a setting")
     device = command.channel
-    binding = o.mm_binding(device, name)
+    binding, no_binding = o.mm_binding_pick(device, name, command.line)
     if binding is None:
-        return (f"{name!r} is neither a verb argument of {command.action!r} nor bound: the registry "
-                f"carries no binding of it on {device!r}")
+        return no_binding or (f"{name!r} is neither a verb argument of {command.action!r} nor bound: "
+                              f"the registry carries no binding of it on {device!r}")
     label = (o.mm_label(device) or {}).get("label")
     if label is None:
         return f"{device!r} has no Micro-Manager label, so {name!r} has no device to be written to"
@@ -1504,7 +1510,8 @@ def _write_parameter(o, command, name: str, param: dict) -> str | None:
         "unrounded": detail["unrounded"], "step": detail["step"],
         "written": written, "unit": binding["unit"], "label": label, "property": binding["property"],
         "binding": _binding_text(binding), "calibration": calibration,
-        "grade": _worse_grade(param.get("grade"), cal_grade)})
+        "grade": _worse_grade(param.get("grade"), cal_grade),
+        **({"line": command.line} if command.line is not None else {})})
     return None
 
 

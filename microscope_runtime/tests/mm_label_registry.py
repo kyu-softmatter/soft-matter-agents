@@ -60,7 +60,8 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
     `{"label", "property", "quantity", "validity", "valid_until"[, "grade", "conversion"]}`, each a
     `kind: calibration` entry graded E2. A binding item may carry `step` ({"value", "unit"}; card 098):
     it goes on the row, one in the binding's own unit when the item says nothing, and `"step": None`
-    leaves the row without one.
+    leaves the row without one. It may also carry `line` (card 098 part 5), any value, which goes on the
+    row as given and into the cited entry's reference so two lines of one quantity cite two entries.
     """
     real = json.loads(REAL_SNAPSHOT.read_text(encoding="utf-8"))
     table = json.loads(real["tables"]["devices"]["text"])
@@ -72,7 +73,7 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
     row_lists: dict[str, dict[str, list]] = {}
     for name, items in (bindings or {}).items():
         for item in items:
-            ref = f"mm_binding_{name}_{item['quantity']}"
+            ref = f"mm_binding_{name}_{item['quantity']}" + (f"_{item['line']}" if "line" in item else "")
             ids = {"mm_label": item.get("label", wanted.get(name)), "mm_property": item["property"],
                    "quantity": item["quantity"], "unit": item["unit"]}
             if item.get("digest", CONFIG_A) is not None:
@@ -81,6 +82,8 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
                                                 "identifiers": ids, "source": "a test's own synthetic entry"})}
             row_item = {"quantity": item["quantity"], "property": item["property"], "unit": item["unit"],
                         "entry_ref": ref}
+            if "line" in item:
+                row_item["line"] = item["line"]
             step = item["step"] if "step" in item else {"value": 1, "unit": item["unit"]}
             if step is not None:
                 row_item["step"] = step

@@ -302,7 +302,7 @@ MM_BINDINGS_FIELD = "mm_bindings"
 MM_STATES_FIELD = "mm_states"
 _MM_ITEM_SHAPES = {
     MM_BINDINGS_FIELD: {"required": ("quantity", "property", "unit", "entry_ref"),
-                        "optional": ("config_sha256", "step"), "unique": ("quantity", "property")},
+                        "optional": ("config_sha256", "step", "line"), "unique": ("property",)},
     MM_STATES_FIELD: {"required": ("word", "state_label", "entry_ref"),
                       "optional": ("config_sha256",), "unique": ("word", "state_label")},
 }
@@ -330,6 +330,7 @@ def _mm_row_lists(channels: dict[str, Channel], entries: dict | None, source: st
             if not isinstance(items, list) or not items:
                 raise GapError(f"{source}: {name!r} carries {field!r} and it is not a non-empty list")
             seen = {key: set() for key in shape["unique"]}
+            lines_of: dict[str, list] = {}      # bindings: each quantity's lines, None for no line (card 098)
             kept = []
             for item in items:
                 if (not isinstance(item, dict) or not set(item) <= allowed
@@ -337,9 +338,24 @@ def _mm_row_lists(channels: dict[str, Channel], entries: dict | None, source: st
                     raise GapError(
                         f"{source}: an item of {field!r} on {name!r} is not an object with "
                         f"{list(shape['required'])} (and optionally {list(shape['optional'])})")
+                if "line" in item and not (isinstance(item["line"], str) and item["line"]):
+                    raise GapError(f"{source}: an item of {field!r} on {name!r} carries a line that is "
+                                   "not a non-empty string")
                 if field == MM_BINDINGS_FIELD and item["quantity"] in NEVER_A_BINDING:
                     raise GapError(f"{source}: {name!r} binds {item['quantity']!r}, which is never a "
                                    "binding: it is counted from what the sequence returned")
+                if field == MM_BINDINGS_FIELD:
+                    taken = lines_of.setdefault(item["quantity"], [])
+                    line = item.get("line")
+                    if line in taken:
+                        raise GapError(f"{source}: {name!r} carries two {field!r} items with the quantity "
+                                       f"{item['quantity']!r}" + (f" on the line {line!r}" if line else "")
+                                       + ". Two that differ are not resolved by choosing one")
+                    if taken and (line is None) != (taken[0] is None):
+                        raise GapError(f"{source}: {name!r} binds {item['quantity']!r} both on a line and "
+                                       "on no line, so an action that names a line has no binding that "
+                                       "is its own. Two that differ are not resolved by choosing one")
+                    taken.append(line)
                 for key in shape["unique"]:
                     if item[key] in seen[key]:
                         raise GapError(f"{source}: {name!r} carries two {field!r} items with the "
@@ -481,6 +497,8 @@ class Command:
     written: list = field(default_factory=list)
     #: Frames the plan asked for, when the verb counts them (a verb argument, card 095).
     frame_count: int | None = None
+    #: The light line the plan's action names, which picks the binding of each parameter (card 098).
+    line: str | None = None
 
     def __post_init__(self) -> None:
         if not self.from_field:
@@ -1330,13 +1348,40 @@ class Orchestrator:
         """
         return self.mm_labels.get(name)
 
-    def mm_binding(self, name: str, quantity: str) -> dict | None:
-        """The binding a registry name carries for a quantity, with its entry's facts, or None (card 095).
+    def mm_binding(self, name: str, quantity: str, line: str | None = None) -> dict | None:
+        """The binding a registry name carries for a quantity on a line, with its entry's facts, or None (card 095).
 
         Like mm_label it reads what the registry file carried and decides nothing: whether the
-        binding may be used is `binding_refusal`'s.
+        binding may be used is `binding_refusal`'s. `mm_binding_pick` says why there is none.
         """
-        return next((b for b in self.mm_bindings.get(name, []) if b["quantity"] == quantity), None)
+        return self.mm_binding_pick(name, quantity, line)[0]
+
+    def mm_binding_pick(self, name: str, quantity: str, line: str | None = None) -> tuple[dict | None, str | None]:
+        """(binding, why none): the binding of a quantity for the line an action names (card 098 part 5).
+
+        The line is compared exactly, never case-folded or trimmed, and a binding with no line is
+        never a stand-in for one that has: where the quantity's bindings carry lines, an action that
+        names none or one no binding carries gets no binding and the lines there are. Where none
+        carries a line the action names none and nothing differs from card 095. No binding at all is
+        None with no reason: the caller says it.
+        """
+        found = [b for b in self.mm_bindings.get(name, []) if b["quantity"] == quantity]
+        lines = [b["line"] for b in found if b.get("line") is not None]
+        if not found:
+            return None, None
+        if not lines:
+            if line is None:
+                return found[0], None
+            return None, (f"the action names the line {line!r} and {name!r} binds {quantity!r} on no "
+                          "line, so the line applies to nothing")
+        if line is None:
+            return None, (f"{name!r} binds {quantity!r} on the lines {lines} and the action names no "
+                          "line, so no binding is its own")
+        pick = next((b for b in found if b.get("line") == line), None)
+        if pick is None:
+            return None, (f"{name!r} binds {quantity!r} on the lines {lines}, none of them {line!r}: "
+                          "a line is matched exactly")
+        return pick, None
 
     def mm_state(self, name: str, word: str) -> dict | None:
         """The state label a registry name's `mm_states` gives a plan's word, with its entry's facts, or None."""
