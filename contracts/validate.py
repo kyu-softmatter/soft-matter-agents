@@ -10387,32 +10387,36 @@ def check_96_a_device_label_is_its_cited_entrys(b: Bundle) -> list[Finding]:
 
 
 def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> list[Finding]:
-    """A device row's property bindings and state words are copies of their cited entries (librarian card 062).
+    """A device row's property bindings and state words are copies of their cited entries (librarian cards 062, 063).
 
     A plan carries `exposure_time` in seconds and writes a hand-set position
     in the path table's words; Micro-Manager takes `Exposure` in milliseconds
     and reports its own state labels. Which property a quantity sets, in what
     unit, and which state a word names are facts about this instrument, so
     they reach the runtime only on rows of kb/staging/devices.v0.json:
-    `mm_bindings` [{quantity, property, unit, entry_ref[, config_sha256]}] and
-    `mm_states` [{word, state_label, entry_ref[, config_sha256]}]. Neither
-    carries a grade or source of its own. This reads each copy against its
-    entry:
+    `mm_bindings` [{quantity, property, unit, entry_ref[, line][, step][,
+    config_sha256]}] and `mm_states` [{word, state_label, entry_ref[,
+    config_sha256]}]. Neither carries a grade or source of its own. This reads
+    each copy against its entry:
 
       a. each item has exactly those keys, and the row carries `mm_label`:
          a property or a state belongs to the device under that label;
       b. `entry_ref` names an entry that is neither refuted nor superseded,
          whose `identifiers` carry the row's label under `mm_label` and the
-         item's fields -- `mm_property`, `quantity`, `unit` for a binding,
-         `path_word`, `mm_state_label` for a state -- character for character;
+         item's fields -- `mm_property`, `quantity`, `unit` and `line` for a
+         binding, `path_word`, `mm_state_label` for a state -- character for
+         character, so a binding with no `line` cites an entry with none;
       c. a binding's quantity is registered in contracts/quantities.json and
          is not `frame_count`, which is a verb's argument and no property
          holds;
       d. its unit is a symbol in contracts/units.json and is not `1` when the
          quantity's registered unit is not: `1` cannot tell 10 from 1 per
          cent on a fraction-of-scale property;
-      e. one binding per quantity and one per property on a row, one state
-         label per word and one word per state label;
+      e. one binding per quantity, or per quantity and `line` where bindings
+         carry one, and one per property on a row; no quantity bound both
+         on a line and without one; one state label per word and one word
+         per state label. A light engine takes one intensity property per
+         line (card 063);
       f. a word is one the path table can write for that row -- a value of
          `required_selectors` in optical_paths.v0.json, a `content` in the
          row's `slot_contents`, or a key of its `states`. A selector the path
@@ -10425,7 +10429,22 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
          what a slot reaches -- exactly those. A label read back says the
          device has a state called X, never that X is the word;
       h. a `config_sha256` follows check 96's rule: 64 lowercase hex, equal
-         to the entry's `identifiers.mm_config_sha256`.
+         to the entry's `identifiers.mm_config_sha256`;
+      i. a binding's `step` {value, unit} is a copy of its entry's one
+         `numbers[]` item named `property_step`, present exactly when the
+         entry holds one, in the binding's unit (card 063). A step nobody
+         read is absent, and the runtime writes nothing through it;
+      j. a calibration that serves a binding -- a `kind: calibration` entry
+         whose `mm_label`, `mm_property` and `quantity` a row binds --
+         carries `conversion`, and every `conversion` is card 063's form: on
+         a calibration only; physical_to_control by
+         piecewise_linear_within_points; its physical quantity the entry's,
+         in the registered unit, which is the validity's; at least two
+         points, physical values strictly increasing and control values
+         strictly monotone, one unit per side; the first and last physical
+         values exactly validity's min and max; every point's source
+         deriving E1; its control unit the unit of each binding it serves,
+         and its `line`, where it names one, that binding's.
 
     Whether a binding may command anything is the runtime's ruling, on the
     entry's grade and digest; whether a calibration covers a planned value is
@@ -10453,11 +10472,10 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
             for i, v in enumerate(o):
                 walk(v, f"{where}[{i}]")
     walk(table, "")
-    if not rows:
-        return [Finding(98, NA, "no device row carries mm_bindings or mm_states yet")]
 
     entries_dir = KB_DIR / "entries"
     store: dict[str, dict] = {}
+    files: dict[str, str] = {}
     for p in sorted(entries_dir.glob("*.json")) if entries_dir.is_dir() else []:
         try:
             e = json.loads(p.read_text(encoding="utf-8"))
@@ -10465,6 +10483,10 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
             continue
         if isinstance(e, dict) and isinstance(e.get("entry_id"), str):
             store[e["entry_id"]] = e
+            files[e["entry_id"]] = _rel(p)
+    converting = [eid for eid, e in store.items() if "conversion" in e]
+    if not rows and not converting:
+        return [Finding(98, NA, "no device row carries mm_bindings or mm_states yet")]
     superseded = {e.get("supersedes"): eid for eid, e in store.items() if isinstance(e.get("supersedes"), str)}
     try:
         qreg = {q["id"]: q.get("unit") for q in json.loads((CONTRACTS / "quantities.json").read_text(
@@ -10483,15 +10505,20 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
             if isinstance(v, str):
                 words_from_paths.setdefault(k, set()).add(v)
 
-    # field -> (its keys, the entry identifiers it copies, the keys that are one per row)
-    forms = {"mm_bindings": ({"quantity", "property", "unit", "entry_ref"},
-                             {"mm_property": "property", "quantity": "quantity", "unit": "unit"},
+    def amount(x: object) -> bool:
+        return (isinstance(x, dict) and set(x) == {"value", "unit"} and isinstance(x["unit"], str) and x["unit"]
+                and isinstance(x["value"], (int, float)) and not isinstance(x["value"], bool))
+
+    # field -> (its keys, the keys it may add, the entry identifiers it copies, the keys that are one per row)
+    forms = {"mm_bindings": ({"quantity", "property", "unit", "entry_ref"}, {"line", "step", "config_sha256"},
+                             {"mm_property": "property", "quantity": "quantity", "unit": "unit", "line": "line"},
                              ("quantity", "property")),
-             "mm_states": ({"word", "state_label", "entry_ref"},
+             "mm_states": ({"word", "state_label", "entry_ref"}, {"config_sha256"},
                            {"path_word": "word", "mm_state_label": "state_label"},
                            ("word", "state_label"))}
     out: list[Finding] = []
     n_items = 0
+    served: dict[tuple, list[tuple[str, dict]]] = {}
     for name, row in rows:
         m = row.get("mm_label")
         label = m.get("label") if isinstance(m, dict) else None
@@ -10506,7 +10533,7 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
         if isinstance(row.get("states"), dict):
             words |= set(row["states"])
         observed = row.get("verify_by") == "acquisition" or row.get("id") in ("lapp_branch", "csuw1_disk_position")
-        for field, (required, copied, unique) in forms.items():
+        for field, (required, optional, copied, unique) in forms.items():
             if field not in row:
                 continue
             items = row[field]
@@ -10514,21 +10541,31 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
                 out.append(Finding(98, FAIL, f"row {name}: {field} is {json.dumps(items)[:80]}, not a list "
                                              "(librarian card 062)", rel))
                 continue
-            seen: dict[str, dict[str, int]] = {k: {} for k in unique}
+            seen: dict[str, int] = {}
+            lined: dict[str, set[bool]] = {}
             for it in items:
                 n_items += 1
                 if (not isinstance(it, dict) or not required <= set(it)
-                        or set(it) - required - {"config_sha256"}
-                        or not all(isinstance(it[k], str) and it[k] for k in required)):
+                        or set(it) - required - optional
+                        or not all(isinstance(it[k], str) and it[k] for k in required)
+                        or ("line" in it and not (isinstance(it["line"], str) and it["line"]))
+                        or ("step" in it and not (amount(it["step"]) and it["step"]["value"] > 0))):
                     out.append(Finding(98, FAIL, f"row {name}: a {field} item is {json.dumps(it)[:120]}, not "
-                                                 f"{{{', '.join(sorted(required))}[, config_sha256]}}; the field "
-                                                 "has no grade or source of its own (librarian card 062)", rel))
+                                                 f"{{{', '.join(sorted(required))}"
+                                                 f"{''.join(f'[, {k}]' for k in sorted(optional))}}}, a step "
+                                                 "being a positive {value, unit}; the field has no grade or "
+                                                 "source of its own (librarian cards 062, 063)", rel))
                     continue
                 for k in unique:
-                    seen[k][it[k]] = seen[k].get(it[k], 0) + 1
+                    on = f" on line {it['line']!r}" if k == "quantity" and "line" in it else ""
+                    key = f"{k} {it[k]!r}{on}"
+                    seen[key] = seen.get(key, 0) + 1
                 what = f"row {name}: {field} {it.get('quantity') or it.get('word')!r}"
                 if field == "mm_bindings":
                     q, unit = it["quantity"], it["unit"]
+                    lined.setdefault(q, set()).add("line" in it)
+                    if isinstance(label, str) and label:
+                        served.setdefault((label, it["property"], q), []).append((name, it))
                     if q not in qreg:
                         out.append(Finding(98, FAIL, f"{what} is not a quantity in contracts/quantities.json; a "
                                                      "binding keys on a registered name only (librarian card 062)",
@@ -10556,7 +10593,7 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
                                                  "kb/entries/ (librarian card 062)", rel))
                     continue
                 ids = e.get("identifiers") if isinstance(e.get("identifiers"), dict) else {}
-                pairs = [("mm_label", label)] + [(ek, it[rk]) for ek, rk in copied.items()]
+                pairs = [("mm_label", label)] + [(ek, it.get(rk)) for ek, rk in copied.items()]
                 wrong = [f"{ek} {ids.get(ek)!r} against {v!r}" for ek, v in pairs if ids.get(ek) != v]
                 if wrong:
                     out.append(Finding(98, FAIL, f"{what}: its entry {ref} records {'; '.join(wrong)}; the row "
@@ -10569,6 +10606,32 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
                 if ref in superseded:
                     out.append(Finding(98, FAIL, f"{what} cites {ref}, which {superseded[ref]} supersedes; cite "
                                                  "the entry that replaced it (librarian card 062)", rel))
+                if field == "mm_bindings":
+                    ps = [n for n in e.get("numbers") or [] if isinstance(n, dict) and n.get("name") == "property_step"]
+                    step = it.get("step")
+                    if len(ps) > 1:
+                        out.append(Finding(98, FAIL, f"{what}: its entry {ref} holds {len(ps)} property_step "
+                                                     "numbers; a property takes one step (librarian card 063)", rel))
+                    elif ps and ps[0].get("unit") != it["unit"]:
+                        out.append(Finding(98, FAIL, f"{what}: its entry {ref} records property_step in "
+                                                     f"{ps[0].get('unit')!r} and the binding writes {it['unit']!r}; "
+                                                     "a step is in the unit the property is written in "
+                                                     "(librarian card 063)", rel))
+                    if ps and step is None:
+                        out.append(Finding(98, FAIL, f"{what}: its entry {ref} holds property_step "
+                                                     f"{ps[0].get('value')} {ps[0].get('unit')} and the row "
+                                                     "carries no step; the step is a copy of the entry's "
+                                                     "(librarian card 063)", rel))
+                    elif step is not None and not ps:
+                        out.append(Finding(98, FAIL, f"{what} carries step {step['value']} {step['unit']} and its "
+                                                     f"entry {ref} holds no property_step; a step nobody read is "
+                                                     "left off, never filled in (librarian card 063)", rel))
+                    elif step is not None and (step["value"], step["unit"]) != (ps[0].get("value"),
+                                                                                ps[0].get("unit")):
+                        out.append(Finding(98, FAIL, f"{what}: step {step['value']} {step['unit']} against its "
+                                                     f"entry's property_step {ps[0].get('value')} "
+                                                     f"{ps[0].get('unit')}; the step is a copy of the entry's "
+                                                     "(librarian card 063)", rel))
                 if field == "mm_states" and observed:
                     lit = ids.get("lit_detectors")
                     if not str(e.get("source", "")).startswith("measured:"):
@@ -10597,14 +10660,111 @@ def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> lis
                                                      f"records {str(theirs)[:12] + '...' if theirs else 'no digest'}"
                                                      "; the digest is a copy of the entry's (librarian card 062)",
                                            rel))
-            for k, counts in seen.items():
-                for v, n in sorted(counts.items()):
-                    if n > 1:
-                        out.append(Finding(98, FAIL, f"row {name}: {k} {v!r} appears in {n} {field} items; one "
-                                                     "of them is wrong (librarian card 062)", rel))
+            for key, n in sorted(seen.items()):
+                if n > 1:
+                    out.append(Finding(98, FAIL, f"row {name}: {key} appears in {n} {field} items; one "
+                                                 "of them is wrong (librarian card 062)", rel))
+            for q, kinds in sorted(lined.items()):
+                if kinds == {True, False}:
+                    out.append(Finding(98, FAIL, f"row {name}: quantity {q!r} is bound both on a line and without "
+                                                 "one; a plan that names no line would have a binding to fall back "
+                                                 "on, and none is meant (librarian card 063)", rel))
+
+    n_conv = 0
+    for eid, e in store.items():
+        ids = e.get("identifiers") if isinstance(e.get("identifiers"), dict) else {}
+        serves = served.get((ids.get("mm_label"), ids.get("mm_property"), ids.get("quantity")), [])
+        conv, where = e.get("conversion"), files.get(eid, _rel(entries_dir))
+        if conv is None:
+            if e.get("kind") == "calibration" and serves:
+                out.append(Finding(98, FAIL, f"calibration {eid} serves the binding of {ids.get('mm_property')!r} "
+                                             f"on row {serves[0][0]} and carries no conversion; the runtime "
+                                             "cannot turn a physical value into a setting without one "
+                                             "(librarian card 063)", where))
+            continue
+        n_conv += 1
+        if e.get("kind") != "calibration":
+            out.append(Finding(98, FAIL, f"entry {eid} carries a conversion and is of kind {e.get('kind')!r}; "
+                                         "only a calibration converts (librarian card 063)", where))
+            continue
+        pts = conv.get("points") if isinstance(conv, dict) else None
+        if (not isinstance(conv, dict) or set(conv) != {"direction", "rule", "physical", "control", "points"}
+                or conv["direction"] != "physical_to_control" or conv["rule"] != "piecewise_linear_within_points"
+                or not isinstance(conv["physical"], dict) or set(conv["physical"]) != {"quantity", "unit"}
+                or not all(isinstance(v, str) and v for v in conv["physical"].values())
+                or not isinstance(conv["control"], dict) or set(conv["control"]) != {"unit"}
+                or not (isinstance(conv["control"]["unit"], str) and conv["control"]["unit"])
+                or not isinstance(pts, list)
+                or not all(isinstance(p, dict) and set(p) == {"physical", "control", "source"}
+                           and amount(p["physical"]) and amount(p["control"]) and isinstance(p["source"], str)
+                           for p in pts)):
+            out.append(Finding(98, FAIL, f"calibration {eid}: its conversion is {json.dumps(conv)[:120]}, not "
+                                         "{direction: physical_to_control, rule: piecewise_linear_within_points, "
+                                         "physical: {quantity, unit}, control: {unit}, points: [{physical, "
+                                         "control, source}]} (librarian card 063)", where))
+            continue
+        q, pu, cu = conv["physical"]["quantity"], conv["physical"]["unit"], conv["control"]["unit"]
+        what = f"calibration {eid}"
+        if q != ids.get("quantity"):
+            out.append(Finding(98, FAIL, f"{what} converts {q!r} and its identifiers name quantity "
+                                         f"{ids.get('quantity')!r}; the key is the conversion's quantity "
+                                         "(librarian card 063)", where))
+        if q in qreg and pu != qreg[q]:
+            out.append(Finding(98, FAIL, f"{what} gives {q} in {pu!r} and the quantity is registered in "
+                                         f"{qreg[q]!r}; the physical side is in canonical units, as validity is "
+                                         "(librarian card 063)", where))
+        bad = sorted({p["physical"]["unit"] for p in pts if p["physical"]["unit"] != pu}
+                     | {p["control"]["unit"] for p in pts if p["control"]["unit"] != cu})
+        if bad:
+            out.append(Finding(98, FAIL, f"{what}: a point is in {', '.join(map(repr, bad))} and the form's units "
+                                         f"are {pu!r} and {cu!r}; one form never mixes units (librarian card 063)",
+                               where))
+        xs, ys = [p["physical"]["value"] for p in pts], [p["control"]["value"] for p in pts]
+        if len(pts) < 2:
+            out.append(Finding(98, FAIL, f"{what} has {len(pts)} point; a rule between points needs two "
+                                         "(librarian card 063)", where))
+        elif not all(a < b for a, b in zip(xs, xs[1:])):
+            out.append(Finding(98, FAIL, f"{what}: physical values {xs} are not strictly increasing; a repeated "
+                                         "value is a plateau, which the calibration starts above and names in "
+                                         "validity_conditions (librarian card 063)", where))
+        elif not (all(a < b for a, b in zip(ys, ys[1:])) or all(a > b for a, b in zip(ys, ys[1:]))):
+            out.append(Finding(98, FAIL, f"{what}: control values {ys} are not strictly monotone, so two powers "
+                                         "would share a setting or one setting would lie between two runs "
+                                         "(librarian card 063)", where))
+        v = (e.get("validity") or {}).get(q) if isinstance(e.get("validity"), dict) else None
+        if not isinstance(v, dict) or v.get("unit") != pu or "min" not in v or "max" not in v:
+            out.append(Finding(98, FAIL, f"{what}: validity for {q} is {json.dumps(v)[:80]}, not a min and a max "
+                                         f"in {pu!r}; the span of a conversion is its validity "
+                                         "(librarian card 063)", where))
+        elif pts and (xs[0], xs[-1]) != (v.get("min"), v.get("max")):
+            out.append(Finding(98, FAIL, f"{what}: its points span {xs[0]} to {xs[-1]} {pu} and validity says "
+                                         f"{v.get('min')} to {v.get('max')}; the two are one range, exactly "
+                                         "(librarian card 063)", where))
+        for p in pts:
+            g = SOURCE_GRADE.get(p["source"].split(":", 1)[0], "missing")
+            if g != "E1" or ":" not in p["source"]:
+                out.append(Finding(98, FAIL, f"{what}: a point's source {p['source']!r} derives "
+                                             f"{g or 'a composed grade'}, not E1; every point is measured on this "
+                                             "instrument (librarian card 063)", where))
+        if not serves:
+            out.append(Finding(98, FAIL, f"{what} converts into {ids.get('mm_label')!r}'s "
+                                         f"{ids.get('mm_property')!r} and no device row binds that property for "
+                                         f"{ids.get('quantity')!r}; a conversion serves a binding "
+                                         "(librarian card 063)", where))
+        for rname, it in serves:
+            if it["unit"] != cu:
+                out.append(Finding(98, FAIL, f"{what}: control unit {cu!r} against the binding's {it['unit']!r} on "
+                                             f"row {rname}; the conversion ends in the unit the property is "
+                                             "written in (librarian card 063)", where))
+            if "line" in ids and ids["line"] != it.get("line"):
+                out.append(Finding(98, FAIL, f"{what}: line {ids['line']!r} against the binding's "
+                                             f"{it.get('line')!r} on row {rname}; a calibration is one line's "
+                                             "(librarian card 063)", where))
     if not any(f.status == FAIL for f in out):
         out.append(Finding(98, PASS, f"{n_items} bindings and state words on {len(rows)} device rows are copies "
-                                     "of their cited entries"))
+                                     "of their cited entries"
+                                     + (f", and {n_conv} conversion{' follows' if n_conv == 1 else 's follow'} card 063's form"
+                                        if n_conv else "")))
     return out
 
 

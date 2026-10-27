@@ -1984,6 +1984,219 @@ def fixture_98_a_binding_digest_its_entry_does_not_record(repo: Path) -> str:
     return _binding_store(repo, lambda t, e: _binding(t).update(config_sha256="b" * 64))
 
 
+def _line_store(repo: Path, change=None) -> str:
+    """Librarian card 063 (2026-10-27): a binding's line and step, and a calibration's conversion.
+
+    `_binding_store` plus a light engine bound one line at a time: GREEN
+    with a step read off the device and a calibration that converts watts
+    into its per-mille setting, and NIR with no step read and no calibration,
+    which is a binding nothing is written through. `change(table, entries)`
+    breaks one thing.
+    """
+    run, cal = "measured:run-20261027-002", "measured:run-20261027-003"
+
+    def line(eid: str, name: str, numbers: list) -> dict:
+        return {"entry_id": eid, "source": run, "grade": "E1", "supersedes": None, "refuted_by": [],
+                "numbers": numbers,
+                "identifiers": {"mm_label": "Spectra", "mm_property": f"{name}_Intensity",
+                                "quantity": "illumination_power", "unit": "permille", "line": name}}
+
+    def add(t: dict, e: dict) -> None:
+        e["spectra_green_intensity_is_permille"] = line(
+            "spectra_green_intensity_is_permille", "GREEN",
+            [{"name": "property_step", "value": 1, "unit": "permille", "source": run, "grade": "E1"}])
+        e["spectra_nir_intensity_is_permille"] = line("spectra_nir_intensity_is_permille", "NIR", [])
+        e["spectra_green_power_calibration"] = {
+            "entry_id": "spectra_green_power_calibration", "kind": "calibration",
+            "source": "calibration:cal-20261027-001", "grade": "E2", "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "Spectra", "mm_property": "GREEN_Intensity",
+                            "quantity": "illumination_power", "line": "GREEN"},
+            "validity": {"illumination_power": {"min": 0.0005, "max": 0.005, "unit": "W"}},
+            "valid_until": {"event": "the next power calibration of the GREEN line"},
+            "conversion": {
+                "direction": "physical_to_control", "rule": "piecewise_linear_within_points",
+                "physical": {"quantity": "illumination_power", "unit": "W"}, "control": {"unit": "permille"},
+                "points": [{"physical": {"value": x, "unit": "W"}, "control": {"value": y, "unit": "permille"},
+                            "source": cal} for x, y in ((0.0005, 20), (0.002, 300), (0.005, 1000))]}}
+        t["light_engines"] = {"installed": [{
+            "id": "spectra_iii", "mm_label": {"label": "Spectra", "entry_ref": "label_spectra"},
+            "mm_bindings": [
+                {"quantity": "illumination_power", "property": "GREEN_Intensity", "unit": "permille",
+                 "line": "GREEN", "step": {"value": 1, "unit": "permille"},
+                 "entry_ref": "spectra_green_intensity_is_permille"},
+                {"quantity": "illumination_power", "property": "NIR_Intensity", "unit": "permille",
+                 "line": "NIR", "entry_ref": "spectra_nir_intensity_is_permille"}]}]}
+        if change is not None:
+            change(t, e)
+    return _binding_store(repo, add)
+
+
+def _green(t: dict) -> dict:
+    return t["light_engines"]["installed"][0]["mm_bindings"][0]
+
+
+def _conversion(e: dict) -> dict:
+    return e["spectra_green_power_calibration"]["conversion"]
+
+
+def fixture_98_lines_steps_and_a_conversion_copied(repo: Path) -> str:
+    return _line_store(repo)
+
+
+def fixture_98_a_conversion_alone_is_judged(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        for r in t["channels"] + t["light_engines"]["installed"]:
+            r.pop("mm_bindings", None)
+            r.pop("mm_states", None)
+    return _line_store(repo, change)
+
+
+def fixture_98_a_step_its_entry_does_not_hold(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _green(t).update(step={"value": 10, "unit": "permille"}))
+
+
+def fixture_98_a_step_nobody_read(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: t["light_engines"]["installed"][0]["mm_bindings"][1].update(
+        step={"value": 1, "unit": "permille"}))
+
+
+def fixture_98_a_step_read_and_not_copied(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _green(t).pop("step"))
+
+
+def fixture_98_a_step_in_another_unit(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _green(t)["step"]["unit"] = "percent"
+        e["spectra_green_intensity_is_permille"]["numbers"][0]["unit"] = "percent"
+    return _line_store(repo, change)
+
+
+def fixture_98_a_step_of_zero(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _green(t)["step"]["value"] = 0
+        e["spectra_green_intensity_is_permille"]["numbers"][0]["value"] = 0
+    return _line_store(repo, change)
+
+
+def fixture_98_a_line_its_entry_does_not_hold(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_intensity_is_permille"]["identifiers"].update(
+        line="RED"))
+
+
+def fixture_98_a_line_left_off_the_row(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: t["light_engines"]["installed"][0]["mm_bindings"][1].pop("line"))
+
+
+def fixture_98_one_line_bound_twice(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: t["light_engines"]["installed"][0]["mm_bindings"][1].update(
+        line="GREEN"))
+
+
+def fixture_98_a_quantity_bound_on_a_line_and_without(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        t["light_engines"]["installed"][0]["mm_bindings"][1].pop("line")
+        e["spectra_nir_intensity_is_permille"]["identifiers"].pop("line")
+    return _line_store(repo, change)
+
+
+def fixture_98_a_calibration_serving_a_binding_with_no_conversion(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"].pop("conversion"))
+
+
+def fixture_98_a_conversion_on_a_claim(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"].update(kind="claim"))
+
+
+def fixture_98_a_conversion_read_backwards(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _conversion(e).update(direction="control_to_physical"))
+
+
+def fixture_98_a_conversion_with_a_fit(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _conversion(e).update(fit={"slope": 2.0e5, "intercept": -80}))
+
+
+def fixture_98_a_conversion_of_another_quantity(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _conversion(e)["physical"]["quantity"] = "exposure_time"
+        e["spectra_green_power_calibration"]["validity"] = {"exposure_time": {"min": 0.0005, "max": 0.005,
+                                                                              "unit": "W"}}
+    return _line_store(repo, change)
+
+
+def fixture_98_a_conversion_in_milliwatts(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        c = _conversion(e)
+        c["physical"]["unit"] = "mW"
+        for p, x in zip(c["points"], (0.5, 2, 5)):
+            p["physical"] = {"value": x, "unit": "mW"}
+        e["spectra_green_power_calibration"]["validity"] = {"illumination_power": {"min": 0.5, "max": 5,
+                                                                                   "unit": "mW"}}
+    return _line_store(repo, change)
+
+
+def fixture_98_a_conversion_mixing_units(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _conversion(e)["points"][1].update(
+        control={"value": 30, "unit": "percent"}))
+
+
+def fixture_98_a_conversion_of_one_point(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        c = _conversion(e)
+        c["points"] = c["points"][:1]
+        e["spectra_green_power_calibration"]["validity"]["illumination_power"]["max"] = 0.0005
+    return _line_store(repo, change)
+
+
+def fixture_98_a_conversion_across_a_plateau(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        c = _conversion(e)
+        c["points"].insert(0, {"physical": {"value": 0.0005, "unit": "W"},
+                               "control": {"value": 5, "unit": "permille"}, "source": c["points"][0]["source"]})
+    return _line_store(repo, change)
+
+
+def fixture_98_a_conversion_that_turns_back(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _conversion(e)["points"][2]["control"].update(value=200))
+
+
+def fixture_98_a_conversion_wider_than_its_validity(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"]["validity"][
+        "illumination_power"].update(max=0.004))
+
+
+def fixture_98_a_conversion_with_an_open_validity(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"]["validity"][
+        "illumination_power"].pop("max"))
+
+
+def fixture_98_a_conversion_point_from_a_specification(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: _conversion(e)["points"][1].update(source="spec:Spectra-III"))
+
+
+def fixture_98_a_conversion_no_row_binds(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"]["identifiers"].update(
+        mm_property="TEAL_Intensity"))
+
+
+def fixture_98_a_conversion_into_another_unit(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        c = _conversion(e)
+        c["control"]["unit"] = "percent"
+        for p in c["points"]:
+            p["control"]["unit"] = "percent"
+    return _line_store(repo, change)
+
+
+def fixture_98_a_conversion_for_another_line(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_power_calibration"]["identifiers"].update(
+        line="TEAL"))
+
+
+def fixture_98_two_steps_for_one_property(repo: Path) -> str:
+    return _line_store(repo, lambda t, e: e["spectra_green_intensity_is_permille"]["numbers"].append(
+        {"name": "property_step", "value": 2, "unit": "permille", "source": "spec:Spectra-III", "grade": "E3"}))
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -2198,6 +2411,63 @@ FIXTURES = [
      fixture_98_a_binding_digest_that_is_not_hex),
     (98, "FAIL", "the digest is a copy of the entry's",
      fixture_98_a_binding_digest_its_entry_does_not_record),
+    # librarian card 063 (2026-10-27): a binding's line and step, and a calibration's conversion form.
+    (98, "PASS", "7 bindings and state words on 6 device rows are copies of their cited entries, and 1 conversion follows",
+     fixture_98_lines_steps_and_a_conversion_copied),
+    (98, "FAIL", "a conversion serves a binding",
+     fixture_98_a_conversion_alone_is_judged),
+    (98, "FAIL", "step 10 permille against its entry's property_step 1 permille",
+     fixture_98_a_step_its_entry_does_not_hold),
+    (98, "FAIL", "a step nobody read is left off, never filled in",
+     fixture_98_a_step_nobody_read),
+    (98, "FAIL", "and the row carries no step",
+     fixture_98_a_step_read_and_not_copied),
+    (98, "FAIL", "a step is in the unit the property is written in",
+     fixture_98_a_step_in_another_unit),
+    (98, "FAIL", "a step being a positive {value, unit}",
+     fixture_98_a_step_of_zero),
+    (98, "FAIL", "line 'RED' against 'GREEN'",
+     fixture_98_a_line_its_entry_does_not_hold),
+    (98, "FAIL", "line 'NIR' against None",
+     fixture_98_a_line_left_off_the_row),
+    (98, "FAIL", "quantity 'illumination_power' on line 'GREEN' appears in 2 mm_bindings items",
+     fixture_98_one_line_bound_twice),
+    (98, "FAIL", "is bound both on a line and without one",
+     fixture_98_a_quantity_bound_on_a_line_and_without),
+    (98, "FAIL", "and carries no conversion",
+     fixture_98_a_calibration_serving_a_binding_with_no_conversion),
+    (98, "FAIL", "only a calibration converts",
+     fixture_98_a_conversion_on_a_claim),
+    (98, "FAIL", "not {direction: physical_to_control",
+     fixture_98_a_conversion_read_backwards),
+    (98, "FAIL", "not {direction: physical_to_control",
+     fixture_98_a_conversion_with_a_fit),
+    (98, "FAIL", "the key is the conversion's quantity",
+     fixture_98_a_conversion_of_another_quantity),
+    (98, "FAIL", "the physical side is in canonical units",
+     fixture_98_a_conversion_in_milliwatts),
+    (98, "FAIL", "one form never mixes units",
+     fixture_98_a_conversion_mixing_units),
+    (98, "FAIL", "a rule between points needs two",
+     fixture_98_a_conversion_of_one_point),
+    (98, "FAIL", "a repeated value is a plateau",
+     fixture_98_a_conversion_across_a_plateau),
+    (98, "FAIL", "are not strictly monotone",
+     fixture_98_a_conversion_that_turns_back),
+    (98, "FAIL", "the two are one range, exactly",
+     fixture_98_a_conversion_wider_than_its_validity),
+    (98, "FAIL", "not a min and a max",
+     fixture_98_a_conversion_with_an_open_validity),
+    (98, "FAIL", "derives E3, not E1",
+     fixture_98_a_conversion_point_from_a_specification),
+    (98, "FAIL", "no device row binds that property",
+     fixture_98_a_conversion_no_row_binds),
+    (98, "FAIL", "control unit 'percent' against the binding's 'permille'",
+     fixture_98_a_conversion_into_another_unit),
+    (98, "FAIL", "line 'TEAL' against the binding's 'GREEN'",
+     fixture_98_a_conversion_for_another_line),
+    (98, "FAIL", "a property takes one step",
+     fixture_98_two_steps_for_one_property),
 ]
 
 
