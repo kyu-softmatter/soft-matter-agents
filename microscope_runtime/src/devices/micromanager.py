@@ -123,6 +123,10 @@ SOFTWARE_MAY_COMMAND: dict[str, frozenset[str] | None] = {
     "Core": frozenset({"AutoShutter", "Camera", "Shutter"}),
 }
 
+#: The label the core answers to for itself. It is on the list above for its three roles and has no
+#: identity of its own to read, so a run that reads each device's report leaves it out (card 092).
+CORE_LABEL = "Core"
+
 #: The Core role properties are allowed ONLY at these values. A property on
 #: the list is not enough: `AutoShutter` back at 1 makes every snap switch the
 #: shutter device on by itself, and `Shutter` pointed at `Aura` would make that

@@ -2484,6 +2484,157 @@ def run_check_now(list_path: Path, run_id: str, runs_root: Path | None = None,
         lock.release()
 
 
+# --------------------------------------------------------------------------- #
+# device reading (card 092): a preparatory run that reads what each device says of itself
+# --------------------------------------------------------------------------- #
+
+#: Devices read beside the ones software may command (card 092). Reading is not commanding and the
+#: record costs nothing: the two cameras are one model, so only a serial read under the loaded
+#: configuration tells card 084's two tapped streams apart. A name here puts nothing on the
+#: allow-list; the list the run reads from is `micromanager.SOFTWARE_MAY_COMMAND`, never a copy.
+DEVICE_READING_ALSO = ("Kinetix_blue",)
+
+DEVICE_READING_NO_PLAN = (
+    "device reading: the person asked for each device's report of itself under the configuration "
+    "they approved (card 092). It loads that file, reads, and writes nothing: no property, no "
+    "configuration group, no frame, no position. What it read is a record for the librarian to "
+    "enter; it measures nothing and judges nothing")
+DEVICE_READING_NOT_DISPATCHED = (
+    "This run did not come through the plan dispatcher and dispatched nothing. After the approved "
+    "configuration is loaded it asks the core, through the guarded handle, which devices are loaded "
+    "and what each says of itself, and records each answer with the call that gave it")
+
+
+def _posix_path(path) -> str:
+    """A path as the record names it: repository-relative when it lies inside, with forward slashes."""
+    resolved = Path(path).resolve()
+    try:
+        return resolved.relative_to(REPO).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
+def _read_once(call: str, read) -> dict:
+    """One read, made once: the value and the call that gave it, or the error and the call that failed."""
+    try:
+        return {"value": read(), "read_by": call}
+    except Exception as exc:                                    # noqa: BLE001 - said in the record, never retried
+        return {"unread": f"{type(exc).__name__}: {exc}", "read_by": call}
+
+
+def _device_report(core, label: str, loaded: tuple, config_sha256: str) -> dict:
+    """What one device says of itself, as the `device_report` event: every read-only property, once.
+
+    Only reads are asked of `core`. A writable property is named and not read, since its value is a
+    setting and not the device's identity. A read that fails is recorded as unread and not repeated.
+    """
+    event: dict = {"event": "device_report", "label": label, "configuration_sha256": config_sha256}
+    if label not in loaded:
+        event.update(loaded=False, why=f"{label!r} is not loaded under this configuration "
+                                       "(not in getLoadedDevices()), so nothing was asked of it")
+        return event
+    event["loaded"] = True
+    event["library"] = _read_once(f"getDeviceLibrary({label!r})", lambda: str(core.getDeviceLibrary(label)))
+    event["device_name"] = _read_once(f"getDeviceName({label!r})", lambda: str(core.getDeviceName(label)))
+    names = _read_once(f"getDevicePropertyNames({label!r})",
+                       lambda: [str(n) for n in core.getDevicePropertyNames(label)])
+    properties, writable = [], []
+    if "unread" in names:
+        event["properties_unread"] = names
+    else:
+        for prop in names["value"]:
+            read_only = _read_once(f"isPropertyReadOnly({label!r}, {prop!r})",
+                                   lambda: bool(core.isPropertyReadOnly(label, prop)))
+            if "unread" in read_only:
+                properties.append({"property": prop, **read_only})
+            elif read_only["value"]:
+                properties.append({"property": prop, **_read_once(
+                    f"getProperty({label!r}, {prop!r})", lambda: str(core.getProperty(label, prop)))})
+            else:
+                writable.append(prop)
+    event["properties"] = properties
+    event["writable_not_read"] = writable
+    return event
+
+
+def run_device_reading(run_id: str, runs_root: Path | None = None, backend: str = "hardware",
+                       lock=None, started=None, on_orchestrator=None, mm_config: Path | None = None,
+                       mm_approvals: Path | None = None, config_loader=None) -> dict:
+    """One device reading: the approved configuration loaded, then each device asked what it is (card 092).
+
+    A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and `approved_commands`
+    naming the approved original by path and sha256. Loading the configuration is its only effect
+    on the stand; after that it asks the guarded core handle for reads and nothing else. The devices
+    are `micromanager.SOFTWARE_MAY_COMMAND` except `Core`, read from the module this run holds, and
+    `DEVICE_READING_ALSO`. What was read is recorded and not judged: whether a serial is the store's
+    is for the librarian at entry.
+
+    Everything that can be refused is refused before the run lock: the mock backend (it loads no
+    configuration), a missing or unapproved configuration, no `runs_root` (the derived copy of the
+    file is evidence and has nowhere else to go), and a run id already used. This run does not write
+    the idle status file: its kind is not one the status schema names.
+    """
+    if backend == "mock":
+        raise Refusal("a device reading is refused with the mock backend, not ignored: the mock loads "
+                      "no Micro-Manager configuration, so there is no device to read")
+    if mm_config is None:
+        raise Refusal("a device reading is made under a configuration the person approved, and this "
+                      "names none: pass the file (--mm-config). Nothing is loaded or read")
+    if runs_root is None:
+        raise Refusal("a device reading needs --write: the derived copy of the configuration is evidence "
+                      "and no run record would keep it anywhere else. Nothing is loaded")
+    checked = _check_mm_config(mm_config, mm_approvals)
+    root = Path(runs_root)
+    folder = root / run_id
+    if folder.exists():
+        raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+    approvals_dir = AGENT / "approvals" if mm_approvals is None else Path(mm_approvals)
+    approval_file = _posix_path(approvals_dir / checked["approval"]["id"])
+    lock = lock or _take_run_lock({"kind": "device_reading", "run_id": run_id})
+    try:
+        o = orch.Orchestrator(backend=backend)
+        if on_orchestrator is not None:
+            on_orchestrator(o)
+        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None, tap_cameras=[])
+        if started is not None:
+            started.set()
+        how = "failed"
+        try:
+            _load_mm_config(o, checked, folder, config_loader)
+            mm = o._device_module("micromanager", needed_by="the device reading")
+            core = mm._core()
+            labels = [d for d in mm.SOFTWARE_MAY_COMMAND if d != mm.CORE_LABEL]
+            labels += [d for d in DEVICE_READING_ALSO if d not in labels]
+            o.record(event="device_reading_started",
+                     configuration={"path": _posix_path(checked["path"]), "sha256": checked["sha256"]},
+                     approval_file=approval_file, labels=labels)
+            loaded = tuple(str(d) for d in core.getLoadedDevices())
+            for label in labels:
+                if o._aborted.is_set():
+                    break
+                o.record(**_device_report(core, label, loaded, checked["sha256"]))
+            how = "stopped_from_outside" if getattr(o, "stopped_from_outside", False) else "completed"
+        except Exception as exc:                                # noqa: BLE001 - recorded, then the run ends
+            o.record(event="device_reading_failed", error=f"{type(exc).__name__}: {exc}")
+        finally:
+            o.end_run(how)
+        record = {
+            "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
+            "plan_id": None, "revision": None,
+            "no_plan_because": DEVICE_READING_NO_PLAN, "not_dispatched": DEVICE_READING_NOT_DISPATCHED,
+            "approved_commands": {"path": _posix_path(checked["path"]), "sha256": checked["sha256"],
+                                  "approved_by": f"the person, in {approval_file}"},
+            "approval": {"id": None, "kind": None}, "stop_criteria": [],
+            **o.log_header(), "events": o.log,
+            "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "ended": how,
+        }
+        write_run(record, runs_root=root)
+        return record
+    finally:
+        lock.release()
+
+
 def write_run(record: dict, deviations: list[dict] | None = None,
               runs_root: Path | None = None) -> Path:
     """runs/<run_id>/ is append-only; a second write makes a new run (P9).
