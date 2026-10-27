@@ -13,7 +13,7 @@
   "grade": "E1",
   "grade_tag": "measured_here",
   "source_ref": "src_run_20260924_008_confocal_readonly",
-  "validity_conditions": "Events 5 and 21 of the run: a property read returning State \"Open\", then the state-device query raising a wrong-type error. That the label read \"Open\" says what the adapter reported, not that light passed; whether the shutter was physically open is not recorded. The label for closed is unknown, which is why the abort may not close this shutter yet even though the person allowed it on 2026-10-04 (35c5d6d). Read back in a preparatory run with no plan, which wrote nothing to any device. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system, E1. Not a value of any registered observable. KNOWLEDGE, NOT POLICY: what the device reports, never a limit and never permission to command it. Checked by this seat against microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818.",
+  "validity_conditions": "Events 5 and 21 of the run: a property read returning State \"Open\", then the state-device query raising a wrong-type error. That the label read \"Open\" says what the adapter reported, not that light passed; whether the shutter was physically open is not recorded. The label for closed is unknown, which is why the abort may not close this shutter yet even though the person allowed it on 2026-10-04 (35c5d6d). Read back in a preparatory run with no plan, which wrote nothing to any device. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system, E1. Not a value of any registered observable. KNOWLEDGE, NOT POLICY: what the device reports, never a limit and never permission to command it. Checked by this seat against microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818. The identifier mm_config_sha256 was added on 2026-10-27 by librarian-20261007-1 for librarian card 061, from this same run's log, which card 080 moved to microscope_runtime/runs/run-20260924-008/log.json (read at fb5eff40; body sha256 with CRLF normalised to LF unchanged, f7a8f673...): event 2, load, dualcam_noDMD_nolaser_nostartup.cfg with sha256 and sha256_after_load both fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89, the run's one configuration load, before events 5 and 21. The digest is the run's record of which file was loaded, not a hash of any file on disk. The claim is unchanged.",
   "date": "2026-10-07",
   "valid_until": {
     "event": "A change of the CSUW1 Micro-Manager adapter or of the configuration that loads it; the entry describing the new behaviour supersedes this one."
@@ -24,6 +24,7 @@
   "identifiers": {
     "mm_device": "CSUW1-Shutter",
     "property": "State",
-    "reported_label": "Open"
+    "reported_label": "Open",
+    "mm_config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"
   }
 }

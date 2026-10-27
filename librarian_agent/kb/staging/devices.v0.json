@@ -34,6 +34,7 @@
     "installed": [
       {
         "model": "Spectra III 8-NII-XS",
+        "mm_label": {"label": "LightEngine", "entry_ref": "mm_label_lightengine_is_the_spectra_iii"},
         "channels": 8,
         "channels_from": "the vendor designation itself: 8-NII-XS. Read off the loaded device list, not counted from icons.",
         "firmware": "3.5.4",
@@ -41,6 +42,7 @@
       },
       {
         "model": "Aura III 5-NII-WA",
+        "mm_label": {"label": "Aura", "entry_ref": "mm_label_aura_is_the_aura_iii"},
         "channels": 5,
         "channels_from": "the vendor designation itself: 5-NII-WA"
       }
@@ -84,6 +86,7 @@
       "elements": [
         {
           "id": "nosepiece",
+          "mm_label": {"label": "Nosepiece", "entry_ref": "nosepiece_is_an_mmcore_state_device"},
           "positions": 6,
           "position_index_base": 0,
           "entry_ref": ["nosepiece_position_indexing", "nosepiece_objective_assignment"],
@@ -185,10 +188,12 @@
         },
         {
           "id": "pfs",
+          "mm_label": {"label": "PFS", "entry_ref": "pfs_reports_focus_maintenance_status_and_range_in_three_states"},
           "note": "focus stabilisation; disabled across turret and path changes (2.1 interlock 3)"
         },
         {
-          "id": "dia_lamp"
+          "id": "dia_lamp",
+          "mm_label": {"label": "DiaLamp", "entry_ref": "dia_lamp_reports_state_and_intensity", "config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"}
         },
         {
           "id": "lapp_branch",
@@ -197,6 +202,7 @@
         },
         {
           "id": "z_drive",
+          "mm_label": {"label": "ZDrive", "entry_ref": "mm_label_zdrive_is_the_focus_axis"},
           "read_back": true,
           "source": "prior_run:agentic-microscope@34a432c",
           "grade": "E3",
@@ -260,6 +266,7 @@
         },
         {
           "id": "csuw1_shutter",
+          "mm_label": {"label": "CSUW1-Shutter", "entry_ref": "csuw1_shutter_state_reads_a_label", "config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"},
           "source": "operator_read:kyuhwan_20260917",
           "grade": "E3",
           "entry_ref": "csuw1_shutter_gates_confocal_excitation",
@@ -305,6 +312,7 @@
     },
     {
       "id": "camera_red",
+      "mm_label": {"label": "Kinetix_red", "entry_ref": "kinetix_red_label_opens_serial_a24m723015", "config_sha256": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120"},
       "role": "detector on one arm of the spectral port. Named for the arm it sits on, not for a hardware difference.",
       "model": "Kinetix 22",
       "driver": "micromanager_pvcam",
