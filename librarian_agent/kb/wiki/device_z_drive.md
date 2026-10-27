@@ -11,6 +11,10 @@ From the device table, kb/staging/devices.v0.json, element of channel stand_ti2e
 ```json
 {
   "id": "z_drive",
+  "mm_label": {
+    "label": "ZDrive",
+    "entry_ref": "mm_label_zdrive_is_the_focus_axis"
+  },
   "read_back": true,
   "source": "prior_run:agentic-microscope@34a432c",
   "grade": "E3",
@@ -69,4 +73,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

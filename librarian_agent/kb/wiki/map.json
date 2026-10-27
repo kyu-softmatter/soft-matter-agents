@@ -1,0 +1,6423 @@
+{
+ "artifact": "kb_map",
+ "dangling": [],
+ "edges": [
+  {
+   "from": "entry:active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+   "stated_by": "active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+   "to": "page:quantity_reduced_active_force",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+   "stated_by": "active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+   "to": "page:quantity_reduced_number_density",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "stated_by": "active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "to": "page:quantity_active_energy",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "stated_by": "active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "to": "page:quantity_active_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "stated_by": "active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "stated_by": "active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "to": "page:quantity_peclet_number_steric",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "stated_by": "active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "to": "page:quantity_active_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "stated_by": "active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "stated_by": "active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "to": "page:quantity_peclet_number_steric",
+   "type": "about"
+  },
+  {
+   "from": "entry:air_refractive_index_590nm_288k",
+   "stated_by": "air_refractive_index_590nm_288k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:air_refractive_index_595nm_288k",
+   "stated_by": "air_refractive_index_595nm_288k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:air_refractive_index_605nm_288k",
+   "stated_by": "air_refractive_index_605nm_288k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:bangs_flash_red_emission_peak",
+   "stated_by": "bangs_flash_red_emission_peak",
+   "to": "page:quantity_emission_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:bangs_flash_red_excitation_peak",
+   "stated_by": "bangs_flash_red_excitation_peak",
+   "to": "page:quantity_excitation_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "stated_by": "binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "to": "page:quantity_like_to_unlike_attraction_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "stated_by": "binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "stated_by": "binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "to": "page:quantity_reduced_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "stated_by": "binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "to": "page:quantity_crystallite_particle_count",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "stated_by": "binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "to": "page:quantity_like_to_unlike_attraction_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "stated_by": "binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "to": "page:quantity_reduced_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "stated_by": "binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "to": "page:quantity_crystallite_particle_count",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "stated_by": "binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "to": "page:quantity_like_to_unlike_attraction_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "stated_by": "binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "to": "page:quantity_reduced_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_gcmc_hexagonal_crystals_need_like_well_above_1_2kt",
+   "stated_by": "binary_2d_gcmc_hexagonal_crystals_need_like_well_above_1_2kt",
+   "to": "page:quantity_pair_well_depth",
+   "type": "about"
+  },
+  {
+   "from": "entry:binary_2d_gcmc_two_step_crystallisation_square_then_hexagonal",
+   "stated_by": "binary_2d_gcmc_two_step_crystallisation_square_then_hexagonal",
+   "to": "page:quantity_pair_well_depth",
+   "type": "about"
+  },
+  {
+   "from": "entry:bottle_label_states_no_product",
+   "stated_by": "bottle_label_states_no_product",
+   "to": "page:sample_particle_suspension_a",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_bodies_are_told_apart_by_serial",
+   "stated_by": "camera_bodies_are_told_apart_by_serial",
+   "to": "page:device_camera_blue",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_bodies_are_told_apart_by_serial",
+   "stated_by": "camera_bodies_are_told_apart_by_serial",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_qe_at_600nm_from_the_kinetix_graph",
+   "stated_by": "camera_qe_at_600nm_from_the_kinetix_graph",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_qe_at_600nm_from_the_kinetix_graph",
+   "stated_by": "camera_qe_at_600nm_from_the_kinetix_graph",
+   "to": "page:quantity_quantum_efficiency",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_qe_peak",
+   "stated_by": "camera_qe_peak",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_qe_peak",
+   "stated_by": "camera_qe_peak",
+   "to": "page:quantity_quantum_efficiency",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_dynamicrange",
+   "stated_by": "camera_read_noise_dynamicrange",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_dynamicrange",
+   "stated_by": "camera_read_noise_dynamicrange",
+   "to": "page:quantity_read_noise",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_sensitivity",
+   "stated_by": "camera_read_noise_sensitivity",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_sensitivity",
+   "stated_by": "camera_read_noise_sensitivity",
+   "to": "page:quantity_read_noise",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_speed",
+   "stated_by": "camera_read_noise_speed",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_speed",
+   "stated_by": "camera_read_noise_speed",
+   "to": "page:quantity_read_noise",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_subelectron",
+   "stated_by": "camera_read_noise_subelectron",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_read_noise_subelectron",
+   "stated_by": "camera_read_noise_subelectron",
+   "to": "page:quantity_read_noise",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_red_mm_control_path",
+   "stated_by": "camera_red_mm_control_path",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_sensor_geometry",
+   "stated_by": "camera_sensor_geometry",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:camera_sensor_geometry",
+   "stated_by": "camera_sensor_geometry",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:cameras_both_kinetix22",
+   "stated_by": "cameras_both_kinetix22",
+   "to": "page:device_camera_blue",
+   "type": "about"
+  },
+  {
+   "from": "entry:cameras_both_kinetix22",
+   "stated_by": "cameras_both_kinetix22",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment",
+   "stated_by": "charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment",
+   "to": "page:quantity_hexatic_order_parameter",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "stated_by": "colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "stated_by": "colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "to": "page:quantity_peclet_number_shear",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "stated_by": "colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "to": "page:quantity_shear_strain",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "stated_by": "colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "stated_by": "colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "to": "page:quantity_pair_well_depth",
+   "type": "about"
+  },
+  {
+   "from": "entry:colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "stated_by": "colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "to": "page:quantity_peclet_number_shear",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_488_excites_the_red_arm",
+   "stated_by": "confocal_488_excites_the_red_arm",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_488_excites_the_red_arm",
+   "stated_by": "confocal_488_excites_the_red_arm",
+   "to": "page:device_confocal_csuw1",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_488_excites_the_red_arm",
+   "stated_by": "confocal_488_excites_the_red_arm",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_100x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_100x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_10x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_10x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_20x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_20x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_40x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_40x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_4x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_4x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_60x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_488nm_60x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_100x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_100x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_10x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_10x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_20x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_20x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_40x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_40x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_4x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_4x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_60x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_561nm_60x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_100x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_100x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_100x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_10x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_10x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_10x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_20x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_20x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_40x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_40x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_40x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_4x_full_level",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_4x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_4x_full_level",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_60x_full_level_rough",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_60x_full_level_rough",
+   "stated_by": "confocal_power_at_sample_640nm_60x_full_level_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:contact_friction_without_its_own_noise_breaks_equipartition",
+   "stated_by": "contact_friction_without_its_own_noise_breaks_equipartition",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:coverslip_thickness_in_use",
+   "stated_by": "coverslip_thickness_in_use",
+   "to": "page:quantity_coverslip_thickness",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_dichroic_slots",
+   "stated_by": "csuw1_dichroic_slots",
+   "to": "page:device_csuw1_dichroic",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_position_is_the_bright_selector",
+   "stated_by": "csuw1_disk_position_is_the_bright_selector",
+   "to": "page:device_csuw1_disk_position",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_position_states",
+   "stated_by": "csuw1_disk_position_states",
+   "to": "page:device_csuw1_disk_position",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_speed_exposure_constraint",
+   "stated_by": "csuw1_disk_speed_exposure_constraint",
+   "to": "page:device_csuw1_disk_speed",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_speed_is_not_exposed_here",
+   "stated_by": "csuw1_disk_speed_is_not_exposed_here",
+   "to": "page:device_confocal_csuw1",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_speed_is_not_exposed_here",
+   "stated_by": "csuw1_disk_speed_is_not_exposed_here",
+   "to": "page:device_csuw1_disk_speed",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_speed_is_not_exposed_in_micromanager",
+   "stated_by": "csuw1_disk_speed_is_not_exposed_in_micromanager",
+   "to": "page:device_confocal_csuw1",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_disk_speed_is_not_exposed_in_micromanager",
+   "stated_by": "csuw1_disk_speed_is_not_exposed_in_micromanager",
+   "to": "page:device_csuw1_disk_speed",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_port_driver_access",
+   "stated_by": "csuw1_port_driver_access",
+   "to": "page:device_csuw1_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_port_is_the_camera_splitter",
+   "stated_by": "csuw1_port_is_the_camera_splitter",
+   "to": "page:device_csuw1_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_port_slots",
+   "stated_by": "csuw1_port_slots",
+   "to": "page:device_camera_blue",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_port_slots",
+   "stated_by": "csuw1_port_slots",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_port_slots",
+   "stated_by": "csuw1_port_slots",
+   "to": "page:device_csuw1_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_shutter_gates_confocal_excitation",
+   "stated_by": "csuw1_shutter_gates_confocal_excitation",
+   "to": "page:device_csuw1_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:csuw1_shutter_state_reads_a_label",
+   "stated_by": "csuw1_shutter_state_reads_a_label",
+   "to": "page:device_csuw1_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:declared_versus_inferred_temperature",
+   "stated_by": "declared_versus_inferred_temperature",
+   "to": "page:observable_tracer_diffusivity",
+   "type": "about"
+  },
+  {
+   "from": "entry:declared_versus_inferred_temperature",
+   "stated_by": "declared_versus_inferred_temperature",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+   "stated_by": "depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+   "stated_by": "depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+   "to": "page:quantity_patch_protrusion_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:dia_lamp_reports_state_and_intensity",
+   "stated_by": "dia_lamp_reports_state_and_intensity",
+   "to": "page:device_dia_lamp",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density",
+   "stated_by": "dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density",
+   "to": "page:quantity_dipolar_coupling_strength",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density",
+   "stated_by": "dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "to": "page:quantity_dipolar_coupling_strength",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "to": "page:quantity_reduced_active_force",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "to": "page:quantity_dipolar_coupling_strength",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "stated_by": "dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "to": "page:quantity_reduced_active_force",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "stated_by": "dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "to": "page:quantity_dipolar_coupling_strength",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "stated_by": "dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "stated_by": "dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "to": "page:quantity_reduced_active_force",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "stated_by": "dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "to": "page:quantity_dipolar_coupling_strength",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "stated_by": "dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "stated_by": "dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "to": "page:quantity_reduced_active_force",
+   "type": "about"
+  },
+  {
+   "from": "entry:dna_colloids_2d_mixing_ratio_selects_checkerboard_stripe_honeycomb",
+   "stated_by": "dna_colloids_2d_mixing_ratio_selects_checkerboard_stripe_honeycomb",
+   "to": "page:quantity_dna_strand_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "stated_by": "dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "stated_by": "dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "stated_by": "dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "to": "page:quantity_patch_protrusion_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:driven_2d_dipolar_crystal_has_no_single_effective_temperature",
+   "stated_by": "driven_2d_dipolar_crystal_has_no_single_effective_temperature",
+   "to": "page:quantity_hexatic_order_parameter",
+   "type": "about"
+  },
+  {
+   "from": "entry:driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+   "stated_by": "driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+   "to": "page:quantity_hexatic_correlation_exponent",
+   "type": "about"
+  },
+  {
+   "from": "entry:driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+   "stated_by": "driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+   "to": "page:quantity_hexatic_order_parameter",
+   "type": "about"
+  },
+  {
+   "from": "entry:emission_wheel_camera_mapping",
+   "stated_by": "emission_wheel_camera_mapping",
+   "to": "page:device_camera_blue",
+   "type": "about"
+  },
+  {
+   "from": "entry:emission_wheel_camera_mapping",
+   "stated_by": "emission_wheel_camera_mapping",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:emission_wheel_camera_mapping",
+   "stated_by": "emission_wheel_camera_mapping",
+   "to": "page:device_filter_wheel_em1",
+   "type": "about"
+  },
+  {
+   "from": "entry:emission_wheel_camera_mapping",
+   "stated_by": "emission_wheel_camera_mapping",
+   "to": "page:device_filter_wheel_em2",
+   "type": "about"
+  },
+  {
+   "from": "entry:f8801_emission_peak",
+   "stated_by": "f8801_emission_peak",
+   "to": "page:quantity_emission_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:f8801_excitation_peak",
+   "stated_by": "f8801_excitation_peak",
+   "to": "page:quantity_excitation_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:f8801_storage_conditions",
+   "stated_by": "f8801_storage_conditions",
+   "to": "page:quantity_storage_temperature_max",
+   "type": "about"
+  },
+  {
+   "from": "entry:f8801_storage_conditions",
+   "stated_by": "f8801_storage_conditions",
+   "to": "page:quantity_storage_temperature_min",
+   "type": "about"
+  },
+  {
+   "from": "entry:filter_turret_1_state_0_blocked_the_confocal_path",
+   "stated_by": "filter_turret_1_state_0_blocked_the_confocal_path",
+   "to": "page:device_filter_turret_1",
+   "type": "about"
+  },
+  {
+   "from": "entry:filter_turret_1_state_0_blocked_the_confocal_path",
+   "stated_by": "filter_turret_1_state_0_blocked_the_confocal_path",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:filter_turret_shutters_close_at_state_0",
+   "stated_by": "filter_turret_shutters_close_at_state_0",
+   "to": "page:device_filter_turret_1",
+   "type": "about"
+  },
+  {
+   "from": "entry:filter_turret_shutters_close_at_state_0",
+   "stated_by": "filter_turret_shutters_close_at_state_0",
+   "to": "page:device_filter_turret_2",
+   "type": "about"
+  },
+  {
+   "from": "entry:frictional_contact_fluid_viscosity_drops_without_frictional_noise",
+   "stated_by": "frictional_contact_fluid_viscosity_drops_without_frictional_noise",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:immersion_oil_in_use_label_index_sodium_d_23c",
+   "stated_by": "immersion_oil_in_use_label_index_sodium_d_23c",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:intermediate_magnification_is_not_a_state_device",
+   "stated_by": "intermediate_magnification_is_not_a_state_device",
+   "to": "page:device_intermediate_magnification",
+   "type": "about"
+  },
+  {
+   "from": "entry:intermediate_magnification_is_not_a_state_device",
+   "stated_by": "intermediate_magnification_is_not_a_state_device",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix22_both_bodies_saturate_alike_per_the_person",
+   "stated_by": "kinetix22_both_bodies_saturate_alike_per_the_person",
+   "to": "page:device_camera_blue",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix22_both_bodies_saturate_alike_per_the_person",
+   "stated_by": "kinetix22_both_bodies_saturate_alike_per_the_person",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix22_both_bodies_saturate_alike_per_the_person",
+   "stated_by": "kinetix22_both_bodies_saturate_alike_per_the_person",
+   "to": "page:quantity_full_scale_count",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit",
+   "stated_by": "kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit",
+   "to": "page:quantity_full_scale_count",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix_red_adapter_properties_as_reported_20260924",
+   "stated_by": "kinetix_red_adapter_properties_as_reported_20260924",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix_red_exposure_and_binning_read_back_exactly",
+   "stated_by": "kinetix_red_exposure_and_binning_read_back_exactly",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix_red_label_opens_serial_a24m723015",
+   "stated_by": "kinetix_red_label_opens_serial_a24m723015",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix_red_paced_snaps_kept_one_per_second_20260924",
+   "stated_by": "kinetix_red_paced_snaps_kept_one_per_second_20260924",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:kinetix_red_sequences_delivered_every_frame_20260924",
+   "stated_by": "kinetix_red_sequences_delivered_every_frame_20260924",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:lab_ambient_temperature",
+   "stated_by": "lab_ambient_temperature",
+   "to": "page:quantity_ambient_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:lab_ambient_temperature",
+   "stated_by": "lab_ambient_temperature",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:lapp_state_1_brings_the_aura_to_the_sample",
+   "stated_by": "lapp_state_1_brings_the_aura_to_the_sample",
+   "to": "page:device_lapp_branch",
+   "type": "about"
+  },
+  {
+   "from": "entry:lapp_state_1_brings_the_aura_to_the_sample",
+   "stated_by": "lapp_state_1_brings_the_aura_to_the_sample",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:laser_shutter_on_the_combiner",
+   "stated_by": "laser_shutter_on_the_combiner",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:laser_shutter_on_the_combiner",
+   "stated_by": "laser_shutter_on_the_combiner",
+   "to": "page:device_laser_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+   "stated_by": "lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+   "stated_by": "lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+   "to": "page:quantity_patch_protrusion_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "stated_by": "lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "to": "page:quantity_depletant_to_colloid_radius_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "stated_by": "lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "to": "page:quantity_depletant_volume_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "stated_by": "lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "stated_by": "lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "to": "page:quantity_patch_protrusion_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03",
+   "stated_by": "lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03",
+   "to": "page:quantity_depletant_volume_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_analog_outputs_are_not_cabled_to_the_combiner",
+   "stated_by": "lunf_analog_outputs_are_not_cabled_to_the_combiner",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_analog_outputs_are_not_cabled_to_the_combiner",
+   "stated_by": "lunf_analog_outputs_are_not_cabled_to_the_combiner",
+   "to": "page:device_line_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_blanking_lines_reservable_right_after_nis_kill",
+   "stated_by": "lunf_blanking_lines_reservable_right_after_nis_kill",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_blanking_lines_reservable_right_after_nis_kill",
+   "stated_by": "lunf_blanking_lines_reservable_right_after_nis_kill",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_blanking_port_is_held_by_one_program",
+   "stated_by": "lunf_blanking_port_is_held_by_one_program",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_blanking_port_is_held_by_one_program",
+   "stated_by": "lunf_blanking_port_is_held_by_one_program",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_fiber_shutter_survives_a_controller_kill",
+   "stated_by": "lunf_fiber_shutter_survives_a_controller_kill",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_fiber_shutter_survives_a_controller_kill",
+   "stated_by": "lunf_fiber_shutter_survives_a_controller_kill",
+   "to": "page:device_laser_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_killed_writer_may_leave_a_line_open",
+   "stated_by": "lunf_killed_writer_may_leave_a_line_open",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_killed_writer_may_leave_a_line_open",
+   "stated_by": "lunf_killed_writer_may_leave_a_line_open",
+   "to": "page:device_laser_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_killed_writer_may_leave_a_line_open",
+   "stated_by": "lunf_killed_writer_may_leave_a_line_open",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_line_map_and_blanking_polarity",
+   "stated_by": "lunf_line_map_and_blanking_polarity",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_line_map_and_blanking_polarity",
+   "stated_by": "lunf_line_map_and_blanking_polarity",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_per_line_power_is_not_transmittable",
+   "stated_by": "lunf_per_line_power_is_not_transmittable",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_per_line_power_is_not_transmittable",
+   "stated_by": "lunf_per_line_power_is_not_transmittable",
+   "to": "page:device_line_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_reports_nothing_back",
+   "stated_by": "lunf_reports_nothing_back",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_reports_nothing_back",
+   "stated_by": "lunf_reports_nothing_back",
+   "to": "page:device_laser_shutter",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_reports_nothing_back",
+   "stated_by": "lunf_reports_nothing_back",
+   "to": "page:device_line_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:lunf_reports_nothing_back",
+   "stated_by": "lunf_reports_nothing_back",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:mm_config_load_did_not_return_after_nis_force_kill",
+   "stated_by": "mm_config_load_did_not_return_after_nis_force_kill",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:mm_label_zdrive_is_the_focus_axis",
+   "stated_by": "mm_label_zdrive_is_the_focus_axis",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanobench_controller_gives_limited_protection",
+   "stated_by": "nanobench_controller_gives_limited_protection",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanobench_controller_shuts_down_when_hot",
+   "stated_by": "nanobench_controller_shuts_down_when_hot",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanobench_higher_security_levels_expose_damaging_settings",
+   "stated_by": "nanobench_higher_security_levels_expose_damaging_settings",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanobench_stage_presets_can_be_overwritten_or_lost",
+   "stated_by": "nanobench_stage_presets_can_be_overwritten_or_lost",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanobench_wrong_loop_settings_damage_the_stage",
+   "stated_by": "nanobench_wrong_loop_settings_damage_the_stage",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nanoflash_interrupted_reprogramming_is_recoverable",
+   "stated_by": "nanoflash_interrupted_reprogramming_is_recoverable",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:nikon_type_f_oil_refractive_index_nd_23c",
+   "stated_by": "nikon_type_f_oil_refractive_index_nd_23c",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:nikon_type_f_oil_refractive_index_ne_23c",
+   "stated_by": "nikon_type_f_oil_refractive_index_ne_23c",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:no_thermometer_at_the_sample",
+   "stated_by": "no_thermometer_at_the_sample",
+   "to": "page:quantity_ambient_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:no_thermometer_at_the_sample",
+   "stated_by": "no_thermometer_at_the_sample",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:nosepiece_is_an_mmcore_state_device",
+   "stated_by": "nosepiece_is_an_mmcore_state_device",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:nosepiece_objective_assignment",
+   "stated_by": "nosepiece_objective_assignment",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:nosepiece_position_indexing",
+   "stated_by": "nosepiece_position_indexing",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:nosepiece_write_runs_no_escape",
+   "stated_by": "nosepiece_write_runs_no_escape",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:nosepiece_write_runs_no_escape",
+   "stated_by": "nosepiece_write_runs_no_escape",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_analogue_and_digital_commands_are_summed",
+   "stated_by": "npcd_analogue_and_digital_commands_are_summed",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_connectors_are_static_sensitive",
+   "stated_by": "npcd_connectors_are_static_sensitive",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_controller_covers_must_stay_on",
+   "stated_by": "npcd_controller_covers_must_stay_on",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_controller_generates_hazardous_voltages",
+   "stated_by": "npcd_controller_generates_hazardous_voltages",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_emulator_returns_zero_for_every_command",
+   "stated_by": "npcd_emulator_returns_zero_for_every_command",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_network_must_stay_off_wider_networks",
+   "stated_by": "npcd_network_must_stay_off_wider_networks",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_operating_environment",
+   "stated_by": "npcd_operating_environment",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:npcd_switch_off_and_unplug_when_not_in_use",
+   "stated_by": "npcd_switch_off_and_unplug_when_not_in_use",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_40x_collar_setting",
+   "stated_by": "objective_40x_collar_setting",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_40x_collar_setting",
+   "stated_by": "objective_40x_collar_setting",
+   "to": "page:quantity_coverslip_thickness",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_change_invalidates_trap_calibration",
+   "stated_by": "objective_change_invalidates_trap_calibration",
+   "to": "page:configuration_trapping",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_change_invalidates_trap_calibration",
+   "stated_by": "objective_change_invalidates_trap_calibration",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_change_invalidates_trap_calibration",
+   "stated_by": "objective_change_invalidates_trap_calibration",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_change_selects_a_pixel_size_row",
+   "stated_by": "objective_change_selects_a_pixel_size_row",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_change_selects_a_pixel_size_row",
+   "stated_by": "objective_change_selects_a_pixel_size_row",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_depth_of_field",
+   "stated_by": "objective_depth_of_field",
+   "to": "page:quantity_depth_of_field",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70040",
+   "stated_by": "objective_mrd70040",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70040",
+   "stated_by": "objective_mrd70040",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70040_selector_properties",
+   "stated_by": "objective_mrd70040_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70170",
+   "stated_by": "objective_mrd70170",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70170",
+   "stated_by": "objective_mrd70170",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70170_selector_properties",
+   "stated_by": "objective_mrd70170_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70270",
+   "stated_by": "objective_mrd70270",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70270",
+   "stated_by": "objective_mrd70270",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd70270_selector_properties",
+   "stated_by": "objective_mrd70270_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71670",
+   "stated_by": "objective_mrd71670",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71670",
+   "stated_by": "objective_mrd71670",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71670_selector_properties",
+   "stated_by": "objective_mrd71670_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71970",
+   "stated_by": "objective_mrd71970",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71970",
+   "stated_by": "objective_mrd71970",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd71970_selector_properties",
+   "stated_by": "objective_mrd71970_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd77400",
+   "stated_by": "objective_mrd77400",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd77400",
+   "stated_by": "objective_mrd77400",
+   "to": "page:quantity_na",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_mrd77400_selector_properties",
+   "stated_by": "objective_mrd77400_selector_properties",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "objective_transmittance_is_between_half_and_all",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:optical_tweezers_work_with_40x_60x_100x_person_statement",
+   "stated_by": "optical_tweezers_work_with_40x_60x_100x_person_statement",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+   "stated_by": "pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+   "to": "page:quantity_depletant_to_colloid_radius_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+   "stated_by": "pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:particle_suspension_a_identity",
+   "stated_by": "particle_suspension_a_identity",
+   "to": "page:sample_particle_suspension_a",
+   "type": "about"
+  },
+  {
+   "from": "entry:particle_suspension_b_identity",
+   "stated_by": "particle_suspension_b_identity",
+   "to": "page:sample_particle_suspension_b",
+   "type": "about"
+  },
+  {
+   "from": "entry:particles_show_on_the_green_605_path",
+   "stated_by": "particles_show_on_the_green_605_path",
+   "to": "page:sample_particle_suspension_a",
+   "type": "about"
+  },
+  {
+   "from": "entry:pfs_reports_focus_maintenance_status_and_range_in_three_states",
+   "stated_by": "pfs_reports_focus_maintenance_status_and_range_in_three_states",
+   "to": "page:device_pfs",
+   "type": "about"
+  },
+  {
+   "from": "entry:pfs_status_differs_in_range_and_out_of_range_per_the_person",
+   "stated_by": "pfs_status_differs_in_range_and_out_of_range_per_the_person",
+   "to": "page:device_pfs",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_calibrated_range",
+   "stated_by": "piezo_calibrated_range",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_command_path_as_found_20260924",
+   "stated_by": "piezo_command_path_as_found_20260924",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_controller_axis_labels",
+   "stated_by": "piezo_controller_axis_labels",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_controller_identity",
+   "stated_by": "piezo_controller_identity",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_controller_software_version",
+   "stated_by": "piezo_controller_software_version",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_device_range_as_stated_by_the_person",
+   "stated_by": "piezo_device_range_as_stated_by_the_person",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_interface_library_version_on_this_computer",
+   "stated_by": "piezo_interface_library_version_on_this_computer",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_rest_position_as_found_20260924",
+   "stated_by": "piezo_rest_position_as_found_20260924",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_security_level_as_found_20260924",
+   "stated_by": "piezo_security_level_as_found_20260924",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_stage_identity",
+   "stated_by": "piezo_stage_identity",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:piezo_waveform_generator_does_not_read_picometres",
+   "stated_by": "piezo_waveform_generator_does_not_read_picometres",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1_5x",
+   "stated_by": "pixel_size_100x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1_5x",
+   "stated_by": "pixel_size_100x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_100x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_100x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1x",
+   "stated_by": "pixel_size_100x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1x",
+   "stated_by": "pixel_size_100x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1x_computed",
+   "stated_by": "pixel_size_100x_zoom_1x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1x_computed",
+   "stated_by": "pixel_size_100x_zoom_1x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1_5x",
+   "stated_by": "pixel_size_10x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1_5x",
+   "stated_by": "pixel_size_10x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_10x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_10x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1x",
+   "stated_by": "pixel_size_10x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1x",
+   "stated_by": "pixel_size_10x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1x_computed",
+   "stated_by": "pixel_size_10x_zoom_1x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1x_computed",
+   "stated_by": "pixel_size_10x_zoom_1x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1_5x",
+   "stated_by": "pixel_size_20x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1_5x",
+   "stated_by": "pixel_size_20x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_20x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_20x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1x",
+   "stated_by": "pixel_size_20x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1x",
+   "stated_by": "pixel_size_20x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1_5x",
+   "stated_by": "pixel_size_40x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1_5x",
+   "stated_by": "pixel_size_40x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_40x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_40x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1x",
+   "stated_by": "pixel_size_40x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1x",
+   "stated_by": "pixel_size_40x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1x_computed",
+   "stated_by": "pixel_size_40x_zoom_1x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1x_computed",
+   "stated_by": "pixel_size_40x_zoom_1x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1_5x",
+   "stated_by": "pixel_size_4x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1_5x",
+   "stated_by": "pixel_size_4x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_4x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_4x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1x",
+   "stated_by": "pixel_size_4x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1x",
+   "stated_by": "pixel_size_4x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1x_computed",
+   "stated_by": "pixel_size_4x_zoom_1x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1x_computed",
+   "stated_by": "pixel_size_4x_zoom_1x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1_5x",
+   "stated_by": "pixel_size_60x_zoom_1_5x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1_5x",
+   "stated_by": "pixel_size_60x_zoom_1_5x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_60x_zoom_1_5x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1_5x_computed",
+   "stated_by": "pixel_size_60x_zoom_1_5x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1x",
+   "stated_by": "pixel_size_60x_zoom_1x",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1x",
+   "stated_by": "pixel_size_60x_zoom_1x",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1x_computed",
+   "stated_by": "pixel_size_60x_zoom_1x_computed",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1x_computed",
+   "stated_by": "pixel_size_60x_zoom_1x_computed",
+   "to": "page:quantity_pixel_size",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_1052nm",
+   "stated_by": "polystyrene_refractive_index_1052nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_436_8nm",
+   "stated_by": "polystyrene_refractive_index_436_8nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_486_1nm",
+   "stated_by": "polystyrene_refractive_index_486_1nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_587_6nm",
+   "stated_by": "polystyrene_refractive_index_587_6nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_632_8nm",
+   "stated_by": "polystyrene_refractive_index_632_8nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_703nm",
+   "stated_by": "polystyrene_refractive_index_703nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_833nm",
+   "stated_by": "polystyrene_refractive_index_833nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:polystyrene_refractive_index_879nm",
+   "stated_by": "polystyrene_refractive_index_879nm",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:prior_mm_config_declares_lunf_blanking",
+   "stated_by": "prior_mm_config_declares_lunf_blanking",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:prior_mm_config_declares_lunf_blanking",
+   "stated_by": "prior_mm_config_declares_lunf_blanking",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:repulsive_disks_in_active_noise_cluster_only_if_the_noise_is_compressible",
+   "stated_by": "repulsive_disks_in_active_noise_cluster_only_if_the_noise_is_compressible",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:repulsive_disks_in_active_noise_span_the_box_only_at_packing_0_4",
+   "stated_by": "repulsive_disks_in_active_noise_span_the_box_only_at_packing_0_4",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:repulsive_disks_in_active_noise_structure_set_by_lambda_and_va_tau",
+   "stated_by": "repulsive_disks_in_active_noise_structure_set_by_lambda_and_va_tau",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_temperature_hold_band",
+   "stated_by": "room_temperature_hold_band",
+   "to": "page:quantity_ambient_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_temperature_hold_band",
+   "stated_by": "room_temperature_hold_band",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_temperature_is_controlled",
+   "stated_by": "room_temperature_is_controlled",
+   "to": "page:quantity_ambient_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_temperature_is_controlled",
+   "stated_by": "room_temperature_is_controlled",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_thermometer_reads_in_one_kelvin_steps",
+   "stated_by": "room_thermometer_reads_in_one_kelvin_steps",
+   "to": "page:quantity_ambient_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:room_thermometer_reads_in_one_kelvin_steps",
+   "stated_by": "room_thermometer_reads_in_one_kelvin_steps",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:sample_temperature_not_actuated",
+   "stated_by": "sample_temperature_not_actuated",
+   "to": "page:device_temperature_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:shear_stress_fluctuation_shape_marks_the_glass_fluid_transition",
+   "stated_by": "shear_stress_fluctuation_shape_marks_the_glass_fluid_transition",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:single_cam_red_config_can_switch_confocal_lines",
+   "stated_by": "single_cam_red_config_can_switch_confocal_lines",
+   "to": "page:device_laser_combiner",
+   "type": "about"
+  },
+  {
+   "from": "entry:single_cam_red_config_can_switch_confocal_lines",
+   "stated_by": "single_cam_red_config_can_switch_confocal_lines",
+   "to": "page:device_line_select",
+   "type": "about"
+  },
+  {
+   "from": "entry:single_cam_red_config_startup_puts_the_lapp_mirror_in",
+   "stated_by": "single_cam_red_config_startup_puts_the_lapp_mirror_in",
+   "to": "page:device_lapp_branch",
+   "type": "about"
+  },
+  {
+   "from": "entry:single_cam_red_config_startup_puts_the_lapp_mirror_in",
+   "stated_by": "single_cam_red_config_startup_puts_the_lapp_mirror_in",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_filter_turret_1",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_filter_turret_2",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_lapp_branch",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_light_path_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_state_read_20260924_20x_in_place",
+   "stated_by": "stand_state_read_20260924_20x_in_place",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_ti2e_lock_groups",
+   "stated_by": "stand_ti2e_lock_groups",
+   "to": "page:device_motor_stage",
+   "type": "about"
+  },
+  {
+   "from": "entry:stand_ti2e_lock_groups",
+   "stated_by": "stand_ti2e_lock_groups",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:stopped_disk_frame_looks_bright",
+   "stated_by": "stopped_disk_frame_looks_bright",
+   "to": "page:device_confocal_csuw1",
+   "type": "about"
+  },
+  {
+   "from": "entry:stopped_disk_frame_looks_bright",
+   "stated_by": "stopped_disk_frame_looks_bright",
+   "to": "page:device_csuw1_disk_speed",
+   "type": "about"
+  },
+  {
+   "from": "entry:tau_d",
+   "stated_by": "tau_d",
+   "to": "page:quantity_tau_d",
+   "type": "about"
+  },
+  {
+   "from": "entry:tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "stated_by": "tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "to": "page:quantity_lobe_compression_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "stated_by": "tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "to": "page:quantity_packing_fraction",
+   "type": "about"
+  },
+  {
+   "from": "entry:tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "stated_by": "tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "to": "page:quantity_patch_protrusion_ratio",
+   "type": "about"
+  },
+  {
+   "from": "entry:tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "stated_by": "tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "to": "page:quantity_reduced_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2_control_usb_must_not_be_unplugged",
+   "stated_by": "ti2_control_usb_must_not_be_unplugged",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "stated_by": "ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "to": "page:device_filter_turret_1",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "stated_by": "ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "to": "page:device_filter_turret_2",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "stated_by": "ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_objective_escape_is_set_per_nosepiece_address",
+   "stated_by": "ti2e_objective_escape_is_set_per_nosepiece_address",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_objective_escape_is_set_per_nosepiece_address",
+   "stated_by": "ti2e_objective_escape_is_set_per_nosepiece_address",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_objective_escape_is_set_per_nosepiece_address",
+   "stated_by": "ti2e_objective_escape_is_set_per_nosepiece_address",
+   "to": "page:device_z_drive",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_optical_path_addresses",
+   "stated_by": "ti2e_optical_path_addresses",
+   "to": "page:device_light_path_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:ti2e_optical_path_addresses",
+   "stated_by": "ti2e_optical_path_addresses",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:tracer_diameter_measured",
+   "stated_by": "tracer_diameter_measured",
+   "to": "page:sample_particle_suspension_a",
+   "type": "about"
+  },
+  {
+   "from": "entry:tracer_emission_peak",
+   "stated_by": "tracer_emission_peak",
+   "to": "page:quantity_emission_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:tracer_excitation_peak",
+   "stated_by": "tracer_excitation_peak",
+   "to": "page:quantity_excitation_peak_wavelength",
+   "type": "about"
+  },
+  {
+   "from": "entry:tracer_storage_conditions",
+   "stated_by": "tracer_storage_conditions",
+   "to": "page:quantity_storage_temperature_max",
+   "type": "about"
+  },
+  {
+   "from": "entry:tracer_storage_conditions",
+   "stated_by": "tracer_storage_conditions",
+   "to": "page:quantity_storage_temperature_min",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_heating_detection_bound",
+   "stated_by": "trap_heating_detection_bound",
+   "to": "page:configuration_trapping",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_heating_detection_bound",
+   "stated_by": "trap_heating_detection_bound",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_heating_detection_bound",
+   "stated_by": "trap_heating_detection_bound",
+   "to": "page:quantity_temperature",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_emission_is_switchable_over_tcp",
+   "stated_by": "trap_laser_emission_is_switchable_over_tcp",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_emission_is_switchable_over_tcp",
+   "stated_by": "trap_laser_emission_is_switchable_over_tcp",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_10x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_10x_80pct",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_10x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_10x_80pct",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_20x_80pct",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_20x_80pct",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_level_sweep",
+   "stated_by": "trap_laser_power_at_sample_1064nm_20x_level_sweep",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_level_sweep",
+   "stated_by": "trap_laser_power_at_sample_1064nm_20x_level_sweep",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_4x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_4x_80pct",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_4x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_4x_80pct",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "stated_by": "trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_has_no_software_path",
+   "stated_by": "trap_laser_power_has_no_software_path",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:trap_laser_power_has_no_software_path",
+   "stated_by": "trap_laser_power_has_no_software_path",
+   "to": "page:quantity_illumination_power",
+   "type": "about"
+  },
+  {
+   "from": "entry:trapping_laser_identity",
+   "stated_by": "trapping_laser_identity",
+   "to": "page:configuration_trapping",
+   "type": "about"
+  },
+  {
+   "from": "entry:trapping_laser_identity",
+   "stated_by": "trapping_laser_identity",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_back_to_back_sends_come_back_busy",
+   "stated_by": "tweez300_back_to_back_sends_come_back_busy",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_camera_is_released_so_it_shows_no_image",
+   "stated_by": "tweez300_camera_is_released_so_it_shows_no_image",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_camera_is_released_so_it_shows_no_image",
+   "stated_by": "tweez300_camera_is_released_so_it_shows_no_image",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_does_not_restore_last_project",
+   "stated_by": "tweez300_does_not_restore_last_project",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_host_streamed_positions_move_smoothly",
+   "stated_by": "tweez300_host_streamed_positions_move_smoothly",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_load_pattern_name_first",
+   "stated_by": "tweez300_load_pattern_name_first",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_new_trap_starts_at_strength_zero",
+   "stated_by": "tweez300_new_trap_starts_at_strength_zero",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_pattern_runs_on_assignment",
+   "stated_by": "tweez300_pattern_runs_on_assignment",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_position_origin_is_image_centre",
+   "stated_by": "tweez300_position_origin_is_image_centre",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_positive_x_is_right_on_screen",
+   "stated_by": "tweez300_positive_x_is_right_on_screen",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_readiness_probe_answers_minus_22",
+   "stated_by": "tweez300_readiness_probe_answers_minus_22",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_reports_nothing_back",
+   "stated_by": "tweez300_reports_nothing_back",
+   "to": "page:configuration_trapping",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_reports_nothing_back",
+   "stated_by": "tweez300_reports_nothing_back",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_software_opens_the_red_arm_camera",
+   "stated_by": "tweez300_software_opens_the_red_arm_camera",
+   "to": "page:device_camera_red",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_software_opens_the_red_arm_camera",
+   "stated_by": "tweez300_software_opens_the_red_arm_camera",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_trap_on_shows_active",
+   "stated_by": "tweez300_trap_on_shows_active",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez300_trap_strength_takes_the_last_value",
+   "stated_by": "tweez300_trap_strength_takes_the_last_value",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_back_panel_inputs_have_absolute_maxima",
+   "stated_by": "tweez_back_panel_inputs_have_absolute_maxima",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_calibration_photodiode_needs_the_laser_off",
+   "stated_by": "tweez_calibration_photodiode_needs_the_laser_off",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_calibration_photodiode_needs_the_laser_off",
+   "stated_by": "tweez_calibration_photodiode_needs_the_laser_off",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_calibration_photodiode_needs_the_laser_off",
+   "stated_by": "tweez_calibration_photodiode_needs_the_laser_off",
+   "to": "page:device_z_drive",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_contains_nickel",
+   "stated_by": "tweez_contains_nickel",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_fibre_is_enclosed_end_to_end",
+   "stated_by": "tweez_fibre_is_enclosed_end_to_end",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_filter_cube_shutter_and_blocking_filter",
+   "stated_by": "tweez_filter_cube_shutter_and_blocking_filter",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_filter_cube_shutter_and_blocking_filter",
+   "stated_by": "tweez_filter_cube_shutter_and_blocking_filter",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_has_no_user_serviceable_parts",
+   "stated_by": "tweez_has_no_user_serviceable_parts",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_install_guide_releases_the_safety_switch_counterclockwise",
+   "stated_by": "tweez_install_guide_releases_the_safety_switch_counterclockwise",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_installation_needs_qualified_personnel",
+   "stated_by": "tweez_installation_needs_qualified_personnel",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_interlocks_are_in_hardware",
+   "stated_by": "tweez_interlocks_are_in_hardware",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_internal_shutter_closes_by_spring",
+   "stated_by": "tweez_internal_shutter_closes_by_spring",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_is_a_class_4_laser_device",
+   "stated_by": "tweez_is_a_class_4_laser_device",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_key_switch_cuts_all_power",
+   "stated_by": "tweez_key_switch_cuts_all_power",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_exits_only_at_one_aperture",
+   "stated_by": "tweez_laser_exits_only_at_one_aperture",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_power_is_set_as_a_fraction_of_maximum",
+   "stated_by": "tweez_laser_power_is_set_as_a_fraction_of_maximum",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_safety_glasses_must_be_worn",
+   "stated_by": "tweez_laser_safety_glasses_must_be_worn",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_safety_switch_stops_emission",
+   "stated_by": "tweez_laser_safety_switch_stops_emission",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_safety_training_is_part_of_safety",
+   "stated_by": "tweez_laser_safety_training_is_part_of_safety",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_laser_source_is_a_1064nm_fiber_laser",
+   "stated_by": "tweez_laser_source_is_a_1064nm_fiber_laser",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "stated_by": "tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "to": "page:device_light_path_port",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "stated_by": "tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "stated_by": "tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_must_be_grounded_through_its_power_cord",
+   "stated_by": "tweez_must_be_grounded_through_its_power_cord",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_operating_environment",
+   "stated_by": "tweez_operating_environment",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_optical_unit_cover_must_stay_on",
+   "stated_by": "tweez_optical_unit_cover_must_stay_on",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_proprietary_connectors_take_only_aresis_equipment",
+   "stated_by": "tweez_proprietary_connectors_take_only_aresis_equipment",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_sample_safety_shield_goes_on_before_the_laser",
+   "stated_by": "tweez_sample_safety_shield_goes_on_before_the_laser",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_software_shows_laser_power_and_interlocks",
+   "stated_by": "tweez_software_shows_laser_power_and_interlocks",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_standby_then_hibernation",
+   "stated_by": "tweez_standby_then_hibernation",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_status_lights_steady_ready_flashing_emitting",
+   "stated_by": "tweez_status_lights_steady_ready_flashing_emitting",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_three_independent_ways_to_stop_emission",
+   "stated_by": "tweez_three_independent_ways_to_stop_emission",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_use_only_the_original_power_supply",
+   "stated_by": "tweez_use_only_the_original_power_supply",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_ventilation_must_not_be_blocked",
+   "stated_by": "tweez_ventilation_must_not_be_blocked",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:tweez_warning_sign_carries_a_remote_interlock",
+   "stated_by": "tweez_warning_sign_carries_a_remote_interlock",
+   "to": "page:device_optical_tweezers",
+   "type": "about"
+  },
+  {
+   "from": "entry:water_refractive_index_589_26nm_293k",
+   "stated_by": "water_refractive_index_589_26nm_293k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:water_refractive_index_595nm_293k",
+   "stated_by": "water_refractive_index_595nm_293k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:water_refractive_index_605nm_293k",
+   "stated_by": "water_refractive_index_605nm_293k",
+   "to": "page:quantity_refractive_index",
+   "type": "about"
+  },
+  {
+   "from": "entry:water_viscosity_293k",
+   "stated_by": "water_viscosity_293k",
+   "to": "page:quantity_viscosity",
+   "type": "about"
+  },
+  {
+   "from": "entry:working_distance_is_measured_to_the_coverslip",
+   "stated_by": "working_distance_is_measured_to_the_coverslip",
+   "to": "page:device_nosepiece",
+   "type": "about"
+  },
+  {
+   "from": "entry:z_retract_direction_is_measured",
+   "stated_by": "z_retract_direction_is_measured",
+   "to": "page:device_stand_ti2e",
+   "type": "about"
+  },
+  {
+   "from": "entry:immersion_oil_in_use_label_index_sodium_d_23c",
+   "stated_by": "immersion_oil_in_use_label_index_sodium_d_23c",
+   "to": "entry:nikon_type_f_oil_refractive_index_nd_23c",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:immersion_oil_in_use_label_index_sodium_d_23c",
+   "stated_by": "immersion_oil_in_use_label_index_sodium_d_23c",
+   "to": "entry:nikon_type_f_oil_refractive_index_ne_23c",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:kinetix_red_adapter_properties_as_reported_20260924",
+   "stated_by": "kinetix_red_adapter_properties_as_reported_20260924",
+   "to": "entry:pixeltype_misreports_bit_depth",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:nikon_type_f_oil_refractive_index_nd_23c",
+   "stated_by": "nikon_type_f_oil_refractive_index_nd_23c",
+   "to": "entry:nikon_type_f_oil_refractive_index_ne_23c",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:piezo_calibrated_range",
+   "stated_by": "piezo_calibrated_range",
+   "to": "entry:piezo_device_range_as_stated_by_the_person",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1_5x",
+   "stated_by": "pixel_size_100x_zoom_1_5x",
+   "to": "entry:pixel_size_100x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_100x_zoom_1x",
+   "stated_by": "pixel_size_100x_zoom_1x",
+   "to": "entry:pixel_size_100x_zoom_1x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1_5x",
+   "stated_by": "pixel_size_10x_zoom_1_5x",
+   "to": "entry:pixel_size_10x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_10x_zoom_1x",
+   "stated_by": "pixel_size_10x_zoom_1x",
+   "to": "entry:pixel_size_10x_zoom_1x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_20x_zoom_1_5x",
+   "stated_by": "pixel_size_20x_zoom_1_5x",
+   "to": "entry:pixel_size_20x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1_5x",
+   "stated_by": "pixel_size_40x_zoom_1_5x",
+   "to": "entry:pixel_size_40x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_40x_zoom_1x",
+   "stated_by": "pixel_size_40x_zoom_1x",
+   "to": "entry:pixel_size_40x_zoom_1x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1_5x",
+   "stated_by": "pixel_size_4x_zoom_1_5x",
+   "to": "entry:pixel_size_4x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_4x_zoom_1x",
+   "stated_by": "pixel_size_4x_zoom_1x",
+   "to": "entry:pixel_size_4x_zoom_1x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1_5x",
+   "stated_by": "pixel_size_60x_zoom_1_5x",
+   "to": "entry:pixel_size_60x_zoom_1_5x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:pixel_size_60x_zoom_1x",
+   "stated_by": "pixel_size_60x_zoom_1x",
+   "to": "entry:pixel_size_60x_zoom_1x_computed",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:tweez_install_guide_releases_the_safety_switch_counterclockwise",
+   "stated_by": "tweez_install_guide_releases_the_safety_switch_counterclockwise",
+   "to": "entry:tweez_laser_safety_switch_stops_emission",
+   "type": "conflict_with"
+  },
+  {
+   "from": "entry:particles_show_on_the_green_605_path",
+   "stated_by": "particles_show_on_the_green_605_path",
+   "to": "entry:tracer_emission_peak",
+   "type": "refutes"
+  },
+  {
+   "from": "entry:particles_show_on_the_green_605_path",
+   "stated_by": "particles_show_on_the_green_605_path",
+   "to": "entry:tracer_excitation_peak",
+   "type": "refutes"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_488nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_561nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "stated_by": "confocal_power_at_sample_640nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:no_thermometer_at_the_sample",
+   "stated_by": "declared_versus_inferred_temperature",
+   "to": "entry:declared_versus_inferred_temperature",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_488nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_488nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_488nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_488nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_561nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_561nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_561nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_561nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_640nm_100x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_100x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_640nm_40x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_40x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "confocal_power_at_sample_640nm_60x_full_level_rough",
+   "to": "entry:confocal_power_at_sample_640nm_60x_full_level_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:objective_transmittance_is_between_half_and_all",
+   "stated_by": "trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:sample_temperature_not_actuated",
+   "stated_by": "declared_versus_inferred_temperature",
+   "to": "entry:declared_versus_inferred_temperature",
+   "type": "supports"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "type": "supports"
+  },
+  {
+   "from": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "stated_by": "trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "to": "entry:trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "type": "supports"
+  }
+ ],
+ "footer": "Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.",
+ "kb_version": "kbv-058ce14eea72",
+ "nodes": [
+  {
+   "grade": "E3",
+   "id": "entry:abvigen_published_data_is_unreliable",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@abvigen-verification-2026-09-06",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:active_langevin_disks_mips_depends_on_whether_friction_noise_is_kept",
+   "kind": "entry",
+   "source": "literature:src_hofmann_2026_frictional_contacts",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:active_passive_sphere_mixture_glass_fluid_boundary_at_alpha_pe_squared_about_22",
+   "kind": "entry",
+   "source": "literature:src_shee_2025_active_dopants_rheology",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:active_passive_sphere_mixture_small_active_fraction_shifts_glass_density_most",
+   "kind": "entry",
+   "source": "literature:src_shee_2025_active_dopants_rheology",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:air_refractive_index_590nm_288k",
+   "kind": "entry",
+   "source": "literature:meggers_peters_1918",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:air_refractive_index_595nm_288k",
+   "kind": "entry",
+   "source": "literature:meggers_peters_1918",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:air_refractive_index_605nm_288k",
+   "kind": "entry",
+   "source": "literature:meggers_peters_1918",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:aura_green_intensity_runs_to_1000",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:aura_master_state_0_keeps_green_dark",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:aura_reports_five_named_lines",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_flash_red_emission_peak",
+   "kind": "entry",
+   "source": "spec:bangs_flash_red_plain_ps",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_flash_red_excitation_peak",
+   "kind": "entry",
+   "source": "spec:bangs_flash_red_plain_ps",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_flash_red_plain_ps_material",
+   "kind": "entry",
+   "source": "spec:bangs_flash_red_plain_ps",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_fluorescent_ps_contains_sodium_azide",
+   "kind": "entry",
+   "source": "spec:bangs_pds731",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_fluorescent_ps_stock_concentration",
+   "kind": "entry",
+   "source": "spec:bangs_pds731",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_fluorescent_ps_storage",
+   "kind": "entry",
+   "source": "spec:bangs_pds731",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_fsfr004_nominal_diameter",
+   "kind": "entry",
+   "source": "spec:bangs_flash_red_plain_ps",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bangs_fsfr005_nominal_diameter",
+   "kind": "entry",
+   "source": "spec:bangs_flash_red_plain_ps",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:binary_2d_assembly_gives_square_crystallites_first_then_hexagonal",
+   "kind": "entry",
+   "source": "literature:src_pretti_2019_size_dependent_selection",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:binary_2d_crystallite_free_energies_cross_near_100_particles",
+   "kind": "entry",
+   "source": "literature:src_pretti_2019_size_dependent_selection",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:binary_2d_crystallites_small_ones_square_large_ones_hexagonal",
+   "kind": "entry",
+   "source": "literature:src_pretti_2019_size_dependent_selection",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:binary_2d_gcmc_hexagonal_crystals_need_like_well_above_1_2kt",
+   "kind": "entry",
+   "source": "literature:src_fang_2020_two_step_crystallization",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:binary_2d_gcmc_two_step_crystallisation_square_then_hexagonal",
+   "kind": "entry",
+   "source": "literature:src_fang_2020_two_step_crystallization",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:bottle_label_states_no_product",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260919_bottle",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:branch_selector_is_pinned_by_integer_not_label",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_bodies_are_told_apart_by_serial",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_qe_at_600nm_from_the_kinetix_graph",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_qe_peak",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_read_noise_dynamicrange",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_read_noise_sensitivity",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_read_noise_speed",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_read_noise_subelectron",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_red_mm_control_path",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:camera_sensor_geometry",
+   "kind": "entry",
+   "source": "spec:Kinetix22",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:cameras_both_kinetix22",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:charged_colloids_2d_driven_melting_follows_defect_densities_in_experiment",
+   "kind": "entry",
+   "source": "literature:src_vyas_2026_nonequilibrium_melting",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:colloidal_gel_rpy_second_normal_stress_negative_and_overshoots_later",
+   "kind": "entry",
+   "source": "literature:src_lee_park_2026_gel_normal_stress",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:colloidal_gel_rpy_shear_overshoot_strain_grows_with_peclet",
+   "kind": "entry",
+   "source": "literature:src_lee_park_2026_gel_normal_stress",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:confocal_488_excites_the_red_arm",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_488nm_100x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_488nm_10x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_488nm_20x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_488nm_40x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_488nm_4x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_488nm_60x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_561nm_100x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_561nm_10x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_561nm_20x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_561nm_40x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_561nm_4x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_561nm_60x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_640nm_100x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_640nm_10x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_640nm_20x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_640nm_40x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:confocal_power_at_sample_640nm_4x_full_level",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:confocal_power_at_sample_640nm_60x_full_level_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:contact_friction_without_its_own_noise_breaks_equipartition",
+   "kind": "entry",
+   "source": "literature:src_hofmann_2026_frictional_contacts",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:coverslip_thickness_in_use",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_dichroic_slots",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_disk_position_is_the_bright_selector",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_disk_position_states",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_disk_speed_exposure_constraint",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:csuw1_disk_speed_is_not_exposed_here",
+   "kind": "entry",
+   "source": "measured:run-20260924-008",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_disk_speed_is_not_exposed_in_micromanager",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_port_driver_access",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_port_is_the_camera_splitter",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_port_slots",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:csuw1_shutter_gates_confocal_excitation",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:csuw1_shutter_state_reads_a_label",
+   "kind": "entry",
+   "source": "measured:run-20260924-008",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:declared_versus_inferred_temperature",
+   "kind": "entry",
+   "source": "computed:temperature_asymmetry",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:depletion_driven_lobed_diamond_forms_at_or_below_the_kissing_size_ratio",
+   "kind": "entry",
+   "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:dia_lamp_reports_state_and_intensity",
+   "kind": "entry",
+   "source": "measured:run-20260924-008",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dipolar_active_brownian_spheres_dipole_sum_without_ewald_at_low_density",
+   "kind": "entry",
+   "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dipolar_active_brownian_spheres_form_active_gel_above_coupling_9",
+   "kind": "entry",
+   "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dipolar_active_brownian_spheres_form_string_fluid_at_coupling_6_to_9",
+   "kind": "entry",
+   "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dipolar_active_brownian_spheres_state_diagram_at_packing_0_08",
+   "kind": "entry",
+   "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dipolar_active_brownian_spheres_stay_a_gas_below_coupling_6_at_packing_0_01",
+   "kind": "entry",
+   "source": "literature:src_kelidou_2024_dipolar_active_brownian",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dna_colloids_2d_mixing_ratio_selects_checkerboard_stripe_honeycomb",
+   "kind": "entry",
+   "source": "literature:src_fang_2020_two_step_crystallization",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dna_patchy_tetrahedral_clusters_crystallise_diamond_at_compression_0_63_to_0_78",
+   "kind": "entry",
+   "source": "literature:src_he_2020_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:driven_2d_dipolar_crystal_has_no_single_effective_temperature",
+   "kind": "entry",
+   "source": "literature:src_vyas_2026_nonequilibrium_melting",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:driven_2d_dipolar_crystal_melting_follows_defect_densities_in_simulation",
+   "kind": "entry",
+   "source": "literature:src_vyas_2026_nonequilibrium_melting",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:dropped_frames_raise_nothing",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:elapsed_time_is_quantised_to_one_ms",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:emission_wheel_camera_mapping",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:emission_wheel_filter_positions",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@filters-2026-09-06",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:emission_wheel_red_arm_is_position_3",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@filters-2026-09-06",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:f8801_emission_peak",
+   "kind": "entry",
+   "source": "spec:invitrogen_f8801",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:f8801_excitation_peak",
+   "kind": "entry",
+   "source": "spec:invitrogen_f8801",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:f8801_material_and_surface",
+   "kind": "entry",
+   "source": "spec:invitrogen_f8801",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:f8801_nominal_diameter",
+   "kind": "entry",
+   "source": "spec:invitrogen_f8801",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:f8801_storage_conditions",
+   "kind": "entry",
+   "source": "spec:invitrogen_f8801",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_cube_mxr00724_is_five_band",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@filters-2026-09-06",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_ff01_432_36_32_passband",
+   "kind": "entry",
+   "source": "spec:FF01-432/36-32",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_ff01_515_30_32_passband",
+   "kind": "entry",
+   "source": "spec:FF01-515/30-32",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_ff01_595_31_32_passband",
+   "kind": "entry",
+   "source": "spec:FF01-595/31-32",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_ff01_680_42_32_passband",
+   "kind": "entry",
+   "source": "spec:FF01-680/42-32",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:filter_turret_1_state_0_blocked_the_confocal_path",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/config/lunf",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:filter_turret_shutters_close_at_state_0",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20261004",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_frames_over_the_clip_limit_are_not_readable",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_metric_brenner_definition",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_metric_peak_brightness_definition",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_metric_tenengrad_definition",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_metric_vollath4_definition",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:focus_metrics_peak_at_best_focus",
+   "kind": "entry",
+   "source": "assumed:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_search_is_coarse_then_fine",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_search_top_end_extension_layout",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_search_yields_points_and_moves_nothing",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_sweep_light_dropouts_are_not_focus_changes",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_from_a_classical_sweep",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_returns_a_branch_never_a_z",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_step_direction",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_thresholds_are_all_the_callers",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_unsure_is_an_abstention",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_vocabulary",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:focus_verdict_z_is_a_taken_frames_readback",
+   "kind": "entry",
+   "source": "prior_run:dino-autofocus@fa9790378ea3f06e94b933a2fb65219322f6702a",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:frictional_contact_fluid_viscosity_drops_without_frictional_noise",
+   "kind": "entry",
+   "source": "literature:src_hofmann_2026_frictional_contacts",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:hoomd_blue_6_1_0_documents_a_contact_friction_pair_module",
+   "kind": "entry",
+   "source": "literature:src_hofmann_2026_frictional_contacts",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:host_clock_is_not_the_experiment_clock",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:immersion_oil_in_use_is_nikon_type_f",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20261013_immersion_oil",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:immersion_oil_in_use_label_index_sodium_d_23c",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20261015_immersion_oil_label_index",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:intermediate_magnification_is_not_a_state_device",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:interval_ms_is_ignored_and_frame_period_equals_exposure",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:kinetix22_both_bodies_saturate_alike_per_the_person",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20261013_cameras_read_the_same",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:kinetix22_saturates_at_65535_adu_dynamic_range_100mhz_16bit",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20261013_bench_readings",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:kinetix_red_adapter_properties_as_reported_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:kinetix_red_exposure_and_binning_read_back_exactly",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:kinetix_red_label_opens_serial_a24m723015",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:kinetix_red_paced_snaps_kept_one_per_second_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-006",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:kinetix_red_sequences_delivered_every_frame_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lab_ambient_temperature",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lapp_state_1_brings_the_aura_to_the_sample",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_lapp_aura",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:laser_shutter_on_the_combiner",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:light_engine_line_intensity_is_per_mille",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:light_engine_master_state_gates_every_line",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:live_view_degrades_timing",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lobed_patchy_diamond_nucleation_out_of_reach_stability_mapped_by_melting",
+   "kind": "entry",
+   "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lobed_patchy_particles_depletion_removes_the_rotational_entropy_barrier",
+   "kind": "entry",
+   "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lobed_patchy_particles_f127_depletion_threshold_near_depletant_fraction_0_03",
+   "kind": "entry",
+   "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_analog_outputs_are_not_cabled_to_the_combiner",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:lunf_blanking_lines_reservable_right_after_nis_kill",
+   "kind": "entry",
+   "source": "measured:run-20260924-009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_blanking_port_is_held_by_one_program",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_fiber_shutter_survives_a_controller_kill",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:lunf_killed_writer_may_leave_a_line_open",
+   "kind": "entry",
+   "source": "assumed:inference_from_prior_lunf_blink_and_shutter_kill",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_line_map_and_blanking_polarity",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/config/lunf",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_per_line_power_is_not_transmittable",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lunf_reports_nothing_back",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:micromanager_focus_direction_encoding_mmcore_12_5_0",
+   "kind": "entry",
+   "source": "spec:micromanager_mmcore_12_5_0",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:mm_config_load_did_not_return_after_nis_force_kill",
+   "kind": "entry",
+   "source": "measured:run-20260924-010",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:mm_label_aura_is_the_aura_iii",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:mm_label_lightengine_is_the_spectra_iii",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:mm_label_zdrive_is_the_focus_axis",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanobench_controller_gives_limited_protection",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanobench_controller_shuts_down_when_hot",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanobench_higher_security_levels_expose_damaging_settings",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanobench_stage_presets_can_be_overwritten_or_lost",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanobench_wrong_loop_settings_damage_the_stage",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nanoflash_interrupted_reprogramming_is_recoverable",
+   "kind": "entry",
+   "source": "spec:nanoflash_user_manual",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nikon_type_f_oil_refractive_index_nd_23c",
+   "kind": "entry",
+   "source": "spec:edmund_57189_nikon_type_f",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nikon_type_f_oil_refractive_index_ne_23c",
+   "kind": "entry",
+   "source": "spec:morrell_mxa22168_nikon_type_f",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:no_thermometer_at_the_sample",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nosepiece_is_an_mmcore_state_device",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nosepiece_objective_assignment",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nosepiece_position_indexing",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:nosepiece_write_runs_no_escape",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_analogue_and_digital_commands_are_summed",
+   "kind": "entry",
+   "source": "spec:nanobench_6000_user_manual_v1_0_19_s1_2",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_connectors_are_static_sensitive",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_controller_covers_must_stay_on",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_controller_generates_hazardous_voltages",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_emulator_returns_zero_for_every_command",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9_s4_3_7",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_network_must_stay_off_wider_networks",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_operating_environment",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:npcd_switch_off_and_unplug_when_not_in_use",
+   "kind": "entry",
+   "source": "spec:npcd_interface_library_rev6_dll_2_7_9",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_40x_collar_setting",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260922",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_change_invalidates_trap_calibration",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:objective_change_selects_a_pixel_size_row",
+   "kind": "entry",
+   "source": "assumed:person_ruling_20260921",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:objective_depth_of_field",
+   "kind": "entry",
+   "source": "computed:depth_of_field_total",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70040",
+   "kind": "entry",
+   "source": "spec:MRD70040",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70040_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD70040",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70170",
+   "kind": "entry",
+   "source": "spec:MRD70170",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70170_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD70170",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70270",
+   "kind": "entry",
+   "source": "spec:MRD70270",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd70270_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD70270",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd71670",
+   "kind": "entry",
+   "source": "spec:MRD71670",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd71670_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD71670",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd71970",
+   "kind": "entry",
+   "source": "spec:MRD71970",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd71970_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD71970",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd77400",
+   "kind": "entry",
+   "source": "spec:MRD77400",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_mrd77400_selector_properties",
+   "kind": "entry",
+   "source": "spec:MRD77400",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:objective_transmittance_is_between_half_and_all",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_transmittance_graphs",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:optical_tweezers_work_with_40x_60x_100x_person_statement",
+   "kind": "entry",
+   "source": "operator_recall:person_statement_tweezers_objectives_20260925",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:pairwise_depletion_potentials_overestimate_for_large_depletants_on_lobed_particles",
+   "kind": "entry",
+   "source": "literature:src_kim_2026_depletion_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:particle_suspension_a_identity",
+   "kind": "entry",
+   "source": "assumed:person_ruling_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:particle_suspension_b_identity",
+   "kind": "entry",
+   "source": "operator_recall:person_statement_f8801_20260930",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:particles_show_on_the_green_605_path",
+   "kind": "entry",
+   "source": "calibration:tracer_path_compat_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:pfs_reports_focus_maintenance_status_and_range_in_three_states",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20261013_bench_readings",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:pfs_status_differs_in_range_and_out_of_range_per_the_person",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20261015_pfs_off_codes",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_calibrated_range",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_command_path_as_found_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_controller_axis_labels",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_controller_identity",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_controller_software_version",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:piezo_device_range_as_stated_by_the_person",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260924_piezo_range",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_interface_library_version_on_this_computer",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_rest_position_as_found_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_security_level_as_found_20260924",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:piezo_stage_identity",
+   "kind": "entry",
+   "source": "measured:run-20260924-004",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:piezo_waveform_generator_does_not_read_picometres",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-08-27-piezo-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_100x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_100x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_100x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_100x_zoom_1x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_10x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_10x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_10x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_10x_zoom_1x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_20x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_20x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_20x_at_1_5x_from_20x_at_1x",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_20x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_40x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_40x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_40x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_40x_zoom_1x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_4x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_4x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_4x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_4x_zoom_1x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_60x_zoom_1_5x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_60x_zoom_1_5x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:pixel_size_60x_zoom_1x",
+   "kind": "entry",
+   "source": "calibration:cal-pixel-size-20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:pixel_size_60x_zoom_1x_computed",
+   "kind": "entry",
+   "source": "computed:pixel_size_from_sensor_pitch",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:pixeltype_misreports_bit_depth",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_1052nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_436_8nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_486_1nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_587_6nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_632_8nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_703nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_833nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:polystyrene_refractive_index_879nm",
+   "kind": "entry",
+   "source": "literature:sultanova_2009",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:prior_mm_config_declares_lunf_blanking",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/config/micromanager/dualcam_noDMD.cfg",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:pymmcore_plus_instance_holds_its_singleton_weakly",
+   "kind": "entry",
+   "source": "spec:pymmcore_plus_0_18_1_core_mmcore_plus_py",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:pymmcore_plus_micromanager_copy_loads_single_cam_red_config",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:red_path_605_is_the_ff01_595_31_filter",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260920",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:repulsive_disks_in_active_noise_cluster_only_if_the_noise_is_compressible",
+   "kind": "entry",
+   "source": "literature:src_frechette_2025_active_noise_clustering",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:repulsive_disks_in_active_noise_span_the_box_only_at_packing_0_4",
+   "kind": "entry",
+   "source": "literature:src_frechette_2025_active_noise_clustering",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:repulsive_disks_in_active_noise_structure_set_by_lambda_and_va_tau",
+   "kind": "entry",
+   "source": "literature:src_frechette_2025_active_noise_clustering",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:room_temperature_hold_band",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260923",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:room_temperature_is_controlled",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:room_thermometer_reads_in_one_kelvin_steps",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260923",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:rpy_brownian_dynamics_plugin_was_run_on_hoomd_2_4_0",
+   "kind": "entry",
+   "source": "literature:src_lee_park_2026_gel_normal_stress",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:sample_temperature_not_actuated",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:shear_stress_fluctuation_shape_marks_the_glass_fluid_transition",
+   "kind": "entry",
+   "source": "literature:src_shee_2025_active_dopants_rheology",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:single_cam_red_config_arms_autoshutter_on_the_lightengine",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:single_cam_red_config_can_switch_confocal_lines",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/config/micromanager/single_cam_red_noDMD_nocom10.cfg",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:single_cam_red_config_loads_no_nidaq_analogue_output",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:single_cam_red_config_startup_puts_the_lapp_mirror_in",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E1",
+   "id": "entry:stand_state_read_20260924_20x_in_place",
+   "kind": "entry",
+   "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:stand_ti2e_lock_groups",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260917",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:stopped_disk_frame_looks_bright",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:tau_d",
+   "kind": "entry",
+   "source": "computed:diffusive_time",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tetrahedral_patchy_clusters_crystallise_cubic_diamond_in_hoomd_model",
+   "kind": "entry",
+   "source": "literature:src_he_2020_colloidal_diamond",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:ti2_control_usb_must_not_be_unplugged",
+   "kind": "entry",
+   "source": "spec:nikon_ti2_control_v2_90_m706_e15",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:ti2e_filter_shutter_state_at_startup_is_a_setting",
+   "kind": "entry",
+   "source": "spec:nikon_ti2_control_v2_90_m706_e15",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:ti2e_objective_escape_is_set_per_nosepiece_address",
+   "kind": "entry",
+   "source": "spec:nikon_ti2_control_v2_90_m706_e15",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:ti2e_optical_path_addresses",
+   "kind": "entry",
+   "source": "spec:nikon_ti2_control_v2_90_m706_e15",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:tracer_diameter_measured",
+   "kind": "entry",
+   "source": "calibration:tracer_diameter_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:tracer_diffusivity_expected",
+   "kind": "entry",
+   "source": "computed:stokes_einstein",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_emission_peak",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "refuted"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_excitation_peak",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "refuted"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_number_density_from_diameter",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_particle_density",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_particle_material_and_shape",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_stock_concentration",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tracer_storage_conditions",
+   "kind": "entry",
+   "source": "spec:abvigen_red_ps_cooh",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:trap_heating_detection_bound",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:trap_laser_emission_is_switchable_over_tcp",
+   "kind": "entry",
+   "source": "spec:Tweez300UserManual",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:trap_laser_power_at_sample_1064nm_100x_80pct_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:trap_laser_power_at_sample_1064nm_10x_80pct",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:trap_laser_power_at_sample_1064nm_20x_80pct",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:trap_laser_power_at_sample_1064nm_20x_level_sweep",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:trap_laser_power_at_sample_1064nm_40x_80pct_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E2",
+   "id": "entry:trap_laser_power_at_sample_1064nm_4x_80pct",
+   "kind": "entry",
+   "source": "calibration:cal-illumination-power-20260909",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:trap_laser_power_at_sample_1064nm_60x_80pct_rough",
+   "kind": "entry",
+   "source": "computed:power_scaled_by_objective_transmittance_band",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:trap_laser_power_has_no_software_path",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:trapped_bead_is_the_one_that_does_not_translate",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:trapping_laser_identity",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260919",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_back_to_back_sends_come_back_busy",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:tweez300_camera_is_released_so_it_shows_no_image",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260924_tweezers_camera",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:tweez300_does_not_restore_last_project",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260924",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_host_streamed_positions_move_smoothly",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_load_pattern_name_first",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_new_trap_starts_at_strength_zero",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_pattern_runs_on_assignment",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_position_origin_is_image_centre",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_positive_x_is_right_on_screen",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_readiness_probe_answers_minus_22",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@fbedef0",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_reports_nothing_back",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:tweez300_software_opens_the_red_arm_camera",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20260924_tweezers_camera",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_trap_on_shows_active",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez300_trap_strength_takes_the_last_value",
+   "kind": "entry",
+   "source": "operator_read:kyuhwan_20260924_tweezers",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_back_panel_inputs_have_absolute_maxima",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_calibration_photodiode_needs_the_laser_off",
+   "kind": "entry",
+   "source": "spec:Tweez300UserManual",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_contains_nickel",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_fibre_is_enclosed_end_to_end",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_filter_cube_shutter_and_blocking_filter",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_has_no_user_serviceable_parts",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_install_guide_releases_the_safety_switch_counterclockwise",
+   "kind": "entry",
+   "source": "spec:Tweez300SystemInstallationGuide_2021",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_installation_needs_qualified_personnel",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_interlocks_are_in_hardware",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_internal_shutter_closes_by_spring",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_is_a_class_4_laser_device",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_key_switch_cuts_all_power",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_exits_only_at_one_aperture",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_power_is_set_as_a_fraction_of_maximum",
+   "kind": "entry",
+   "source": "spec:Tweez300UserManual",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_safety_glasses_must_be_worn",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_safety_switch_stops_emission",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_safety_training_is_part_of_safety",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_laser_source_is_a_1064nm_fiber_laser",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_microscope_interlock_blocks_the_laser_at_the_eyepieces",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_must_be_grounded_through_its_power_cord",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_operating_environment",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_optical_unit_cover_must_stay_on",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_proprietary_connectors_take_only_aresis_equipment",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_sample_safety_shield_goes_on_before_the_laser",
+   "kind": "entry",
+   "source": "spec:Tweez300SystemInstallationGuide_2021",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_software_shows_laser_power_and_interlocks",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_standby_then_hibernation",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_status_lights_steady_ready_flashing_emitting",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_three_independent_ways_to_stop_emission",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_use_only_the_original_power_supply",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_ventilation_must_not_be_blocked",
+   "kind": "entry",
+   "source": "spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:tweez_warning_sign_carries_a_remote_interlock",
+   "kind": "entry",
+   "source": "spec:Tweez300LaserSafetyManual_v3_0_2022",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:water_density_293k",
+   "kind": "entry",
+   "source": "literature:jones_harris_1992",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:water_refractive_index_589_26nm_293k",
+   "kind": "entry",
+   "source": "literature:tilton_taylor_1938",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:water_refractive_index_595nm_293k",
+   "kind": "entry",
+   "source": "literature:tilton_taylor_1938",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:water_refractive_index_605nm_293k",
+   "kind": "entry",
+   "source": "literature:tilton_taylor_1938",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:water_viscosity_293k",
+   "kind": "entry",
+   "source": "literature:src_water_properties",
+   "status": "current"
+  },
+  {
+   "grade": "E4",
+   "id": "entry:working_distance_is_measured_to_the_coverslip",
+   "kind": "entry",
+   "source": "computed:working_distance_versus_coverslip",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:z_retract_direction_is_measured",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@safety-2026-09-03",
+   "status": "current"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:configuration_trapping",
+   "kind": "configuration",
+   "page": "configuration_trapping.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 2
+   },
+   "disputed": 0,
+   "id": "page:device_camera_blue",
+   "kind": "device",
+   "page": "device_camera_blue.md"
+  },
+  {
+   "coverage": {
+    "E1": 5,
+    "E2": 0,
+    "E3": 12,
+    "E4": 0,
+    "E5": 4
+   },
+   "disputed": 1,
+   "id": "page:device_camera_red",
+   "kind": "device",
+   "page": "device_camera_red.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_confocal_csuw1",
+   "kind": "device",
+   "page": "device_confocal_csuw1.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_csuw1_dichroic",
+   "kind": "device",
+   "page": "device_csuw1_dichroic.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_csuw1_disk_position",
+   "kind": "device",
+   "page": "device_csuw1_disk_position.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_csuw1_disk_speed",
+   "kind": "device",
+   "page": "device_csuw1_disk_speed.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_csuw1_port",
+   "kind": "device",
+   "page": "device_csuw1_port.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_csuw1_shutter",
+   "kind": "device",
+   "page": "device_csuw1_shutter.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_dia_lamp",
+   "kind": "device",
+   "page": "device_dia_lamp.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_filter_turret_1",
+   "kind": "device",
+   "page": "device_filter_turret_1.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_filter_turret_2",
+   "kind": "device",
+   "page": "device_filter_turret_2.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_filter_wheel_em1",
+   "kind": "device",
+   "page": "device_filter_wheel_em1.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_filter_wheel_em2",
+   "kind": "device",
+   "page": "device_filter_wheel_em2.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_intermediate_magnification",
+   "kind": "device",
+   "page": "device_intermediate_magnification.md"
+  },
+  {
+   "coverage": {
+    "E1": 2,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_lapp_branch",
+   "kind": "device",
+   "page": "device_lapp_branch.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 9,
+    "E3": 10,
+    "E4": 9,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_laser_combiner",
+   "kind": "device",
+   "page": "device_laser_combiner.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_laser_shutter",
+   "kind": "device",
+   "page": "device_laser_shutter.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_light_path_port",
+   "kind": "device",
+   "page": "device_light_path_port.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_line_power",
+   "kind": "device",
+   "page": "device_line_power.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 0,
+    "E3": 5,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_line_select",
+   "kind": "device",
+   "page": "device_line_select.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_motor_stage",
+   "kind": "device",
+   "page": "device_motor_stage.md"
+  },
+  {
+   "coverage": {
+    "E1": 1,
+    "E2": 12,
+    "E3": 20,
+    "E4": 12,
+    "E5": 1
+   },
+   "disputed": 22,
+   "id": "page:device_nosepiece",
+   "kind": "device",
+   "page": "device_nosepiece.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 4,
+    "E3": 46,
+    "E4": 3,
+    "E5": 5
+   },
+   "disputed": 2,
+   "id": "page:device_optical_tweezers",
+   "kind": "device",
+   "page": "device_optical_tweezers.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:device_pfs",
+   "kind": "device",
+   "page": "device_pfs.md"
+  },
+  {
+   "coverage": {
+    "E1": 9,
+    "E2": 0,
+    "E3": 15,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 2,
+   "id": "page:device_piezo_stage",
+   "kind": "device",
+   "page": "device_piezo_stage.md"
+  },
+  {
+   "coverage": {
+    "E1": 4,
+    "E2": 0,
+    "E3": 13,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_stand_ti2e",
+   "kind": "device",
+   "page": "device_stand_ti2e.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_temperature_stage",
+   "kind": "device",
+   "page": "device_temperature_stage.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:device_z_drive",
+   "kind": "device",
+   "page": "device_z_drive.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_bleach_recovery_diffusivity",
+   "kind": "observable",
+   "page": "observable_bleach_recovery_diffusivity.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_bleaching_rate",
+   "kind": "observable",
+   "page": "observable_bleaching_rate.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_dynamical_crossover_time",
+   "kind": "observable",
+   "page": "observable_dynamical_crossover_time.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_effective_translational_diffusivity",
+   "kind": "observable",
+   "page": "observable_effective_translational_diffusivity.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_interwell_barrier_height",
+   "kind": "observable",
+   "page": "observable_interwell_barrier_height.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_interwell_transition_rate",
+   "kind": "observable",
+   "page": "observable_interwell_transition_rate.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_mean_squared_displacement",
+   "kind": "observable",
+   "page": "observable_mean_squared_displacement.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_msd_loglog_slope",
+   "kind": "observable",
+   "page": "observable_msd_loglog_slope.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_persistence_length",
+   "kind": "observable",
+   "page": "observable_persistence_length.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_persistence_time",
+   "kind": "observable",
+   "page": "observable_persistence_time.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_structural_relaxation_time",
+   "kind": "observable",
+   "page": "observable_structural_relaxation_time.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_tracer_brightness",
+   "kind": "observable",
+   "page": "observable_tracer_brightness.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 1,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_tracer_diffusivity",
+   "kind": "observable",
+   "page": "observable_tracer_diffusivity.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_trapped_particle_drag_offset",
+   "kind": "observable",
+   "page": "observable_trapped_particle_drag_offset.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_trapped_position_distribution",
+   "kind": "observable",
+   "page": "observable_trapped_position_distribution.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_well_occupancy",
+   "kind": "observable",
+   "page": "observable_well_occupancy.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:observable_well_residence_time",
+   "kind": "observable",
+   "page": "observable_well_residence_time.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_active_energy",
+   "kind": "quantity",
+   "page": "quantity_active_energy.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_active_fraction",
+   "kind": "quantity",
+   "page": "quantity_active_fraction.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 2
+   },
+   "disputed": 0,
+   "id": "page:quantity_ambient_temperature",
+   "kind": "quantity",
+   "page": "quantity_ambient_temperature.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_coverslip_thickness",
+   "kind": "quantity",
+   "page": "quantity_coverslip_thickness.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_crystallite_particle_count",
+   "kind": "quantity",
+   "page": "quantity_crystallite_particle_count.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_depletant_to_colloid_radius_ratio",
+   "kind": "quantity",
+   "page": "quantity_depletant_to_colloid_radius_ratio.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_depletant_volume_fraction",
+   "kind": "quantity",
+   "page": "quantity_depletant_volume_fraction.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 1,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_depth_of_field",
+   "kind": "quantity",
+   "page": "quantity_depth_of_field.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 5,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_dipolar_coupling_strength",
+   "kind": "quantity",
+   "page": "quantity_dipolar_coupling_strength.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_dna_strand_fraction",
+   "kind": "quantity",
+   "page": "quantity_dna_strand_fraction.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 1,
+   "id": "page:quantity_emission_peak_wavelength",
+   "kind": "quantity",
+   "page": "quantity_emission_peak_wavelength.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 1,
+   "id": "page:quantity_excitation_peak_wavelength",
+   "kind": "quantity",
+   "page": "quantity_excitation_peak_wavelength.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:quantity_full_scale_count",
+   "kind": "quantity",
+   "page": "quantity_full_scale_count.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_hexatic_correlation_exponent",
+   "kind": "quantity",
+   "page": "quantity_hexatic_correlation_exponent.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_hexatic_order_parameter",
+   "kind": "quantity",
+   "page": "quantity_hexatic_order_parameter.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 13,
+    "E3": 2,
+    "E4": 12,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_illumination_power",
+   "kind": "quantity",
+   "page": "quantity_illumination_power.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_like_to_unlike_attraction_ratio",
+   "kind": "quantity",
+   "page": "quantity_like_to_unlike_attraction_ratio.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 6,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_lobe_compression_ratio",
+   "kind": "quantity",
+   "page": "quantity_lobe_compression_ratio.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 6,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_na",
+   "kind": "quantity",
+   "page": "quantity_na.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 18,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_packing_fraction",
+   "kind": "quantity",
+   "page": "quantity_packing_fraction.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_pair_well_depth",
+   "kind": "quantity",
+   "page": "quantity_pair_well_depth.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 5,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_patch_protrusion_ratio",
+   "kind": "quantity",
+   "page": "quantity_patch_protrusion_ratio.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_peclet_number_shear",
+   "kind": "quantity",
+   "page": "quantity_peclet_number_shear.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_peclet_number_steric",
+   "kind": "quantity",
+   "page": "quantity_peclet_number_steric.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 12,
+    "E3": 1,
+    "E4": 11,
+    "E5": 1
+   },
+   "disputed": 22,
+   "id": "page:quantity_pixel_size",
+   "kind": "quantity",
+   "page": "quantity_pixel_size.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_quantum_efficiency",
+   "kind": "quantity",
+   "page": "quantity_quantum_efficiency.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 4,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_read_noise",
+   "kind": "quantity",
+   "page": "quantity_read_noise.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 5,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_reduced_active_force",
+   "kind": "quantity",
+   "page": "quantity_reduced_active_force.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_reduced_number_density",
+   "kind": "quantity",
+   "page": "quantity_reduced_number_density.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 4,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_reduced_temperature",
+   "kind": "quantity",
+   "page": "quantity_reduced_temperature.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 17,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 3,
+   "id": "page:quantity_refractive_index",
+   "kind": "quantity",
+   "page": "quantity_refractive_index.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_shear_strain",
+   "kind": "quantity",
+   "page": "quantity_shear_strain.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_storage_temperature_max",
+   "kind": "quantity",
+   "page": "quantity_storage_temperature_max.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 2,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_storage_temperature_min",
+   "kind": "quantity",
+   "page": "quantity_storage_temperature_min.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 1,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_tau_d",
+   "kind": "quantity",
+   "page": "quantity_tau_d.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 3,
+    "E4": 1,
+    "E5": 3
+   },
+   "disputed": 0,
+   "id": "page:quantity_temperature",
+   "kind": "quantity",
+   "page": "quantity_temperature.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+   },
+   "disputed": 0,
+   "id": "page:quantity_viscosity",
+   "kind": "quantity",
+   "page": "quantity_viscosity.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 2,
+    "E3": 1,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:sample_particle_suspension_a",
+   "kind": "sample",
+   "page": "sample_particle_suspension_a.md"
+  },
+  {
+   "coverage": {
+    "E1": 0,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 1
+   },
+   "disputed": 0,
+   "id": "page:sample_particle_suspension_b",
+   "kind": "sample",
+   "page": "sample_particle_suspension_b.md"
+  }
+ ],
+ "schema_version": "0.1"
+}

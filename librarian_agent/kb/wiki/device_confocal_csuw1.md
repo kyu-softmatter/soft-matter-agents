@@ -76,6 +76,11 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
     },
     {
       "id": "csuw1_shutter",
+      "mm_label": {
+        "label": "CSUW1-Shutter",
+        "entry_ref": "csuw1_shutter_state_reads_a_label",
+        "config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"
+      },
       "source": "operator_read:kyuhwan_20260917",
       "grade": "E3",
       "entry_ref": "csuw1_shutter_gates_confocal_excitation",
@@ -200,4 +205,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

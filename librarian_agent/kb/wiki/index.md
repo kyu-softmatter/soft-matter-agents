@@ -6,7 +6,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ## The store
 
-- version: kbv-37b1958fb73d
+- version: kbv-058ce14eea72
 - entries: 339
 - device pages: 28
 - quantity pages: 37
@@ -14,6 +14,11 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 - sample pages: 2
 - configuration pages: 1
 - entries with no subject: 55
+
+## Other views
+
+- [the store by kind of evidence](../wiki/evidence.md)
+- [the map: coverage and shared entries, per subject](../wiki/map.md)
 
 ## Device pages
 
@@ -122,7 +127,9 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 - detector_resolvable_distance
 - dynamical_crossover_time
 - effective_translational_diffusivity
+- exposure_time
 - flow_speed
+- frame_count
 - imaging_wavelength
 - interwell_barrier_height
 - interwell_transition_rate
@@ -151,4 +158,4 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

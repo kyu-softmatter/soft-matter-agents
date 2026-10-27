@@ -11,6 +11,11 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
 ```json
 {
   "id": "camera_red",
+  "mm_label": {
+    "label": "Kinetix_red",
+    "entry_ref": "kinetix_red_label_opens_serial_a24m723015",
+    "config_sha256": "8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120"
+  },
   "role": "detector on one arm of the spectral port. Named for the arm it sits on, not for a hardware difference.",
   "model": "Kinetix 22",
   "driver": "micromanager_pvcam",
@@ -73,13 +78,13 @@ Conditions, verbatim:
 
 With the configuration single_cam_red_noDMD_nocom10.cfg loaded, the camera opened as Micro-Manager label Kinetix_red reports serial number A24M723015, chip TMP-Kinetix, firmware 30.48. That is the serial camera_bodies_are_told_apart_by_serial gives for the red arm, so in this configuration the label Kinetix_red opens the red-arm body.
 
-Identifiers: model: Kinetix 22; serial: A24M723015
+Identifiers: mm_config_sha256: 8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120; mm_label: Kinetix_red; model: Kinetix 22; serial: A24M723015
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-002).
 
 Conditions, verbatim:
 
-> Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. The comparison with the stored serial is this seat's, from two records: the serial here is E1, the red-arm assignment it is compared with is E3 from the prior project, so the conclusion 'this label opens the red-arm body' is only as good as the E3 half. A frame on each arm with the other dark would settle the assignment here. A different configuration may map labels to bodies differently. Delivered as item kinetix_red_serial_a24m723015 of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 40 (serial) and 18 (firmware).
+> Read back in a preparatory run -- the first real acquisition on this computer, with no plan, the person having placed the 20x and moved the microscope by hand, software moving nothing. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system: E1 from `measured:`. Not a value of any registered observable. The comparison with the stored serial is this seat's, from two records: the serial here is E1, the red-arm assignment it is compared with is E3 from the prior project, so the conclusion 'this label opens the red-arm body' is only as good as the E3 half. A frame on each arm with the other dark would settle the assignment here. A different configuration may map labels to bodies differently. Delivered as item kinetix_red_serial_a24m723015 of microscope_agent/findings/microscope-20260924-1-20260924.json at bf8f91f (card 042). Checked by this seat against microscope_agent/runs/run-20260924-002/log.json read at bf8f91f (unchanged since): event 40 (serial) and 18 (firmware). The identifiers mm_label and mm_config_sha256 were added on 2026-10-27 by librarian-20261007-1 for librarian card 061, from this same run's log, which card 080 moved to microscope_runtime/runs/run-20260924-002/log.json (read at fb5eff40): event 8, configuration_loaded, single_cam_red_noDMD_nocom10.cfg with sha256 and sha256_after_load both 8184073e31e1a7a63731932a20a622131d4dba04cf839bc9e651bf9abcd53120, the run's one configuration load; events 19 to 53 apply to and acquire from the channel Kinetix_red, and event 40 records the serial. The digest is the run's record of which file was loaded, not a hash of any file on disk. The claim is unchanged.
 
 ### [kinetix_red_paced_snaps_kept_one_per_second_20260924](../entries/kinetix_red_paced_snaps_kept_one_per_second_20260924.json)
 
@@ -226,4 +231,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

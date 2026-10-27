@@ -10,7 +10,12 @@ From the device table, kb/staging/devices.v0.json, element of channel stand_ti2e
 
 ```json
 {
-  "id": "dia_lamp"
+  "id": "dia_lamp",
+  "mm_label": {
+    "label": "DiaLamp",
+    "entry_ref": "dia_lamp_reports_state_and_intensity",
+    "config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"
+  }
 }
 ```
 
@@ -24,13 +29,13 @@ None.
 
 The transmitted-light lamp, Micro-Manager device DiaLamp, reports two properties, State and Intensity, both readable at load; on 2026-09-24, with no software having set them, they read State "0" and Intensity "2100".
 
-Identifiers: mm_device: DiaLamp; properties: State, Intensity
+Identifiers: mm_config_sha256: fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89; mm_device: DiaLamp; properties: State, Intensity
 
 How it is known: measured on this instrument; a recorded run of this system (E1 · measured:run-20260924-008).
 
 Conditions, verbatim:
 
-> Event 17 of the run. Both values are strings as the adapter returned them and are recorded as settings read back, not as quantities: the unit of Intensity is not stated by the adapter, and what State "0" means for light is not established by this reading -- nothing measured light that day. The abort commands this lamp to State "0"; that it then emits nothing has been seen only on mock, which echoes the value it is given. Read back in a preparatory run with no plan, which wrote nothing to any device. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system, E1. Not a value of any registered observable. KNOWLEDGE, NOT POLICY: what the device reports, never a limit and never permission to command it. Checked by this seat against microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818.
+> Event 17 of the run. Both values are strings as the adapter returned them and are recorded as settings read back, not as quantities: the unit of Intensity is not stated by the adapter, and what State "0" means for light is not established by this reading -- nothing measured light that day. The abort commands this lamp to State "0"; that it then emits nothing has been seen only on mock, which echoes the value it is given. Read back in a preparatory run with no plan, which wrote nothing to any device. A device's report of itself may enter citing such a run (11-21 condition 4 as narrowed at 20a688b), graded as an observation by this system, E1. Not a value of any registered observable. KNOWLEDGE, NOT POLICY: what the device reports, never a limit and never permission to command it. Checked by this seat against microscope_agent/runs/run-20260924-008/log.json, read by this seat at 144ab62 (last changed at 9c9f598); body sha256 with CRLF normalised to LF f7a8f673fd630b7252b8ec30f10e71abafe0aea58ae12c85cbb2ed4f2e187818. The identifier mm_config_sha256 was added on 2026-10-27 by librarian-20261007-1 for librarian card 061, from this same run's log, which card 080 moved to microscope_runtime/runs/run-20260924-008/log.json (read at fb5eff40; body sha256 with CRLF normalised to LF unchanged, f7a8f673...): event 2, load, dualcam_noDMD_nolaser_nostartup.cfg with sha256 and sha256_after_load both fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89, the run's one configuration load, before event 17. The digest is the run's record of which file was loaded, not a hash of any file on disk. The claim is unchanged.
 
 ## Disputed and withdrawn
 
@@ -46,4 +51,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

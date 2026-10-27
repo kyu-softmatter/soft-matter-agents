@@ -11,6 +11,10 @@ From the device table, kb/staging/devices.v0.json, element of channel stand_ti2e
 ```json
 {
   "id": "nosepiece",
+  "mm_label": {
+    "label": "Nosepiece",
+    "entry_ref": "nosepiece_is_an_mmcore_state_device"
+  },
   "positions": 6,
   "position_index_base": 0,
   "entry_ref": [
@@ -321,4 +325,4 @@ Conditions, verbatim:
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

@@ -19,6 +19,10 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
   "elements": [
     {
       "id": "nosepiece",
+      "mm_label": {
+        "label": "Nosepiece",
+        "entry_ref": "nosepiece_is_an_mmcore_state_device"
+      },
       "positions": 6,
       "position_index_base": 0,
       "entry_ref": [
@@ -147,10 +151,19 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
     },
     {
       "id": "pfs",
+      "mm_label": {
+        "label": "PFS",
+        "entry_ref": "pfs_reports_focus_maintenance_status_and_range_in_three_states"
+      },
       "note": "focus stabilisation; disabled across turret and path changes (2.1 interlock 3)"
     },
     {
-      "id": "dia_lamp"
+      "id": "dia_lamp",
+      "mm_label": {
+        "label": "DiaLamp",
+        "entry_ref": "dia_lamp_reports_state_and_intensity",
+        "config_sha256": "fad5873de9f994c123090ee56feecb1a33c5bb77f31f3afed1eec7522d1c4f89"
+      }
     },
     {
       "id": "lapp_branch",
@@ -159,6 +172,10 @@ From the device table, kb/staging/devices.v0.json, channel, verbatim:
     },
     {
       "id": "z_drive",
+      "mm_label": {
+        "label": "ZDrive",
+        "entry_ref": "mm_label_zdrive_is_the_focus_axis"
+      },
       "read_back": true,
       "source": "prior_run:agentic-microscope@34a432c",
       "grade": "E3",
@@ -419,4 +436,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.

@@ -11,6 +11,10 @@ From the device table, kb/staging/devices.v0.json, element of channel stand_ti2e
 ```json
 {
   "id": "pfs",
+  "mm_label": {
+    "label": "PFS",
+    "entry_ref": "pfs_reports_focus_maintenance_status_and_range_in_three_states"
+  },
   "note": "focus stabilisation; disabled across turret and path changes (2.1 interlock 3)"
 }
 ```
@@ -59,4 +63,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-37b1958fb73d. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.
