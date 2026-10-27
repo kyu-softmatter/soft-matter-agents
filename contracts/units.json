@@ -355,6 +355,11 @@
       },
       "$comment": "An analogue-to-digital unit: the integer a camera reports for a pixel. Added 2026-10-05 for the focus search's camera ceiling, the full-scale count of one camera in one readout mode (plan.md 11-24, card 059). ITS OWN DIMENSION, D, as the note on `e` asked: ADU and electrons are both counts and differ by the camera's gain, which is not 1, so sharing N would let the registry convert one into the other silently. Nothing converts between D and N here. A crossing needs a gain, written as a number of its own with its own source."
     },
+    "permille": {
+      "si_factor": 0.001,
+      "dim": {},
+      "$comment": "One thousandth of full scale. Added 2026-10-27 for librarian card 062: the light engines take each line's intensity per mille (entry light_engine_line_intensity_is_per_mille), so a property's value of 10 is one per cent. Card 062 forbids `1` as a fraction-of-scale property's unit, because `1` cannot tell a fraction from a per-mille count, and a read-back cannot catch the wrong scale since the device repeats it exactly. With this symbol the factor from `1` is exact: a fraction of 0.01 is 10 permille. It names a scale and no physical quantity, so a power in milliwatts into it still needs a calibration entry, never this factor. ASCII, so a filename, a log line and a Micro-Manager property dump all spell it one way."
+    },
     "1/s": {
       "si_factor": 1.0,
       "dim": {
@@ -452,7 +457,8 @@
       "ADU"
     ],
     "dimensionless": [
-      "1"
+      "1",
+      "permille"
     ],
     "budget": [
       "core_h",
