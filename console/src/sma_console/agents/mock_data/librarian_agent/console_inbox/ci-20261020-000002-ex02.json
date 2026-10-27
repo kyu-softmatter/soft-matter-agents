@@ -1,0 +1,34 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261020-000002-ex02",
+  "words": "The tracer's radius as the label gave it.",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": true,
+      "agents": [
+        "microscope",
+        "simulation",
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-20T09:51:00Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [],
+  "request": {
+    "kind": "enter_document",
+    "source_kind": "operator_recall",
+    "read_by": "member-1",
+    "fact_wanted": "The tracer's radius as the label gave it.",
+    "value": {
+      "value": 0.5,
+      "unit": "example_unit"
+    }
+  }
+}

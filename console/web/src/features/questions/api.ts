@@ -32,10 +32,12 @@ export type AskIn = Schemas["QuestionRequestIn"];
 export type QuestionRequest = Schemas["QuestionRequestOut"];
 /** What was written into an agent's inbox: `contracts/schemas/console_inbox_item.schema.json`'s `console_question`, exactly. */
 export type ConsoleQuestion = Schemas["ConsoleQuestionOut"];
+/** What was written into the librarian's inbox: `contracts/schemas/console_store_request.schema.json`, exactly. */
+export type LibrarianRequest = Schemas["StoreRequestOut"];
 /** What the question POST answers, told apart by `artifact`. */
-export type AskResult = ConsoleQuestion | QuestionRequest;
+export type AskResult = ConsoleQuestion | LibrarianRequest | QuestionRequest;
 export type RequestCard = Schemas["RequestCardOut"];
-/** An item delivered to the microscope's or the simulation's inbox, with what became of it. */
+/** An item delivered to an agent's inbox (or a question to the librarian), with what became of it. */
 export type ItemCard = Schemas["ItemCardOut"];
 export type QuestionProgress = Schemas["QuestionProgressOut"];
 export type QuestionCards = Schemas["QuestionCardsOut"];
@@ -77,14 +79,13 @@ export const ADDRESSEES: readonly { value: Addressee; label: string }[] = [
 /** The state a request written in the console carries: it went to no agent. */
 export const NOT_DELIVERED = "written in the console · not delivered";
 
-/** What the form says after Send, in the person's words. A question to an agent is told its id; the rest are plainly not sent. */
+/** What the form says after Send, in the person's words. A question to an agent is told its id; one to the librarian is sent; one left to the agents is plainly not delivered. */
 export function afterSend(result: AskResult, to: Addressee): string {
   if (result.artifact === "console_question") {
     return `Sent to the ${to === "simulation" ? "simulation" : "microscope"} as question ${result.question_id}.`;
   }
-  return to === "librarian"
-    ? "Not delivered: the console does not send to the librarian yet."
-    : "Not delivered: no agent takes a question left to the agents yet.";
+  if (result.artifact === "console_store_request") return "Sent to the librarian.";
+  return "Not delivered: no agent takes a question left to the agents yet.";
 }
 
 const seg = encodeURIComponent;
@@ -128,8 +129,8 @@ export async function fetchPermissions(client: Client, ops: readonly string[]): 
 
 /**
  * `POST /api/console/question-requests`: a question to the microscope or the simulation is written into
- * that agent's inbox; one to the librarian or left to the agents is a request in the console's own
- * folder, not delivered. Goes through the shell's `client.post`: only a 403 with code `remote_view`
+ * that agent's inbox, one to the librarian into the librarian's inbox as an `ask` request; one left to
+ * the agents is a request in the console's own folder, not delivered. Goes through the shell's `client.post`: only a 403 with code `remote_view`
  * switches the app to read-only; any other refusal (a viewer, a store that cannot take it, an inbox
  * that is not there) is thrown with its reason and shown next to the form.
  */

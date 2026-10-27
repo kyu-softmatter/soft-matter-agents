@@ -104,10 +104,19 @@ describe("the field", () => {
     expect(status.textContent).toBe("Sent to the simulation as question sim-20261026-c001.");
   });
 
-  it("says plainly that a question to the librarian was not delivered", async () => {
-    const { status } = await sendTo("Which entry holds the pixel size?", "librarian");
-    expect(status.textContent).toBe("Not delivered: the console does not send to the librarian yet.");
+  it("says 'Sent to the librarian.' when the librarian was asked, and the card has no question id", async () => {
+    const { t, status } = await sendTo("Which entry holds the pixel size?", "librarian");
+    expect(status.textContent).toBe("Sent to the librarian.");
     expect(field().value).toBe("");
+    expect(t.submitted[0]).toEqual({ words: "Which entry holds the pixel size?", addressed_to: "librarian" });
+    await waitFor(() => expect(t.gets("/api/console/question-cards")).toBe(2));
+    const cards = screen.getByRole("region", { name: "Question cards" });
+    const card = cards.querySelector("article[data-kind='item']") as HTMLElement;
+    expect(card.querySelector(".ask-words")?.textContent).toBe("Which entry holds the pixel size?");
+    expect(card.textContent).toContain("The librarian");
+    expect(card.textContent).toContain("delivered · not answered yet");
+    expect(card.textContent).not.toMatch(/null|undefined|· $/);
+    expect(card.textContent).not.toContain("waits for the person's signature");
   });
 
   it("says plainly that a question left to the agents was not delivered", async () => {
@@ -413,5 +422,40 @@ describe("the cards below the field", () => {
     expect(t.gets("/api/console/question-cards")).toBe(1);
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
     await waitFor(() => expect(t.gets("/api/console/question-cards")).toBe(2));
+  });
+});
+
+describe("a question delivered to the librarian", () => {
+  const answered = {
+    answer_id: "ca-20261027-101500-ab12", item_id: "ci-20261027-101000-cd34", answered_by: "librarian",
+    answered_at: "2026-10-27T10:15:00Z", outcome: "answered", reason: "The store holds it.", kb_version: "kbv-0123456789ab",
+    answer: "The pixel size is 6.5 um.", entries_cited: [], numbers: [], gaps: [], entries_marked: [], other_side: [],
+    quantity_name: null, entries_made: [], example: false,
+  };
+  const item = {
+    item_id: "ci-20261027-101000-cd34", question_id: null, agent: "librarian" as const, words: "What is the pixel size?",
+    login: "otto", asked_at: "2026-10-27T10:10:00Z", state: "Answered", runs_wait_for_signature: false,
+    latest_answer: answered,
+  };
+
+  it("shows its latest answer as the Library shows one, and no question id or signature note", async () => {
+    show({ ...FAKE_DATA, cards: { requests: [], items: [item], questions: [] } });
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    const card = cards.querySelector("article[data-kind='item']") as HTMLElement;
+    expect(card.textContent).toContain("otto");
+    expect(card.textContent).toContain("The librarian");
+    expect(card.textContent).not.toContain("null");
+    expect(card.textContent).not.toContain("waits for the person's signature");
+    const latest = within(card).getByRole("list", { name: "Latest answer" });
+    expect(within(latest).getByText("Answered")).toBeTruthy();
+    expect(within(latest).getByText("The pixel size is 6.5 um.")).toBeTruthy();
+    expect(within(card).queryByText("example data")).toBeNull();
+  });
+
+  it("shows no answer list while there is no answer", async () => {
+    show({ ...FAKE_DATA, cards: { requests: [], items: [{ ...item, latest_answer: null, state: "delivered · not answered yet" }], questions: [] } });
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    expect(within(cards).getByText("delivered · not answered yet")).toBeTruthy();
+    expect(within(cards).queryByRole("list", { name: "Latest answer" })).toBeNull();
   });
 });

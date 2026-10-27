@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100002-ex02",
   "item_id": "ci-20261020-000002-ex02",
-  "request_sha256": "6c9b19cb967b563d9d96b341ad4a89a74444c6f18e9530f4623817fe30d6400c",
+  "request_sha256": "1123ce262f15e55f8bfcabe694bb8e4609c93c8df9e1964cd0039371b09858c6",
   "answered_at": "2026-10-20T10:02:00Z",
   "outcome": "waiting_for_a_name",
   "reason": "The quantity name is not registered yet. The fact is entered once the name is registered, and a second answer follows.",

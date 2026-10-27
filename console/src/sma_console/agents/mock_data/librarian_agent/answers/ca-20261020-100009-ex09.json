@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100009-ex09",
   "item_id": "ci-20261020-000009-ex09",
-  "request_sha256": "11e057cd5eee0c05cf6b1af0addc11e5817244e47c2f77e940db3633038f6a5b",
+  "request_sha256": "f1512d14aa28f85d31a97113c5514e9b853dd194ab89b3c3bd3edc659d374b61",
   "answered_at": "2026-10-20T10:09:00Z",
   "outcome": "not_in_the_store",
   "reason": "The store holds nothing that answers this question.",

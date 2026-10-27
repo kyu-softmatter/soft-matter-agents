@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100008-ex08",
   "item_id": "ci-20261020-000008-ex08",
-  "request_sha256": "91fe460b16dbd97de473101a6ae09b3c3103579faf39cc87062a90b7e15fd6ae",
+  "request_sha256": "50cf726e8b85535fd7c309816a59184892d4ce8a2a111ff35904233a817ebadb",
   "answered_at": "2026-10-20T10:08:00Z",
   "outcome": "answered",
   "reason": "The store holds one value that answers the question; it was measured in air and your question named water.",

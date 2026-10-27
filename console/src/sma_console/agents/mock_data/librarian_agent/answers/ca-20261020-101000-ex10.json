@@ -1,0 +1,16 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answered_by": "seat:librarian-example",
+  "answer_id": "ca-20261020-101000-ex10",
+  "item_id": "ci-20261020-000002-ex02",
+  "request_sha256": "1123ce262f15e55f8bfcabe694bb8e4609c93c8df9e1964cd0039371b09858c6",
+  "answered_at": "2026-10-20T10:10:00Z",
+  "outcome": "entered",
+  "reason": "The name is registered now, so the value was entered from your reading, at the grade its source kind carries.",
+  "kb_version": "kbv-37b1958fb73d",
+  "entries_made": [
+    "example_entry_made_later"
+  ],
+  "follows": "librarian_agent/answers/ca-20261020-100002-ex02.json"
+}

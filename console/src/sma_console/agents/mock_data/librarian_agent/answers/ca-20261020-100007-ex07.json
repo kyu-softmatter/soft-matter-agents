@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100007-ex07",
   "item_id": "ci-20261020-000007-ex07",
-  "request_sha256": "6328b281d0f4517ed52763969a06d27f04a338971d23a088fbd907807d879431",
+  "request_sha256": "2a74cbf5d8b76fe3d3a955baacc126c65f7bd063e61fba6c92d6487ad3f3f2b4",
   "answered_at": "2026-10-20T10:07:00Z",
   "outcome": "no_entry_of_that_name",
   "reason": "No entry has that name in the store."

@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100003-ex03",
   "item_id": "ci-20261020-000003-ex03",
-  "request_sha256": "490f6f1d8571696c5a8e174e1bb19c8dad33d6bd74fba894641a14e0887febb6",
+  "request_sha256": "cd105571ec3fc295eb9098c106f9ad22b07745a367f4e114f9cb13b469b348da",
   "answered_at": "2026-10-20T10:03:00Z",
   "outcome": "refuted",
   "reason": "The reading you gave contradicts the entry, so the entry is marked refuted and the reading is entered beside it.",

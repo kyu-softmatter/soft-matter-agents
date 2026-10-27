@@ -3,10 +3,10 @@
 A request is `contracts/schemas/question_request.schema.json`: the asker's words exactly as typed,
 the asking login and that login's console role, the time (UTC) and the agent addressed. It is
 written into the console's own folder, `console/requests/questions/<id>.json`. **A request in that
-folder is not delivered**: the agents' inbox is open since 2026-10-26, and a question to the
-microscope or the simulation goes there as an item (`inbox_items.py`, card 019), so what this module
-writes is what the console keeps for the librarian and for "let the agents decide", neither of which
-has an inbox the console may write into yet. This module writes a file in one place and reads that
+folder is not delivered**: the agents' inboxes are open since 2026-10-26, and a question to the
+microscope or the simulation goes there as an item (`inbox_items.py`, card 019), and one to the librarian
+as an `ask` request (`store_requests.py`, card 020), so what this module writes is what the console keeps
+for "let the agents decide", which no agent has an inbox for. This module writes a file in one place and reads that
 place back for the cards and for autocomplete, and does nothing else.
 
 * The id is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<four random lowercase letters or digits>`, and the file

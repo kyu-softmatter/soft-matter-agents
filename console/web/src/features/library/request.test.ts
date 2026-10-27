@@ -2,26 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import fixture from "./shapes.fixture.json";
 import {
-  attachedName,
   buildAdd,
   buildAsk,
   buildOffer,
   buildWithdraw,
+  cleanName,
+  documentOf,
   EMPTY_ADD,
   EMPTY_WITHDRAW,
-  NOT_SENT,
-  previewItemId,
-  sendOutcome,
+  SENT,
 } from "./request";
 
 /** The request forms' own check (console card 016): the shapes the fixture holds are what the builders make. */
 
-const ID = fixture.item_id;
-
 function built(c: { form: string; input: unknown }) {
   const f = c.input as never;
-  if (c.form === "add") return buildAdd(f, ID);
-  if (c.form === "withdraw") return buildWithdraw(f, ID);
+  if (c.form === "add") return buildAdd(f);
+  if (c.form === "withdraw") return buildWithdraw(f);
   if (c.form === "offer") return buildOffer(f);
   return buildAsk(f);
 }
@@ -31,36 +28,55 @@ describe("each form builds the shape the librarian's request schema has", () => 
     it(c.name, () => {
       const got = built(c);
       expect(got.ok).toBe(true);
-      if (got.ok) expect(got.request).toEqual(c.request);
+      if (got.ok) {
+        expect(got.request).toEqual(c.request);
+        expect(got.words).toBe(c.words);
+      }
     });
   }
+
+  it("leaves the field that holds the words out of the request, and names a file by its plain name", () => {
+    for (const c of fixture.cases) {
+      const got = built(c);
+      if (!got.ok) throw new Error(c.name);
+      for (const field of ["fact_wanted", "reason", "fact_in_words", "question"]) expect(got.request).not.toHaveProperty(field);
+      const name = documentOf(got.request);
+      expect(name).toBe("file" in c ? c.file : null);
+      if (name !== null) expect(name).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/);
+    }
+  });
+
+  it("hands the words exactly as typed, not trimmed", () => {
+    const got = buildAsk({ question: "  what is the lamp power?\n", conditions: "" });
+    expect(got.ok && got.words).toBe("  what is the lamp power?\n");
+  });
 });
 
 describe("the check", () => {
   it("names what is missing instead of guessing", () => {
-    const got = buildAdd(EMPTY_ADD, ID);
+    const got = buildAdd(EMPTY_ADD);
     expect(got.ok).toBe(false);
     if (!got.ok) expect(got.problems.length).toBeGreaterThanOrEqual(3);
   });
 
   it("wants a unit with every value and a number for it", () => {
     const base = { ...EMPTY_ADD, sourceKind: "operator_recall" as const, readBy: "k", factWanted: "x" };
-    expect(buildAdd({ ...base, value: "1.5", unit: "" }, ID).ok).toBe(false);
-    expect(buildAdd({ ...base, value: "abc", unit: "mm" }, ID).ok).toBe(false);
-    expect(buildAdd({ ...base, value: "1.5", unit: "mm" }, ID).ok).toBe(true);
+    expect(buildAdd({ ...base, value: "1.5", unit: "" }).ok).toBe(false);
+    expect(buildAdd({ ...base, value: "abc", unit: "mm" }).ok).toBe(false);
+    expect(buildAdd({ ...base, value: "1.5", unit: "mm" }).ok).toBe(true);
   });
 
   it("gives a remembered value no file", () => {
     const base = { ...EMPTY_ADD, sourceKind: "operator_recall" as const, readBy: "k", factWanted: "x", value: "1.5", unit: "mm" };
-    expect(buildAdd(base, ID).ok).toBe(true);
-    expect(buildAdd({ ...base, fileName: "note.pdf" }, ID).ok).toBe(false);
+    expect(buildAdd(base).ok).toBe(true);
+    expect(buildAdd({ ...base, fileName: "note.pdf" }).ok).toBe(false);
   });
 
   it("wants an entry name as the store spells one", () => {
     const base = { ...EMPTY_WITHDRAW, entryId: "dia_lamp_power", reason: "wrong" };
-    expect(buildWithdraw(base, ID).ok).toBe(true);
+    expect(buildWithdraw(base).ok).toBe(true);
     for (const bad of ["Bad Name", "1abc", "dia-lamp", "Dia_lamp"]) {
-      expect(buildWithdraw({ ...base, entryId: bad }, ID).ok, bad).toBe(false);
+      expect(buildWithdraw({ ...base, entryId: bad }).ok, bad).toBe(false);
     }
   });
 
@@ -69,23 +85,23 @@ describe("the check", () => {
     expect(buildOffer({ resultCard: "../x/questions/q1/result_a.json", fact: "x" }).ok).toBe(false);
   });
 
-  it("makes an attached file's name from the item id and a cleaned name", () => {
-    expect(attachedName(ID, "ZYLA datasheet.pdf")).toBe(`${ID}--ZYLA_datasheet.pdf`);
-    expect(attachedName(ID, "...")).toBeNull();
+  it("cleans an attached file's name to what the inbox keeps", () => {
+    expect(cleanName("ZYLA datasheet.pdf")).toBe("ZYLA_datasheet.pdf");
+    expect(cleanName("  ..hidden.pdf")).toBe("hidden.pdf");
+    expect(cleanName("a".repeat(200))).toHaveLength(128);
+    expect(cleanName("...")).toBeNull();
   });
 
-  it("makes an item id of the inbox's shape for the check only", () => {
-    expect(previewItemId(new Date(Date.UTC(2026, 9, 26, 10, 15, 0)), () => 0)).toBe("ci-20261026-101500-aaaa");
+  it("finds the one file a request names, at the top or in its evidence", () => {
+    expect(documentOf({ kind: "enter_document", document: "a.pdf" })).toBe("a.pdf");
+    expect(documentOf({ kind: "withdraw_value", evidence: { kind: "document", document: "b.pdf" } })).toBe("b.pdf");
+    expect(documentOf({ kind: "ask" })).toBeNull();
   });
-});
 
-describe("Send", () => {
-  it("never sends: a good form and a bad one both answer not sent", () => {
-    const good = sendOutcome(buildAsk({ question: "what is the lamp power?", conditions: "" }));
-    expect(good).toEqual({ sent: false, message: NOT_SENT, problems: [] });
-    expect(NOT_SENT).toBe("Not sent: the console does not send to the librarian yet.");
-    const bad = sendOutcome(buildAsk({ question: "", conditions: "" }));
-    expect(bad.sent).toBe(false);
-    expect(bad.problems.length).toBe(1);
+  it("reports a problem with an empty question, and a sent form says so in the librarian's words", () => {
+    const bad = buildAsk({ question: "", conditions: "" });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(bad.problems.length).toBe(1);
+    expect(SENT).toBe("Sent to the librarian.");
   });
 });

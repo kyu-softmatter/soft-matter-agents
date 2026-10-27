@@ -773,8 +773,9 @@ export interface paths {
         /**
          * Write Question Request
          * @description A question to the microscope or the simulation is written as an item into that agent's
-         *     inbox (`artifact` is `console_question`); one to the librarian or "let the agents decide" is
-         *     written as a request into the console's own folder and is not delivered (`question_request`).
+         *     inbox (`artifact` is `console_question`); one to the librarian is written into the librarian's inbox as
+         *     an `ask` request with no conditions (`console_store_request`); "let the agents decide" is written as a
+         *     request into the console's own folder and is not delivered (`question_request`).
          */
         post: operations["write_question_request_api_console_question_requests_post"];
         delete?: never;
@@ -813,10 +814,10 @@ export interface paths {
         };
         /**
          * Question Cards
-         * @description The cards below the question field: the items in the two inboxes, newest first, each with what
+         * @description The cards below the question field: the items in the three inboxes, newest first, each with what
          *     the agent's answers say became of it; requests written in the console's own folder, newest first
          *     (each "written in the console · not delivered"); and the agents' questions on disk with their five
-         *     steps. Reads only.
+         *     steps. The items include the librarian's, with the latest answer each has. Reads only.
          */
         get: operations["question_cards_api_console_question_cards_get"];
         put?: never;
@@ -1108,11 +1109,38 @@ export interface paths {
         };
         /**
          * Answers
-         * @description The librarian's answers: example answers under the mock store, none from a real tree yet.
+         * @description The librarian's answers that can be read: the sample's examples under the mock store, else those in
+         *     `librarian_agent/answers/` that name a request in the inbox and match it.
          */
         get: operations["answers_api_library_answers_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Requests List
+         * @description The requests in the librarian's inbox, newest first, each with its answers and a state in words; and the
+         *     answers on disk that name no request there. Reads only: a file attached to a request is shown as a name.
+         */
+        get: operations["requests_list_api_library_requests_get"];
+        put?: never;
+        /**
+         * Send Request
+         * @description Write one request into the librarian's inbox, with the file it names beside it, and return the item
+         *     written. The form's words are sent once, as `words`; the server puts them in the request's own field.
+         */
+        post: operations["send_request_api_library_requests_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1439,6 +1467,13 @@ export interface components {
              */
             data_stage: "prompt_only" | "text" | "images";
         };
+        /** AttachmentOut */
+        AttachmentOut: {
+            /** File */
+            file: string;
+            /** Sha256 */
+            sha256: string;
+        };
         /** AuraState */
         AuraState: {
             /**
@@ -1725,6 +1760,16 @@ export interface components {
             value: string;
         };
         /**
+         * FileIn
+         * @description The one file of a request, inside the JSON body.
+         */
+        FileIn: {
+            /** Name */
+            name: string;
+            /** Content Base64 */
+            content_base64: string;
+        };
+        /**
          * FrameOut
          * @description The frame both viewers draw (web/src/features/simulation/frame.ts FrameJson).
          */
@@ -1919,19 +1964,20 @@ export interface components {
         };
         /**
          * ItemCardOut
-         * @description An item delivered to the microscope's or the simulation's inbox, as a card, with what its
-         *     `console_answer` files say became of it.
+         * @description An item delivered to an agent's inbox, as a card, with what its answer files say became of it. A
+         *     microscope or simulation question has a `question_id` and waits for a signature; a question to the
+         *     librarian (an `ask` request) has neither, and its latest readable answer is carried as the Library shows it.
          */
         ItemCardOut: {
             /** Item Id */
             item_id: string;
             /** Question Id */
-            question_id: string;
+            question_id: string | null;
             /**
              * Agent
              * @enum {string}
              */
-            agent: "microscope" | "simulation";
+            agent: "microscope" | "simulation" | "librarian";
             /** Words */
             words: string;
             /** Login */
@@ -1942,6 +1988,7 @@ export interface components {
             state: string;
             /** Runs Wait For Signature */
             runs_wait_for_signature: boolean;
+            latest_answer?: components["schemas"]["AnswerOut"] | null;
         };
         /** LampState */
         LampState: {
@@ -2812,8 +2859,8 @@ export interface components {
         };
         /**
          * RequestCardOut
-         * @description A request written in the console's own folder, as a card. It is not delivered: the librarian
-         *     and "let the agents decide" have no inbox the console writes into.
+         * @description A request written in the console's own folder, as a card. It is not delivered: "let the agents
+         *     decide" has no inbox the console writes into.
          */
         RequestCardOut: {
             /** Id */
@@ -2833,6 +2880,58 @@ export interface components {
             state: string;
             /** Runs Wait For Signature */
             runs_wait_for_signature: boolean;
+        };
+        /**
+         * RequestIn
+         * @description The words as typed, the request as the form builds it (without the field that holds the words), and the
+         *     one file it may carry. Nothing else is accepted.
+         */
+        RequestIn: {
+            /** Words */
+            words: string;
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+            file?: components["schemas"]["FileIn"] | null;
+        };
+        /** RequestViewOut */
+        RequestViewOut: {
+            /** Item Id */
+            item_id: string;
+            /** Kind */
+            kind: string;
+            /** Kind Words */
+            kind_words: string;
+            /** Words */
+            words: string;
+            /** Login */
+            login: string;
+            /** Asked At */
+            asked_at: string;
+            /** File */
+            file: string | null;
+            /** Example */
+            example: boolean;
+            /** State */
+            state: string;
+            /** Answers */
+            answers: components["schemas"]["AnswerOut"][];
+            /** Unreadable */
+            unreadable: components["schemas"]["UnreadableOut"][];
+        };
+        /** RequestsOut */
+        RequestsOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Requests */
+            requests: components["schemas"]["RequestViewOut"][];
+            /** Orphans */
+            orphans: components["schemas"]["UnreadableOut"][];
+            /** Message */
+            message: string | null;
         };
         /** RoleIn */
         RoleIn: {
@@ -3448,6 +3547,42 @@ export interface components {
             /** Writable */
             writable: boolean;
         };
+        /**
+         * StoreRequestOut
+         * @description `contracts/schemas/console_store_request.schema.json`, exactly: the item that was written.
+         */
+        StoreRequestOut: {
+            /**
+             * Artifact
+             * @constant
+             */
+            artifact: "console_store_request";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "0.1";
+            /** Item Id */
+            item_id: string;
+            /** Words */
+            words: string;
+            /** Asked By */
+            asked_by: {
+                [key: string]: unknown;
+            };
+            /** Asked At */
+            asked_at: string;
+            /** Asker Mark */
+            asker_mark: {
+                [key: string]: unknown;
+            };
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+        };
         /** SubjectOut */
         SubjectOut: {
             /** Id */
@@ -3530,6 +3665,13 @@ export interface components {
         UnlockIn: {
             /** Password */
             password: string;
+        };
+        /** UnreadableOut */
+        UnreadableOut: {
+            /** File */
+            file: string;
+            /** Reason */
+            reason: string;
         };
         /** UnusedNumberOut */
         UnusedNumberOut: {
@@ -5465,7 +5607,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConsoleQuestionOut"] | components["schemas"]["QuestionRequestOut"];
+                    "application/json": components["schemas"]["ConsoleQuestionOut"] | components["schemas"]["StoreRequestOut"] | components["schemas"]["QuestionRequestOut"];
                 };
             };
             /** @description remote view or role (D16) */
@@ -5942,6 +6084,71 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AnswersOut"];
                 };
+            };
+        };
+    };
+    requests_list_api_library_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestsOut"];
+                };
+            };
+        };
+    };
+    send_request_api_library_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequestOut"];
+                };
+            };
+            /** @description remote view or role (D16) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description the librarian's inbox is not there, or the id was taken five times */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description words, request or file that cannot be sent */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

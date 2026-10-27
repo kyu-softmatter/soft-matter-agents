@@ -78,6 +78,14 @@ class InboxFull(InboxError):
                          "day can hold. Ask again after midnight UTC.")
 
 
+class InboxUnreadable(InboxError):
+    code, status = "inbox_unreadable", 409
+
+    def __init__(self) -> None:
+        super().__init__("An item in this agent's inbox cannot be read, so the next question number cannot be "
+                         "told. Nothing was sent.")
+
+
 class ItemIdTaken(InboxError):
     code, status = "item_exists", 409
 
@@ -107,9 +115,10 @@ def build_item(*, agent: str, words: str, login: str, role: str, now: datetime, 
 
 
 def _highest_number(inbox: Path, agent: str, when: datetime) -> int:
-    """The highest `cNNN` the agent's inbox carries for `when`'s UTC date. A file is read for its
-    `question_id`; one that cannot be read is searched for the text of one, so a damaged item still
-    holds its number."""
+    """The highest `cNNN` the agent's inbox carries for `when`'s UTC date. A file named like an item is
+    read for its `question_id`; one that cannot be opened, decoded or parsed, or whose `question_id` cannot
+    be read, refuses the delivery (`InboxUnreadable`), because the number it holds cannot be told. Any other
+    `.json` file is searched for the text of a question id, so a stray file still holds a number."""
     prefix, day = INBOX_AGENTS[agent], when.strftime("%Y%m%d")
     wanted = re.compile(rf"{prefix}-{day}-c([0-9]{{3}})")
     best = 0
@@ -118,17 +127,26 @@ def _highest_number(inbox: Path, agent: str, when: datetime) -> int:
     except OSError as e:
         raise InboxError(f"the inbox could not be read: {e}") from e
     for path in names:
+        is_item = ITEM_ID.fullmatch(path.stem) is not None
         try:
-            text = path.read_text(encoding="utf-8-sig")
+            text = path.read_bytes().decode("utf-8-sig")
         except (OSError, ValueError):
+            if is_item:
+                raise InboxUnreadable() from None
             continue
         found: list[str] = []
         try:
             doc = json.loads(text)
-            qid = doc.get("question_id") if isinstance(doc, dict) else None
-            found = [qid] if isinstance(qid, str) else []
         except ValueError:
+            if is_item:
+                raise InboxUnreadable() from None
             found = [m.group(0) for m in wanted.finditer(text)]
+        else:
+            qid = doc.get("question_id") if isinstance(doc, dict) else None
+            if isinstance(qid, str):
+                found = [qid]
+            elif is_item:
+                raise InboxUnreadable()
         for qid in found:
             m = wanted.fullmatch(qid)
             if m:
@@ -228,8 +246,9 @@ def items_newest_first(found: Iterable[tuple[str, dict[str, Any]]]) -> list[tupl
 
 
 def _read_answers(folders: Iterable[Path], item: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
-    """The answers on disk that name `item`, and whether any file that names it cannot be read.
-    A file that cannot be parsed is attributed to the item only when its text holds the item's id."""
+    """The answers on disk that name `item`, and whether any file that names it cannot be read. Files are
+    read as bytes and decoded as UTF-8 (a BOM allowed). A file that does not decode or parse is attributed
+    to the item when the item's id occurs in its bytes."""
     iid = item["item_id"]
     named: list[dict[str, Any]] = []
     bad = False
@@ -238,13 +257,13 @@ def _read_answers(folders: Iterable[Path], item: dict[str, Any]) -> tuple[list[d
             continue
         for path in sorted(folder.glob("*.json")):
             try:
-                text = path.read_text(encoding="utf-8-sig")
-            except (OSError, ValueError):
+                raw = path.read_bytes()
+            except OSError:
                 continue
             try:
-                doc = json.loads(text)
-            except ValueError:
-                bad = bad or iid in text
+                doc = json.loads(raw.decode("utf-8-sig"))
+            except ValueError:  # includes UnicodeDecodeError
+                bad = bad or iid.encode("ascii") in raw
                 continue
             if isinstance(doc, dict) and doc.get("item_id") == iid:
                 named.append(doc)

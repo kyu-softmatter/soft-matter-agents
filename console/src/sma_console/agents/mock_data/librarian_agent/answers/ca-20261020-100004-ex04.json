@@ -4,7 +4,7 @@
   "answered_by": "seat:librarian-example",
   "answer_id": "ca-20261020-100004-ex04",
   "item_id": "ci-20261020-000004-ex04",
-  "request_sha256": "e233383654e134906610ad54248f2f8a662d5357e57a0d47651c2d54ff0c8296",
+  "request_sha256": "1eb518fa475c13c0de48572843ada672d9465f6ae87c1a9b598cbf9e52247077",
   "answered_at": "2026-10-20T10:04:00Z",
   "outcome": "in_conflict",
   "reason": "A document and a reading disagree and neither refutes the other, so both stay and are marked in conflict.",

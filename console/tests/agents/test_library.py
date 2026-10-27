@@ -2,7 +2,8 @@
 
 The reader reads `librarian_agent/kb/wiki/<page>.md`, the map files beside them, and the one field
 `kb_version` of `librarian_agent/kb/index.json`. It lists no folder, so what else lies under
-`librarian_agent/` (entries, the query log, answers, exports) is never opened, named or counted.
+`librarian_agent/` (entries, the query log, exports) is never opened, named or counted. The console reads
+two more folders of it, for the requests and their answers (card 020); a test below says which files.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from sma_console.agents import NotFoundError
+from sma_console.agents import NotFoundError, SmaFiles, store_requests
 from sma_console.agents.library import FOOTER, Library
 from sma_console.agents.mock_store import MOCK_DATA
 
@@ -318,24 +319,34 @@ class Recorder:
         return out
 
 
-def test_the_only_files_read_under_the_librarian_folder_are_generated_wiki_files_and_the_version(
+ITEM = "console_inbox/ci-20261020-100001-aaaa.json"
+ANSWER = "answers/ca-20261020-100001-aaaa.json"
+
+
+def test_the_only_files_read_under_the_librarian_folder_are_the_wiki_files_the_version_and_the_requests(
         tmp_path, monkeypatch):
     root = make(tmp_path, extra={
-        "answers/ca-1.json": "{}", "queries/log.jsonl": "{}", "entries/x.json": "{}", "kb/exports/e.json": "{}",
-        "kb/staging/devices.v0.json": "{}", "console_inbox/ci-1.json": "{}", "kb/wiki/notes.txt": "x",
-        "kb/wiki/evidence.md": "# Evidence\n\n---\n\n" + footer() + "\n"})
+        ANSWER: "{}", "answers/notes.json": "{}", "queries/log.jsonl": "{}", "entries/x.json": "{}",
+        "kb/exports/e.json": "{}", "kb/staging/devices.v0.json": "{}", ITEM: "{}",
+        "console_inbox/ci-20261020-100001-aaaa--sheet.pdf": "x", "console_inbox/notes.txt": "x",
+        "kb/wiki/notes.txt": "x", "kb/wiki/evidence.md": "# Evidence\n\n---\n\n" + footer() + "\n"})
     seen = Recorder(monkeypatch)
     lib = Library(root)
     lib.index()
     lib.page("index")
     lib.page("device_dia_lamp")
     lib.map()
+    files = SmaFiles(root, source="soft-matter-agents")
+    files.library_answers()
+    store_requests.read_items(files.inbox_folders("librarian"))
     read = seen.under(root)
     assert read, "the spy saw no read at all"
-    allowed = {"kb/index.json"} | {f"kb/wiki/{n}" for n in ("index.md", "device_dia_lamp.md", "evidence.md",
-                                                           "map.md", "map.json")}
+    allowed = {"kb/index.json", ITEM, ANSWER} | {f"kb/wiki/{n}" for n in ("index.md", "device_dia_lamp.md", "evidence.md",
+                                                                          "map.md", "map.json")}
     assert read <= allowed, sorted(read - allowed)
-    assert not [l for l in seen.listed if "librarian_agent" in l.replace("\\", "/")], seen.listed
+    assert {ITEM, ANSWER} <= read
+    listed = {l.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1] for l in seen.listed if "librarian_agent" in l.replace("\\", "/")}
+    assert listed <= {"console_inbox", "answers"}, seen.listed
 
 
 def test_the_version_is_the_only_field_taken_from_the_index(tmp_path):

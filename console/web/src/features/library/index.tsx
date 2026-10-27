@@ -1,20 +1,21 @@
 /**
- * Library area (console card 016): the librarian's generated pages grouped by the kind of data, the data map,
- * and four request forms with the answers list. It shows generated files and nothing else of the store, holds
- * no caller id and keeps nothing. Send writes and sends nothing: the librarian's inbox is open, but the console writes no item into it yet.
+ * Library area (console cards 016 and 020): the librarian's generated pages grouped by the kind of data, the data
+ * map, and four request forms with the list of requests. It shows generated files and the librarian's inbox and
+ * answers and nothing else of the store, holds no caller id and keeps nothing. Send delivers the request into
+ * the librarian's inbox; the list then shows it.
  * `rest` forms (after `#/library/`): "" | "pages" | "pages/<page>" | "map" | "ask" | "add" | "withdraw" | "offer".
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { useAreaPath } from "../../app/route";
 import { useScreenContext } from "../../app/screenContext";
 import "../questions/console.css";
 import "./library.css";
-import { Answers } from "./answers";
 import { DataMap } from "./dataMap";
 import { AddDocument, AskLibrarian, OfferResult, WithdrawValue } from "./forms";
 import { PagesIndex, WikiPage } from "./pages";
+import { Requests } from "./requests";
 
 type Tab = "pages" | "map" | "ask" | "add" | "withdraw" | "offer";
 
@@ -38,6 +39,8 @@ export default function LibraryScreen() {
   const { tab, page } = parseRoute(rest);
   const details = useMemo(() => ({ tab, page }), [tab, page]);
   useScreenContext(details);
+  const [sent, setSent] = useState(0);
+  const onSent = () => setSent((n) => n + 1);
   return (
     <div className="console lib">
       <h2>Library</h2>
@@ -51,11 +54,11 @@ export default function LibraryScreen() {
       </nav>
       {tab === "pages" && (page === null ? <PagesIndex /> : <WikiPage id={page} />)}
       {tab === "map" && <DataMap />}
-      {tab === "ask" && <AskLibrarian />}
-      {tab === "add" && <AddDocument />}
-      {tab === "withdraw" && <WithdrawValue />}
-      {tab === "offer" && <OfferResult />}
-      {(tab === "ask" || tab === "add" || tab === "withdraw" || tab === "offer") && <Answers />}
+      {tab === "ask" && <AskLibrarian onSent={onSent} />}
+      {tab === "add" && <AddDocument onSent={onSent} />}
+      {tab === "withdraw" && <WithdrawValue onSent={onSent} />}
+      {tab === "offer" && <OfferResult onSent={onSent} />}
+      {(tab === "ask" || tab === "add" || tab === "withdraw" || tab === "offer") && <Requests refresh={sent} />}
     </div>
   );
 }

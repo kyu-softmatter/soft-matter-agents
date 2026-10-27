@@ -452,8 +452,9 @@ class AgentStore(Protocol):
         ...
 
     def library_answers(self) -> list[dict[str, Any]]:
-        """The librarian's answers to show: the sample's example answers under the mock store and none from
-        a real tree, whatever its `librarian_agent/answers/` holds (the console reads none until the inbox-writer card)."""
+        """The librarian's answers that can be read: the readable ones of `librarian_agent/answers/` (the
+        sample's example answers under the mock store). An answer is readable when it passes the answer schema
+        and the request in the librarian's `console_inbox/` that it names is there and matches it (card 020)."""
         ...
 
     def approvals_target_present(self) -> bool:

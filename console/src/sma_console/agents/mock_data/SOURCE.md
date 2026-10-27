@@ -94,6 +94,8 @@ Written here, not copied:
 | Path | What |
 |---|---|
 | `librarian_agent/kb/index.json` | only `kb_version`, the version the four pages' footers carry; the real file is 185 KB and the console reads nothing else from it |
-| `librarian_agent/answers/ca-20261020-1000NN-exNN.json` (nine) | **example answers**, written to the shape of `contracts/schemas/store_answer.schema.json`, one for each of the seven outcomes of a request (entered, waiting for a name, refuted, in conflict, superseded, kept, no entry of that name), and one `answered` and one `not_in_the_store` answer to a question. The numbers in them are made up. No answer of the real librarian is copied |
+| `librarian_agent/answers/ca-20261020-1000NN-exNN.json` (nine) and `ca-20261020-101000-ex10.json` | **example answers**, written to the shape of `contracts/schemas/store_answer.schema.json`: one for each of the seven outcomes of a request (entered, waiting for a name, refuted, in conflict, superseded, kept, no entry of that name), one `answered` and one `not_in_the_store` answer to a question, and a tenth that `follows` the waiting-for-a-name one and enters its request. The numbers in them are made up. No answer of the real librarian is copied |
+| `librarian_agent/console_inbox/ci-20261020-0000NN-exNN.json` (nine) | **example requests**, one for each of the nine example answers that names it, of the kind its outcome fits, written to the shape of `contracts/schemas/console_store_request.schema.json` and with no attached file. Each answer's `request_sha256` is the sha256 of its request's bytes as written here (the folder is kept byte for byte by the root `.gitattributes`). They are examples and say so on screen |
 
-The librarian's real answers folder is never read by the console, from the mock store or the real one.
+The console reads the librarian's `console_inbox/` and `answers/` of a real tree (card 020), and these ten
+answers and nine requests are what it shows from the mock store. Nothing in either folder is real.

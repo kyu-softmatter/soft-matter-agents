@@ -9,6 +9,7 @@ import {
   type Card,
   type ConsoleQuestion,
   type InboxThread,
+  type LibrarianRequest,
   NOT_DELIVERED,
   PATHS,
   type Permissions,
@@ -102,6 +103,20 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
       items.unshift({
         item_id: sent.item_id, question_id: sent.question_id, agent: body.addressed_to, words: sent.words,
         login: FAKE_LOGIN, asked_at: sent.asked_at, state: "delivered · not answered yet", runs_wait_for_signature: true,
+      });
+      return { status: 201, body: sent };
+    }
+    if (body.addressed_to === "librarian") {
+      // delivered into the librarian's inbox as an `ask` request: an item card with no question id and no signature note
+      const n = submitted.filter((x) => x.addressed_to === "librarian").length;
+      const sent: LibrarianRequest = {
+        artifact: "console_store_request", schema_version: "0.1", item_id: `ci-20261027-12000${n}-abcd`,
+        words: body.words, asked_by, asked_at: "2026-10-27T12:00:00Z", asker_mark: { kind: "other_login" },
+        attachments: [], request: { kind: "ask" },
+      };
+      items.unshift({
+        item_id: sent.item_id, question_id: null, agent: "librarian", words: sent.words, login: FAKE_LOGIN,
+        asked_at: sent.asked_at, state: "delivered · not answered yet", runs_wait_for_signature: false, latest_answer: null,
       });
       return { status: 201, body: sent };
     }

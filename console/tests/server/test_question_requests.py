@@ -2,9 +2,8 @@
 
 A request is `contracts/schemas/question_request.schema.json`, read from the repository and never a
 copy. It is written into the console's own folder, `console/requests/questions/<id>.json`, and is not
-delivered: it is what the console keeps for the librarian and for "let the agents decide", neither of
-which has an inbox the console writes into. A question to the microscope or the simulation is an inbox
-item instead (`test_console_inbox.py`).
+delivered: it is what the console keeps for "let the agents decide", which has no inbox. A question to
+the microscope, the simulation or the librarian is an inbox item instead (`test_console_inbox.py`).
 """
 
 from __future__ import annotations
@@ -60,6 +59,8 @@ def sma_root(tmp_path):
     shutil.copytree(MOCK_DATA, root)
     shutil.rmtree(root / "console")  # the sample's practice requests: these tests start from none
     shutil.rmtree(root / "microscope_runtime")  # its runs and approvals: these tests write their own
+    shutil.rmtree(root / "librarian_agent" / "console_inbox")  # its example requests and their answers
+    shutil.rmtree(root / "librarian_agent" / "answers")
     (root / "contracts").mkdir()
     (root / "contracts" / "quantities.json").write_text(
         json.dumps({"quantities": [{"id": "pixel_size"}, {"id": "refractive_index"}]}), encoding="utf-8")
@@ -117,7 +118,7 @@ def test_the_words_are_byte_equal_to_what_was_typed(sma_client, sma_root):
 
 
 def test_no_key_outside_the_schema_and_no_claim_of_the_persons_own(sma_client, sma_root):
-    sma_client().post(POST, json={"words": "q", "addressed_to": "librarian"})
+    sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
     doc = json.loads(written(folder_of(sma_root))[0].read_text(encoding="utf-8"))
     spec = schema()
     assert set(doc) == set(spec["properties"])
@@ -128,16 +129,15 @@ def test_no_key_outside_the_schema_and_no_claim_of_the_persons_own(sma_client, s
 
 
 def test_a_request_with_an_extra_key_would_not_pass(sma_client, sma_root):
-    sma_client().post(POST, json={"words": "q", "addressed_to": "librarian"})
+    sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
     doc = json.loads(written(folder_of(sma_root))[0].read_text(encoding="utf-8"))
     assert problems({**doc, "persons_own": True})  # the checker would catch it
     assert problems({**doc, "asked_by": {**doc["asked_by"], "email": "a@b"}})
 
 
-@pytest.mark.parametrize("target", ["agents_decide", "librarian"])
-def test_the_ask_choice_is_addressed_to(sma_client, sma_root, target):
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": target})
-    assert r.status_code == 201 and r.json()["addressed_to"] == target
+def test_the_ask_choice_is_addressed_to(sma_client, sma_root):
+    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
+    assert r.status_code == 201 and r.json()["addressed_to"] == "agents_decide"
 
 
 @pytest.mark.parametrize("login", [OPERATOR, ADMIN])
@@ -346,7 +346,7 @@ def test_the_mock_store_without_a_folder_of_its_own_writes_into_a_temporary_one(
 
 def test_a_request_touches_no_agent_folder_inbox_or_bridge(sma_client, sma_root):
     before = tree_hash(sma_root)
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": "librarian"})
+    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
     assert r.status_code == 201
     after = tree_hash(sma_root)
     new = set(after) - set(before)
@@ -356,9 +356,9 @@ def test_a_request_touches_no_agent_folder_inbox_or_bridge(sma_client, sma_root)
 
 
 def test_the_audit_line_names_the_request_and_not_its_words(sma_client, seat):
-    r = sma_client().post(POST, json={"words": "a private-looking sentence", "addressed_to": "librarian"})
+    r = sma_client().post(POST, json={"words": "a private-looking sentence", "addressed_to": "agents_decide"})
     line = [e for e in seat.audit.entries() if e["kind"] == "question_submitted"][-1]
-    assert line["user_id"] == OPERATOR and line["request"] == r.json()["id"] and line["target"] == "librarian"
+    assert line["user_id"] == OPERATOR and line["request"] == r.json()["id"] and line["target"] == "agents_decide"
     assert "private-looking" not in json.dumps(line)
 
 
@@ -436,7 +436,7 @@ def test_the_mock_sample_has_valid_practice_requests_that_are_offered_and_shown(
         assert problems(read(f)) == [] and f.stem == read(f)["id"]
     c = make_client(engine, agent_store=MockStore(tmp_path / "p"))
     offered = [s["text"] for s in c.get(SUGGEST).json() if s["kind"] == "earlier question"]
-    assert offered == [read(f)["words"] for f in sorted(files, reverse=True)]
+    assert {read(f)["words"] for f in files} <= set(offered)  # and the words of the sample's delivered examples
     shown = c.get(CARDS).json()["requests"]
     assert [r["id"] for r in shown] == [read(f)["id"] for f in sorted(files, reverse=True)]
 
@@ -451,13 +451,13 @@ def test_suggestions_need_a_login(sma_client):
 def test_requests_are_cards_not_delivered_and_say_runs_wait_for_the_person(sma_client, sma_root):
     seed_request(sma_root, "qr-20261020-090000-aaaa", "older words", "2026-10-20T09:00:00Z")
     c = sma_client()
-    mine = c.post(POST, json={"words": "newer words", "addressed_to": "librarian"}).json()
+    mine = c.post(POST, json={"words": "newer words", "addressed_to": "agents_decide"}).json()
     got = c.get(CARDS).json()
     reqs = got["requests"]
     assert [r["words"] for r in reqs] == ["newer words", "older words"]
     assert reqs[0] == {
         "id": mine["id"], "words": "newer words", "login": OPERATOR, "asked_at": mine["asked_at"],
-        "addressed_to": "librarian", "state": NOT_DELIVERED, "runs_wait_for_signature": True}
+        "addressed_to": "agents_decide", "state": NOT_DELIVERED, "runs_wait_for_signature": True}
     assert reqs[1]["login"] == "member-1" and reqs[1]["state"] == NOT_DELIVERED
 
 

@@ -7,7 +7,7 @@ import { fakeTransport, type Route } from "../../test/fakes";
 import { PATHS } from "./api";
 import LibraryScreen from "./index";
 
-/** The Library screen (console card 016): the librarian's generated pages and four request forms with Send inert. */
+/** The Library screen (console cards 016 and 020): the librarian's generated pages, four request forms that send, and the requests list. */
 
 const clients: Client[] = [];
 afterEach(() => {
@@ -16,12 +16,7 @@ afterEach(() => {
 
 const V = "kbv-0123456789ab";
 const OLD = "kbv-ba9876543210";
-const NOT_SENT = "Not sent: the console does not send to the librarian yet.";
-const FORM_NOTE =
-  "The console does not send to the librarian yet, so Send only checks the form. Nothing you type here is kept or sent.";
-const EXAMPLE =
-  "This is example data: a copy of recorded files kept with the console, not from this microscope's librarian. " +
-  "Where each file came from is written in mock_data/SOURCE.md.";
+const SENT = "Sent to the librarian.";
 const EXAMPLE_ANSWERS =
   "These are example answers written for the console's practice data, not answers from any librarian. " +
   "Their names and numbers are made up.";
@@ -60,26 +55,29 @@ const answer = (outcome: string, over: Record<string, unknown> = {}) => ({
   example: true, ...over,
 });
 
-const OUTCOMES = ["entered", "waiting_for_a_name", "refuted", "in_conflict", "superseded", "kept", "no_entry_of_that_name"];
-const ANSWERS = (over: Record<string, unknown> = {}) => ({
-  example: true, example_note: EXAMPLE_ANSWERS, message: null,
-  answers: [
-    ...OUTCOMES.map((o) => answer(o)),
-    answer("answered", {
-      answer: "The lamp is 12 V.",
-      numbers: [{ name: "lamp_voltage", value: 12, unit: "V", entry_id: "dia_lamp_voltage", grade: "E2", source: "maker's sheet", covers_conditions: "not_stated" }],
-      gaps: [{ asked_for: "the lamp's power", looked_in: "devices" }],
-    }),
-    answer("not_in_the_store", { gaps: [{ asked_for: "something", looked_in: "everywhere" }] }),
-  ],
-  ...over,
+const view = (over: Record<string, unknown> = {}) => ({
+  item_id: "ci-20261020-100000-abcd", kind: "ask", kind_words: "A question", words: "What is the lamp power?",
+  login: "member-1", asked_at: "2026-10-20T09:55:00Z", file: null, example: false, state: "delivered · not answered yet",
+  answers: [], unreadable: [], ...over,
 });
+
+const REQUESTS = (over: Record<string, unknown> = {}) => ({
+  example: false, example_note: null, requests: [], orphans: [], message: "No requests yet.", ...over,
+});
+
+const ITEM = {
+  artifact: "console_store_request", schema_version: "0.1", item_id: "ci-20261027-101500-ab12", words: "x",
+  asked_by: { login: "otto", console_role: {} }, asked_at: "2026-10-27T10:15:00Z", asker_mark: { kind: "other_login" },
+  attachments: [], request: { kind: "ask" },
+};
 
 interface Opts {
   index?: unknown;
   pages?: Record<string, unknown>;
   map?: unknown;
-  answers?: unknown;
+  requests?: unknown;
+  /** What POST /api/library/requests answers: an item, or a refusal (status and body). */
+  post?: { status: number; body: unknown };
   hash?: string;
 }
 
@@ -88,10 +86,10 @@ function show(opts: Opts = {}) {
   const routes: Record<string, Route> = {
     [PATHS.index]: () => ({ status: 200, body: opts.index ?? INDEX() }),
     [PATHS.map]: () => ({ status: 200, body: opts.map ?? MAP() }),
-    [PATHS.answers]: () => ({
-      status: 200,
-      body: opts.answers ?? { example: false, example_note: null, answers: [], message: "No answers yet." },
-    }),
+    [PATHS.requests]: (init) =>
+      init?.method === "POST"
+        ? (opts.post ?? { status: 200, body: ITEM })
+        : { status: 200, body: opts.requests ?? REQUESTS() },
   };
   for (const [id, body] of Object.entries({ device_dia_lamp: PAGE(), ...(opts.pages ?? {}) })) {
     routes[PATHS.page(id)] = () => ({ status: 200, body });
@@ -99,7 +97,7 @@ function show(opts: Opts = {}) {
   const fake = fakeTransport(routes);
   const client = new Client(fake.transport, "127.0.0.1");
   clients.push(client);
-  render(
+  const rendered = render(
     <ClientProvider client={client}>
       <ScreenContextProvider area="library">
         <LibraryScreen />
@@ -107,7 +105,7 @@ function show(opts: Opts = {}) {
     </ClientProvider>,
   );
   const nonGets = () => fake.calls.filter((c) => c.init?.method !== undefined && c.init.method !== "GET");
-  return { ...fake, client, nonGets };
+  return { ...fake, client, nonGets, unmount: rendered.unmount };
 }
 
 const type = (label: string | RegExp, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -187,38 +185,121 @@ describe("Data map: counts only", () => {
   });
 });
 
+const posts = (calls: { path: string; init?: RequestInit }[]) => calls.filter((c) => c.init?.method === "POST");
+const body = (c: { init?: RequestInit }) => JSON.parse(String(c.init?.body));
+const pick = (label: string, file: File) => fireEvent.change(screen.getByLabelText(label), { target: { files: [file] } });
+const send = () => fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
 describe("the forms", () => {
   it("Send on an empty form says what is missing and sends nothing", async () => {
     const { nonGets, calls } = show({ hash: "#/library/add" });
     await screen.findByRole("form", { name: "Add a document or value" });
-    await screen.findByText("No answers yet.");
+    await screen.findByText("No requests yet.");
     const before = calls.length;
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    send();
     expect(await screen.findByText(/the form needs fixing first/)).toBeTruthy();
     expect(nonGets()).toEqual([]);
     expect(calls.length).toBe(before);
   });
 
-  it("Send on a good form answers not sent, writes nothing and asks the server nothing", async () => {
-    const { nonGets, calls } = show({ hash: "#/library/ask" });
+  it("Send on a good form sends the words as typed and the request without them, and says it was sent", async () => {
+    const { calls } = show({ hash: "#/library/ask" });
     await screen.findByRole("form", { name: "Ask the librarian" });
-    await screen.findByText("No answers yet.");
-    const before = calls.length;
-    type("Your question", "what is the lamp power?");
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    expect(await screen.findByText(NOT_SENT)).toBeTruthy();
-    expect(nonGets()).toEqual([]);
-    expect(calls.length).toBe(before);
+    const typed = "  what is the lamp power?\n ";
+    type("Your question", typed);
+    send();
+    expect(await screen.findByText(SENT)).toBeTruthy();
+    const sent = posts(calls);
+    expect(sent.map((c) => c.path)).toEqual([PATHS.requests]);
+    expect(body(sent[0])).toEqual({ words: typed, request: { kind: "ask" } });
   });
 
-  it("the offer form answers not sent too", async () => {
-    const { nonGets } = show({ hash: "#/library/offer" });
+  it("the offer form sends too", async () => {
+    const { calls } = show({ hash: "#/library/offer" });
     await screen.findByRole("form", { name: "Offer a result" });
     type("Path of the result card", "microscope_agent/questions/mic-1/result_a.json");
     type("The fact, in words", "the pixel pitch is 6.5 um");
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    expect(await screen.findByText(NOT_SENT)).toBeTruthy();
-    expect(nonGets()).toEqual([]);
+    send();
+    expect(await screen.findByText(SENT)).toBeTruthy();
+    expect(body(posts(calls)[0])).toEqual({
+      words: "the pixel pitch is 6.5 um",
+      request: { kind: "offer_result", result_card: "microscope_agent/questions/mic-1/result_a.json" },
+    });
+  });
+
+  it("empties a form that was sent, and reads the requests again", async () => {
+    const { calls } = show({ hash: "#/library/ask" });
+    await screen.findByRole("form", { name: "Ask the librarian" });
+    await screen.findByText("No requests yet.");
+    type("Your question", "x");
+    send();
+    await screen.findByText(SENT);
+    expect((screen.getByLabelText("Your question") as HTMLTextAreaElement).value).toBe("");
+    await waitFor(() => expect(calls.filter((c) => c.path === PATHS.requests && c.init?.method !== "POST").length).toBe(2));
+  });
+
+  it("shows what the server refused in its words and keeps the form", async () => {
+    show({ hash: "#/library/ask", post: { status: 422, body: { detail: { code: "refused", message: "The librarian's inbox is not there, so nothing was sent." } } } });
+    await screen.findByRole("form", { name: "Ask the librarian" });
+    type("Your question", "x");
+    send();
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe("The librarian's inbox is not there, so nothing was sent.");
+    expect(screen.queryByText(SENT)).toBeNull();
+    expect((screen.getByLabelText("Your question") as HTMLTextAreaElement).value).toBe("x");
+  });
+
+  it("sends the one file the request names, inside the request as base64, under its cleaned name", async () => {
+    const { calls } = show({ hash: "#/library/add" });
+    await screen.findByRole("form", { name: "Add a document or value" });
+    type("Who read it", "member-1");
+    type("What to take, in your words", "the rated power");
+    pick("File", new File(["hello"], "sheet 1.pdf", { type: "application/pdf" }));
+    send();
+    await screen.findByText(SENT);
+    const b = body(posts(calls)[0]);
+    expect(b.file).toEqual({ name: "sheet_1.pdf", content_base64: "aGVsbG8=" });
+    expect(b.request.document).toBe("sheet_1.pdf");
+    expect(b.words).toBe("the rated power");
+    expect(Object.keys(b).sort()).toEqual(["file", "request", "words"]);
+  });
+
+  it("sends no file when the request no longer names one, even if one was picked", async () => {
+    const { calls } = show({ hash: "#/library/withdraw" });
+    await screen.findByRole("form", { name: "Withdraw a value" });
+    type("Entry name (typed or pasted)", "dia_lamp_voltage");
+    type("Why, in your words", "it reads wrong");
+    fireEvent.change(screen.getByLabelText("Evidence"), { target: { value: "reading" } });
+    pick("File (optional)", new File(["hello"], "reading.pdf"));
+    fireEvent.change(screen.getByLabelText("Evidence"), { target: { value: "none" } });
+    send();
+    await screen.findByText(SENT);
+    expect(posts(calls)).toHaveLength(1);
+    const b = body(posts(calls)[0]);
+    expect(b.file).toBeUndefined();
+    expect(b.request).toEqual({ kind: "withdraw_value", entry_id: "dia_lamp_voltage", evidence: { kind: "none" } });
+    expect(b.words).toBe("it reads wrong");
+  });
+
+  it("sends no file on a second send in which none was picked, after a first send that carried one", async () => {
+    const { calls } = show({ hash: "#/library/withdraw" });
+    await screen.findByRole("form", { name: "Withdraw a value" });
+    fireEvent.change(screen.getByLabelText("Evidence"), { target: { value: "document" } });
+    type("Entry name (typed or pasted)", "dia_lamp_voltage");
+    type("Why, in your words", "it reads wrong");
+    pick("File", new File(["hello"], "sheet.pdf"));
+    send();
+    await screen.findByText(SENT);
+    expect(body(posts(calls)[0]).file).toEqual({ name: "sheet.pdf", content_base64: "aGVsbG8=" });
+    fireEvent.change(screen.getByLabelText("Evidence"), { target: { value: "reading" } });
+    type("Entry name (typed or pasted)", "dia_lamp_voltage");
+    type("Why, in your words", "it reads wrong again");
+    type("Who took the reading", "member-1");
+    type("Reading: value", "12");
+    type("Reading: unit", "V");
+    send();
+    await waitFor(() => expect(posts(calls)).toHaveLength(2));
+    expect(body(posts(calls)[1]).file).toBeUndefined();
   });
 
   it("a remembered value is labelled as entering at the lowest grade", async () => {
@@ -236,28 +317,54 @@ describe("the forms", () => {
   });
 
   it("a form edit clears the last answer", async () => {
-    show({ hash: "#/library/ask" });
+    show({ hash: "#/library/ask", post: { status: 422, body: { detail: { code: "refused", message: "nope" } } } });
     await screen.findByRole("form", { name: "Ask the librarian" });
     type("Your question", "x");
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    await screen.findByText(NOT_SENT);
+    send();
+    await screen.findByText("nope");
     type("Your question", "xy");
-    expect(screen.queryByText(NOT_SENT)).toBeNull();
+    expect(screen.queryByText("nope")).toBeNull();
   });
 });
 
-describe("the answers list", () => {
-  it("shows all seven outcomes, each labelled example data, from the mock store", async () => {
-    show({ hash: "#/library/ask", answers: ANSWERS() });
-    const list = await screen.findByRole("region", { name: "Answers" });
-    await waitFor(() => expect(within(list).getAllByText("example data").length).toBeGreaterThanOrEqual(10));
-    for (const w of ["Entered", "Waiting for a name", "Refuted", "In conflict", "Superseded", "Kept", "No entry of that name"]) {
-      expect(within(list).getByText(w)).toBeTruthy();
-    }
+describe("the requests list", () => {
+  const WAITING = answer("waiting_for_a_name", { answer_id: "ca-20261020-b", quantity_name: "lamp_power", answered_at: "2026-10-20T10:05:00Z" });
+  const ENTERED = answer("entered", { answer_id: "ca-20261020-a", answered_at: "2026-10-20T10:10:00Z" });
+
+  it("lists each request with its kind, words, login, file name as text, state and answers", async () => {
+    show({
+      hash: "#/library/ask",
+      requests: REQUESTS({
+        example: true, example_note: EXAMPLE_ANSWERS, message: null,
+        requests: [
+          view({ item_id: "ci-1", kind: "enter_document", kind_words: "A document or value to enter", words: "the rated power", file: "ci-1--sheet.pdf", example: true, state: "Entered", answers: [ENTERED, WAITING] }),
+          view({ item_id: "ci-2", words: "a second one" }),
+        ],
+      }),
+    });
+    const list = await screen.findByRole("region", { name: "Requests" });
+    await within(list).findByText("the rated power");
+    expect(within(list).getByText("A document or value to enter")).toBeTruthy();
+    expect(within(list).getAllByText(/^member-1 · /).length).toBe(2);
+    expect(within(list).getByText("File sent: ci-1--sheet.pdf")).toBeTruthy();
+    expect(within(list).queryByRole("link")).toBeNull();
+    expect(within(list).getByText("Entered", { selector: ".lib-state" })).toBeTruthy();
+    expect(within(list).getByText("delivered · not answered yet")).toBeTruthy();
+    const headOf = (words: string) => within(list).getByText(words).closest("li.lib-request")!.querySelector("p")! as HTMLElement;
+    expect(within(headOf("the rated power")).getByText("example data")).toBeTruthy();
+    expect(within(headOf("a second one")).queryByText("example data")).toBeNull();
+    expect(within(list).getByText(EXAMPLE_ANSWERS)).toBeTruthy();
+    const answers = within(list).getByRole("list", { name: "Answers" });
+    expect(within(answers).getAllByRole("listitem").map((li) => li.querySelector("strong")!.textContent)).toEqual(["Entered", "Waiting for a name"]);
   });
 
   it("gives every number with its entry, grade, source and whether it covers the conditions", async () => {
-    show({ hash: "#/library/ask", answers: ANSWERS() });
+    const a = answer("answered", {
+      answer: "The lamp is 12 V.",
+      numbers: [{ name: "lamp_voltage", value: 12, unit: "V", entry_id: "dia_lamp_voltage", grade: "E2", source: "maker's sheet", covers_conditions: "not_stated" }],
+      gaps: [{ asked_for: "the lamp's power", looked_in: "devices" }],
+    });
+    show({ hash: "#/library/ask", requests: REQUESTS({ message: null, requests: [view({ answers: [a], state: "Answered" })] }) });
     const table = await screen.findByRole("table", { name: "Numbers" });
     expect(within(table).getAllByRole("cell").map((c) => c.textContent)).toEqual([
       "lamp_voltage", "12 V", "dia_lamp_voltage", "E2", "maker's sheet", "conditions not stated",
@@ -265,53 +372,50 @@ describe("the answers list", () => {
     expect(screen.getByText(/Asked for: the lamp's power\. Looked in: devices\./)).toBeTruthy();
   });
 
-  it("from the real store says no answers yet", async () => {
-    show({ hash: "#/library/add" });
-    expect(await screen.findByText("No answers yet.")).toBeTruthy();
+  it("says an answer on disk cannot be read, with the reason, under its request and among the orphans", async () => {
+    show({
+      hash: "#/library/ask",
+      requests: REQUESTS({
+        message: null,
+        requests: [view({ state: "an answer is on disk and cannot be read", unreadable: [{ file: "ca-20261020-100001-ab12.json", reason: "it is not valid JSON" }] })],
+        orphans: [{ file: "ca-20261020-100002-cd34.json", reason: "it names no request in the inbox" }],
+      }),
+    });
+    const list = await screen.findByRole("region", { name: "Requests" });
+    expect(await within(list).findByText("An answer is on disk and cannot be read (ca-20261020-100001-ab12.json): it is not valid JSON")).toBeTruthy();
+    expect(within(list).getByRole("heading", { name: "Answers that name no request in the inbox" })).toBeTruthy();
+    const orphans = within(list).getByRole("list", { name: "Answers that name no request" });
+    expect(orphans.textContent).toBe("An answer is on disk and cannot be read (ca-20261020-100002-cd34.json): it names no request in the inbox");
+  });
+
+  it("says there are no requests yet when the inbox has none", async () => {
+    show({ hash: "#/library/withdraw" });
+    expect(await screen.findByText("No requests yet.")).toBeTruthy();
     expect(screen.queryByText("example data")).toBeNull();
   });
-});
 
-describe("the notes and the answers on each tab", () => {
-  const FORMS: [string, string][] = [
-    ["ask", "Ask the librarian"], ["add", "Add a document or value"], ["withdraw", "Withdraw a value"], ["offer", "Offer a result"],
-  ];
-  for (const [tab, title] of FORMS) {
-    it(`the ${tab} form says the console does not send yet and Send only checks`, async () => {
-      show({ hash: `#/library/${tab}` });
-      const form = await screen.findByRole("form", { name: title });
-      expect(within(form).getByText(FORM_NOTE).getAttribute("role")).toBe("note");
-    });
-
-    it(`nothing on the ${tab} tab says the librarian's inbox is not open`, async () => {
-      show({ hash: `#/library/${tab}`, answers: ANSWERS() });
-      const form = await screen.findByRole("form", { name: title });
-      await screen.findByRole("region", { name: "Answers" });
-      fireEvent.click(within(form).getByRole("button", { name: "Send" }));
-      await within(form).findByRole("status");
-      expect(document.body.textContent).not.toMatch(/not open/i);
-    });
-  }
-
-  it("the answers list carries the example answers' own note, not the pages' note", async () => {
-    show({ hash: "#/library/ask", answers: ANSWERS() });
-    const list = await screen.findByRole("region", { name: "Answers" });
-    expect(within(list).getByText(EXAMPLE_ANSWERS)).toBeTruthy();
-    expect(within(list).queryByText(EXAMPLE)).toBeNull();
+  it("says why the list is empty when the server says so", async () => {
+    show({ hash: "#/library/add", requests: REQUESTS({ message: "The librarian's inbox is not there." }) });
+    expect(await screen.findByText("The librarian's inbox is not there.")).toBeTruthy();
   });
 
-  it("lists the answers under the forms", async () => {
-    show({ hash: "#/library/ask", answers: ANSWERS() });
-    expect(await screen.findByRole("region", { name: "Answers" })).toBeTruthy();
-  });
-
-  for (const [name, hash] of [["pages", "#/library"], ["data map", "#/library/map"]]) {
-    it(`does not list the answers under the ${name}`, async () => {
-      show({ hash, answers: ANSWERS() });
+  it("is listed under each of the four forms and not under the pages or the data map", async () => {
+    for (const hash of ["#/library/ask", "#/library/add", "#/library/withdraw", "#/library/offer"]) {
+      const { unmount } = show({ hash });
+      expect(await screen.findByRole("region", { name: "Requests" })).toBeTruthy();
+      unmount();
+    }
+    for (const hash of ["#/library", "#/library/map"]) {
+      const { unmount } = show({ hash });
       await screen.findByRole("tablist", { name: "Library" });
-      await waitFor(() => expect(screen.getByRole("tab", { name: "Pages" })).toBeTruthy());
-      expect(screen.queryByRole("region", { name: "Answers" })).toBeNull();
-      expect(screen.queryByText("example data")).toBeNull();
-    });
-  }
+      expect(screen.queryByRole("region", { name: "Requests" })).toBeNull();
+      unmount();
+    }
+  });
+
+  it("says nowhere that the console does not send, or that the inbox is not open", async () => {
+    show({ hash: "#/library/ask" });
+    await screen.findByText("No requests yet.");
+    expect(document.body.textContent).not.toMatch(/does not send|not open|Nothing you type here is kept/i);
+  });
 });

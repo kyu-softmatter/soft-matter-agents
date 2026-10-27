@@ -1,0 +1,32 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261020-000007-ex07",
+  "words": "Withdraw the entry I remember as the stage's travel.",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": true,
+      "agents": [
+        "microscope",
+        "simulation",
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-20T09:53:00Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [],
+  "request": {
+    "kind": "withdraw_value",
+    "entry_id": "example_no_such_entry",
+    "reason": "Withdraw the entry I remember as the stage's travel.",
+    "evidence": {
+      "kind": "none"
+    }
+  }
+}

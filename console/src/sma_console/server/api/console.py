@@ -1,9 +1,9 @@
 """Console area (PLAN.md F1, ui-spec 7.1, docs/screens/console.md): the agents' questions, runs
 and inbox, read from the AgentStore, and the one write, a question request into the console's own
 folder (card 010; `agents/requests.py`) or, for a question to the microscope or the simulation, an
-item into that agent's `console_inbox/` (card 019; `agents/inbox_items.py`). A request in the
-console's folder is not delivered: the librarian's inbox and "let the agents decide" have no place
-the console may write into yet.
+item into that agent's `console_inbox/` (card 019; `agents/inbox_items.py`); a question to the librarian
+is an `ask` request written into the librarian's `console_inbox/` (card 020; `agents/store_requests.py`). Only
+"let the agents decide" is written in the console's own folder and not delivered: no agent has an inbox for it.
 
 A run that soft-matter-agents' orchestrator is executing is followed through what it offers a
 console (its plan.md 11-25; `agents/sma_run.py`): `GET .../stream` reads its events.jsonl,
@@ -13,7 +13,7 @@ stop channel, and `POST /runs/stop` is "Stop all runs": the same stop to every r
 a screen with no login (card 004). The stop is a stop: the access middleware treats it as `abort` (from
 the microscope PC always, from a logged-in remote viewer when remote abort is on, D13), and
 it is sent only when a person presses it. Closing the page stops nothing (OD-30). Nothing is
-written in the soft-matter-agents tree except the signed approval and an agent's inbox item.
+written in the soft-matter-agents tree except the signed approval and an item in an agent's inbox.
 
 Whether someone may ask is not decided here: the access middleware already refuses a remote or
 logged-out write, and the route asks `server_action_why` for the T-018 permission `SUBMIT_QUESTION`
@@ -44,8 +44,7 @@ from ...agents import (
 )
 from ...agents import inbox_items
 from ...agents import requests as question_requests
-from ...agents.schema_lite import Schemas
-from ...agents.sma_files import RootNotFoundError, repository_root
+from ...agents import store_requests
 from ...auth import AuditKind, TooManyAttempts
 from ...signing.approval_writer import NO_APPROVALS_FOLDER, WRITTEN_MESSAGE, SigningRefused, write_approval
 from . import (
@@ -58,12 +57,23 @@ from . import (
     remote_view,
     server_action_why,
 )
+from ._store_requests import (
+    READ_ONLY,
+    READ_ONLY_MESSAGE,  # noqa: F401  (the tests import it from here)
+    AnswerOut,
+    StoreRequestOut,
+    ask_refusal,
+    deliver_store_request,
+    has_inbox,
+    request_views,
+    schemas_of,
+)
 
 log = logging.getLogger("dino_autofocus.server.api.console")
 router = APIRouter()
 
 AgentName = Literal["microscope", "simulation"]
-READ_ONLY_MESSAGE = "Submitting to soft-matter-agents is not connected yet (read-only)"
+ItemAgent = Literal["microscope", "simulation", "librarian"]
 
 
 # -- wire models (the AgentStore records' to_dict() shapes) -------------------------------
@@ -332,8 +342,8 @@ class ConsoleQuestionOut(BaseModel):
 
 
 class RequestCardOut(BaseModel):
-    """A request written in the console's own folder, as a card. It is not delivered: the librarian
-    and "let the agents decide" have no inbox the console writes into."""
+    """A request written in the console's own folder, as a card. It is not delivered: "let the agents
+    decide" has no inbox the console writes into."""
 
     id: str
     words: str
@@ -345,17 +355,19 @@ class RequestCardOut(BaseModel):
 
 
 class ItemCardOut(BaseModel):
-    """An item delivered to the microscope's or the simulation's inbox, as a card, with what its
-    `console_answer` files say became of it."""
+    """An item delivered to an agent's inbox, as a card, with what its answer files say became of it. A
+    microscope or simulation question has a `question_id` and waits for a signature; a question to the
+    librarian (an `ask` request) has neither, and its latest readable answer is carried as the Library shows it."""
 
     item_id: str
-    question_id: str
-    agent: AgentName
+    question_id: str | None
+    agent: ItemAgent
     words: str
     login: str
     asked_at: str
     state: str
     runs_wait_for_signature: bool
+    latest_answer: AnswerOut | None = None
 
 
 class StepsOut(BaseModel):
@@ -423,23 +435,6 @@ def _not_found(e: NotFoundError) -> Refusal:
 def _invalid(e: ValueError) -> Refusal:
     return Refusal(422, "invalid", str(e))
 
-
-READ_ONLY = Refusal(409, "read_only_store", READ_ONLY_MESSAGE)
-REMOTE_ASK = ("Questions can be asked from the microscope computer only. This browser is "
-              "viewing from another computer.")
-VIEWER_ASK = "This login can only look: it cannot ask a question. An administrator can give it more."
-
-
-def _ask_refusal(me: Any) -> Refusal | None:
-    """`server_action_why` for asking, with the refusal said in words for the person."""
-    why = server_action_why(me, "submit_question")
-    if why is None:
-        return None
-    if why.code == "remote_view":
-        return Refusal(403, "remote_view", REMOTE_ASK)
-    if why.code == "role":
-        return Refusal(403, "role", VIEWER_ASK)
-    return why
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     404: {"description": "no such question, version or run"},
@@ -861,22 +856,25 @@ def list_inbox(store: AgentStoreDep) -> list[InboxThreadOut]:
 @router.post(
     "/question-requests",
     status_code=201,
-    response_model=ConsoleQuestionOut | QuestionRequestOut,
+    response_model=ConsoleQuestionOut | StoreRequestOut | QuestionRequestOut,
     responses={403: {"description": "remote view or role (D16)"},
                409: {"description": "the agent's inbox is not there or is full for the day, or the id was taken five times"},
                422: {"description": "blank or too long words, an addressee that is not one of four"}},
 )
 def write_question_request(body: QuestionRequestIn, store: AgentStoreDep, me: Login,
-                           seat: Auth) -> ConsoleQuestionOut | QuestionRequestOut:
+                           seat: Auth) -> ConsoleQuestionOut | StoreRequestOut | QuestionRequestOut:
     """A question to the microscope or the simulation is written as an item into that agent's
-    inbox (`artifact` is `console_question`); one to the librarian or "let the agents decide" is
-    written as a request into the console's own folder and is not delivered (`question_request`)."""
-    if why := _ask_refusal(me):
+    inbox (`artifact` is `console_question`); one to the librarian is written into the librarian's inbox as
+    an `ask` request with no conditions (`console_store_request`); "let the agents decide" is written as a
+    request into the console's own folder and is not delivered (`question_request`)."""
+    if why := ask_refusal(me):
         raise why.http()
     if not getattr(store, "writable", False) or not hasattr(store, "request_write_folder"):
         raise READ_ONLY.http()
     if body.addressed_to in inbox_items.INBOX_AGENTS:
         return _deliver(body, store, me, seat)
+    if body.addressed_to == "librarian":
+        return deliver_store_request(store, me, seat, words=body.words, request={"kind": "ask"}, file=None)
     folder = store.request_write_folder()
     doc: dict[str, Any] | None = None
     for _ in range(5):  # an id that is taken is never rewritten: ask for another
@@ -902,31 +900,15 @@ def write_question_request(body: QuestionRequestIn, store: AgentStoreDep, me: Lo
     return QuestionRequestOut.model_validate(doc)
 
 
-def _schemas(store: Any) -> Schemas:
-    """The tree's own schemas, found as the instrument routes find them."""
-    root = store.runtime_root() if hasattr(store, "runtime_root") else None
-    if root is None:
-        try:
-            root = repository_root()
-        except RootNotFoundError:
-            root = None
-    return Schemas(root / "contracts" / "schemas" if root is not None else "contracts/schemas")
-
-
-def _has_inbox(store: Any) -> bool:
-    return all(hasattr(store, n) for n in ("inbox_write_folder", "inbox_folders", "answers_folders",
-                                           "outgoing_folder"))
-
-
 def _deliver(body: QuestionRequestIn, store: Any, me: Any, seat: Any) -> ConsoleQuestionOut:
-    if not _has_inbox(store):
+    if not has_inbox(store):
         raise READ_ONLY.http()
     agent = body.addressed_to
     try:
         item = inbox_items.deliver(
             agent=agent, words=body.words, login=me.info.user_id, role=str(me.info.role),
             inbox=store.inbox_write_folder(agent), outgoing=store.outgoing_folder(),
-            schemas=_schemas(store))
+            schemas=schemas_of(store))
     except question_requests.RequestError as e:
         raise _invalid(e).http() from e
     except inbox_items.InboxError as e:
@@ -945,8 +927,22 @@ def suggestions(store: AgentStoreDep) -> list[SuggestionOut]:
     each labelled. Strings already on disk; never a model's completion, never the store's contents."""
     folders = store.request_folders() if hasattr(store, "request_folders") else []
     names = store.registered_names() if hasattr(store, "registered_names") else []
-    found = question_requests.suggestions(question_requests.read_requests(folders), names)
+    earlier = [*question_requests.read_requests(folders), *_delivered(store)]
+    earlier.sort(key=lambda r: str(r.get("asked_at", "")), reverse=True)  # stable: a tie keeps its order
+    found = question_requests.suggestions(earlier, names)
     return [SuggestionOut(**s) for s in found]
+
+
+def _delivered(store: Any) -> list[dict[str, Any]]:
+    """The items delivered to the three inboxes, as far as autocomplete needs them: the words and the time."""
+    if not has_inbox(store):
+        return []
+    out: list[dict[str, Any]] = []
+    for agent in inbox_items.INBOX_AGENTS:
+        for folder in store.inbox_folders(agent):
+            out.extend(inbox_items.read_items(folder, agent))
+    out.extend(r.doc for r in store_requests.read_items(store.inbox_folders("librarian")))
+    return out
 
 
 def _steps(store: Any, agent: str, s: Any, qids_with_runs: set[str], run_known: bool) -> StepsOut:
@@ -959,10 +955,10 @@ def _steps(store: Any, agent: str, s: Any, qids_with_runs: set[str], run_known: 
 
 @router.get("/question-cards", response_model=QuestionCardsOut, responses=ERRORS)
 def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
-    """The cards below the question field: the items in the two inboxes, newest first, each with what
+    """The cards below the question field: the items in the three inboxes, newest first, each with what
     the agent's answers say became of it; requests written in the console's own folder, newest first
     (each "written in the console · not delivered"); and the agents' questions on disk with their five
-    steps. Reads only."""
+    steps. The items include the librarian's, with the latest answer each has. Reads only."""
     folders = store.request_folders() if hasattr(store, "request_folders") else []
     requests = [RequestCardOut(
         id=r["id"], words=r["words"], login=r["asked_by"]["login"], asked_at=r["asked_at"],
@@ -987,9 +983,9 @@ def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
 
 
 def _item_cards(store: Any) -> list[ItemCardOut]:
-    if not _has_inbox(store):
+    if not has_inbox(store):
         return []
-    schemas = _schemas(store)
+    schemas = schemas_of(store)
     found: list[tuple[str, dict[str, Any]]] = []
     for agent in inbox_items.INBOX_AGENTS:
         seen: set[str] = set()
@@ -998,11 +994,17 @@ def _item_cards(store: Any) -> list[ItemCardOut]:
                 if item["item_id"] not in seen:  # an earlier folder keeps its item over a later one's
                     seen.add(item["item_id"])
                     found.append((agent, item))
-    return [ItemCardOut(
+    cards = [(item["asked_at"], item["item_id"], ItemCardOut(
         item_id=item["item_id"], question_id=item["question_id"], agent=agent,  # type: ignore[arg-type]
         words=item["words"], login=item["asked_by"]["login"], asked_at=item["asked_at"],
         state=inbox_items.state_of(item, store.answers_folders(agent), schemas),
-        runs_wait_for_signature=True) for agent, item in inbox_items.items_newest_first(found)]
+        runs_wait_for_signature=True)) for agent, item in found]
+    views, _ = request_views(store)
+    cards += [(v.asked_at, v.item_id, ItemCardOut(
+        item_id=v.item_id, question_id=None, agent="librarian", words=v.words, login=v.login,
+        asked_at=v.asked_at, state=v.state, runs_wait_for_signature=False,
+        latest_answer=v.answers[0] if v.answers else None)) for v in views]
+    return [c for _, _, c in sorted(cards, key=lambda t: (t[0], t[1]), reverse=True)]
 
 
 # -- the sign dialog: practice writes nothing; a real tree goes through the approval writer (cards 011, 013) --

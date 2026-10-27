@@ -1,9 +1,10 @@
-"""The library screen's server side (console card 016): the librarian's generated pages, shown and nothing else.
+"""The library screen's server side (console cards 016 and 020): the librarian's generated pages, shown, and the
+requests and answers of its inbox.
 
-Four GET routes and no write. The pages, the data map and the version come from `librarian_agent/kb/` of the tree
-the store reads; the answers list is the mock store's example answers, or "No answers yet." from a real tree,
-whatever lies in a real tree's `librarian_agent/answers/` (the console shows no answers from the real store
-until the console's inbox-writer card).
+The pages, the data map and the version come from `librarian_agent/kb/` of the tree the store reads; the answers
+list is the mock store's example answers, or what the reader finds in the real tree's `librarian_agent/answers/`
+(and "No answers yet." when nothing readable is there). The requests and their delivery are tested in
+`test_library_inbox.py`.
 """
 
 from __future__ import annotations
@@ -224,39 +225,40 @@ def test_the_mock_answers_carry_their_own_note_and_not_the_pages_note(mock_clien
 
 
 def _sample_with_answers(tmp_path, docs):
-    """A copy of the shipped sample whose answers folder holds only `docs`, each under the file name given."""
+    """A copy of the shipped sample whose answers folder holds only `docs`, each under its own id's file name
+    (an answer is read only when its name is its id). Every doc answers an item the sample holds."""
     root = tmp_path / "sample"
     shutil.copytree(MOCK_DATA, root)
     folder = root / "librarian_agent" / "answers"
     for f in folder.glob("*.json"):
         f.unlink()
-    for name, doc in docs.items():
-        (folder / name).write_text(json.dumps(doc), encoding="utf-8")
+    for doc in docs:
+        (folder / f"{doc['answer_id']}.json").write_text(json.dumps(doc), encoding="utf-8")
     return root
 
 
-@pytest.mark.parametrize("newer_file, older_file", [("ca-a.json", "ca-b.json"), ("ca-b.json", "ca-a.json")])
-def test_the_mock_answers_are_listed_by_answered_at_and_not_by_file_name(engine, make_client, tmp_path, newer_file, older_file):
-    one = json.loads(next((MOCK_DATA / "librarian_agent" / "answers").glob("*.json")).read_text(encoding="utf-8"))
-    # the newer answer has the smaller id, so neither the file name (either way round) nor the id alone gives the order
-    newer = {**one, "answer_id": "ca-20261020-100001-zz", "answered_at": "2026-10-20T10:09:00Z"}
-    older = {**one, "answer_id": "ca-20261020-100009-aa", "answered_at": "2026-10-20T10:01:00Z"}
-    root = _sample_with_answers(tmp_path, {newer_file: newer, older_file: older})
+def _one_sample_answer():
+    return json.loads(next((MOCK_DATA / "librarian_agent" / "answers").glob("*.json")).read_text(encoding="utf-8"))
+
+
+def test_the_mock_answers_are_listed_by_answered_at_and_not_by_file_name(engine, make_client, tmp_path):
+    one = _one_sample_answer()
+    # the newer answer has the smaller id, so neither the file name nor the id alone gives the order
+    newer = {**one, "answer_id": "ca-20261020-100001-zzzz", "answered_at": "2026-10-20T10:09:00Z"}
+    older = {**one, "answer_id": "ca-20261020-100009-aaaa", "answered_at": "2026-10-20T10:01:00Z"}
+    root = _sample_with_answers(tmp_path, [older, newer])
     c = make_client(engine, agent_store=MockStore(tmp_path / "practice", data_dir=root))
     ids = [a["answer_id"] for a in c.get(ANSWERS).json()["answers"]]
     assert ids == [newer["answer_id"], older["answer_id"]]
 
 
 def test_two_mock_answers_at_one_time_are_ordered_by_answer_id_newest_first(engine, make_client, tmp_path):
-    one = json.loads(next((MOCK_DATA / "librarian_agent" / "answers").glob("*.json")).read_text(encoding="utf-8"))
-    # file names sort as ids 2, 1, 3: neither file order, ascending or descending, is the id order
-    files = {2: "ca-a.json", 1: "ca-b.json", 3: "ca-c.json"}
-    docs = {name: {**one, "answer_id": f"ca-20261020-10000{i}-x", "answered_at": "2026-10-20T10:00:00Z"}
-            for i, name in files.items()}
+    one = _one_sample_answer()
+    docs = [{**one, "answer_id": f"ca-20261020-10000{i}-xxxx", "answered_at": "2026-10-20T10:00:00Z"} for i in (2, 1, 3)]
     root = _sample_with_answers(tmp_path, docs)
     c = make_client(engine, agent_store=MockStore(tmp_path / "practice", data_dir=root))
     ids = [a["answer_id"] for a in c.get(ANSWERS).json()["answers"]]
-    assert ids == ["ca-20261020-100003-x", "ca-20261020-100002-x", "ca-20261020-100001-x"]
+    assert ids == ["ca-20261020-100003-xxxx", "ca-20261020-100002-xxxx", "ca-20261020-100001-xxxx"]
 
 
 def test_an_answer_from_a_real_tree_is_not_marked_example_data(engine, make_client, tree):

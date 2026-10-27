@@ -1,8 +1,9 @@
 /**
  * The question window (console cards 010 and 019, plan.md 4.5): one field, an Ask choice and Send.
  * Send to the microscope or the simulation writes the words, exactly as typed, into that agent's
- * inbox, and the form says which question id it became. To the librarian or "Let the agents decide"
- * it writes a request in the console's own folder, and the form says plainly it was not delivered.
+ * inbox, and the form says which question id it became. To the librarian it writes an `ask` request into
+ * the librarian's inbox, and the form says "Sent to the librarian." "Let the agents decide" writes a
+ * request in the console's own folder, and the form says plainly it was not delivered.
  *
  * Autocomplete offers only strings already on disk -- the words of earlier requests and the
  * registered quantity names, each labelled -- never a model's completion and never the store's

@@ -80,10 +80,13 @@ def tree(tmp_path):
     shutil.rmtree(root / "console")
     shutil.rmtree(root / "microscope_runtime")
     (root / "contracts" / "schemas").mkdir(parents=True)
-    for name in ("console_inbox_item.schema.json", "console_answer.schema.json"):
+    for name in ("console_inbox_item.schema.json", "console_answer.schema.json",
+                 "console_store_request.schema.json", "store_answer.schema.json"):
         shutil.copy(SCHEMAS / name, root / "contracts" / "schemas" / name)
     (root / "contracts" / "quantities.json").write_text(json.dumps({"quantities": []}), encoding="utf-8")
-    for agent in ("microscope", "simulation"):
+    shutil.rmtree(root / "librarian_agent" / "console_inbox", ignore_errors=True)  # the sample's examples
+    shutil.rmtree(root / "librarian_agent" / "answers", ignore_errors=True)
+    for agent in ("microscope", "simulation", "librarian"):
         inbox_of(root, agent).mkdir(parents=True)
         (inbox_of(root, agent) / ".gitkeep").write_bytes(b"")
     return root
@@ -353,17 +356,27 @@ def test_a_schema_that_cannot_be_found_refuses_and_writes_nothing(client, tree, 
 # -- what does not deliver ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("target", ["librarian", "agents_decide"])
-def test_the_librarian_and_the_agents_decide_write_a_request_and_no_item(client, tree, clock, target):
+def test_the_agents_decide_writes_a_request_and_no_item(client, tree, clock):
     before = tree_hash(tree)
-    r = ask(client(), target)
+    r = ask(client(), "agents_decide")
     assert r.status_code == 201
-    assert r.json()["artifact"] == "question_request" and r.json()["addressed_to"] == target
+    assert r.json()["artifact"] == "question_request" and r.json()["addressed_to"] == "agents_decide"
     new = set(tree_hash(tree)) - set(before)
     assert new == {f"console/requests/questions/{r.json()['id']}.json"}
+    for agent in ("microscope", "simulation", "librarian"):
+        assert entries(inbox_of(tree, agent)) == [".gitkeep"]
+
+
+def test_the_librarian_is_delivered_as_a_store_request_and_nothing_else_changes(client, tree, clock):
+    before = tree_hash(tree)
+    r = ask(client(), "librarian")
+    assert r.status_code == 201
+    item = r.json()
+    assert item["kind"] == "ask" if "kind" in item else True
+    new = set(tree_hash(tree)) - set(before)
+    assert new == {f"librarian_agent/console_inbox/{item['item_id']}.json"}
     for agent in ("microscope", "simulation"):
         assert entries(inbox_of(tree, agent)) == [".gitkeep"]
-    assert not (tree / "librarian_agent" / "console_inbox").exists()
 
 
 def test_a_viewer_cannot_send_and_nothing_is_written(client, tree, clock):
@@ -420,7 +433,21 @@ def test_under_the_mock_only_the_write_dir_changes(engine, make_client, tmp_path
     assert {a: tree_hash(REPO / f"{a}_agent" / "console_inbox") for a in real_before} == real_before
     assert (REPO / "console" / "requests").exists() == requests_before
     shown = c.get(CARDS).json()["items"]
-    assert [i["item_id"] for i in shown] == [r.json()["item_id"]]
+    assert shown[0]["item_id"] == r.json()["item_id"]  # newest first
+    assert [i["item_id"] for i in shown[1:]] == sorted(
+        (i["item_id"] for i in shown[1:]), reverse=True) and len(shown) == 1 + 9  # and the sample's nine examples
+
+
+def test_under_the_mock_the_librarian_ask_is_delivered_into_the_write_dir_only(engine, make_client, tmp_path, clock):
+    store = MockStore(tmp_path / "practice")
+    sample_before = tree_hash(MOCK_DATA)
+    c = make_client(engine, agent_store=store)
+    r = ask(c, "librarian")
+    assert r.status_code == 201
+    mine = inbox_of(tmp_path / "practice", "librarian")
+    assert entries(mine) == [r.json()["item_id"] + ".json"]
+    assert json.loads((mine / entries(mine)[0]).read_text(encoding="utf-8"))["artifact"] == "console_store_request"
+    assert tree_hash(MOCK_DATA) == sample_before
 
 
 def test_the_mock_counts_its_own_questions_from_c001(engine, make_client, tmp_path, clock):
@@ -460,7 +487,7 @@ def test_a_delivered_item_is_a_card_not_answered_yet_and_runs_wait_for_the_perso
     assert got == [{
         "item_id": mine["item_id"], "question_id": mine["question_id"], "agent": "microscope",
         "words": "newer words", "login": OPERATOR, "asked_at": mine["asked_at"],
-        "state": "delivered · not answered yet", "runs_wait_for_signature": True}]
+        "state": "delivered · not answered yet", "runs_wait_for_signature": True, "latest_answer": None}]
 
 
 def test_every_item_in_the_two_inboxes_is_shown_newest_first_and_the_file_name_plays_no_part(client, tree):
@@ -491,13 +518,23 @@ def test_a_file_in_an_inbox_that_is_not_an_item_is_not_shown(client, tree):
 
 def test_requests_in_the_consoles_folder_keep_their_cards_marked_not_delivered(client, tree, clock):
     c = client()
-    ask(c, "librarian", "to the library")
     ask(c, "agents_decide", "to the agents")
     got = cards(c)
-    assert sorted(r["words"] for r in got["requests"]) == ["to the agents", "to the library"]
+    assert [r["words"] for r in got["requests"]] == ["to the agents"]
     assert {r["state"] for r in got["requests"]} == {NOT_DELIVERED}
     assert all(r["runs_wait_for_signature"] is True for r in got["requests"])
     assert got["items"] == []
+
+
+def test_a_question_to_the_librarian_is_a_delivered_card_that_does_not_wait_for_a_signature(client, tree, clock):
+    c = client()
+    sent = ask(c, "librarian", "to the library").json()
+    got = cards(c)
+    assert got["requests"] == []
+    (card,) = got["items"]
+    assert card["item_id"] == sent["item_id"] and card["agent"] == "librarian" and card["words"] == "to the library"
+    assert card["state"] == "delivered · not answered yet" and card["question_id"] is None
+    assert card["runs_wait_for_signature"] is False and card["latest_answer"] is None
 
 
 def test_an_item_with_no_answer_says_so(client, tree):
@@ -610,8 +647,15 @@ def test_another_dates_number_in_an_inbox_does_not_move_todays_count(client, tre
     assert ask(client(), "microscope").json()["question_id"] == "mic-20261026-c001"
 
 
-def test_a_damaged_item_still_holds_its_number(client, tree, clock):
+def test_a_damaged_item_refuses_the_delivery_because_its_number_cannot_be_told(client, tree, clock):
     raw(tree, "microscope", "ci-20261026-090000-aaaa.json", '{"question_id": "mic-20261026-c004", broken')
+    before = tree_hash(tree)
+    assert refusal(ask(client(), "microscope")) == (409, "inbox_unreadable")
+    assert tree_hash(tree) == before
+
+
+def test_a_stray_json_file_still_holds_the_number_its_text_names(client, tree, clock):
+    raw(tree, "microscope", "notes.json", '{"question_id": "mic-20261026-c004", broken')
     assert ask(client(), "microscope").json()["question_id"] == "mic-20261026-c005"
 
 
@@ -669,5 +713,5 @@ def test_an_item_in_two_folders_is_shown_once_and_the_earlier_folder_keeps_it(en
     inbox_of(data, "microscope").mkdir(parents=True, exist_ok=True)
     put_item(data, "microscope", words="the sample's words")
     c = make_client(engine, agent_store=MockStore(practice, data_dir=data))
-    shown = item_cards(c)
+    shown = [i for i in item_cards(c) if i["agent"] == "microscope"]  # the sample's librarian examples are not these
     assert [(i["item_id"], i["words"]) for i in shown] == [(here["item_id"], "the practice words")]

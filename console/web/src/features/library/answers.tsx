@@ -1,13 +1,11 @@
 /**
- * The librarian's answers (console card 016). Under the mock store they are example answers and each says so;
- * from the real store there are none yet. Every number comes with its entry, grade and source as recorded, and
- * whether the entry covers the conditions asked. The console adds no search and no grade.
+ * One librarian answer (console cards 016 and 020). Under the mock store the answers are examples and each says
+ * so. Every number comes with its entry, grade and source as recorded, and whether the entry covers the
+ * conditions asked. The console adds no search and no grade.
  */
 
-import { useClient } from "../../app/client";
-import { Loaded, shortTime, useLoad } from "../questions/ui";
-import { type AnswerOut, type AnswersOut, PATHS } from "./api";
-import { ExampleNote } from "./pages";
+import { shortTime } from "../questions/ui";
+import type { AnswerOut } from "./api";
 
 export const OUTCOME_WORDS: Record<string, string> = {
   entered: "Entered",
@@ -27,7 +25,8 @@ const COVERS: Record<string, string> = {
   not_stated: "conditions not stated",
 };
 
-function Answer({ a }: { a: AnswerOut }) {
+/** One answer, as the Library lists it under its request and as a question card shows its latest. */
+export function AnswerItem({ a }: { a: AnswerOut }) {
   return (
     <li className="lib-answer">
       <strong>{OUTCOME_WORDS[a.outcome] ?? a.outcome}</strong>{" "}
@@ -64,27 +63,5 @@ function Answer({ a }: { a: AnswerOut }) {
       {a.entries_made.length > 0 && <p className="console-muted">Entries made: {a.entries_made.join(", ")}</p>}
       {a.quantity_name !== null && <p className="console-muted">Name waiting: {a.quantity_name}</p>}
     </li>
-  );
-}
-
-export function Answers() {
-  const client = useClient();
-  const state = useLoad(() => client.get<AnswersOut>(PATHS.answers), [client]);
-  return (
-    <section aria-label="Answers" className="lib-answers">
-      <h3>Answers</h3>
-      <Loaded state={state}>
-        {(d) => (
-          <>
-            <ExampleNote note={d.example_note} />
-            {d.answers.length === 0 ? (
-              <p>{d.message}</p>
-            ) : (
-              <ul>{d.answers.map((a) => <Answer key={a.answer_id} a={a} />)}</ul>
-            )}
-          </>
-        )}
-      </Loaded>
-    </section>
   );
 }

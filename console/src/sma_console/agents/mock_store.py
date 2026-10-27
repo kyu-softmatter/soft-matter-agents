@@ -9,13 +9,13 @@ anywhere else; no goal card is ever made (console card 010).
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Any
 
+from . import store_requests
 from .requests import FOLDER_PARTS as REQUEST_PARTS
 from .requests import quantity_names
 from .sma_files import RootNotFoundError, SmaFiles, long_path, repository_root
@@ -148,21 +148,16 @@ class MockStore:
         return self.sample.root
 
     def library_answers(self) -> list[dict[str, Any]]:
-        """The sample's example answers, newest first by `answered_at` (`answer_id` breaks a tie), each as the file has it.
-
-        The file name plays no part in the order.
-        """
-        folder = self.sample.root / "librarian_agent" / "answers"
-        out = []
-        for f in folder.glob("ca-*.json"):
-            try:
-                doc = json.loads(f.read_bytes().decode("utf-8-sig"))
-            except (OSError, ValueError):
-                continue
-            if isinstance(doc, dict):
-                out.append(doc)
-        out.sort(key=lambda d: (str(d.get("answered_at", "")), str(d.get("answer_id", ""))), reverse=True)
-        return out
+        """The sample's example answers that can be read (console card 020), newest first by `answered_at`
+        (`answer_id` breaks a tie). They are read as a real tree's are: each must name an item in the inbox
+        and match its bytes. The file name plays no part in the order."""
+        try:
+            root = repository_root()
+        except RootNotFoundError:
+            root = None
+        readable, _ = store_requests.read_answers(
+            self.answers_folders("librarian"), self.inbox_folders("librarian"), store_requests.schemas_in(root))
+        return [r.doc for r in readable]
 
     def approvals_target_present(self) -> bool:
         return True  # practice: there is nothing to look for, and nothing is written

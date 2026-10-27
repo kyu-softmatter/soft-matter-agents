@@ -100,8 +100,9 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
   against a tree. Under `--store mock` the item goes into the mock's own write folder as
   `<agent>_agent/console_inbox/`; the shipped sample is never written.
 - **What the form says after Send.** To an agent: "Sent to the microscope as question mic-20261026-c001."
-  (or the simulation, with its id). To the librarian: "Not delivered: the console does not send to the
-  librarian yet." To "Let the agents decide": "Not delivered: no agent takes a question left to the agents
+  (or the simulation, with its id). To the librarian: "Sent to the librarian." (card 020: a
+  `console_store_request` of kind `ask` is written into `librarian_agent/console_inbox/`, its `question` the words
+  and no `conditions`). To "Let the agents decide": "Not delivered: no agent takes a question left to the agents
   yet." The route's answer tells the two apart by its `artifact` (`console_question` or `question_request`).
   The audit line `question_submitted` carries the login, `origin: "console"`, the addressee, and for a
   delivery the `item_id` and `question_id`; for a request the request id; never the words.
@@ -112,9 +113,10 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
   offers nothing. Choosing a suggestion inserts its text (an earlier question replaces the field, a name
   replaces the word being typed); it registers nothing and sends nothing. A file in the requests folder
   that is not a request is skipped, never offered.
-- **The cards.** A request written in the console: the words, who asked, when, whom, "written in the
+- **The cards.** A request written in the console ("let the agents decide"): the words, who asked, when, whom, "written in the
   console · not delivered", and that every run from it waits for the person's signature. Beside them, **every
-  item in the two inboxes**, newest first by `asked_at` (`item_id` breaks a tie): the words, login, time,
+  item in the three inboxes** (the librarian's among them, with the latest answer it has, as the Library shows it,
+  and with no signature wait), newest first by `asked_at` (`item_id` breaks a tie): the words, login, time,
   agent and question id, with exactly one state read from the agent's `answers/` (`console_answer` files that
   name the item): "delivered · not answered yet"; "taken up as <question id>"; "refused · <the reason as
   written>"; or "an answer is on disk and cannot be read", which the card says rather than guess. An

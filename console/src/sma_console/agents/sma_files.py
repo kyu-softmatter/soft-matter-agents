@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Any
 
 from .layout import run_side_folder
+from . import store_requests
 from .requests import FOLDER_PARTS as REQUEST_PARTS
 from .requests import quantity_names
 from .sma_run import (
@@ -663,7 +664,11 @@ class SmaFiles:
         return self._root
 
     def library_answers(self) -> list[dict[str, Any]]:
-        return []  # the librarian's answers are not read from the real tree until the console's inbox-writer card
+        """The answers in `librarian_agent/answers/` that can be read (console card 020), newest first. One that
+        cannot be read is not here: the Library's requests list says so (`store_requests.read_answers`)."""
+        readable, _ = store_requests.read_answers(
+            self.answers_folders("librarian"), self.inbox_folders("librarian"), store_requests.schemas_in(self._root))
+        return [r.doc for r in readable]
 
     def approvals_target_present(self) -> bool:
         """`microscope_runtime/approvals/` and only it: the old place, `microscope_agent/approvals/`, is
