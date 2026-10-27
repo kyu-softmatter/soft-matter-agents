@@ -9349,7 +9349,9 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
          question id, so a session cannot drop one -- and renaming a console
          question into window form leaves exactly that orphan; likewise every
          librarian store request has at least one store answer naming its
-         item id, and a store answer names a request that exists;
+         item id, and a store answer names a request that exists. An item
+         with no answer yet is PENDING (rule 10: the console commits the item
+         alone, the agent its answer after), so --strict counts it;
       3. an answer that takes a question up names a goal card carrying the
          item's question id, and an answer names an item that exists;
       4. nothing under an agent's console_inbox/ or answers/ is modified or
@@ -9397,11 +9399,16 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                 out.append(Finding(91, FAIL, f"the answer to {iid} says it was taken up as {goal!r}, and no card "
                                              f"there carries {qid}; the first stage uses the item's id for the goal "
                                              "card it makes (7.1.1 rule 9)", a.rel))
+    # An item with no answer yet is PENDING, not FAIL (7.1.1 rule 10): the
+    # item is the console's to commit and its answer the agent's, check 41
+    # refuses one commit carrying both, so the item lands first and alone.
+    # A dropped item is still caught by the append-only rule below, and
+    # --strict counts an unanswered one.
     for iid, item in sorted(items.items(), key=lambda kv: str(kv[0])):
         if iid not in answered:
-            out.append(Finding(91, FAIL, f"console question {iid} ({item.data.get('question_id')}) has no answer "
-                                         "naming it; every item is taken up or refused, and a refusal is written "
-                                         "back, never silent (7.1.1 rules 5 and 9)", item.rel))
+            out.append(Finding(91, PENDING, f"console question {iid} ({item.data.get('question_id')}) has no "
+                                            "answer naming it yet; every item is taken up or refused, and a refusal "
+                                            "is written back, never silent (7.1.1 rules 5, 9 and 10)", item.rel))
 
     # A run of a console question records the item its runner read
     # (microscope card 089, simulation card 028). A run log carries no
@@ -9519,9 +9526,9 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                                              "could not say which it answers (7.1.1 rules 3 and 6)", rel))
     for iid, req in sorted(requests.items(), key=lambda kv: str(kv[0])):
         if iid not in store_answered:
-            out.append(Finding(91, FAIL, f"store request {iid} has no store answer naming it; every request is "
-                                         "answered, and a refusal is written back, never silent (7.1.1 rule 8)",
-                               req.rel))
+            out.append(Finding(91, PENDING, f"store request {iid} has no store answer naming it yet; every "
+                                            "request is answered, and a refusal is written back, never silent "
+                                            "(7.1.1 rules 8 and 10)", req.rel))
 
     if commit_range or staged:
         import subprocess

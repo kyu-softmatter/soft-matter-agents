@@ -121,7 +121,9 @@ folders, and both sit beside `inbox/`:
 - **`microscope_agent/answers/`** is yours. Every question item gets an answer
   there (`console_answer.schema.json`): `taken_up`, naming the goal card that
   carries the item's question id, or `refused`, with the reason. Never
-  silence: check 91 fails an item with no answer. It is append-only too, so a
+  silence: check 91 shows an item with no answer as pending, and --strict
+  fails it. The console commits the item first and alone; you commit the
+  answer and any goal card after, never the item. It is append-only too, so a
   second answer is a new file. Each file is named
   `ca-<UTC date>-<UTC time>-<four random characters>.json`, and its
   `answer_id` is that name without `.json`; check 91 fails one that differs.
