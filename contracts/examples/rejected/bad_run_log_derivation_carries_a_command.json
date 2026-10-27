@@ -1,0 +1,116 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20261027-951",
+  "plan_id": null,
+  "revision": null,
+  "no_plan_because": "Rejected fixture: a derivation record is never a command. ACCEPTED EXAMPLE of a preparatory run, which check 85 passes. Its approved list lies outside the tree, so its hash is recorded and not checked. A preparatory run: no plan fitted it, because the only plan for this measurement was written for another objective and its axis ranges were computed for that configuration, so citing them would launder them (11-21).",
+  "approved_commands": {
+    "path": "D:/soft-matter-agents-frames/run-20260924-901/commands.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "software offsets order the log and nothing else (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.05,
+      "time_base": "software",
+      "event": "derivation",
+      "from": "actions",
+      "derivation": {
+        "parameters": [
+          {
+            "action": "acquire_series",
+            "name": "exposure_time",
+            "from": "numbers[exposure_time]",
+            "class": "setting",
+            "binding": "camera_exposure_ms"
+          },
+          {
+            "action": "acquire_series",
+            "name": "frame_count",
+            "from": "numbers[frame_count]",
+            "class": "verb_argument",
+            "verification": "frames the sequence returned, counted by image number"
+          }
+        ],
+        "selectors": [
+          {
+            "element": "red_camera_mode",
+            "from": "selectors[red_camera_mode]",
+            "class": "setting",
+            "binding": "kinetix_red_mode"
+          },
+          {
+            "element": "emission_filter",
+            "from": "selectors[emission_filter]",
+            "class": "required_state",
+            "state": "empty"
+          }
+        ],
+        "unused_numbers": [
+          {
+            "name": "record_length",
+            "value": 60,
+            "unit": "s",
+            "from": "numbers[record_length]"
+          }
+        ]
+      },
+      "channel": "Kinetix_red"
+    },
+    {
+      "t_mono": 0.05,
+      "time_base": "software",
+      "event": "judgements_off",
+      "from": "judgements",
+      "judgements": {
+        "why": "did_not_start",
+        "detail": "judgements.backend names no registered backend"
+      }
+    },
+    {
+      "t_mono": 0.1,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "GREEN_Intensity": {
+          "value": "50",
+          "from": "approved_commands[1]"
+        }
+      },
+      "verification": "readback"
+    },
+    {
+      "t_mono": 0.2,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00"
+}

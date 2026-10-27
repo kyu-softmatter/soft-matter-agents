@@ -507,6 +507,9 @@
         },
         "judgements": {
           "description": "the payload of judgements_started and judgements_off (plan.md 13.5), each with its own shape below: whether the run asks the plan's judgements at all, and by which backend. Never a command"
+        },
+        "derivation": {
+          "description": "the payload of a derivation event (plan.md 15.1 item 10): how every number in the plan was used before anything moved. Never a command"
         }
       },
       "required": [
@@ -1162,6 +1165,79 @@
             }
           },
           "$comment": "added 2026-10-22 by manager-microscope-20261003-1 in the shape card 081 (99c02ddb) writes; a judgements record is never a command"
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "derivation"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "from",
+              "derivation"
+            ],
+            "properties": {
+              "from": {
+                "const": "actions"
+              },
+              "derivation": {
+                "$ref": "#/$defs/derivation"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "channel"
+                  ]
+                },
+                {
+                  "required": [
+                    "action"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "verification"
+                  ]
+                },
+                {
+                  "required": [
+                    "deletion"
+                  ]
+                }
+              ]
+            }
+          },
+          "$comment": "added 2026-10-27 by manager-microscope-20261003-1 for card 095 (plan.md 15.1 item 10); a derivation record is never a command"
+        },
+        {
+          "if": {
+            "required": [
+              "derivation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event": {
+                "const": "derivation"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          }
         }
       ]
     },
@@ -1746,6 +1822,209 @@
       "required": [
         "why",
         "detail"
+      ],
+      "additionalProperties": false
+    },
+    "derivation": {
+      "type": "object",
+      "description": "One record per plan run, written at derivation and before the first command (plan.md 15.1 item 10, card 095). Every action parameter is sorted into exactly one class, every selector is a setting or a required state, and every number nothing uses is listed rather than dropped in silence. Added 2026-10-27 by manager-microscope-20261003-1 for card 095 and for the console's sign dialog, which reads the unused list from here.",
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "minLength": 1,
+                "description": "the plan action the parameter belongs to"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1,
+                "description": "the plan.json field path the number came from"
+              },
+              "class": {
+                "enum": [
+                  "setting",
+                  "verb_argument",
+                  "refused"
+                ]
+              },
+              "binding": {
+                "type": "string",
+                "minLength": 1,
+                "description": "for a setting: the snapshot binding that names the label and property it is written to"
+              },
+              "verification": {
+                "type": "string",
+                "minLength": 3,
+                "description": "for a verb argument: what it is verified against, e.g. the frames the sequence returned"
+              },
+              "why": {
+                "type": "string",
+                "minLength": 3,
+                "description": "for a refused parameter: what it lacked, naming the binding or calibration"
+              }
+            },
+            "required": [
+              "action",
+              "name",
+              "from",
+              "class"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "class": {
+                      "const": "setting"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "binding"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "class": {
+                      "const": "verb_argument"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "verification"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "class": {
+                      "const": "refused"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "why"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "selectors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "element": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "class": {
+                "enum": [
+                  "setting",
+                  "required_state"
+                ],
+                "description": "setting only on a device software may command; on any other device the selector is read and compared, never written"
+              },
+              "binding": {
+                "type": "string",
+                "minLength": 1
+              },
+              "state": {
+                "type": "string",
+                "minLength": 1,
+                "description": "for a required state: the device's own state label the plan's value resolved to"
+              }
+            },
+            "required": [
+              "element",
+              "from",
+              "class"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "class": {
+                      "const": "setting"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "binding"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "class": {
+                      "const": "required_state"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "state"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "unused_numbers": {
+          "type": "array",
+          "description": "numbers the plan carries that no parameter, selector or limit uses. Listed, not refused",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {},
+              "unit": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "value",
+              "unit",
+              "from"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "parameters",
+        "selectors",
+        "unused_numbers"
       ],
       "additionalProperties": false
     }
