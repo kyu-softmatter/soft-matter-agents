@@ -1,10 +1,11 @@
-"""MockStore: the copied sample in `mock_data/`, plus the question requests written here.
+"""MockStore: the copied sample in `mock_data/`, plus the inbox items written here.
 
 The sample is a few cards and runs copied from soft-matter-agents (`mock_data/SOURCE.md`),
-in the same layout, so it is read with the same `SmaFiles` reader. A question request is written
-under `write_dir` (a temporary folder by default) as `console/requests/questions/<id>.json`, the
-practice copy of the console's own folder. Nothing is written inside the package, and nothing
-anywhere else; no goal card is ever made (console card 010).
+in the same layout, so it is read with the same `SmaFiles` reader. An inbox item (a question to an
+agent or the librarian) is written under `write_dir` (a temporary folder by default) in the practice
+copy of that agent's `console_inbox/`. Nothing is written inside the package, and nothing anywhere
+else; no goal card is ever made. It has no folder to write a question request into (console card 022):
+the sample's earlier requests are only read.
 """
 
 from __future__ import annotations
@@ -107,18 +108,13 @@ class MockStore:
     def approval_file_sha256(self, agent: Agent, name: str) -> str | None:
         return self.sample.approval_file_sha256(agent, name)
 
-    # -- question requests (console card 010) -----------------------------------------------------
+    # -- earlier question requests (console card 010; no longer written, card 022) ----------------
     #
-    # A request goes into the store's own write folder, in the layout soft-matter-agents' console
-    # folder has, so this is the practice copy of `<root>/console/requests/questions/`. The shipped
-    # sample is never written, and neither is the real tree.
-
-    def request_write_folder(self) -> Path:
-        return long_path(self.write_dir).joinpath(*REQUEST_PARTS)
+    # The shipped sample holds earlier requests, and only those are read. No practice copy is made: nothing
+    # writes a request any more, and the shipped sample is never written, nor is the real tree.
 
     def request_folders(self) -> list[Path]:
-        mine = [] if self._write_dir is None else [long_path(self._write_dir).joinpath(*REQUEST_PARTS)]
-        return [*mine, self.sample.root.joinpath(*REQUEST_PARTS)]
+        return [self.sample.root.joinpath(*REQUEST_PARTS)]
 
     # -- the agents' inboxes (console card 019): a practice copy in the write dir, never the sample ----
 

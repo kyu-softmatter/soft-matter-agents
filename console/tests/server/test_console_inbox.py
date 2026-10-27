@@ -1,8 +1,9 @@
 """A question to the microscope or the simulation reaches that agent's inbox (console card 019, plan.md 7.1.1).
 
 An item is `contracts/schemas/console_inbox_item.schema.json`'s `console_question`, written once and whole
-into `<tree>/<agent>_agent/console_inbox/<item_id>.json`, and never rewritten. The librarian and "let the
-agents decide" are still requests in the console's own folder. Every test here runs in a `tmp_path` tree.
+into `<tree>/<agent>_agent/console_inbox/<item_id>.json`, and never rewritten. There are three addressees;
+anything else is refused and nothing is written (card 022). A request an earlier console left in its own
+folder is still read, marked not delivered. Every test here runs in a `tmp_path` tree.
 """
 
 from __future__ import annotations
@@ -356,15 +357,34 @@ def test_a_schema_that_cannot_be_found_refuses_and_writes_nothing(client, tree, 
 # -- what does not deliver ---------------------------------------------------------------------------
 
 
-def test_the_agents_decide_writes_a_request_and_no_item(client, tree, clock):
-    before = tree_hash(tree)
-    r = ask(client(), "agents_decide")
-    assert r.status_code == 201
-    assert r.json()["artifact"] == "question_request" and r.json()["addressed_to"] == "agents_decide"
-    new = set(tree_hash(tree)) - set(before)
-    assert new == {f"console/requests/questions/{r.json()['id']}.json"}
+@pytest.mark.parametrize("addressee", ["agents_decide", "everyone", "", "Microscope", "bridge"])
+def test_an_addressee_that_is_not_one_of_three_is_refused_and_nothing_is_written(client, tree, clock, seat, addressee):
+    c = client()  # logging in is itself an audit line; the baseline is taken after it
+    before, lines = tree_hash(tree), len(list(seat.audit.entries()))
+    r = ask(c, addressee)
+    assert r.status_code == 422
+    assert tree_hash(tree) == before  # no inbox, no part of the console's folder, nothing anywhere
+    assert not (tree / "console").exists() and entries(outgoing_of(tree)) == []
     for agent in ("microscope", "simulation", "librarian"):
         assert entries(inbox_of(tree, agent)) == [".gitkeep"]
+    assert len(list(seat.audit.entries())) == lines
+
+
+def test_a_question_with_no_addressee_is_refused_the_same_way(client, tree, clock, seat):
+    c = client()
+    before, lines = tree_hash(tree), len(list(seat.audit.entries()))
+    r = c.post(POST, json={"words": "no one is named"})
+    assert r.status_code == 422
+    assert tree_hash(tree) == before and not (tree / "console").exists()
+    assert len(list(seat.audit.entries())) == lines
+
+
+def test_the_refusal_of_an_addressee_says_it_is_not_one_of_three():
+    from sma_console.server.api import console as route
+
+    paths = route.router.routes
+    post = next(p for p in paths if getattr(p, "path", "").endswith("/question-requests"))
+    assert post.responses[422]["description"].endswith("an addressee that is not one of three")
 
 
 def test_the_librarian_is_delivered_as_a_store_request_and_nothing_else_changes(client, tree, clock):
@@ -518,7 +538,13 @@ def test_a_file_in_an_inbox_that_is_not_an_item_is_not_shown(client, tree):
 
 def test_requests_in_the_consoles_folder_keep_their_cards_marked_not_delivered(client, tree, clock):
     c = client()
-    ask(c, "agents_decide", "to the agents")
+    folder = tree / "console" / "requests" / "questions"  # an earlier console left it; nothing writes it now
+    folder.mkdir(parents=True)
+    (folder / "qr-20261024-174512-k3p9.json").write_text(json.dumps({
+        "artifact": "question_request", "schema_version": "0.1", "id": "qr-20261024-174512-k3p9",
+        "words": "to the agents", "asked_by": {"login": OPERATOR, "console_role": {
+            "may_ask": True, "may_draft": True, "agents": ["microscope"], "may_ask_model_run": False}},
+        "asked_at": "2026-10-24T17:45:12Z", "addressed_to": "agents_decide"}), encoding="utf-8")
     got = cards(c)
     assert [r["words"] for r in got["requests"]] == ["to the agents"]
     assert {r["state"] for r in got["requests"]} == {NOT_DELIVERED}

@@ -1,11 +1,11 @@
 """MockStore: every method over the copied sample, version choice, round trips, and that
-submitting writes in the write folder and nowhere else."""
+what the console writes (an inbox item) goes in the write folder and nowhere else. It has no folder to
+write a question request into (console card 022): the sample's requests are only read."""
 
 import hashlib
 import json
 import re
 import shutil
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -22,7 +22,6 @@ from sma_console.agents import (
     SmaFiles,
     open_store,
 )
-from sma_console.agents import requests as question_requests
 from sma_console.agents.mock_store import MOCK_DATA, PACKAGE_DIR
 from sma_console.agents.sma_files import long_path
 
@@ -31,11 +30,11 @@ DATA = long_path(MOCK_DATA)  # the tests' own reads survive a deep checkout too
 PACKAGE = long_path(PACKAGE_DIR)
 
 
-def a_request(words="Is the bead stuck?", rid="qr-20261001-120000-abcd"):
-    return {"artifact": "question_request", "schema_version": "0.1", "id": rid, "words": words,
-            "asked_by": {"login": "otto", "console_role": {
-                "may_ask": True, "may_draft": True, "agents": ["microscope"], "may_ask_model_run": False}},
-            "asked_at": "2026-10-01T12:00:00Z", "addressed_to": "agents_decide"}
+def an_item_file(folder: Path, name="ci-20261001-120000-abcd.json", text='{"words": "Is the bead stuck?"}'):
+    """A file where the console's inbox writer puts an item (the store only hands out the folder)."""
+    path = folder / name
+    path.write_text(text, encoding="utf-8")
+    return path
 
 
 @pytest.fixture
@@ -183,26 +182,23 @@ def test_everything_survives_a_json_round_trip(store):
         assert roundtrip(o) == o
 
 
-def test_a_request_is_written_in_the_practice_copy_and_read_back(store, tmp_path):
-    path = question_requests.write_request(store.request_write_folder(), a_request())
-    assert path == long_path(tmp_path / "written" / "console" / "requests" / "questions" / "qr-20261001-120000-abcd.json")
-    ids = [r["id"] for r in question_requests.read_requests(store.request_folders())]
-    assert "qr-20261001-120000-abcd" in ids and len(ids) == 3  # the two practice requests of the sample, and this one
-    assert store.list_questions("microscope") == MockStore(tmp_path / "other").list_questions("microscope")  # no goal card made
+def test_the_stores_request_folders_are_the_samples_alone_and_nothing_makes_a_practice_one(store, tmp_path):
+    assert store.request_folders() == [store.sample.root.joinpath("console", "requests", "questions")]
+    assert not hasattr(store, "request_write_folder")
+    assert not (tmp_path / "written" / "console").exists()
 
 
-def test_a_request_is_written_only_in_the_write_folder(tmp_path):
+def test_an_item_is_written_only_in_the_write_folder(tmp_path):
     before_sample = tree(MOCK_DATA)
     before_package = tree(PACKAGE)
     store = MockStore(tmp_path / "written")
-    question_requests.write_request(store.request_write_folder(), a_request("one", "qr-20261001-120000-aaaa"))
-    question_requests.write_request(store.request_write_folder(), a_request("two", "qr-20261001-120000-bbbb"))
+    an_item_file(store.inbox_write_folder("microscope"), "ci-20261001-120000-aaaa.json")
+    an_item_file(store.inbox_write_folder("simulation"), "ci-20261001-120000-bbbb.json")
     assert tree(MOCK_DATA) == before_sample
-    assert {k for k in tree(PACKAGE) if "__pycache__" not in k} == \
-        {k for k in before_package if "__pycache__" not in k}
+    assert {k for k in tree(PACKAGE) if "__pycache__" not in k} ==         {k for k in before_package if "__pycache__" not in k}
     assert sorted(p.relative_to(tmp_path).as_posix() for p in tmp_path.rglob("*") if p.is_file()) == [
-        "written/console/requests/questions/qr-20261001-120000-aaaa.json",
-        "written/console/requests/questions/qr-20261001-120000-bbbb.json",
+        "written/microscope_agent/console_inbox/ci-20261001-120000-aaaa.json",
+        "written/simulation_agent/console_inbox/ci-20261001-120000-bbbb.json",
     ]
 
 
@@ -217,34 +213,34 @@ def test_default_write_folder_is_a_temporary_one():
     with MockStore() as store:
         assert store.list_questions("microscope")  # reading makes no folder
         assert store._write_dir is None
-        question_requests.write_request(store.request_write_folder(), a_request())
+        an_item_file(store.inbox_write_folder("microscope"))
         made = store.write_dir
         assert PACKAGE_DIR not in made.parents
-        assert (made / "console/requests/questions/qr-20261001-120000-abcd.json").is_file()
+        assert (made / "microscope_agent/console_inbox/ci-20261001-120000-abcd.json").is_file()
     assert not made.exists()  # leaving the block deleted the folder the store made
 
 
 def test_close_deletes_only_a_folder_the_store_made(tmp_path):
     store = MockStore()
-    question_requests.write_request(store.request_write_folder(), a_request())
+    an_item_file(store.inbox_write_folder("microscope"))
     made = store.write_dir
     store.close()
     store.close()  # twice is fine
     assert not made.exists()
     assert store.list_questions("microscope")[0].source == "mock"  # the sample is still read
-    question_requests.write_request(store.request_write_folder(), a_request())  # a new temporary folder
+    an_item_file(store.inbox_write_folder("microscope"))  # a new temporary folder
     assert store.write_dir != made
     store.close()
 
     given = tmp_path / "given"
     with MockStore(given) as mine:
-        question_requests.write_request(mine.request_write_folder(), a_request())
+        an_item_file(mine.inbox_write_folder("microscope"))
     mine.close()
-    assert (given / "console/requests/questions/qr-20261001-120000-abcd.json").is_file()
+    assert (given / "microscope_agent/console_inbox/ci-20261001-120000-abcd.json").is_file()
 
 
 def test_writable_flag():
-    assert MockStore.writable is True and SmaFiles.writable is True  # question requests only
+    assert MockStore.writable is True and SmaFiles.writable is True  # inbox items only
     assert MockStore().writable and SmaFiles(MOCK_DATA).writable
 
 

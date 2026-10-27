@@ -1,18 +1,19 @@
-"""The question request (console card 010, plan.md 4.5): what the question window writes.
+"""The question request (console card 010, plan.md 4.5), as the console reads it since card 022.
 
 A request is `contracts/schemas/question_request.schema.json`, read from the repository and never a
-copy. It is written into the console's own folder, `console/requests/questions/<id>.json`, and is not
-delivered: it is what the console keeps for "let the agents decide", which has no inbox. A question to
-the microscope, the simulation or the librarian is an inbox item instead (`test_console_inbox.py`).
+copy. Nothing writes one any more: a question goes to the microscope, the simulation or the librarian
+as an inbox item (`test_console_inbox.py`), and anything else is refused with nothing written. A
+request an earlier console left in `console/requests/questions/` is still read: it shows as a card
+"written in the console · not delivered", its words are still offered by autocomplete, and an addressee
+the schema still allows (`agents_decide`) never makes the reader fail. Every test here runs in a
+`tmp_path` tree.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import re
 import shutil
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -26,10 +27,12 @@ from sma_console.server.api import REFUSAL_HEADER
 
 REPO = repository_root()
 EXAMPLES = REPO / "contracts" / "examples"
+SCHEMAS = REPO / "contracts" / "schemas"
 POST = "/api/console/question-requests"
 CARDS = "/api/console/question-cards"
 SUGGEST = "/api/console/suggestions"
 NOT_DELIVERED = "written in the console · not delivered"
+AGENTS = ("microscope", "simulation", "librarian")
 
 
 def requests_module():
@@ -52,18 +55,30 @@ def refusal(r) -> tuple[int, str]:
     return r.status_code, r.json()["detail"]["code"]
 
 
+def audit_lines(seat) -> int:
+    return len(list(seat.audit.entries()))
+
+
 @pytest.fixture
 def sma_root(tmp_path):
-    """A copy of the sample as a soft-matter-agents tree, with its own contracts/quantities.json."""
+    """A copy of the sample as a soft-matter-agents tree, with its own contracts/quantities.json, the inbox
+    schemas and an empty inbox for each of the three agents (so a delivery that should not happen would show)."""
     root = tmp_path / "sma"
     shutil.copytree(MOCK_DATA, root)
     shutil.rmtree(root / "console")  # the sample's practice requests: these tests start from none
     shutil.rmtree(root / "microscope_runtime")  # its runs and approvals: these tests write their own
     shutil.rmtree(root / "librarian_agent" / "console_inbox")  # its example requests and their answers
     shutil.rmtree(root / "librarian_agent" / "answers")
-    (root / "contracts").mkdir()
+    (root / "contracts" / "schemas").mkdir(parents=True)
+    for name in ("console_inbox_item.schema.json", "console_answer.schema.json",
+                 "console_store_request.schema.json", "store_answer.schema.json"):
+        shutil.copy(SCHEMAS / name, root / "contracts" / "schemas" / name)
     (root / "contracts" / "quantities.json").write_text(
         json.dumps({"quantities": [{"id": "pixel_size"}, {"id": "refractive_index"}]}), encoding="utf-8")
+    for agent in AGENTS:
+        inbox = root / f"{agent}_agent" / "console_inbox"
+        inbox.mkdir(parents=True)
+        (inbox / ".gitkeep").write_bytes(b"")
     return root
 
 
@@ -75,6 +90,15 @@ def sma_client(engine, make_client, sma_root):
 
 def folder_of(root: Path) -> Path:
     return root / "console" / "requests" / "questions"
+
+
+def nothing_changed(root: Path, before: dict[str, str]) -> bool:
+    """No file anywhere is new or different: no inbox item, nothing in the console's folder."""
+    return tree_hash(root) == before and not (root / "console").exists()
+
+
+def ask(c, agent: str = "microscope", words: str = "q"):
+    return c.post(POST, json={"words": words, "addressed_to": agent})
 
 
 # -- the checker itself is watched to accept and to reject --------------------------------------------
@@ -89,239 +113,152 @@ def test_the_checker_accepts_the_repositorys_example_and_rejects_its_four_fixtur
         assert not conforms(read(path)), path.parent.name
 
 
-# -- a written request ------------------------------------------------------------------------------
-
-
-TYPED = "  Does the gel flow more easily\nafter it rests?  \n\n\"quoted\" μm — é\\  "
-
-
-def test_a_request_is_written_exactly_in_the_schemas_shape(sma_client, sma_root):
-    c = sma_client()
-    r = c.post(POST, json={"words": TYPED, "addressed_to": "agents_decide"})
-    assert r.status_code == 201, r.text
-    files = written(folder_of(sma_root))
-    assert len(files) == 1
-    doc = json.loads(files[0].read_bytes().decode("utf-8"))
-    assert problems(doc) == []  # against the repository's own schema
-    assert files[0].name == doc["id"] + ".json"
-    assert re.fullmatch(r"qr-\d{8}-\d{6}-[a-z0-9]{4}", doc["id"])
-    assert r.json() == doc  # what the screen is told is what was written
-    assert not files[0].read_bytes().startswith(b"\xef\xbb\xbf")
-
-
-def test_the_words_are_byte_equal_to_what_was_typed(sma_client, sma_root):
-    c = sma_client()
-    c.post(POST, json={"words": TYPED, "addressed_to": "agents_decide"})
-    doc = json.loads(written(folder_of(sma_root))[0].read_bytes().decode("utf-8"))
-    assert doc["words"].encode("utf-8") == TYPED.encode("utf-8")
-    assert doc["words"] != TYPED.strip()  # nothing trimmed, nothing rewritten
-
-
-def test_no_key_outside_the_schema_and_no_claim_of_the_persons_own(sma_client, sma_root):
-    sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    doc = json.loads(written(folder_of(sma_root))[0].read_text(encoding="utf-8"))
-    spec = schema()
-    assert set(doc) == set(spec["properties"])
-    assert set(doc["asked_by"]) == {"login", "console_role"}
-    assert set(doc["asked_by"]["console_role"]) == {"may_ask", "may_draft", "agents", "may_ask_model_run"}
-    flat = json.dumps(doc).lower()
-    assert "own" not in set(re.findall(r"[a-z_]+", flat)) and "person" not in flat
-
-
-def test_a_request_with_an_extra_key_would_not_pass(sma_client, sma_root):
-    sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    doc = json.loads(written(folder_of(sma_root))[0].read_text(encoding="utf-8"))
+def test_a_request_with_an_extra_key_would_not_pass():
+    doc = read(EXAMPLES / "question_request.json")
+    assert problems(doc) == []
     assert problems({**doc, "persons_own": True})  # the checker would catch it
     assert problems({**doc, "asked_by": {**doc["asked_by"], "email": "a@b"}})
 
 
-def test_the_ask_choice_is_addressed_to(sma_client, sma_root):
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    assert r.status_code == 201 and r.json()["addressed_to"] == "agents_decide"
+# -- nothing writes a request any more -----------------------------------------------------------------
+
+
+def test_the_route_no_longer_has_a_request_to_write():
+    R = requests_module()
+    for gone in ("build_request", "write_request", "request_id", "RequestIdTaken"):
+        assert not hasattr(R, gone), gone
+    store = MockStore()
+    try:
+        assert not hasattr(store, "request_write_folder")
+    finally:
+        store.close()
+    assert not hasattr(SmaFiles(Path(".")), "request_write_folder")
+
+
+@pytest.mark.parametrize("agent", AGENTS)
+def test_a_question_is_delivered_and_the_consoles_folder_is_not_touched(sma_client, sma_root, agent):
+    before = tree_hash(sma_root)
+    r = ask(sma_client(), agent)
+    assert r.status_code == 201, r.text
+    assert r.json()["artifact"] != "question_request"
+    new = set(tree_hash(sma_root)) - set(before)
+    assert len(new) == 1 and next(iter(new)).startswith(f"{agent}_agent/console_inbox/ci-")
+    # the delivery's own temporary folder may stay, empty; no file and no request folder is made there
+    assert not (sma_root / "console" / "requests" / "questions").exists()
+    assert [f for f in (sma_root / "console").rglob("*") if f.is_file()] == []
 
 
 @pytest.mark.parametrize("login", [OPERATOR, ADMIN])
 def test_the_login_and_the_role_are_the_sessions_and_the_roles(sma_client, sma_root, login):
-    r = sma_client(login=login).post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    doc = r.json()
-    assert doc["asked_by"]["login"] == login
-    assert doc["asked_by"]["console_role"] == {
-        "may_ask": True, "may_draft": True, "agents": ["microscope", "simulation", "librarian"],
-        "may_ask_model_run": True}
+    r = ask(sma_client(login=login))
+    assert r.status_code == 201, r.text
+    asked_by = r.json()["asked_by"]
+    assert asked_by["login"] == login
+    assert asked_by["console_role"]["may_ask"] is True and asked_by["console_role"]["may_draft"] is True
 
 
-def test_asked_at_is_utc_and_the_id_comes_from_the_same_instant(sma_client, monkeypatch):
+def test_the_checker_of_the_asker_refuses_a_viewer_an_email_and_words_that_cannot_be_written():
     R = requests_module()
-    monkeypatch.setattr(R, "utc_now", lambda: datetime(2026, 10, 24, 17, 45, 12, tzinfo=UTC))
-    monkeypatch.setattr(R, "random_suffix", lambda: "k3p9")
-    doc = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"}).json()
-    assert doc["id"] == "qr-20261024-174512-k3p9" and doc["asked_at"] == "2026-10-24T17:45:12Z"
+    base = dict(words="q", login="otto", role="operator")
+    assert R.console_role_for("viewer") is None and R.console_role_for("operator") is not None
+    assert R.check_asker(**base)["may_ask"] is True
+    for bad in ({"role": "viewer"}, {"login": "otto@example.test"}, {"words": " "},
+                {"words": "x" * 4001}, {"words": "a" + chr(0xD800) + "b"}):
+        with pytest.raises(R.RequestError):
+            R.check_asker(**{**base, **bad})
 
 
 @pytest.mark.parametrize("body", [
-    {"words": "", "addressed_to": "agents_decide"},
-    {"words": "   \n ", "addressed_to": "agents_decide"},
-    {"words": "x" * 4001, "addressed_to": "agents_decide"},
+    {"words": "", "addressed_to": "microscope"},
+    {"words": "   \n ", "addressed_to": "microscope"},
+    {"words": "x" * 4001, "addressed_to": "microscope"},
+    {"words": "q", "addressed_to": "agents_decide"},
     {"words": "q", "addressed_to": "bridge"},
+    {"words": "q", "addressed_to": ""},
     {"words": "q"},
-    {"addressed_to": "agents_decide"},
-    {"words": "q", "addressed_to": "agents_decide", "purpose": "screen"},
-    {"words": "q", "addressed_to": "agents_decide", "observable": "pixel_size"},
-    {"words": "q", "addressed_to": "agents_decide", "persons_own": True},
+    {"addressed_to": "microscope"},
+    {"words": "q", "addressed_to": "microscope", "purpose": "screen"},
+    {"words": "q", "addressed_to": "microscope", "observable": "pixel_size"},
+    {"words": "q", "addressed_to": "microscope", "persons_own": True},
 ])
-def test_a_bad_body_is_refused_and_writes_nothing(sma_client, sma_root, body):
-    r = sma_client().post(POST, json=body)
+def test_a_bad_body_is_refused_and_writes_nothing(sma_client, sma_root, seat, body):
+    c = sma_client()  # logging in is itself an audit line; the baseline is taken after it
+    before, lines = tree_hash(sma_root), audit_lines(seat)
+    r = c.post(POST, json=body)
     assert r.status_code == 422, r.text
-    assert written(folder_of(sma_root)) == []
+    assert nothing_changed(sma_root, before) and audit_lines(seat) == lines
 
 
-def test_the_longest_allowed_words_are_written(sma_client, sma_root):
-    r = sma_client().post(POST, json={"words": "x" * 4000, "addressed_to": "agents_decide"})
-    assert r.status_code == 201 and problems(r.json()) == []
+def test_the_longest_allowed_words_are_delivered(sma_client, sma_root):
+    r = ask(sma_client(), "microscope", "x" * 4000)
+    assert r.status_code == 201 and r.json()["words"] == "x" * 4000
 
 
 def test_a_lone_surrogate_is_refused_not_a_server_error(sma_client, sma_root):
-    r = sma_client().post(POST, content='{"words": "a\\ud800b", "addressed_to": "agents_decide"}',
+    before = tree_hash(sma_root)
+    r = sma_client().post(POST, content='{"words": "a\\ud800b", "addressed_to": "microscope"}',
                           headers={"content-type": "application/json"})
     assert r.status_code == 422
-    assert written(folder_of(sma_root)) == []
-
-
-# -- never rewritten, written atomically --------------------------------------------------------------
-
-
-def test_an_existing_id_is_never_overwritten(sma_client, sma_root, monkeypatch):
-    R = requests_module()
-    monkeypatch.setattr(R, "utc_now", lambda: datetime(2026, 10, 24, 17, 45, 12, tzinfo=UTC))
-    monkeypatch.setattr(R, "random_suffix", lambda: "k3p9")
-    c = sma_client()
-    assert c.post(POST, json={"words": "first", "addressed_to": "agents_decide"}).status_code == 201
-    path = folder_of(sma_root) / "qr-20261024-174512-k3p9.json"
-    before = path.read_bytes()
-    r = c.post(POST, json={"words": "second", "addressed_to": "agents_decide"})
-    assert refusal(r) == (409, "request_exists")
-    assert path.read_bytes() == before
-    assert written(folder_of(sma_root)) == [path]
-    assert list(folder_of(sma_root).glob("*.tmp*")) == []
-
-
-def test_a_taken_id_is_retried_with_another_suffix(sma_client, sma_root, monkeypatch):
-    R = requests_module()
-    monkeypatch.setattr(R, "utc_now", lambda: datetime(2026, 10, 24, 17, 45, 12, tzinfo=UTC))
-    suffixes = iter(["aaaa", "aaaa", "bbbb"])
-    monkeypatch.setattr(R, "random_suffix", lambda: next(suffixes))
-    c = sma_client()
-    first = c.post(POST, json={"words": "first", "addressed_to": "agents_decide"}).json()
-    second = c.post(POST, json={"words": "second", "addressed_to": "agents_decide"}).json()
-    assert (first["id"], second["id"]) == ("qr-20261024-174512-aaaa", "qr-20261024-174512-bbbb")
-    assert {p.name for p in written(folder_of(sma_root))} == {first["id"] + ".json", second["id"] + ".json"}
-    assert json.loads((folder_of(sma_root) / (first["id"] + ".json")).read_text("utf-8"))["words"] == "first"
-
-
-def test_a_failed_write_leaves_no_file_and_no_temporary(sma_client, sma_root, monkeypatch):
-    R = requests_module()
-
-    def broken(*a, **k):
-        raise OSError("disk says no")
-
-    monkeypatch.setattr(R.os, "link", broken, raising=False)
-    monkeypatch.setattr(R.os, "replace", broken, raising=False)
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    assert r.status_code == 500
-    leftovers = [p for p in folder_of(sma_root).glob("*")] if folder_of(sma_root).is_dir() else []
-    assert leftovers == []
-
-
-def test_a_request_appears_whole_or_not_at_all(sma_client, sma_root, monkeypatch):
-    """The final name is reached only by a link or rename of a finished file, never by writing to it."""
-    R = requests_module()
-    seen: list[bytes] = []
-    real = R.os.link
-
-    def link(src, dst, *a, **k):
-        seen.append(Path(src).read_bytes())
-        assert not Path(dst).exists()
-        return real(src, dst, *a, **k)
-
-    monkeypatch.setattr(R.os, "link", link)
-    sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    assert len(seen) == 1 and problems(json.loads(seen[0])) == []
-
-
-def test_the_writer_refuses_an_existing_file_by_itself(tmp_path):
-    R = requests_module()
-    folder = tmp_path / "console" / "requests" / "questions"
-    doc = {"artifact": "question_request", "schema_version": "0.1", "id": "qr-20261024-174512-k3p9",
-           "words": "w", "asked_by": {"login": "otto", "console_role": {
-               "may_ask": True, "may_draft": True, "agents": [], "may_ask_model_run": False}},
-           "asked_at": "2026-10-24T17:45:12Z", "addressed_to": "agents_decide"}
-    path = R.write_request(folder, doc)
-    assert path.name == "qr-20261024-174512-k3p9.json" and problems(json.loads(path.read_text("utf-8"))) == []
-    before = path.read_bytes()
-    with pytest.raises(R.RequestIdTaken):
-        R.write_request(folder, {**doc, "words": "other"})
-    assert path.read_bytes() == before
-
-
-def test_the_builder_refuses_a_viewer_an_email_a_bad_choice_and_words_that_cannot_be_written():
-    R = requests_module()
-    now = datetime(2026, 10, 24, 17, 45, 12, tzinfo=UTC)
-    base = dict(words="q", login="otto", role="operator", addressed_to="agents_decide", now=now, suffix="abcd")
-    assert R.console_role_for("viewer") is None and R.console_role_for("operator") is not None
-    assert problems(R.build_request(**base)) == []
-    for bad in ({"role": "viewer"}, {"login": "otto@example.test"}, {"addressed_to": "bridge"}, {"words": " "},
-                {"words": "x" * 4001}, {"words": "a" + chr(0xD800) + "b"}):
-        with pytest.raises(R.RequestError):
-            R.build_request(**{**base, **bad})
+    assert nothing_changed(sma_root, before)
 
 
 # -- who may send ------------------------------------------------------------------------------------
 
 
 def test_a_viewer_cannot_send_and_is_told_in_words(sma_client, sma_root):
-    r = sma_client(login=VIEWER).post(POST, json={"words": "q", "addressed_to": "agents_decide"})
+    before = tree_hash(sma_root)
+    r = ask(sma_client(login=VIEWER))
     assert refusal(r) == (403, "role")
     assert "only look" in r.json()["detail"]["message"].lower() or "may not" in r.json()["detail"]["message"].lower()
     assert "submit_question" not in r.json()["detail"]["message"]
-    assert written(folder_of(sma_root)) == []
+    assert nothing_changed(sma_root, before)
 
 
 def test_a_remote_browser_cannot_send_and_is_told_in_words(sma_client, sma_root):
-    r = sma_client(remote=True).post(POST, json={"words": "q", "addressed_to": "agents_decide"})
+    before = tree_hash(sma_root)
+    r = ask(sma_client(remote=True))
     assert refusal(r) == (403, "remote_view")
     message = r.json()["detail"]["message"]
     # the access middleware answers first, in its own words; either way it names the microscope PC
     assert ("microscope PC" in message or "microscope computer" in message) and "submit_question" not in message
-    assert written(folder_of(sma_root)) == []
+    assert nothing_changed(sma_root, before)
 
 
 def test_no_login_and_a_locked_login_cannot_send(sma_client, sma_root, seat):
-    assert sma_client(login=None).post(POST, json={"words": "q", "addressed_to": "agents_decide"}).status_code == 401
+    before = tree_hash(sma_root)
+    assert ask(sma_client(login=None)).status_code == 401
     c = sma_client()
     seat.logins.lock(c.login_token)
-    assert c.post(POST, json={"words": "q", "addressed_to": "agents_decide"}).status_code == 423
-    assert written(folder_of(sma_root)) == []
+    assert ask(c).status_code == 423
+    assert nothing_changed(sma_root, before)
 
 
 def test_a_foreign_origin_cannot_send(sma_client, sma_root):
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"},
+    before = tree_hash(sma_root)
+    r = sma_client().post(POST, json={"words": "q", "addressed_to": "microscope"},
                           headers={"origin": "https://example.com"})
-    assert r.status_code == 403 and written(folder_of(sma_root)) == []
+    assert r.status_code == 403 and nothing_changed(sma_root, before)
 
 
-# -- the mock store: a practice copy, never the real tree ---------------------------------------------
+# -- the mock store: it reads the shipped sample's requests and has nowhere to write one -----------------
 
 
-def test_under_the_mock_store_nothing_is_written_into_the_real_tree(engine, make_client, tmp_path):
+def test_the_mock_store_reads_only_the_sample_for_requests(tmp_path):
+    store = MockStore(tmp_path / "practice")
+    assert store.request_folders() == [MOCK_DATA / "console" / "requests" / "questions"]
+    assert not (tmp_path / "practice" / "console").exists()
+
+
+def test_a_question_under_the_mock_store_writes_no_request_into_the_real_tree(engine, make_client, tmp_path):
     store = MockStore(tmp_path / "practice")
     repo_before = {p: (p.stat().st_size, p.stat().st_mtime_ns)
                    for p in (REPO / "console" / "requests").rglob("*")} if (REPO / "console" / "requests").exists() else None
     sample_before = tree_hash(MOCK_DATA)
-    c = make_client(engine, agent_store=store)
-    r = c.post(POST, json={"words": "practice", "addressed_to": "agents_decide"})
+    r = ask(make_client(engine, agent_store=store), "microscope", "practice")
     assert r.status_code == 201
-    mine = folder_of(tmp_path / "practice")
-    assert [p.name for p in written(mine)] == [r.json()["id"] + ".json"]
+    # the delivery's own temporary folder may stay, empty; no request is written there
+    assert [f for f in (tmp_path / "practice" / "console").rglob("*") if f.is_file()] == []
+    assert not (tmp_path / "practice" / "console" / "requests" / "questions").exists()
     assert tree_hash(MOCK_DATA) == sample_before  # the shipped sample is not written
     if repo_before is None:
         assert not (REPO / "console" / "requests").exists()
@@ -330,49 +267,23 @@ def test_under_the_mock_store_nothing_is_written_into_the_real_tree(engine, make
                 for p in (REPO / "console" / "requests").rglob("*")} == repo_before
 
 
-def test_the_mock_store_without_a_folder_of_its_own_writes_into_a_temporary_one(engine, make_client):
-    store = MockStore()
-    try:
-        r = make_client(engine, agent_store=store).post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-        assert r.status_code == 201
-        assert store.write_dir.resolve() not in REPO.resolve().parents and REPO.resolve() not in store.write_dir.resolve().parents
-        assert [p.name for p in written(folder_of(store.write_dir))] == [r.json()["id"] + ".json"]
-    finally:
-        store.close()
-
-
-# -- a request is not delivered --------------------------------------------------------------------
-
-
-def test_a_request_touches_no_agent_folder_inbox_or_bridge(sma_client, sma_root):
-    before = tree_hash(sma_root)
-    r = sma_client().post(POST, json={"words": "q", "addressed_to": "agents_decide"})
-    assert r.status_code == 201
-    after = tree_hash(sma_root)
-    new = set(after) - set(before)
-    assert new == {f"console/requests/questions/{r.json()['id']}.json"}
-    assert {k: v for k, v in after.items() if k in before} == before  # nothing else changed
-    assert not any(p.startswith(("microscope_agent", "simulation_agent", "bridge", "librarian_agent")) for p in new)
-
-
-def test_the_audit_line_names_the_request_and_not_its_words(sma_client, seat):
-    r = sma_client().post(POST, json={"words": "a private-looking sentence", "addressed_to": "agents_decide"})
-    line = [e for e in seat.audit.entries() if e["kind"] == "question_submitted"][-1]
-    assert line["user_id"] == OPERATOR and line["request"] == r.json()["id"] and line["target"] == "agents_decide"
-    assert "private-looking" not in json.dumps(line)
-
-
 # -- autocomplete: only strings already on disk ------------------------------------------------------
 
 
-def seed_request(root: Path, rid: str, words: str, at: str = "2026-10-20T09:00:00Z") -> None:
+def seed_request(root: Path, rid: str, words: str, at: str = "2026-10-20T09:00:00Z",
+                 addressed_to: str = "agents_decide") -> None:
+    """A request an earlier console left in its own folder (nothing writes one now)."""
     folder_of(root).mkdir(parents=True, exist_ok=True)
     doc = {"artifact": "question_request", "schema_version": "0.1", "id": rid, "words": words,
            "asked_by": {"login": "member-1", "console_role": {
                "may_ask": True, "may_draft": True, "agents": ["microscope"], "may_ask_model_run": False}},
-           "asked_at": at, "addressed_to": "agents_decide"}
+           "asked_at": at, "addressed_to": addressed_to}
     assert problems(doc) == []
     (folder_of(root) / f"{rid}.json").write_text(json.dumps(doc), encoding="utf-8")
+
+
+def schema_addressees() -> list[str]:
+    return list(schema()["properties"]["addressed_to"]["enum"])
 
 
 def test_an_empty_disk_offers_nothing(engine, make_client, tmp_path):
@@ -404,10 +315,10 @@ def test_it_offers_nothing_else_not_the_stores_titles_or_contents(sma_client, sm
     assert {s["kind"] for s in got} <= {"earlier question", "registered name"}
 
 
-def test_a_written_request_is_offered_afterwards_once(sma_client):
+def test_a_delivered_question_is_offered_afterwards_once(sma_client):
     c = sma_client()
-    c.post(POST, json={"words": "Does it rest?", "addressed_to": "agents_decide"})
-    c.post(POST, json={"words": "Does it rest?", "addressed_to": "agents_decide"})
+    ask(c, "microscope", "Does it rest?")
+    ask(c, "microscope", "Does it rest?")
     got = [s for s in c.get(SUGGEST).json() if s["kind"] == "earlier question"]
     assert got == [{"text": "Does it rest?", "kind": "earlier question"}]
 
@@ -434,6 +345,7 @@ def test_the_mock_sample_has_valid_practice_requests_that_are_offered_and_shown(
     assert len(files) == 2
     for f in files:
         assert problems(read(f)) == [] and f.stem == read(f)["id"]
+    assert "agents_decide" in {read(f)["addressed_to"] for f in files}  # the sample keeps an earlier console's request
     c = make_client(engine, agent_store=MockStore(tmp_path / "p"))
     offered = [s["text"] for s in c.get(SUGGEST).json() if s["kind"] == "earlier question"]
     assert {read(f)["words"] for f in files} <= set(offered)  # and the words of the sample's delivered examples
@@ -445,20 +357,40 @@ def test_suggestions_need_a_login(sma_client):
     assert sma_client(login=None).get(SUGGEST).status_code == 401
 
 
+# -- earlier requests are still read, whatever addressee the schema allows ------------------------------
+
+
+def test_the_schema_still_allows_an_addressee_the_console_no_longer_offers():
+    assert "agents_decide" in schema_addressees() and set(schema_addressees()) >= set(AGENTS)
+
+
+@pytest.mark.parametrize("addressee", schema_addressees())
+def test_an_earlier_request_to_any_addressee_the_schema_allows_is_still_a_card(sma_client, sma_root, addressee):
+    seed_request(sma_root, "qr-20261020-090000-aaaa", "older words for the agents", addressed_to=addressee)
+    c = sma_client()
+    r = c.get(CARDS)
+    assert r.status_code == 200, r.text
+    (card,) = r.json()["requests"]
+    assert card["state"] == NOT_DELIVERED and card["addressed_to"] == addressee
+    assert card["runs_wait_for_signature"] is True and card["words"] == "older words for the agents"
+    offered = [s["text"] for s in c.get(SUGGEST).json() if s["kind"] == "earlier question"]
+    assert offered == ["older words for the agents"]
+
+
 # -- the cards below the field ------------------------------------------------------------------------
 
 
 def test_requests_are_cards_not_delivered_and_say_runs_wait_for_the_person(sma_client, sma_root):
     seed_request(sma_root, "qr-20261020-090000-aaaa", "older words", "2026-10-20T09:00:00Z")
-    c = sma_client()
-    mine = c.post(POST, json={"words": "newer words", "addressed_to": "agents_decide"}).json()
-    got = c.get(CARDS).json()
+    seed_request(sma_root, "qr-20261022-090000-bbbb", "newer words", "2026-10-22T09:00:00Z", "microscope")
+    got = sma_client().get(CARDS).json()
     reqs = got["requests"]
     assert [r["words"] for r in reqs] == ["newer words", "older words"]
     assert reqs[0] == {
-        "id": mine["id"], "words": "newer words", "login": OPERATOR, "asked_at": mine["asked_at"],
-        "addressed_to": "agents_decide", "state": NOT_DELIVERED, "runs_wait_for_signature": True}
-    assert reqs[1]["login"] == "member-1" and reqs[1]["state"] == NOT_DELIVERED
+        "id": "qr-20261022-090000-bbbb", "words": "newer words", "login": "member-1",
+        "asked_at": "2026-10-22T09:00:00Z", "addressed_to": "microscope", "state": NOT_DELIVERED,
+        "runs_wait_for_signature": True}
+    assert reqs[1]["addressed_to"] == "agents_decide" and reqs[1]["state"] == NOT_DELIVERED
 
 
 def steps(c, qid):

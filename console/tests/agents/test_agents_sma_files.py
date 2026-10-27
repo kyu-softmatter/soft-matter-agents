@@ -83,7 +83,8 @@ def test_reads_a_read_only_copy_and_changes_nothing(readonly_copy):
     s = SmaFiles(readonly_copy)
     assert s.available()
     assert read_everything(s) > 5
-    assert s.request_write_folder().parts[-3:] == ("console", "requests", "questions")  # the one place it writes
+    assert s.request_folders()[0].parts[-3:] == ("console", "requests", "questions")  # read, never written
+    assert not hasattr(s, "request_write_folder")
     assert snapshot(readonly_copy) == before  # and reading writes nothing
 
 
@@ -159,7 +160,7 @@ def test_real_checkout_is_read_and_left_unchanged():
         for r in runs[:5]:
             assert REAL.get_run(agent, r.run_id).files
     assert REAL.list_inbox()
-    assert REAL.request_write_folder().parts[-3:] == ("console", "requests", "questions")  # not written here
+    assert REAL.request_folders()[0].parts[-3:] == ("console", "requests", "questions")  # read, not written here
 
     assert {str(w): snapshot(w) for w in watched} == before
 
@@ -189,16 +190,11 @@ def test_a_copy_past_max_path_reads_the_same(tmp_path):
 def test_mock_store_writes_and_reads_past_max_path(tmp_path):
     from sma_console.agents import MockStore
 
-    from sma_console.agents import requests as question_requests
-
     deep = tmp_path / ("w" * 100) / ("x" * 100)
     store = MockStore(deep)
-    doc = {"artifact": "question_request", "schema_version": "0.1", "id": "qr-20261001-120000-abcd",
-           "words": "deep question", "asked_by": {"login": "otto", "console_role": {
-               "may_ask": True, "may_draft": True, "agents": [], "may_ask_model_run": False}},
-           "asked_at": "2026-10-01T12:00:00Z", "addressed_to": "agents_decide"}
-    question_requests.write_request(store.request_write_folder(), doc)
-    assert "deep question" in [r["words"] for r in question_requests.read_requests(store.request_folders())]
+    folder = store.inbox_write_folder("microscope")
+    (long_path(folder) / "ci-20261001-120000-abcd.json").write_text('{"words": "deep question"}', encoding="utf-8")
+    assert [p.name for p in long_path(store.inbox_write_folder("microscope")).iterdir()] == ["ci-20261001-120000-abcd.json"]
 
 
 def test_entries_that_cannot_be_stated_are_reported(tmp_path, monkeypatch):

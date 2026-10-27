@@ -134,9 +134,20 @@ def test_the_old_question_post_is_gone(engine, make_client, fresh_store):
 
 def test_a_store_that_cannot_write_requests_refuses_in_words(engine, make_client):
     c = make_client(engine, agent_store=SimpleNamespace(writable=False))
-    r = c.post("/api/console/question-requests", json={"words": "q", "addressed_to": "agents_decide"})
+    r = c.post("/api/console/question-requests", json={"words": "q", "addressed_to": "microscope"})
     assert refusal(r) == (409, "read_only_store")
     assert r.json()["detail"]["message"] == READ_ONLY_MESSAGE
+
+
+@pytest.mark.parametrize("agent", ["microscope", "simulation", "librarian"])
+def test_a_store_that_has_inboxes_but_says_it_is_not_writable_is_refused_and_nothing_is_written(
+        engine, make_client, fresh_store, agent):
+    """The route's own check, apart from the check that the store has an inbox to write into."""
+    fresh_store.writable = False
+    c = make_client(engine, agent_store=fresh_store)
+    r = c.post("/api/console/question-requests", json={"words": "q", "addressed_to": agent})
+    assert refusal(r) == (409, "read_only_store")
+    assert not fresh_store.write_dir.exists() or not any(p.is_file() for p in fresh_store.write_dir.rglob("*"))
 
 
 def test_permissions_answer_submit_question(engine, make_client):

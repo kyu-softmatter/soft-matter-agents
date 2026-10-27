@@ -2,8 +2,9 @@
  * The question window (console cards 010 and 019, plan.md 4.5): one field, an Ask choice and Send.
  * Send to the microscope or the simulation writes the words, exactly as typed, into that agent's
  * inbox, and the form says which question id it became. To the librarian it writes an `ask` request into
- * the librarian's inbox, and the form says "Sent to the librarian." "Let the agents decide" writes a
- * request in the console's own folder, and the form says plainly it was not delivered.
+ * the librarian's inbox, and the form says "Sent to the librarian." The choice opens with no one picked
+ * ("Choose who to ask"), Send stays off until one is picked and the words are not blank, and a send
+ * empties both.
  *
  * Autocomplete offers only strings already on disk -- the words of earlier requests and the
  * registered quantity names, each labelled -- never a model's completion and never the store's
@@ -96,7 +97,7 @@ export function AskBox({
 }) {
   const client = useClient();
   const [words, setWords] = useState("");
-  const [to, setTo] = useState<Addressee>("agents_decide");
+  const [to, setTo] = useState<Addressee | "">("");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -104,7 +105,7 @@ export function AskBox({
   const all = useLoad(() => client.get<Suggestion[]>(PATHS.suggestions), [client, refreshKey]);
   const shown = useMemo(() => (open ? suggestionsFor(words, all.data ?? []) : []), [open, words, all.data]);
 
-  const disabled = reason !== undefined || busy || words.trim() === "";
+  const disabled = reason !== undefined || busy || words.trim() === "" || to === "";
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -115,6 +116,7 @@ export function AskBox({
     try {
       const r = await askQuestion(client, { words, addressed_to: to });
       setWords("");
+      setTo("");
       setOpen(false);
       setDone(afterSend(r, to));
       onWritten(r);
@@ -160,7 +162,10 @@ export function AskBox({
       <div className="console-filters">
         <label>
           Ask{" "}
-          <select value={to} onChange={(e) => setTo(e.target.value as Addressee)}>
+          <select value={to} onChange={(e) => setTo(e.target.value as Addressee | "")}>
+            <option value="" disabled>
+              Choose who to ask
+            </option>
             {ADDRESSEES.map((a) => (
               <option key={a.value} value={a.value}>
                 {a.label}

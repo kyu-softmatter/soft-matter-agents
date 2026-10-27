@@ -30,17 +30,17 @@ All are mounted at `/api/console` by T-009's area-router mechanism. Bodies are t
 | `POST /runs/{agent}/{run_id}/stop` | `{reason}` | `StopOut`: `outcome` `begun` / `refused` / `no_answer`, `message` | the run's stop channel |
 | `GET /inbox` | | `InboxThread[]` with messages | `list_inbox()` |
 | `GET /approvals` | `agent=`, optional | `Approval[]` (the seats' `approvals/` plan_approval cards, newest first; `plan_found`: a plan card of the question hashes to `plan_hash`) | `list_approvals(agent)` |
-| `POST /question-requests` | `{words, addressed_to}` (nothing else is accepted) | `201`, `QuestionRequest`: `contracts/schemas/question_request.schema.json`, exactly as written | `write_request(store.request_write_folder(), ...)` |
-| `GET /question-cards` | | `{requests: RequestCard[], questions: QuestionProgress[]}`: requests written in the console (newest first), and the agents' questions with five steps | `read_requests`, `list_questions`, `get_question`, `list_runs` |
+| `POST /question-requests` | `{words, addressed_to}` (nothing else is accepted); `addressed_to` is `microscope`, `simulation` or `librarian` | `201`, the delivered item: `ConsoleQuestion` (`console_inbox_item.schema.json`) for an agent, `LibrarianRequest` (`console_store_request.schema.json`) for the librarian. Any other addressee is a 422 and nothing is written | `inbox_items` (card 019), `store_requests` (card 020) |
+| `GET /question-cards` | | `{requests: RequestCard[], questions: QuestionProgress[]}`: earlier requests found in the console's own folder (read only, newest first), and the agents' questions with five steps | `read_requests`, `list_questions`, `get_question`, `list_runs` |
 | `GET /signing` | | `SigningState`: `person_named`, `is_person`, `practice`, `approvals_folder` (the screen's offer to this login) | `settings.json` `person_login`; `approvals_target_present()` |
 | `POST /sign-check` | `{qid, plan_hash, password}` (nothing else) | `SignCheck`: `outcome` `written` (with `file_name`) or `practice_signed`, `message`. **Writes one approval on a real tree, nothing under the mock store** | `AccountStore.person_login()`, `LoginSessions.check_password` |
 | `GET /suggestions` | | `[{text, kind}]`, `kind` `earlier question` or `registered name`: strings already on disk | `read_requests`, `registered_names()` |
 
 Error mapping (all T-009b refusals: `detail = {code, message}` and the `X-DinoAF-Refusal` header):
 `NotFoundError` → 404 `not_found`; blank or too-long words (`RequestError`) → 422 `invalid`
-(a bad `addressed_to`, an extra key or a lone surrogate is FastAPI's own 422, with the input left out of
-the answer when it cannot be written back); an id taken five times → 409 `request_exists`; a store that
-cannot take a request → 409 `read_only_store` with
+(an `addressed_to` that is not one of the three, a missing one, an extra key or a lone surrogate is FastAPI's
+own 422, with the input left out of the answer when it cannot be written back, and nothing is written); a store
+that cannot take a request → 409 `read_only_store` with
 `"Submitting to soft-matter-agents is not connected yet (read-only)"`; other `StoreError` → 500
 `store_error`.
 
@@ -57,28 +57,27 @@ After a successful send the screen re-reads `GET /question-cards` and `GET /sugg
 
 ## The question window (console card 010, plan.md 4.5)
 
-The first screen of the Questions area is one field ("Your question"), an "Ask" choice (let the agents
-decide, the microscope, the simulation, the librarian) and Send. The old form's purpose and observable
+The first screen of the Questions area is one field ("Your question"), an "Ask" choice (the microscope,
+the simulation, the librarian) and Send. The choice opens with no one picked ("Choose who to ask"), which
+cannot be sent; Send stays off until one is picked and the words are not blank, and picking sends nothing.
+After a send both the words and the choice are empty again (card 022). The old form's purpose and observable
 fields are gone: the agents settle those. A card per question sits below it.
 
 **Send to the microscope or the simulation delivers the question into that agent's inbox** (card 019, the
-person's decision in `plan.md` 7.1.1); **Send to the librarian or to "Let the agents decide" writes a question
-request** into the console's own folder and delivers nothing. The request is written exactly in the shape of
-`contracts/schemas/question_request.schema.json` and no other: `id` is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<4 random lowercase letters or digits>` and the file
-is `<id>.json`; `words` is the text exactly as typed (not trimmed, not rewritten; only a blank field is
-refused); `asked_by` is the session's login and its console role; `asked_at` is UTC; `addressed_to` is the
-choice. There is no key the schema does not name and no claim that the asker is the person's own.
+person's decision in `plan.md` 7.1.1); **Send to the librarian delivers an `ask` request into the librarian's
+inbox** (card 020). **Nothing is written into the console's own folder any more** (card 022, the person's
+decision of 2026-10-27): "Let the agents decide" is gone, the server takes exactly those three addressees, and
+anything else (that value, a missing one, any other) is refused with a 422 before anything is written.
 Until the admin card brings console-side roles the role is derived from today's role: admin and operator
 get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets none and cannot send.
 
-- **Where a request goes.** `--store sma`: `<root>/console/requests/questions/`. `--store mock`: the mock store's own
-  write folder (a temporary one by default), in the same layout, which is the practice copy. The shipped
-  sample (`mock_data/console/requests/questions/`, two practice requests) is read, never written, and
-  the real tree is not written under the mock.
-- **Atomic, never rewritten.** The file is written whole to a temporary name in the same folder and then
-  linked to its final name; a link to a name that exists fails, so an existing id is refused
-  (`RequestIdTaken`; the route tries another suffix up to five times, then 409). A failed write leaves
-  neither a file nor a temporary.
+- **Earlier requests are still read.** A console of before wrote a question request
+  (`contracts/schemas/question_request.schema.json`) into `<root>/console/requests/questions/` for a question left to
+  the agents. Those files are read and never rewritten, moved or removed: the cards show them, in the state
+  "written in the console · not delivered", with an addressee of "Left to the agents · no longer offered" in
+  place of the raw value, and autocomplete still offers their words. The reader accepts every addressee the
+  schema allows. `--store mock`'s shipped sample (`mock_data/console/requests/questions/`, two practice
+  requests) is read, never written.
 - **Who may send** stays the server's present rule (the access middleware, then `server_action_why` for
   `submit_question`: operator or admin, on the microscope PC), with the refusal said in words. A viewer is
   told the login can only look; another computer is told questions are asked from the microscope computer.
@@ -102,10 +101,9 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
 - **What the form says after Send.** To an agent: "Sent to the microscope as question mic-20261026-c001."
   (or the simulation, with its id). To the librarian: "Sent to the librarian." (card 020: a
   `console_store_request` of kind `ask` is written into `librarian_agent/console_inbox/`, its `question` the words
-  and no `conditions`). To "Let the agents decide": "Not delivered: no agent takes a question left to the agents
-  yet." The route's answer tells the two apart by its `artifact` (`console_question` or `question_request`).
-  The audit line `question_submitted` carries the login, `origin: "console"`, the addressee, and for a
-  delivery the `item_id` and `question_id`; for a request the request id; never the words.
+  and no `conditions`). The route's answer tells the two apart by its `artifact` (`console_question` or
+  `console_store_request`). The audit line `question_submitted` carries the login, `origin: "console"`, the
+  addressee, and the `item_id` (and the `question_id` for an agent); never the words.
 - **Autocomplete** offers only strings already on disk: the `words` of earlier requests and the quantity
   names in `contracts/quantities.json`, each labelled "earlier question" or "registered name". Never a
   model's completion and never the store's contents (the cards' titles are not offered). The list is read
@@ -113,7 +111,8 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
   offers nothing. Choosing a suggestion inserts its text (an earlier question replaces the field, a name
   replaces the word being typed); it registers nothing and sends nothing. A file in the requests folder
   that is not a request is skipped, never offered.
-- **The cards.** A request written in the console ("let the agents decide"): the words, who asked, when, whom, "written in the
+- **The cards.** An earlier request found in the console's own folder: the words, who asked, when, whom (an old
+  "left to the agents" request says "Left to the agents · no longer offered"), "written in the
   console · not delivered", and that every run from it waits for the person's signature. Beside them, **every
   item in the three inboxes** (the librarian's among them, with the latest answer it has, as the Library shows it,
   and with no signature wait), newest first by `asked_at` (`item_id` breaks a tie): the words, login, time,
@@ -129,7 +128,7 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
 
 ## One question and the sign dialog, writing nothing (console card 011; plans 006 and 007)
 
-A question's card opens its page (`#/questions/questions/<qid>`; a request written in the console opens
+A question's card opens its page (`#/questions/questions/<qid>`; an earlier request opens
 `#/questions/requests/<id>`, where nothing has started). The page shows the question verbatim (the goal
 card's own words), who asked and when, the five steps of card 010, a **summary put together from card
 fields** (the goal's purpose and observable, the plan's steps) labelled as such, and **every card made
@@ -335,9 +334,9 @@ client (`useClient().get`); the screen re-reads when the event socket reconnects
 | Role below operator (viewer), D16 | `/api/permissions`; `server_action_why(me, "submit_question")` in the route | 403 `role` | the permission reason, shown next to the form |
 | A store that cannot take a request | `/api/console/store`; `store.writable` in the route | 409 `read_only_store` | `"Submitting to soft-matter-agents is not connected yet (read-only)"` |
 
-- `AgentStore.writable` now says whether a question request can be written (card 010): both stores say
-  yes, because a request goes into the console's own folder, never an agent's. The 409 rule stays for a
-  store that cannot take one.
+- `AgentStore.writable` says whether the console may deliver an item (cards 019, 020): both stores say yes.
+  The 409 rule stays for a store that cannot take one. Nothing is written into the console's own folder
+  any more (card 022).
 
 - D16: the POST route calls `server_action_why` (T-018 `SUBMIT_QUESTION` plus loopback) on the server.
   Disabling the button is only the display of the permission answer. Device control (the control token)
@@ -346,7 +345,7 @@ client (`useClient().get`); the screen re-reads when the event socket reconnects
 - The web submit goes through the shell's `client.post`: only a 403 `remote_view` switches the app to
   read-only; every other refusal is shown next to the form and changes no global state.
 - An accepted send goes to the audit log as `question_submitted` with `user_id`, `origin: "console"`, `target` and
-  the new request id (PLAN §5 "The three logs"), never the words.
+  the delivered item's id (PLAN §5 "The three logs"), never the words.
   Refusals are not logged by this route: the audit kinds have none for a refused question.
 
 ## Prompt context (X1)

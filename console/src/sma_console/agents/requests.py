@@ -1,21 +1,17 @@
-"""The question request: what the console's question window writes (console card 010, plan.md 4.5).
+"""The earlier question request, read back (console card 010, plan.md 4.5; no longer written, card 022).
 
 A request is `contracts/schemas/question_request.schema.json`: the asker's words exactly as typed,
-the asking login and that login's console role, the time (UTC) and the agent addressed. It is
-written into the console's own folder, `console/requests/questions/<id>.json`. **A request in that
-folder is not delivered**: the agents' inboxes are open since 2026-10-26, and a question to the
-microscope or the simulation goes there as an item (`inbox_items.py`, card 019), and one to the librarian
-as an `ask` request (`store_requests.py`, card 020), so what this module writes is what the console keeps
-for "let the agents decide", which no agent has an inbox for. This module writes a file in one place and reads that
-place back for the cards and for autocomplete, and does nothing else.
+the asking login and that login's console role, the time (UTC) and the agent addressed. A console of
+before wrote one into its own folder, `console/requests/questions/<id>.json`, for a question left to the
+agents, which no agent has an inbox for. **A request in that folder is not delivered**, and nothing writes
+one any more: a question to the microscope or the simulation goes into that agent's inbox as an item
+(`inbox_items.py`, card 019), and one to the librarian as an `ask` request (`store_requests.py`, card 020).
+This module only reads the old files back, for the cards and for autocomplete, and checks who may ask.
 
 * The id is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<four random lowercase letters or digits>`, and the file
   is `<id>.json`.
-* The file is written complete to a temporary name in the same folder and then **linked** to its
-  final name, so it appears whole or not at all, and a link to a name that exists fails: a request
-  is **never rewritten**, an existing id is refused (`RequestIdTaken`).
-* There is no key the schema does not name, and no claim that the asker is the person's own: that
-  claim counts only with a proof no session can forge (plan.md 4.5, 6.2), which is not built.
+* The reader accepts every addressee the schema allows, `agents_decide` included, so an old request is
+  shown and never refused; the console just no longer offers that choice.
 * Autocomplete offers only strings already on disk: the `words` of earlier requests and the quantity
   names in `contracts/quantities.json`. Never a model's completion, never the store's contents.
 """
@@ -23,7 +19,6 @@ place back for the cards and for autocomplete, and does nothing else.
 from __future__ import annotations
 
 import json
-import os
 import re
 import secrets
 import string
@@ -33,8 +28,8 @@ from pathlib import Path
 from typing import Any
 
 from ..auth.accounts import AccountError, check_login
-from .store import StoreError
 
+#: every addressee the request schema allows: what the reader accepts. The console offers only the last three.
 ADDRESSEES = ("agents_decide", "microscope", "simulation", "librarian")
 #: the agents a console role may name, in the schema's order
 AGENTS_ASKABLE = ("microscope", "simulation", "librarian")
@@ -50,20 +45,12 @@ class RequestError(ValueError):
     """What was asked cannot be written as a request (the message says why)."""
 
 
-class RequestIdTaken(StoreError):
-    """A request with this id is already on disk. It is never rewritten."""
-
-
 def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
 def random_suffix() -> str:
     return "".join(secrets.choice(_ALPHABET) for _ in range(4))
-
-
-def request_id(now: datetime, suffix: str) -> str:
-    return f"qr-{now.strftime('%Y%m%d-%H%M%S')}-{suffix}"
 
 
 def console_role_for(role: str) -> dict[str, Any] | None:
@@ -95,56 +82,6 @@ def check_asker(*, words: str, login: str, role: str) -> dict[str, Any]:
     if console_role is None:
         raise RequestError("this login may not ask a question")
     return console_role
-
-
-def build_request(*, words: str, login: str, role: str, addressed_to: str, now: datetime,
-                  suffix: str) -> dict[str, Any]:
-    """The request as the schema has it, or `RequestError`. `words` is kept exactly: not trimmed,
-    not rewritten. Only a question that is blank or cannot be written is refused."""
-    if addressed_to not in ADDRESSEES:
-        raise RequestError(f"addressed_to is one of {', '.join(ADDRESSEES)}")
-    console_role = check_asker(words=words, login=login, role=role)
-    when = now.astimezone(UTC)
-    return {
-        "artifact": "question_request",
-        "schema_version": "0.1",
-        "id": request_id(when, suffix),
-        "words": words,
-        "asked_by": {"login": login, "console_role": console_role},
-        "asked_at": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "addressed_to": addressed_to,
-    }
-
-
-def write_request(folder: Path, request: dict[str, Any]) -> Path:
-    """Write `request` as `<folder>/<id>.json`, whole or not at all, and never over a file that is
-    there. Raises `RequestIdTaken` when the id exists, `StoreError` when the disk refuses."""
-    rid = request["id"]
-    if ID_PATTERN.fullmatch(rid) is None:
-        raise StoreError(f"not a request id: {rid!r}")
-    final = folder / f"{rid}.json"
-    data = (json.dumps(request, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
-    tmp = folder / f".{rid}.{os.getpid()}.{secrets.token_hex(3)}.tmp"
-    try:
-        folder.mkdir(parents=True, exist_ok=True)
-        with open(tmp, "xb") as f:
-            f.write(data)
-            f.flush()
-            os.fsync(f.fileno())
-        try:
-            os.link(tmp, final)  # fails when the name exists: a request is never rewritten
-        except FileExistsError as e:
-            raise RequestIdTaken(f"a request {rid} already exists") from e
-    except RequestIdTaken:
-        raise
-    except OSError as e:
-        raise StoreError(f"the request could not be written: {e}") from e
-    finally:
-        try:
-            tmp.unlink()
-        except OSError:
-            pass
-    return final
 
 
 def read_requests(folders: Iterable[Path]) -> list[dict[str, Any]]:

@@ -7,6 +7,8 @@ import { fakeTransport } from "../../test/fakes";
 import {
   ADDRESSEES,
   CHECKING_PERMISSIONS,
+  LEFT_TO_THE_AGENTS,
+  NOT_DELIVERED,
   PERMISSION_CHECK_UNAVAILABLE,
   READ_ONLY_REMOTE,
   READ_ONLY_STORE_REASON,
@@ -40,6 +42,13 @@ function show(data: FakeData = FAKE_DATA, hash = "#/questions", hostname = "127.
   return { ...fake, client, submitted, gets, posts };
 }
 
+/** What an older version of the console wrote: a request left to the agents. Still read, never offered. */
+const LEFT_REQUEST = {
+  id: "qr-20261024-174512-k3p9", words: "Is the stage drifting at night?", login: "member-2",
+  asked_at: "2026-10-24T17:45:12Z", addressed_to: "agents_decide" as const, state: NOT_DELIVERED,
+  runs_wait_for_signature: true,
+};
+
 const field = () => screen.getByLabelText("Your question") as HTMLTextAreaElement;
 const send = () => screen.getByRole("button", { name: "Send" }) as HTMLButtonElement;
 const type = (v: string) => fireEvent.change(field(), { target: { value: v } });
@@ -66,15 +75,63 @@ describe("the field", () => {
     const form = await screen.findByRole("form", { name: "Ask a question" });
     expect(form.querySelectorAll("textarea, input[type=text], input:not([type])")).toHaveLength(1);
     const ask = screen.getByLabelText("Ask") as HTMLSelectElement;
-    expect([...ask.options].map((o) => [o.value, o.textContent])).toEqual(ADDRESSEES.map((a) => [a.value, a.label]));
-    expect(ask.value).toBe("agents_decide");
+    const [placeholder, ...choices] = [...ask.options];
+    expect([placeholder.value, placeholder.textContent, placeholder.disabled]).toEqual(["", "Choose who to ask", true]);
+    expect(choices.map((o) => [o.value, o.textContent])).toEqual([
+      ["microscope", "The microscope"],
+      ["simulation", "The simulation"],
+      ["librarian", "The librarian"],
+    ]);
+    expect(choices.map((o) => [o.value, o.textContent])).toEqual(ADDRESSEES.map((a) => [a.value, a.label]));
+    expect(ask.value).toBe(""); // none picked: the placeholder shows
     expect(screen.queryByLabelText(/purpose/i)).toBeNull();
     expect(screen.queryByLabelText(/observable/i)).toBeNull();
     expect(screen.queryByRole("tab", { name: "Ask" })).toBeNull();
   });
 
-  it("has the four choices in words the person uses", () => {
-    expect(ADDRESSEES.map((a) => a.label)).toEqual(["Let the agents decide", "The microscope", "The simulation", "The librarian"]);
+  it("has the three choices in words the person uses, and no choice left to the agents", () => {
+    expect(ADDRESSEES.map((a) => a.label)).toEqual(["The microscope", "The simulation", "The librarian"]);
+    expect(screen.queryByText(/let the agents decide/i)).toBeNull();
+  });
+
+  it("keeps Send off while no one is picked, even with words typed, and picking a choice sends nothing", async () => {
+    const t = show();
+    await ready();
+    type("Is the bead stuck?");
+    expect(send().disabled).toBe(true); // words, but nobody asked
+    fireEvent.submit(screen.getByRole("form", { name: "Ask a question" }));
+    expect(t.posts()).toHaveLength(0);
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "microscope" } });
+    await waitFor(() => expect(send().disabled).toBe(false));
+    expect(t.posts()).toHaveLength(0); // picking sends nothing
+    expect(field().value).toBe("Is the bead stuck?");
+  });
+
+  it("keeps Send off when someone is picked and the words are blank", async () => {
+    show();
+    await ready();
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "librarian" } });
+    type("   ");
+    expect(send().disabled).toBe(true);
+  });
+
+  it("empties both the words and the choice after a send", async () => {
+    await sendTo("Is the bead stuck?", "microscope");
+    expect(field().value).toBe("");
+    expect((screen.getByLabelText("Ask") as HTMLSelectElement).value).toBe("");
+    expect(send().disabled).toBe(true);
+  });
+
+  it("keeps the words and the choice when the server refused the send", async () => {
+    show({ ...FAKE_DATA, postRefusal: { status: 403, body: { detail: { code: "role", message: "No." } } } });
+    await ready();
+    type("How fast?");
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "simulation" } });
+    await waitFor(() => expect(send().disabled).toBe(false));
+    await act(async () => void fireEvent.click(send()));
+    await screen.findByRole("alert");
+    expect(field().value).toBe("How fast?");
+    expect((screen.getByLabelText("Ask") as HTMLSelectElement).value).toBe("simulation");
   });
 
   it("sends the words exactly as typed and the choice, and nothing else", async () => {
@@ -119,11 +176,6 @@ describe("the field", () => {
     expect(card.textContent).not.toContain("waits for the person's signature");
   });
 
-  it("says plainly that a question left to the agents was not delivered", async () => {
-    const { status } = await sendTo("Is the bead stuck?", "agents_decide");
-    expect(status.textContent).toBe("Not delivered: no agent takes a question left to the agents yet.");
-  });
-
   it("says nothing of an inbox not being open: that is over", async () => {
     const { status } = await sendTo("Is the bead stuck?", "microscope");
     expect(status.textContent).not.toMatch(/until the agents|not picked up|new inbox/i);
@@ -144,6 +196,7 @@ describe("the field", () => {
     await ready();
     expect(t.gets("/api/console/question-cards")).toBe(1);
     type("A new question");
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "microscope" } });
     await waitFor(() => expect(send().disabled).toBe(false));
     await act(async () => void fireEvent.click(send()));
     await waitFor(() => expect(t.gets("/api/console/question-cards")).toBe(2));
@@ -203,6 +256,7 @@ describe("who may send (the server decides; the screen shows why)", () => {
     });
     await ready();
     type("How fast?");
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "microscope" } });
     await waitFor(() => expect(send().disabled).toBe(false));
     await act(async () => void fireEvent.click(send()));
     const form = screen.getByRole("form", { name: "Ask a question" });
@@ -218,6 +272,7 @@ describe("who may send (the server decides; the screen shows why)", () => {
     });
     await ready();
     type("How fast?");
+    fireEvent.change(screen.getByLabelText("Ask"), { target: { value: "microscope" } });
     await waitFor(() => expect(send().disabled).toBe(false));
     await act(async () => void fireEvent.click(send()));
     await waitFor(() => expect(t.client.readOnly.get().readOnly).toBe(true));
@@ -326,6 +381,25 @@ describe("the cards below the field", () => {
     expect(req.textContent).toContain("The librarian");
     expect(req.textContent).toContain("Every run from it waits for the person's signature");
     expect(within(req).queryByRole("list", { name: "Progress" })).toBeNull(); // nothing to measure yet
+  });
+
+  it("shows an earlier request left to the agents with its addressee in words, never the raw value", async () => {
+    show({ ...FAKE_DATA, cards: { ...FAKE_DATA.cards, requests: [LEFT_REQUEST, ...FAKE_DATA.cards.requests] } });
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    const req = within(cards).getByText("Is the stage drifting at night?").closest("article") as HTMLElement;
+    expect(req.textContent).toContain("written in the console · not delivered");
+    expect(req.textContent).toContain(LEFT_TO_THE_AGENTS);
+    expect(LEFT_TO_THE_AGENTS).toBe("Left to the agents · no longer offered");
+    expect(req.textContent).not.toContain("agents_decide");
+    expect(req.textContent).not.toContain("agents decide");
+  });
+
+  it("shows the same words on that request's own page", async () => {
+    show({ ...FAKE_DATA, cards: { ...FAKE_DATA.cards, requests: [LEFT_REQUEST] } }, "#/questions/requests/qr-20261024-174512-k3p9");
+    const p = await screen.findByRole("region", { name: "Question request" });
+    expect(p.textContent).toContain(LEFT_TO_THE_AGENTS);
+    expect(p.textContent).not.toContain("agents_decide");
+    expect(p.textContent).not.toContain("agents decide");
   });
 
   it("shows every item delivered to an inbox, newest first, each with its words, login, time, agent and question id", async () => {

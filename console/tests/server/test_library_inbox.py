@@ -458,7 +458,7 @@ def test_with_no_schemas_to_check_against_nothing_is_written(tree, clock):
     assert entries(lib_inbox(tree)) == [".gitkeep"] and entries(outgoing_of(tree)) == []
 
 
-# -- the Questions screen: "The librarian" delivers an ask, "Let the agents decide" does not -------------------------
+# -- the Questions screen: "The librarian" delivers an ask; "Let the agents decide" is no longer an addressee ----------
 
 
 def test_the_librarian_on_the_questions_screen_delivers_an_ask_with_no_conditions(client, tree, clock):
@@ -471,13 +471,11 @@ def test_the_librarian_on_the_questions_screen_delivers_an_ask_with_no_condition
     assert r.json() == doc
 
 
-def test_let_the_agents_decide_writes_nothing_into_any_inbox(client, tree, clock):
+def test_let_the_agents_decide_is_refused_and_writes_nothing_anywhere(client, tree, clock):
     before = tree_hash(tree)
     r = client().post(QUESTION, json={"words": "something for the agents", "addressed_to": "agents_decide"})
-    assert r.status_code == 201
-    after = tree_hash(tree)
-    changed = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
-    assert changed and all(k.startswith("console/requests/") for k in changed)
+    assert r.status_code == 422
+    assert tree_hash(tree) == before and not (tree / "console").exists()
     for agent in ("microscope", "simulation", "librarian"):
         assert entries(tree / f"{agent}_agent" / "console_inbox") == [".gitkeep"]
 

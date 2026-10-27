@@ -15,7 +15,6 @@ import {
   type Permissions,
   type QuestionCards,
   type QuestionDetail,
-  type QuestionRequest,
   type QuestionSummary,
   READ_ONLY_STORE_REASON,
   type RunDetail,
@@ -90,7 +89,7 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
     const asked_by = {
       login: FAKE_LOGIN,
       console_role: { may_ask: true, may_draft: true, agents: ["microscope", "simulation", "librarian"], may_ask_model_run: true },
-    } satisfies QuestionRequest["asked_by"];
+    } satisfies ConsoleQuestion["asked_by"];
     if (body.addressed_to === "microscope" || body.addressed_to === "simulation") {
       // delivered into the agent's inbox: an item, and no request file beside it
       const prefix = body.addressed_to === "microscope" ? "mic" : "sim";
@@ -120,15 +119,8 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
       });
       return { status: 201, body: sent };
     }
-    const written: QuestionRequest = {
-      artifact: "question_request", schema_version: "0.1", id: `qr-20261001-12000${submitted.length}-abcd`,
-      words: body.words, asked_by, asked_at: "2026-10-01T12:00:00Z", addressed_to: body.addressed_to,
-    };
-    requests.unshift({
-      id: written.id, words: written.words, login: FAKE_LOGIN, asked_at: written.asked_at,
-      addressed_to: written.addressed_to, state: NOT_DELIVERED, runs_wait_for_signature: true,
-    });
-    return { status: 201, body: written };
+    // the server takes three addressees; anything else it refuses and writes nothing
+    return { status: 422, body: { detail: "an addressee that is not one of three" } };
   };
   return { routes, submitted };
 }

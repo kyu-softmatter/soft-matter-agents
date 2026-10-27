@@ -19,7 +19,7 @@
 
 import { AnswerItem } from "../library/answers";
 import "../library/library.css";
-import { ADDRESSEES, type ItemCard, type QuestionCards, type QuestionProgress, type RequestCard } from "./api";
+import { addresseeLabel, type QuestionCards, type QuestionProgress } from "./api";
 import { shortTime } from "./ui";
 
 const STEPS = [
@@ -29,8 +29,6 @@ const STEPS = [
   ["run", "Run"],
   ["result", "Result"],
 ] as const;
-
-const addressee = (v: RequestCard["addressed_to"] | ItemCard["agent"]) => ADDRESSEES.find((a) => a.value === v)?.label ?? v;
 
 export function QuestionStepsList({ q }: { q: QuestionProgress }) {
   return (
@@ -68,7 +66,7 @@ export function QuestionCardsView({
             {r.words}
           </button>
           <p className="console-muted">
-            {r.login} · {shortTime(r.asked_at)} · {addressee(r.addressed_to)}
+            {r.login} · {shortTime(r.asked_at)} · {addresseeLabel(r.addressed_to)}
           </p>
           <p>
             <span className="console-tag">{r.state}</span>
@@ -82,7 +80,7 @@ export function QuestionCardsView({
         <article key={i.item_id} className="ask-card" data-kind="item">
           <p className="console-link ask-words">{i.words}</p>
           <p className="console-muted">
-            {i.login} · {shortTime(i.asked_at)} · {addressee(i.agent)}
+            {i.login} · {shortTime(i.asked_at)} · {addresseeLabel(i.agent)}
             {i.question_id !== null && ` · ${i.question_id}`}
           </p>
           <p>

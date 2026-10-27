@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useClient } from "../../app/client";
 import {
+  addresseeLabel,
   type Card,
   type InboxThread,
   PATHS,
@@ -274,7 +275,7 @@ export function RequestPage({ id, cards }: { id: string; cards: RequestCard[] })
     <section aria-label="Question request" className="console-detail">
       <h2 className="ask-words">{r.words}</h2>
       <p className="console-muted">
-        Asked by {r.login} · {shortTime(r.asked_at)} · {r.addressed_to.replace(/_/g, " ")}
+        Asked by {r.login} · {shortTime(r.asked_at)} · {addresseeLabel(r.addressed_to)}
       </p>
       <p>
         <span className="console-tag">{r.state}</span>

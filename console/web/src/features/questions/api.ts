@@ -28,20 +28,19 @@ export type Permission = Schemas["PermissionOut"];
 export type Permissions = Record<string, Permission>;
 /** What the question window sends: the words as typed and the Ask choice. Nothing else. */
 export type AskIn = Schemas["QuestionRequestIn"];
-/** What was written into the console's own folder: `contracts/schemas/question_request.schema.json`, exactly. */
-export type QuestionRequest = Schemas["QuestionRequestOut"];
 /** What was written into an agent's inbox: `contracts/schemas/console_inbox_item.schema.json`'s `console_question`, exactly. */
 export type ConsoleQuestion = Schemas["ConsoleQuestionOut"];
 /** What was written into the librarian's inbox: `contracts/schemas/console_store_request.schema.json`, exactly. */
 export type LibrarianRequest = Schemas["StoreRequestOut"];
 /** What the question POST answers, told apart by `artifact`. */
-export type AskResult = ConsoleQuestion | LibrarianRequest | QuestionRequest;
+export type AskResult = ConsoleQuestion | LibrarianRequest;
 export type RequestCard = Schemas["RequestCardOut"];
 /** An item delivered to an agent's inbox (or a question to the librarian), with what became of it. */
 export type ItemCard = Schemas["ItemCardOut"];
 export type QuestionProgress = Schemas["QuestionProgressOut"];
 export type QuestionCards = Schemas["QuestionCardsOut"];
 export type Suggestion = Schemas["SuggestionOut"];
+/** Who a question may be put to: the three the server takes. */
 export type Addressee = AskIn["addressed_to"];
 /** What the sign dialog may offer this login (card 011). The runtime decides from the person's own file. */
 export type SigningState = Schemas["SigningStateOut"];
@@ -68,24 +67,31 @@ export const READ_ONLY_REMOTE = "Read-only: remote view";
 /** ui-spec 7.1: the console's own rule, a store that is not the mock store. */
 export const READ_ONLY_STORE_REASON = "Submitting to soft-matter-agents is not connected yet (read-only)";
 
-/** The Ask choice, in the order the person sees it. */
+/** The Ask choice, in the order the person sees it: exactly three, and none is picked until the person picks one. */
 export const ADDRESSEES: readonly { value: Addressee; label: string }[] = [
-  { value: "agents_decide", label: "Let the agents decide" },
   { value: "microscope", label: "The microscope" },
   { value: "simulation", label: "The simulation" },
   { value: "librarian", label: "The librarian" },
 ];
 
-/** The state a request written in the console carries: it went to no agent. */
+/** The state an earlier request, read from the console's own folder, carries: it went to no agent. */
 export const NOT_DELIVERED = "written in the console · not delivered";
 
-/** What the form says after Send, in the person's words. A question to an agent is told its id; one to the librarian is sent; one left to the agents is plainly not delivered. */
+/** How an earlier request left to the agents shows its addressee: the console no longer offers that choice. */
+export const LEFT_TO_THE_AGENTS = "Left to the agents · no longer offered";
+
+/** An addressee in the person's words; an earlier request's `agents_decide` is the label above, never the raw value. */
+export function addresseeLabel(v: RequestCard["addressed_to"] | ItemCard["agent"]): string {
+  if (v === "agents_decide") return LEFT_TO_THE_AGENTS;
+  return ADDRESSEES.find((a) => a.value === v)?.label ?? v;
+}
+
+/** What the form says after Send, in the person's words. A question to an agent is told its id; one to the librarian is sent. */
 export function afterSend(result: AskResult, to: Addressee): string {
   if (result.artifact === "console_question") {
     return `Sent to the ${to === "simulation" ? "simulation" : "microscope"} as question ${result.question_id}.`;
   }
-  if (result.artifact === "console_store_request") return "Sent to the librarian.";
-  return "Not delivered: no agent takes a question left to the agents yet.";
+  return "Sent to the librarian.";
 }
 
 const seg = encodeURIComponent;
@@ -129,8 +135,8 @@ export async function fetchPermissions(client: Client, ops: readonly string[]): 
 
 /**
  * `POST /api/console/question-requests`: a question to the microscope or the simulation is written into
- * that agent's inbox, one to the librarian into the librarian's inbox as an `ask` request; one left to
- * the agents is a request in the console's own folder, not delivered. Goes through the shell's `client.post`: only a 403 with code `remote_view`
+ * that agent's inbox, one to the librarian into the librarian's inbox as an `ask` request; any other
+ * addressee is refused and nothing is written. Goes through the shell's `client.post`: only a 403 with code `remote_view`
  * switches the app to read-only; any other refusal (a viewer, a store that cannot take it, an inbox
  * that is not there) is thrown with its reason and shown next to the form.
  */

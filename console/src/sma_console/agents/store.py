@@ -408,8 +408,9 @@ def _opt(c: Card | None) -> dict[str, Any] | None:
 class AgentStore(Protocol):
     """What the console reads. Lists are newest first.
 
-    `writable` says whether a question request can be written (console card 010): both stores
-    write one, into the console's own folder and nowhere else; MockStore into its practice copy.
+    `writable` says whether the console may deliver an item (console cards 019 and 020): both stores take
+    one into an agent's `console_inbox/` and nowhere else; MockStore into its practice copy. Nothing writes a
+    question request into the console's own folder any more (card 022); those already there are only read.
     """
 
     writable: bool
@@ -430,12 +431,8 @@ class AgentStore(Protocol):
         """The seat's `approvals/` cards, newest first. Read only, like everything here."""
         ...
 
-    def request_write_folder(self) -> Path:
-        """Where a question request is written: the console's own `console/requests/questions/`."""
-        ...
-
     def request_folders(self) -> list[Path]:
-        """Every folder question requests are read from, the one written to first."""
+        """Every folder earlier question requests are read from. Read only: nothing is written there."""
         ...
 
     def registered_names(self) -> list[str]:

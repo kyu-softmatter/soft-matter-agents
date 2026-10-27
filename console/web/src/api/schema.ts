@@ -774,8 +774,9 @@ export interface paths {
          * Write Question Request
          * @description A question to the microscope or the simulation is written as an item into that agent's
          *     inbox (`artifact` is `console_question`); one to the librarian is written into the librarian's inbox as
-         *     an `ask` request with no conditions (`console_store_request`); "let the agents decide" is written as a
-         *     request into the console's own folder and is not delivered (`question_request`).
+         *     an `ask` request with no conditions (`console_store_request`). The addressee is one of those three; any
+         *     other (the old "let the agents decide" included) is refused with a 422 before anything is written.
+         *     Nothing is written into the console's own folder any more.
          */
         post: operations["write_question_request_api_console_question_requests_post"];
         delete?: never;
@@ -815,8 +816,8 @@ export interface paths {
         /**
          * Question Cards
          * @description The cards below the question field: the items in the three inboxes, newest first, each with what
-         *     the agent's answers say became of it; requests written in the console's own folder, newest first
-         *     (each "written in the console · not delivered"); and the agents' questions on disk with their five
+         *     the agent's answers say became of it; earlier requests found in the console's own folder, newest first
+         *     (each "written in the console · not delivered"; read, never written); and the agents' questions on disk with their five
          *     steps. The items include the librarian's, with the latest answer each has. Reads only.
          */
         get: operations["question_cards_api_console_question_cards_get"];
@@ -2776,35 +2777,7 @@ export interface components {
              * Addressed To
              * @enum {string}
              */
-            addressed_to: "agents_decide" | "microscope" | "simulation" | "librarian";
-        };
-        /**
-         * QuestionRequestOut
-         * @description `contracts/schemas/question_request.schema.json`, exactly: what was written.
-         */
-        QuestionRequestOut: {
-            /**
-             * Artifact
-             * @constant
-             */
-            artifact: "question_request";
-            /**
-             * Schema Version
-             * @constant
-             */
-            schema_version: "0.1";
-            /** Id */
-            id: string;
-            /** Words */
-            words: string;
-            asked_by: components["schemas"]["AskedByOut"];
-            /** Asked At */
-            asked_at: string;
-            /**
-             * Addressed To
-             * @enum {string}
-             */
-            addressed_to: "agents_decide" | "microscope" | "simulation" | "librarian";
+            addressed_to: "microscope" | "simulation" | "librarian";
         };
         /** QuestionSummaryOut */
         QuestionSummaryOut: {
@@ -2859,8 +2832,9 @@ export interface components {
         };
         /**
          * RequestCardOut
-         * @description A request written in the console's own folder, as a card. It is not delivered: "let the agents
-         *     decide" has no inbox the console writes into.
+         * @description An earlier request found in the console's own folder, as a card: a console of before wrote one for a
+         *     question left to the agents, which no inbox took. It is read, never written, and is not delivered. Its
+         *     addressee is any the request schema allows, `agents_decide` included.
          */
         RequestCardOut: {
             /** Id */
@@ -5607,7 +5581,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConsoleQuestionOut"] | components["schemas"]["StoreRequestOut"] | components["schemas"]["QuestionRequestOut"];
+                    "application/json": components["schemas"]["ConsoleQuestionOut"] | components["schemas"]["StoreRequestOut"];
                 };
             };
             /** @description remote view or role (D16) */
@@ -5617,14 +5591,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description the agent's inbox is not there or is full for the day, or the id was taken five times */
+            /** @description the agent's inbox is not there or is full for the day */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description blank or too long words, an addressee that is not one of four */
+            /** @description blank or too long words, an addressee that is not one of three */
             422: {
                 headers: {
                     [name: string]: unknown;

@@ -286,7 +286,11 @@ class LiveOnOut(BaseModel):
     reason: str | None
 
 
-Addressee = Literal["agents_decide", "microscope", "simulation", "librarian"]
+#: who a question may be put to: exactly three. Anything else is refused with a 422 and nothing is written.
+Addressee = Literal["microscope", "simulation", "librarian"]
+#: who an earlier request, read from the console's own folder, may be addressed to: the schema's four. The
+#: console no longer offers the fourth; an old request that holds it is still shown.
+ReadAddressee = Literal["agents_decide", "microscope", "simulation", "librarian"]
 
 
 class QuestionRequestIn(BaseModel):
@@ -310,18 +314,6 @@ class AskedByOut(BaseModel):
     console_role: ConsoleRoleOut
 
 
-class QuestionRequestOut(BaseModel):
-    """`contracts/schemas/question_request.schema.json`, exactly: what was written."""
-
-    artifact: Literal["question_request"]
-    schema_version: Literal["0.1"]
-    id: str
-    words: str
-    asked_by: AskedByOut
-    asked_at: str
-    addressed_to: Addressee
-
-
 class AskerMarkOut(BaseModel):
     kind: Literal["other_login"]
 
@@ -342,14 +334,15 @@ class ConsoleQuestionOut(BaseModel):
 
 
 class RequestCardOut(BaseModel):
-    """A request written in the console's own folder, as a card. It is not delivered: "let the agents
-    decide" has no inbox the console writes into."""
+    """An earlier request found in the console's own folder, as a card: a console of before wrote one for a
+    question left to the agents, which no inbox took. It is read, never written, and is not delivered. Its
+    addressee is any the request schema allows, `agents_decide` included."""
 
     id: str
     words: str
     login: str
     asked_at: str
-    addressed_to: Addressee
+    addressed_to: ReadAddressee
     state: str
     runs_wait_for_signature: bool
 
@@ -856,48 +849,25 @@ def list_inbox(store: AgentStoreDep) -> list[InboxThreadOut]:
 @router.post(
     "/question-requests",
     status_code=201,
-    response_model=ConsoleQuestionOut | StoreRequestOut | QuestionRequestOut,
+    response_model=ConsoleQuestionOut | StoreRequestOut,
     responses={403: {"description": "remote view or role (D16)"},
-               409: {"description": "the agent's inbox is not there or is full for the day, or the id was taken five times"},
-               422: {"description": "blank or too long words, an addressee that is not one of four"}},
+               409: {"description": "the agent's inbox is not there or is full for the day"},
+               422: {"description": "blank or too long words, an addressee that is not one of three"}},
 )
 def write_question_request(body: QuestionRequestIn, store: AgentStoreDep, me: Login,
-                           seat: Auth) -> ConsoleQuestionOut | StoreRequestOut | QuestionRequestOut:
+                           seat: Auth) -> ConsoleQuestionOut | StoreRequestOut:
     """A question to the microscope or the simulation is written as an item into that agent's
     inbox (`artifact` is `console_question`); one to the librarian is written into the librarian's inbox as
-    an `ask` request with no conditions (`console_store_request`); "let the agents decide" is written as a
-    request into the console's own folder and is not delivered (`question_request`)."""
+    an `ask` request with no conditions (`console_store_request`). The addressee is one of those three; any
+    other (the old "let the agents decide" included) is refused with a 422 before anything is written.
+    Nothing is written into the console's own folder any more."""
     if why := ask_refusal(me):
         raise why.http()
-    if not getattr(store, "writable", False) or not hasattr(store, "request_write_folder"):
+    if not getattr(store, "writable", False):
         raise READ_ONLY.http()
     if body.addressed_to in inbox_items.INBOX_AGENTS:
         return _deliver(body, store, me, seat)
-    if body.addressed_to == "librarian":
-        return deliver_store_request(store, me, seat, words=body.words, request={"kind": "ask"}, file=None)
-    folder = store.request_write_folder()
-    doc: dict[str, Any] | None = None
-    for _ in range(5):  # an id that is taken is never rewritten: ask for another
-        try:
-            doc = question_requests.build_request(
-                words=body.words, login=me.info.user_id, role=str(me.info.role),
-                addressed_to=body.addressed_to, now=question_requests.utc_now(),
-                suffix=question_requests.random_suffix())
-        except question_requests.RequestError as e:
-            raise _invalid(e).http() from e
-        try:
-            question_requests.write_request(folder, doc)
-            break
-        except question_requests.RequestIdTaken:
-            doc = None
-        except StoreError as e:
-            raise _store_error(e).http() from e
-    if doc is None:
-        raise Refusal(409, "request_exists", "A request with that id exists already. Try again.").http()
-    if seat.audit is not None:  # the id and the addressee, never the words
-        seat.audit.append(AuditKind.QUESTION_SUBMITTED, me.user_id, origin="console",
-                          target=doc["addressed_to"], request=doc["id"])
-    return QuestionRequestOut.model_validate(doc)
+    return deliver_store_request(store, me, seat, words=body.words, request={"kind": "ask"}, file=None)
 
 
 def _deliver(body: QuestionRequestIn, store: Any, me: Any, seat: Any) -> ConsoleQuestionOut:
@@ -956,8 +926,8 @@ def _steps(store: Any, agent: str, s: Any, qids_with_runs: set[str], run_known: 
 @router.get("/question-cards", response_model=QuestionCardsOut, responses=ERRORS)
 def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
     """The cards below the question field: the items in the three inboxes, newest first, each with what
-    the agent's answers say became of it; requests written in the console's own folder, newest first
-    (each "written in the console · not delivered"); and the agents' questions on disk with their five
+    the agent's answers say became of it; earlier requests found in the console's own folder, newest first
+    (each "written in the console · not delivered"; read, never written); and the agents' questions on disk with their five
     steps. The items include the librarian's, with the latest answer each has. Reads only."""
     folders = store.request_folders() if hasattr(store, "request_folders") else []
     requests = [RequestCardOut(

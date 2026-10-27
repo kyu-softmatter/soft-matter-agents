@@ -64,9 +64,11 @@ and their numbers are made up (a model curve plus noise):
 | `microscope_agent/questions/mic-20260925-001/result_well_occupancy.json` | well occupancy over time and a dwell survival, each with a `<y>_theory` column |
 
 Two question requests were written here in dino-autofocus, not copied (console card 010), so the
-Questions screen has earlier questions to show and to offer. They follow
+Questions screen has earlier questions to show and to offer. The console writes no request any more (card 022);
+these two are earlier ones, still read, and the second is addressed to `agents_decide`, a choice the console no
+longer offers: its card says "Left to the agents · no longer offered". They follow
 `contracts/schemas/question_request.schema.json`; the second is the repository's own example
-(`contracts/examples/question_request.json`). They are practice data: nothing reads them.
+(`contracts/examples/question_request.json`). They are practice data.
 
 | Path | What |
 |---|---|

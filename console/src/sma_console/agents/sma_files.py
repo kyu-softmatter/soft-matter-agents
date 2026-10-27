@@ -225,7 +225,7 @@ class SmaFiles:
     dropped.
     """
 
-    writable = True  # question requests only, into console/requests/questions/ (card 010)
+    writable = True  # an inbox item only, into an agent's console_inbox/ (cards 019, 020); nothing else is written
 
     def __init__(self, root: str | os.PathLike[str] | None = None, *,
                  source: str = "soft-matter-agents", max_read_bytes: int = MAX_READ_BYTES):
@@ -626,17 +626,15 @@ class SmaFiles:
             text = None
         return InboxMessage(p.name, rnd, kind, card=None, text=text)
 
-    # -- question requests (console card 010) -----------------------------------------------------
+    # -- earlier question requests (console card 010; no longer written, card 022) ----------------
     #
-    # A request is written into the console's own folder, inside console/. A question to the microscope
-    # or the simulation goes into that agent's console_inbox/ instead (card 019, inbox_write_folder
-    # below), the one thing the console writes into an agent's tree. No bridge. Everything else is read only.
-
-    def request_write_folder(self) -> Path:
-        return self._root.joinpath(*REQUEST_PARTS)
+    # A console of before wrote a request into its own folder, inside console/, for a question left to the
+    # agents. Those files are read and nothing is written there. A question goes into an agent's
+    # console_inbox/ (card 019, inbox_write_folder below), the one thing the console writes into an
+    # agent's tree. No bridge. Everything else is read only.
 
     def request_folders(self) -> list[Path]:
-        return [self.request_write_folder()]
+        return [self._root.joinpath(*REQUEST_PARTS)]
 
     # -- the agents' inboxes (console card 019) ----------------------------------------------------
 
