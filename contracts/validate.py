@@ -2008,7 +2008,10 @@ ALLOWED_PATHS = [
     # per day, docs/ideas/<YYYYMMDD>.md, as section 7 declares it. Narrower
     # than the drafts line on purpose: a committed line there can carry the
     # person's word, so nothing but the dated record may sit beside it.
-    r"^docs/ideas/[0-9]{8}\.md$",
+    # From 2026-10-27 (plan.md 6 at e284452f) each computer's intake seat
+    # writes its own, docs/ideas/<YYYYMMDD>-<office|scope>.md, the tag its
+    # ids carry; the untagged form stays for the shared files already written.
+    r"^docs/ideas/[0-9]{8}(-(office|scope))?\.md$",
 ]
 
 
