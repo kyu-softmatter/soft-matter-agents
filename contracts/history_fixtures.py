@@ -264,17 +264,24 @@ def fixture_35_one_commit_into_the_runtime_and_another_agent(repo: Path) -> str:
 
 
 def _console_seat() -> str:
-    """The first open seat in the real registry that owns the console boundary.
+    """The first open execution seat in the real registry: it owns the console
+    boundary and no `paths` narrows it.
 
     Read, not written down, for the reason base() copies seats.json: a fixture
     that named today's console seat would break the day that seat closes, and
     one that invented a seat would keep passing after the real registry moved.
+
+    The narrowing matters since `59012b85` (2026-10-26). The console managers
+    then came to own the boundary too, narrowed to the console's orders and
+    the three inboxes, and they sit first in the file. Picking by `owns`
+    alone handed these fixtures a manager. That seat may write console/CLAUDE.md
+    and may not write console/src/, which is each fixture's verdict reversed.
     """
     reg = json.loads((CONTRACTS / "seats.json").read_text(encoding="utf-8"))
     for s in reg.get("seats", []):
-        if "console" in (s.get("owns") or []) and not s.get("closed"):
+        if "console" in (s.get("owns") or []) and not s.get("closed") and not s.get("paths"):
             return s["seat"]
-    raise RuntimeError("no open seat in contracts/seats.json owns the console boundary")
+    raise RuntimeError("no open, unnarrowed seat in contracts/seats.json owns the console boundary")
 
 
 def fixture_35_one_commit_into_the_console_and_an_agent(repo: Path) -> str:
