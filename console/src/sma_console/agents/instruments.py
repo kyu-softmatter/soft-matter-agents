@@ -10,7 +10,9 @@ built, and sends no command to any instrument:
   ranges. A range is **read from the file and never written into code**; a limit the file does not hold is
   shown as missing;
 * the latest run's events (`log.json`): the tweezers commands that were sent, and the piezo's snapshots.
-  Each is "sent" or "read back", as the event says, and from that run alone.
+  Each is "sent" or "read back", as the event says, and from that run alone;
+* the optical path (card 017): the elements the run's latest snapshot read back, each in exactly one of four
+  states -- read back, sent, not open, not read -- or, outside a run, the same from the status file.
 """
 
 from __future__ import annotations
@@ -212,9 +214,9 @@ def latest_run_readings(store: Any) -> dict[str, Any]:
     try:
         runs = store.list_runs("microscope")
     except RunsFolderNotFoundError as e:
-        return {"state": "runs_not_found", "message": str(e)}
+        return {"state": "runs_not_found", "message": str(e), "path": _status_path(store) or NONE_PATH}
     if not runs:
-        return {"state": "no_run"}
+        return {"state": "no_run", "path": _status_path(store) or NONE_PATH}
     # the screens follow the newest run that is still running; with none running, the newest run there is
     latest = next((r for r in runs if r.status == "running"), runs[0])
     stream = _followed_stream(store, latest.run_id)
@@ -228,11 +230,14 @@ def latest_run_readings(store: Any) -> dict[str, Any]:
         events, t0 = _events(detail)
         running, how, plan_id, ended_at, frame_tap = False, latest.status, latest.plan_id, latest.finished_at, False
     tw = tweezers_sent(events)
+    from_status = None if running else _status_path(store)  # outside a run the runtime's own status file is read first
+    path = from_status or {"source": "run" if running else "last_snapshot", "run_id": latest.run_id, "ended_at": ended_at,
+                           "ended_how": None if running else how, **path_from_events(events, t0)}
     return {"state": "ok", "run_id": latest.run_id, "started_at": latest.created_at or t0, "traps": tw["traps"],
             "trap_series": tw["series"], "strength_last_sent": tw["strength_last_sent"],
             "piezo": piezo_snapshots(events, t0), "running": running, "ended_how": how, "ended_at": ended_at,
             "plan_id": plan_id, "frame_tap": frame_tap, "channels": channel_states(events, t0),
-            "path": path_state(events, t0),
+            "path": path,
             "events_seen": len(events)}
 
 
@@ -273,25 +278,163 @@ def channel_states(events: list[dict[str, Any]], t0: str | None) -> dict[str, An
             "label": last.get("label") if isinstance(last.get("label"), str) else None, "rows": rows}
 
 
-def path_state(events: list[dict[str, Any]], t0: str | None) -> list[dict[str, Any]]:
-    """The optical path's present state as the run read it back: for each Micro-Manager device a channel's
-    snapshot reports (`states[<channel>]["state"][<device>]`, the shape `micromanager.read` gives), the
-    properties it read, when, and which backend answered (`mock` is the mock's own state, labelled as
-    such by the screen). A device keeps the latest snapshot that reported it; one no snapshot reported is
-    absent, and the screen says "not built yet" for it. Nothing here is filled from anywhere else."""
-    latest: dict[str, dict[str, Any]] = {}
+LASER = "laser_combiner"
+DRAFTED = {"Aura": "aura", "DiaLamp": "dialamp"}  # the only elements this page drafts; the safety file still decides whether a draft may run
+ASSUMED_ON = "assumed on"
+LASER_REASON = ("It reports nothing back, so it is shown at the most dangerous state its commands allow -- on -- "
+                "until something readable shows the beam blocked. What was sent never shows it off.")
+NO_POSITION = "the read returned no position for it"
+NO_STATUS_SNAPSHOT = "That run took no snapshot (a live view takes none), so no element was read."
+NONE_PATH: dict[str, Any] = {"source": "none", "elements": []}
+
+
+def _text(v: Any) -> str | None:
+    if v is None:
+        return None
+    return v if isinstance(v, str) else json.dumps(v, sort_keys=True)
+
+
+def _row(name: str, channel: str, state: str, *, value: Any = None, t_wall: str | None = None, reason: str | None = None,
+         backend: str | None = None, sent: str | None = None, sent_at: str | None = None) -> dict[str, Any]:
+    """One element of the path. Exactly one state; a laser has no control; every light-path selector and the
+    objective is moved by hand; only the Aura and the transmitted lamp are drafted."""
+    if channel == LASER:
+        control, draft = None, None
+    elif name in DRAFTED:
+        control, draft = "draft", DRAFTED[name]
+    else:
+        control, draft = "hand", None
+    return {"key": f"{channel}/{name}", "name": name, "channel": channel, "state": state, "value": _text(value),
+            "t_wall": t_wall, "reason": reason, "backend": backend, "sent": sent, "sent_at": sent_at,
+            "control": control, "draft": draft}
+
+
+def _elements_of(state: Any) -> dict[str, Any] | None:
+    els = state.get("elements") if isinstance(state, dict) else None
+    return els if isinstance(els, dict) else None
+
+
+def _last_apply(events: list[dict[str, Any]], channel: str, after: float | None, t0: str | None) -> tuple[str, str | None] | None:
+    """The newest `apply` on `channel` (and, when `after` is given, only one strictly later than that run time):
+    its parameters as compact text, and when. Equal times are not later."""
+    found = None
     for e in events:
-        if e.get("event") != "snapshot" or not isinstance(e.get("states"), dict):
+        if e.get("event") != "apply" or e.get("channel") != channel:
             continue
-        for channel_state in e["states"].values():
-            devices = channel_state.get("state") if isinstance(channel_state, dict) else None
-            if not isinstance(devices, dict):
-                continue
-            backend = channel_state.get("backend")
-            for device, props in devices.items():
-                if isinstance(props, dict):
-                    latest[str(device)] = {
-                        "device": str(device), "props": {str(k): "" if v is None else str(v) for k, v in props.items()},
-                        "t_s": _num(e.get("t_mono")), "t_wall": _wall(t0, e.get("t_mono")),
-                        "backend": backend if isinstance(backend, str) else None}
-    return list(latest.values())
+        t = _num(e.get("t_mono"))
+        if after is not None and (t is None or t <= after):
+            continue
+        found = e
+    if found is None:
+        return None
+    params = found.get("params") if isinstance(found.get("params"), dict) else {}
+    return json.dumps(params, sort_keys=True), _wall(t0, found.get("t_mono"))
+
+
+def _channel_rows(channel: str, ids: list[str], state: Any, wall: str | None, later: tuple[str, str | None] | None) -> list[dict[str, Any]]:
+    """The rows one channel gives for a snapshot: what it read back, or why it has nothing to show."""
+    if not isinstance(state, dict):
+        return [_row(i, channel, "not_open", reason="the run's last read did not include this channel") for i in ids]
+    if state.get("error") is not None:
+        return [_row(i, channel, "not_open", reason=str(state["error"])) for i in ids]
+    if state.get("not_read"):
+        return [_row(i, channel, "not_read", reason=str(state.get("why") or "it was busy at the read")) for i in ids]
+    els = _elements_of(state)
+    if els is None:
+        return [_row(i, channel, "not_read", reason="the last read carried no elements for this channel") for i in ids]
+    backend = state.get("backend") if isinstance(state.get("backend"), str) else None
+    note = state.get("note") if isinstance(state.get("note"), str) and state.get("note") else None
+    rows = []
+    for i, v in els.items():
+        if v is None:
+            rows.append(_row(str(i), channel, "not_read", reason=NO_POSITION + (f"; {note}" if note else ""), backend=backend))
+        elif later is not None:
+            rows.append(_row(str(i), channel, "sent", value=v, t_wall=wall, backend=backend, sent=later[0], sent_at=later[1]))
+        else:
+            rows.append(_row(str(i), channel, "read_back", value=v, t_wall=wall, backend=backend))
+    return rows
+
+
+def _laser_row(state: Any, present: bool, sent: tuple[str, str | None] | None) -> dict[str, Any]:
+    """The blind channel. Nothing readable is the blocked-beam evidence here, so it is never shown off."""
+    if not present:
+        return _row(LASER, LASER, "not_open", reason="the run did not open it")
+    if isinstance(state, dict) and state.get("error") is not None:
+        return _row(LASER, LASER, "not_open", reason=f"the run did not open it: {state['error']}")
+    if isinstance(state, dict) and state.get("not_read"):
+        return _row(LASER, LASER, "not_read", reason=str(state.get("why") or "it was busy at the read"))
+    return _row(LASER, LASER, "sent", value=ASSUMED_ON, reason=LASER_REASON,
+                sent=sent[0] if sent else None, sent_at=sent[1] if sent else None)
+
+
+def path_from_events(events: list[dict[str, Any]], t0: str | None) -> dict[str, Any]:
+    """The optical path as a run read it back: `{t_wall, elements}`.
+
+    The element names are the read-back's own (`states[<channel>]["elements"]`, `{id: value | None}`): none comes
+    from a table here, and an element the read-back omits does not appear. A channel that reads nothing now keeps
+    the names it gave earlier, without a value. An `apply` to a channel later than the latest snapshot makes
+    its rows "sent", with what was read still beside its own time. The laser combiner is a row of its own once a
+    snapshot exists, and is never shown off."""
+    snaps = [e for e in events if e.get("event") == "snapshot" and isinstance(e.get("states"), dict)]
+    if not snaps:
+        return {"t_wall": None, "elements": []}
+    last = snaps[-1]
+    known: dict[str, list[str]] = {}
+    for s in snaps:
+        for channel, state in s["states"].items():
+            els = _elements_of(state)
+            if els is not None:
+                ids = known.setdefault(str(channel), [])
+                ids.extend(str(i) for i in els if str(i) not in ids)
+    wall, t_last = _wall(t0, last.get("t_mono")), _num(last.get("t_mono"))
+    rows: list[dict[str, Any]] = []
+    for channel, ids in known.items():
+        rows += _channel_rows(channel, ids, last["states"].get(channel), wall, _last_apply(events, channel, t_last, t0))
+    rows.append(_laser_row(last["states"].get(LASER), LASER in last["states"], _last_apply(events, LASER, None, t0)))
+    return {"t_wall": wall, "elements": rows}
+
+
+def path_from_status(data: dict[str, Any]) -> dict[str, Any]:
+    """The same path from the idle status file's last snapshot, outside a run: each reading with its own time.
+    A run that took no snapshot (a live view) is shown as the file has it: the run, when it ended and its
+    outcome text, unparsed."""
+    last_run = data["last_run"]
+    snap = last_run.get("last_snapshot")
+    out: dict[str, Any] = {"source": "status_file", "run_id": last_run["run_id"], "kind": last_run.get("kind"),
+                           "written_at": data.get("written_at"), "ended_at": last_run.get("ended_at"),
+                           "ended_how": last_run.get("outcome"), "t_wall": None, "elements": []}
+    if not isinstance(snap, dict):
+        out["detail"] = NO_STATUS_SNAPSHOT
+        return out
+    out["t_wall"] = snap.get("t_wall")
+    check = data.get("check_now") if isinstance(data.get("check_now"), dict) else {}
+    errors = {c.get("channel"): c.get("error") for c in check.get("channels", []) if isinstance(c, dict) and c.get("error")} \
+        if check.get("run_id") == last_run["run_id"] else {}
+    rows, laser = [], None
+    for r in snap.get("channels", []):
+        channel, how, value, t = r.get("channel"), r.get("how"), r.get("value"), r.get("t_wall")
+        if channel == LASER:
+            if how == "not_read":
+                laser = _row(LASER, LASER, "not_read", reason=str(errors.get(LASER) or "busy at the read, or not reached by the run (the status file gives no reason)"))
+            else:
+                laser = _row(LASER, LASER, "sent", value=ASSUMED_ON, reason=LASER_REASON,
+                             sent=_text(value) if value is not None else None, sent_at=t if value is not None else None)
+        elif how == "read_back" and _elements_of(value) is not None:
+            backend = value.get("backend") if isinstance(value.get("backend"), str) else None
+            note = value.get("note") if isinstance(value.get("note"), str) and value.get("note") else None
+            for i, v in value["elements"].items():
+                if v is None:
+                    rows.append(_row(str(i), str(channel), "not_read", reason=NO_POSITION + (f"; {note}" if note else ""), backend=backend))
+                else:
+                    rows.append(_row(str(i), str(channel), "read_back", value=v, t_wall=t, backend=backend))
+    rows.append(laser or _row(LASER, LASER, "not_open", reason="the run did not open it"))
+    out["elements"] = rows
+    return out
+
+
+def _status_path(store: Any) -> dict[str, Any] | None:
+    fn = getattr(store, "runtime_root", None)
+    read = read_idle_status(fn() if fn is not None else None)
+    if read.state == "present" and read.data is not None and isinstance(read.data.get("last_run"), dict):
+        return path_from_status(read.data)
+    return None

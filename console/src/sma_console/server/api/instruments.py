@@ -24,6 +24,9 @@ router = APIRouter()
 
 VIEWER_DRAFT = "This login can only look: it cannot make a plan draft."
 REMOTE_DRAFT = "Plan drafts are made at the microscope computer only. This browser is viewing from another computer."
+RUN_REFUSES = ("The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element "
+               "to what software may command.")
+AURA_REFUSED_LONGER = "The Aura stays refused longer than the lamp and the camera, until which light engine feeds which channel is settled."
 
 
 class StatusOut(BaseModel):
@@ -80,12 +83,32 @@ class ChannelsOut(BaseModel):
     rows: list[ChannelOut] = []
 
 
-class PathRowOut(BaseModel):
-    device: str
-    props: dict[str, str] = Field(description="what the run read back from the device, property by property")
-    t_s: float | None = None
-    t_wall: str | None = Field(default=None, description="when it was read")
+class PathElementOut(BaseModel):
+    key: str = Field(description="channel/name, unique in the list")
+    name: str = Field(description="the element's name exactly as the read-back gives it")
+    channel: str
+    state: Literal["read_back", "sent", "not_open", "not_read"] = Field(description="exactly one: a position read back, only sent, the run did not open its channel, or no value could be read")
+    value: str | None = Field(default=None, description="what was read, as text; for the blind laser the most dangerous state its commands allow")
+    t_wall: str | None = Field(default=None, description="when `value` was read; None where nothing was read")
+    reason: str | None = Field(default=None, description="why it is not open or not read, or what a sent state assumes")
     backend: str | None = Field(default=None, description="which backend answered; `mock` is the mock's own state")
+    sent: str | None = Field(default=None, description="what was last sent to the channel, as compact text")
+    sent_at: str | None = None
+    control: Literal["hand", "draft"] | None = Field(default=None, description="moved by hand (no control), or drafted on this page; None for the laser")
+    draft: Literal["aura", "dialamp"] | None = Field(default=None, description="the draft kind, where control is `draft`")
+
+
+class PathOut(BaseModel):
+    source: Literal["run", "status_file", "last_snapshot", "none"] = Field(
+        default="none", description="where the elements were read: the run's events, the runtime's status file, or the last run's last snapshot")
+    run_id: str | None = None
+    kind: str | None = None
+    t_wall: str | None = Field(default=None, description="when the snapshot these elements come from was taken")
+    written_at: str | None = Field(default=None, description="status file only: when it was written")
+    ended_at: str | None = None
+    ended_how: str | None = Field(default=None, description="the run's outcome, as the run's own text has it")
+    detail: str | None = None
+    elements: list[PathElementOut] = []
 
 
 class LatestRunOut(BaseModel):
@@ -99,7 +122,7 @@ class LatestRunOut(BaseModel):
     plan_id: str | None = None
     frame_tap: bool = Field(default=False, description="running, with a loopback frame tap announced")
     channels: ChannelsOut | None = None
-    path: list[PathRowOut] = []
+    path: PathOut = PathOut()
     events_seen: int = 0
     traps: list[SentTrapOut] = []
     trap_series: list[TrapPointOut] = []
@@ -231,7 +254,9 @@ def draft(body: DraftIn, store: AgentStoreDep, me: Login) -> DraftOut:
             refused = ["The runtime checks every position against your safety file again before anything is sent."]
         else:
             card = drafts.part_card(part=body.kind, fields=body.model_dump(exclude_none=True), now=now)
-            refused = ["Refused until you write a limit: your safety file has none for this part yet."]
+            refused = ["Refused until you write a limit: your safety file has none for this part yet.", RUN_REFUSES]
+            if body.kind == "aura":
+                refused.append(AURA_REFUSED_LONGER)
     except drafts.DraftError as e:
         raise Refusal(422, "invalid", str(e)).http() from e
     try:

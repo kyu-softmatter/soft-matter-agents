@@ -94,13 +94,29 @@ channel and the frame tap's `get`, and only from the screens that already did th
   and **Runtime pieces**: the idle status file's writer, check now, latest frames per camera, and the mock's
   additions (second camera, a piezo trace that moves, trap commands echoed back, confocal elements). Each
   reads "not built yet" until the files show it; the console fills none in.
-- **Optics and control** gains **the light path, now**: the elements the runtime names (FilterTurret1 and 2,
-  CSUW1-Filter_Red and _Blue, LightPath, CSUW1-Port, CSUW1-Dichroic, DiaLamp, Aura), each with what the run
-  read back and when, "the mock's state" when the mock answered and "read back" when the instrument did. An
-  element the run did not report reads "not built yet". The registry gives no order, so it is a list. The two
-  known traps (the turret label that names the wrong position, splitter states that send no light to one
-  camera) and "a position read back is not proof of which element is in the beam" stay beside it. The lamp
-  and the LED carry the draft link; the rest are "moved by hand" with no control.
+- **Optics and control** gains **the light path, now** (card 017): the elements the runtime's read-back names, and
+  no others. The names come from the read-back and not from a list here; an element the read-back omits does not
+  appear. It reads the run's events while a run is running (the latest snapshot gives what was read, and a
+  command sent since gives what was sent); outside a run, the runtime's status file, with the time it was
+  written; without one, the last run's last snapshot, marked "as of <time>, from <run>". A live view leaves no
+  snapshot, so the file's run, its end time and its outcome text are shown as they stand and no element.
+  Nothing is requested of the stand, the host or the frame tap.
+  - **Each element is in exactly one state.** *Read back*, with the time it was read. *Sent*: the laser
+    combiner, which cannot be read back, is shown at the most dangerous state its commands allow (on) until
+    something readable shows the beam blocked, and is never shown off on the strength of what was sent; an
+    element whose newest command is later than the latest snapshot is also *sent*. *Not open*: a channel the run
+    did not open (never "off"). *Not read*: a channel busy at the read, or an element the read returned no
+    position for, with the reason and no value. On the mock each state is labelled the mock's own.
+  - **Beside the state, exactly one of** "moved by hand" (every light-path selector and the objective; no
+    control) or the draft link (the Aura and the transmitted lamp only).
+  - **Beside every draft link** for the Aura, the lamp and the red camera, on every page that offers them: the
+    draft can be made and signed and the run will refuse it, because the runtime cannot yet match the element to
+    what software may command. The Aura stays refused longer, until which light engine feeds which channel is
+    settled. The piezo's draft is not affected.
+  - The registry gives no order, so it is a list. The two known traps (the turret label that names the wrong
+    position, splitter states that send no light to one camera) and "a position read back is the stand's
+    report, not proof of which element is in the beam" stay beside it. "Not built yet" shows only where there
+    is neither a snapshot nor a status file.
 - **Cameras**: the frame is asked for and shown to the person's login only, and only while a run is running.
 - **Piezo stage**: x, y and z as three plots of the run's snapshots ("read back"), and **a piezo move as an
   `operation` plan draft** (a step with its return, or a host-timed sine behind its approach step; the

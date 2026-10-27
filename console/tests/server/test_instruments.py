@@ -630,64 +630,328 @@ def test_a_bad_piezo_choice_is_refused(client, tree, body):
     assert post(client(), **piezo_body(**body)).status_code == 422
 
 
-# the live optical path (card 015) -----------------------------------------------------------------------
+# the live optical path (cards 015 and 017) ----------------------------------------------------------------
+# Built to the read-back shape microscope_runtime commit f42fa1e8 lands (its test_mock_instruments.py): a
+# readable channel's snapshot carries `elements`, {registry element id: value, or None when nothing was
+# read for it}, and a `note`; a channel nobody could read carries `error` or `not_read` with `why`; the laser
+# combiner has no read-back at all. The status file's absent and busy states are runtime commit 7bc84b1a's.
+
+LASER = "laser_combiner"
+MOCK_NOTE = "mock: an element no test has set reads None"
 
 
-def stand(devices, backend="mock"):
-    return {"state": devices, "aborted": False, "backend": backend}
+def stand(elements, backend="mock", note=MOCK_NOTE):
+    return {"elements": elements, "aborted": False, "backend": backend, "note": note}
+
+
+def blind():
+    return {"read_back": False, "commanded": None}
+
+
+def by_name(got):
+    return {r["name"]: r for r in got["path"]["elements"]}
+
+
+def sent(run, t, channel, params):
+    ev(run, t, event="apply", channel=channel, action="set", params=params)
 
 
 def test_each_path_element_comes_with_what_the_run_read_back_and_when(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2", "Label": "DAPI"}, "LightPath": {"State": "1"}}),
-                    "confocal_csuw1": stand({"CSUW1-Dichroic": {"State": "3"}}),
-                    "widefield_source_b": stand({"DiaLamp": {"State": "1", "Intensity": "12"}})})
-    rows = {r["device"]: r for r in client().get(LATEST).json()["path"]}
-    assert rows["FilterTurret1"]["props"] == {"State": "2", "Label": "DAPI"}
-    assert rows["DiaLamp"]["props"] == {"State": "1", "Intensity": "12"}
-    assert rows["CSUW1-Dichroic"]["props"] == {"State": "3"}
-    assert rows["LightPath"]["t_wall"].startswith("2026-10-05T17:00:01") and rows["LightPath"]["t_s"] == 1.0
-    assert {r["backend"] for r in rows.values()} == {"mock"}
+    snap(run, 1.0, {"stand_ti2e": stand({"filter_turret_1": "position 2", "nosepiece": "3"}),
+                    "confocal_csuw1": stand({"csuw1_dichroic": "position 1", "csuw1_port": "2"})})
+    got = client().get(LATEST).json()
+    assert got["path"]["source"] == "run" and got["path"]["run_id"] == run.run_id
+    rows = by_name(got)
+    assert {n: (r["state"], r["value"], r["channel"]) for n, r in rows.items() if n != LASER} == {
+        "filter_turret_1": ("read_back", "position 2", "stand_ti2e"), "nosepiece": ("read_back", "3", "stand_ti2e"),
+        "csuw1_dichroic": ("read_back", "position 1", "confocal_csuw1"), "csuw1_port": ("read_back", "2", "confocal_csuw1")}
+    assert rows["nosepiece"]["t_wall"].startswith("2026-10-05T17:00:01") and {r["backend"] for n, r in rows.items() if n != LASER} == {"mock"}
+    assert got["path"]["t_wall"] == rows["nosepiece"]["t_wall"]
 
 
-def test_a_device_no_snapshot_reported_is_absent_and_nothing_is_filled_in(client, tree, runs):
+def test_every_selector_and_the_objective_is_moved_by_hand_and_offers_nothing_else(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2"}})})
-    got = client().get(LATEST).json()["path"]
-    assert [r["device"] for r in got] == ["FilterTurret1"]
+    snap(run, 1.0, {"stand_ti2e": stand({"filter_turret_1": "1", "light_path_port": "2", "nosepiece": "3"}),
+                    "confocal_csuw1": stand({"csuw1_dichroic": "1"})})
+    rows = by_name(client().get(LATEST).json())
+    for name in ("filter_turret_1", "light_path_port", "nosepiece", "csuw1_dichroic"):
+        assert (rows[name]["control"], rows[name]["draft"]) == ("hand", None), name
 
 
-def test_the_latest_read_of_a_device_replaces_the_earlier_one_and_keeps_its_own_time(client, tree, runs):
+def test_only_the_aura_and_the_transmitted_lamp_are_drafted_and_each_names_its_draft(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "1"}, "FilterTurret2": {"State": "5"}})})
-    snap(run, 4.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "2"}})}, "after")
-    rows = {r["device"]: r for r in client().get(LATEST).json()["path"]}
-    assert rows["FilterTurret1"]["props"] == {"State": "2"} and rows["FilterTurret1"]["t_s"] == 4.0
-    assert rows["FilterTurret2"]["props"] == {"State": "5"} and rows["FilterTurret2"]["t_s"] == 1.0
+    snap(run, 1.0, {"widefield_source_b": stand({"DiaLamp": {"State": 1, "Intensity": 12}, "Aura": {"State": 0}}),
+                    "stand_ti2e": stand({"nosepiece": "3"})})
+    rows = by_name(client().get(LATEST).json())
+    assert (rows["DiaLamp"]["control"], rows["DiaLamp"]["draft"]) == ("draft", "dialamp")
+    assert (rows["Aura"]["control"], rows["Aura"]["draft"]) == ("draft", "aura")
+    assert rows["DiaLamp"]["value"] == '{"Intensity": 12, "State": 1}' and rows["DiaLamp"]["state"] == "read_back"
+    assert rows["nosepiece"]["control"] == "hand"
 
 
-def test_a_channel_that_could_not_be_read_reports_no_device(client, tree, runs):
+def test_element_names_come_from_the_read_back_and_follow_it(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": {"error": "no Micro-Manager configuration is loaded"}})
-    assert client().get(LATEST).json()["path"] == []
+    snap(run, 1.0, {"stand_ti2e": stand({"turret_renamed_in_the_fixture": "5"})})
+    names = [n for n in by_name(client().get(LATEST).json()) if n != LASER]
+    assert names == ["turret_renamed_in_the_fixture"]
 
 
-def test_the_instruments_own_backend_is_carried_so_the_screen_can_say_whose_state_it_is(client, tree, runs):
+def test_an_element_the_read_back_omits_does_not_appear(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": stand({"FilterTurret1": {"State": "1"}}, backend="micromanager")})
-    assert client().get(LATEST).json()["path"][0]["backend"] == "micromanager"
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    assert [n for n in by_name(client().get(LATEST).json()) if n != LASER] == ["nosepiece"]
 
 
-def test_an_ended_runs_last_path_is_kept(client, tree, runs):
+def test_an_element_with_no_position_is_not_read_with_its_reason_and_no_value(client, tree, runs):
     run = runs("run-20261026-001")
-    snap(run, 1.0, {"stand_ti2e": stand({"LightPath": {"State": "1"}})})
+    snap(run, 1.0, {"stand_ti2e": stand({"filter_turret_1": None, "nosepiece": "3"})})
+    row = by_name(client().get(LATEST).json())["filter_turret_1"]
+    assert (row["state"], row["value"], row["t_wall"]) == ("not_read", None, None)
+    assert "no position" in row["reason"] and MOCK_NOTE in row["reason"]
+    assert row["control"] == "hand"
+
+
+def test_an_apply_after_the_latest_snapshot_is_sent_and_one_before_it_is_not(client, tree, runs):
+    run = runs("run-20261026-001")
+    sent(run, 0.5, "stand_ti2e", {"settings": {"Core": {"AutoShutter": "0"}}})
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"}), "confocal_csuw1": stand({"csuw1_port": "1"})})
+    rows = by_name(client().get(LATEST).json())
+    assert rows["nosepiece"]["state"] == "read_back" and rows["nosepiece"]["sent"] is None
+    sent(run, 3.0, "stand_ti2e", {"settings": {"Core": {"AutoShutter": "1"}}})
+    rows = by_name(client().get(LATEST).json())
+    assert rows["nosepiece"]["state"] == "sent" and '"AutoShutter": "1"' in rows["nosepiece"]["sent"]
+    assert rows["nosepiece"]["sent_at"].startswith("2026-10-05T17:00:03")
+    # what was read stays with its own time, and is not what the row now says
+    assert (rows["nosepiece"]["value"], rows["nosepiece"]["t_wall"][:19]) == ("3", "2026-10-05T17:00:01")
+    assert rows["csuw1_port"]["state"] == "read_back"  # another channel's apply says nothing about this one
+
+
+def test_an_apply_at_the_same_instant_as_the_snapshot_is_not_later(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    sent(run, 1.0, "stand_ti2e", {"settings": {}})
+    assert by_name(client().get(LATEST).json())["nosepiece"]["state"] == "read_back"
+
+
+def test_a_newer_snapshot_takes_the_row_back_to_read_back(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    sent(run, 2.0, "stand_ti2e", {"settings": {}})
+    snap(run, 4.0, {"stand_ti2e": stand({"nosepiece": "4"})}, "after")
+    row = by_name(client().get(LATEST).json())["nosepiece"]
+    assert (row["state"], row["value"]) == ("read_back", "4") and row["t_wall"].startswith("2026-10-05T17:00:04")
+
+
+def test_a_blind_laser_is_never_shown_off_on_the_strength_of_what_was_sent(client, tree, runs):
+    run = runs("run-20261026-001")
+    sent(run, 0.5, LASER, {"settings": {LASER: {"enable": ["line_488"]}}})
+    snap(run, 1.0, {LASER: blind()})
+    sent(run, 2.0, LASER, {"settings": {LASER: {"enable": []}}})  # the last thing sent switches every line off
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert row["state"] == "sent" and row["control"] is None and row["draft"] is None
+    assert row["value"] == "assumed on" and row["t_wall"] is None
+    assert '"enable": []' in row["sent"] and row["sent_at"].startswith("2026-10-05T17:00:02")
+    assert "blocked" in row["reason"]
+    assert "off" not in json.dumps({k: v for k, v in row.items() if k not in ("sent", "reason")}).lower()
+
+
+def test_a_blind_laser_nothing_was_sent_to_is_still_assumed_on(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {LASER: blind()})
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"], row["sent"], row["sent_at"]) == ("sent", "assumed on", None, None)
+
+
+def test_a_laser_channel_the_run_did_not_open_is_not_open_never_off(client, tree, runs):
+    run = runs("run-20261026-001")
+    sent(run, 0.5, LASER, {"settings": {LASER: {"enable": []}}})
+    snap(run, 1.0, {LASER: {"error": "no interface was opened"}, "stand_ti2e": stand({"nosepiece": "3"})})
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"], row["t_wall"]) == ("not_open", None, None)
+    assert "no interface was opened" in row["reason"]
+    assert "off" not in json.dumps({k: row[k] for k in ("state", "value")}).lower()
+
+
+def test_a_laser_channel_the_snapshot_does_not_carry_is_not_open(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"]) == ("not_open", None) and "did not open" in row["reason"]
+
+
+def test_a_channel_busy_at_the_read_is_not_read_with_why(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {LASER: {"not_read": True, "why": "a command holds it"}})
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"], row["t_wall"]) == ("not_read", None, None) and "a command holds it" in row["reason"]
+
+
+def test_elements_a_channel_once_named_are_not_carried_as_values_when_it_is_no_longer_read(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3", "filter_turret_1": "2"})})
+    snap(run, 2.0, {"stand_ti2e": {"error": "the stand stopped answering"}}, "after")
+    rows = by_name(client().get(LATEST).json())
+    for name in ("nosepiece", "filter_turret_1"):
+        assert (rows[name]["state"], rows[name]["value"], rows[name]["t_wall"]) == ("not_open", None, None), name
+        assert "the stand stopped answering" in rows[name]["reason"]
+    snap(run, 3.0, {"stand_ti2e": {"not_read": True, "why": "a plan step holds the stand"}}, "later")
+    rows = by_name(client().get(LATEST).json())
+    assert (rows["nosepiece"]["state"], rows["nosepiece"]["value"]) == ("not_read", None)
+    assert "a plan step holds the stand" in rows["nosepiece"]["reason"]
+
+
+def test_a_channel_that_never_named_an_element_adds_no_row(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": {"error": "no interface"}, "camera_red": {"error": "not opened"}})
+    assert [n for n in by_name(client().get(LATEST).json())] == [LASER]
+
+
+def test_the_old_device_table_is_not_a_source_of_names(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": {"state": {"FilterTurret1": {"State": "2"}}, "aborted": False, "backend": "micromanager"}})
+    assert [n for n in by_name(client().get(LATEST).json())] == [LASER]
+
+
+def test_an_ended_runs_last_snapshot_is_kept_and_marked_as_that_runs(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
     run.end()
     got = client().get(LATEST).json()
-    assert got["running"] is False and [r["device"] for r in got["path"]] == ["LightPath"]
+    assert got["running"] is False and got["path"]["source"] == "last_snapshot" and got["path"]["run_id"] == run.run_id
+    assert got["path"]["ended_at"] is not None and by_name(got)["nosepiece"]["value"] == "3"
 
 
-def test_no_run_has_no_path(engine, make_client, tmp_path):
+def stand_reading(elements, t="2026-10-24T11:04:00Z", backend="mock"):
+    return reading("stand_ti2e", "Stand", "read_back", {"elements": elements, "backend": backend, "note": MOCK_NOTE}, t)
+
+
+def test_outside_a_run_the_status_file_is_what_the_path_reads_with_its_own_time(client, tree, runs):
+    old = runs("run-20261024-001")
+    snap(old, 1.0, {"stand_ti2e": stand({"nosepiece": "9"})})
+    old.end()
+    doc = idle()
+    doc["last_run"]["last_snapshot"]["channels"] = [
+        stand_reading({"nosepiece": "3", "filter_turret_1": None}),
+        reading(LASER, "Laser combiner", "not_readable", {"settings": {LASER: {"enable": []}}}, "2026-10-24T11:04:02Z"),
+        reading("camera_red", "Red camera", "not_read")]
+    write_status(tree, doc)
+    got = client().get(LATEST).json()
+    assert got["path"]["source"] == "status_file" and got["path"]["run_id"] == "run-20261024-001"
+    assert got["path"]["t_wall"] == "2026-10-24T11:04:00Z" and got["path"]["written_at"] == "2026-10-24T11:05:00Z"
+    rows = by_name(got)
+    assert (rows["nosepiece"]["state"], rows["nosepiece"]["value"], rows["nosepiece"]["t_wall"]) == ("read_back", "3", "2026-10-24T11:04:00Z")
+    assert (rows["filter_turret_1"]["state"], rows["filter_turret_1"]["value"]) == ("not_read", None)
+    assert (rows[LASER]["state"], rows[LASER]["value"], rows[LASER]["sent_at"]) == ("sent", "assumed on", "2026-10-24T11:04:02Z")
+    assert rows["nosepiece"]["backend"] == "mock"
+
+
+def test_a_status_reading_that_was_not_read_gives_its_reason_or_says_none_was_given(client, tree):
+    doc = idle()
+    doc["last_run"]["last_snapshot"]["channels"] = [reading(LASER, "Laser combiner", "not_read")]
+    write_status(tree, doc)
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"]) == ("not_read", None) and "gives no reason" in row["reason"]
+
+
+def test_a_status_laser_that_failed_in_the_same_runs_check_gives_the_runtimes_error_as_its_reason(client, tree):
+    doc = idle()
+    doc["last_run"]["last_snapshot"]["channels"] = [reading(LASER, "Laser combiner", "not_read")]
+    doc["check_now"] = {
+        "run_id": "run-20261024-001", "t_wall": "2026-10-24T11:04:30Z", "list": {"path": "x.json", "sha256": SHA},
+        "channels": [{**reading(LASER, "Laser combiner", "not_read"), "opened": False, "closed": None, "error": "the combiner port is held by another program"}]}
+    write_status(tree, doc)
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert (row["state"], row["value"]) == ("not_read", None)
+    assert "held by another program" in row["reason"] and "gives no reason" not in row["reason"]
+
+
+def test_a_check_of_another_run_gives_no_reason_to_this_runs_laser(client, tree):
+    doc = idle()
+    doc["last_run"]["last_snapshot"]["channels"] = [reading(LASER, "Laser combiner", "not_read")]
+    doc["check_now"] = {
+        "run_id": "run-20261023-001", "t_wall": "2026-10-23T11:04:30Z", "list": {"path": "x.json", "sha256": SHA},
+        "channels": [{**reading(LASER, "Laser combiner", "not_read"), "opened": False, "closed": None, "error": "an older failure"}]}
+    write_status(tree, doc)
+    row = by_name(client().get(LATEST).json())[LASER]
+    assert "an older failure" not in row["reason"] and "gives no reason" in row["reason"]
+
+
+def test_a_status_file_after_a_live_view_has_no_snapshot_so_the_run_is_shown_as_it_ended(client, tree):
+    doc = idle()
+    doc["last_run"].update(kind="live_view", outcome="failed", last_snapshot=None)
+    write_status(tree, doc)
+    got = client().get(LATEST).json()
+    assert got["path"]["source"] == "status_file" and got["path"]["elements"] == []
+    assert "took no snapshot" in got["path"]["detail"] and "live view" in got["path"]["detail"]
+    assert got["path"]["run_id"] == "run-20261024-001" and got["path"]["ended_how"] == "failed"
+    assert got["path"]["ended_at"] == "2026-10-24T11:05:00Z" and got["path"]["t_wall"] is None
+
+
+def test_a_running_run_is_read_before_the_status_file(client, tree, runs):
+    write_status(tree, idle())
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    got = client().get(LATEST).json()
+    assert got["running"] is True and got["path"]["source"] == "run" and "nosepiece" in by_name(got)
+
+
+def test_a_status_file_that_is_not_valid_is_not_read_and_the_last_snapshot_stands(client, tree, runs):
+    old = runs("run-20261024-001")
+    snap(old, 1.0, {"stand_ti2e": stand({"nosepiece": "3"})})
+    old.end()
+    bad = idle()
+    bad["last_run"]["last_snapshot"]["channels"][0]["how"] = "guessed"
+    write_status(tree, bad)
+    assert client().get(LATEST).json()["path"]["source"] == "last_snapshot"
+
+
+def test_a_run_with_no_snapshot_has_no_elements_and_the_laser_is_not_guessed(client, tree, runs):
+    runs("run-20261026-001")
+    got = client().get(LATEST).json()
+    assert got["path"]["source"] == "run" and got["path"]["elements"] == [] and got["path"]["t_wall"] is None
+
+
+def test_no_run_and_no_status_file_has_no_path(engine, make_client, tmp_path):
     root = tmp_path / "bare"
     (root / "microscope_agent" / "runs").mkdir(parents=True)
     got = make_client(engine, agent_store=SmaFiles(root, source="soft-matter-agents")).get(LATEST).json()
-    assert got["path"] == []
+    assert got["path"]["source"] == "none" and got["path"]["elements"] == []
+
+
+def test_following_the_path_writes_nothing(client, tree, runs):
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"stand_ti2e": stand({"nosepiece": "3"}), LASER: blind()})
+    write_status(tree, idle())
+    before = tree_state(tree)
+    c = client()
+    for _ in range(3):
+        assert c.get(LATEST).status_code == 200
+    assert tree_state(tree) == before
+
+
+def test_a_draft_for_the_aura_the_lamp_or_the_red_camera_says_the_run_will_refuse_it_and_why(client, tree):
+    said = {}
+    for body in (dict(kind="aura", color="blue", power_mw=0.5), dict(kind="dialamp", state="on", intensity_percent=12),
+                 dict(kind="camera_exposure", exposure_ms=30)):
+        said[body["kind"]] = " ".join(post(client(), **body).json()["refused_today"])
+    for kind, text in said.items():
+        assert "run will refuse" in text and "match" in text and "software may command" in text, (kind, text)
+    assert "longer" in said["aura"] and "light engine" in said["aura"]
+    assert "light engine" not in said["dialamp"] and "light engine" not in said["camera_exposure"]
+
+
+def test_the_piezo_drafts_own_note_does_not_say_the_run_will_refuse_it(client, tree):
+    text = " ".join(post(client(), **piezo_body()).json()["refused_today"])
+    assert "run will refuse" not in text
+
+
+def test_the_status_file_alone_gives_the_path_when_the_runs_folder_has_no_run(engine, make_client, tmp_path):
+    root = tmp_path / "bare"
+    (root / "microscope_agent" / "runs").mkdir(parents=True)
+    shutil.copytree(REPO / "contracts" / "schemas", root / "contracts" / "schemas")
+    doc = idle()
+    doc["last_run"]["last_snapshot"]["channels"] = [stand_reading({"nosepiece": "3"})]
+    write_status(root, doc)
+    got = make_client(engine, agent_store=SmaFiles(root, source="soft-matter-agents")).get(LATEST).json()
+    assert got["state"] == "no_run" and got["path"]["source"] == "status_file" and "nosepiece" in by_name(got)

@@ -7,6 +7,7 @@ import { fakeTransport, type Route } from "../../test/fakes";
 import { PATHS as QPATHS } from "../questions/api";
 import { PATHS } from "./api";
 import InstrumentsScreen from "./index";
+import { DRAFT_LINK } from "./path";
 
 /** The Instruments screens on a followed run (console card 015): the run's own files, nothing started or sent. */
 
@@ -28,7 +29,8 @@ const LIMITS = {
   tweezers: { positions: { "40x": null, "60x": null, "100x": null }, step_max: null, strength: null }, problems: [],
 };
 const NO_RUN = { state: "no_run", message: null, run_id: null, started_at: null, running: false, ended_how: null, ended_at: null,
-  plan_id: null, frame_tap: false, channels: null, events_seen: 0, traps: [], trap_series: [], strength_last_sent: null, piezo: [] };
+  plan_id: null, frame_tap: false, channels: null, events_seen: 0, traps: [], trap_series: [], strength_last_sent: null, piezo: [],
+  path: { source: "none", elements: [] } };
 const CHANNELS = {
   t_s: 2, t_wall: "2026-10-26T09:00:02Z", label: "after",
   rows: [
@@ -338,98 +340,226 @@ describe("the piezo draft is an operation plan, shown and saved nowhere", () => 
 
 
 describe("the live optical path on Optics and control", () => {
-  const PATH_RUN = {
-    ...RUNNING,
-    path: [
-      { device: "FilterTurret1", props: { State: "2", Label: "DAPI" }, t_s: 1, t_wall: "2026-10-26T09:00:01Z", backend: "mock" },
-      { device: "CSUW1-Dichroic", props: { State: "3" }, t_s: 1, t_wall: "2026-10-26T09:00:01Z", backend: "mock" },
-      { device: "DiaLamp", props: { State: "1", Intensity: "12" }, t_s: 2, t_wall: "2026-10-26T09:00:02Z", backend: "mock" },
-    ],
-  };
-  const ELEMENTS = [
-    "FilterTurret1", "FilterTurret2", "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "LightPath", "CSUW1-Port", "CSUW1-Dichroic", "DiaLamp", "Aura",
+  interface El {
+    key: string; name: string; channel: string; state: string; value: string | null; t_wall: string | null; reason: string | null;
+    backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null;
+  }
+  const el = (name: string, channel: string, state: string, extra: Partial<El> = {}): El => ({
+    key: `${channel}/${name}`, name, channel, state, value: null, t_wall: null, reason: null, backend: null, sent: null, sent_at: null,
+    control: "hand", draft: null, ...extra,
+  });
+  const T1 = "2026-10-26T09:00:01Z";
+  const read = (name: string, channel: string, value: string, extra: Partial<El> = {}) =>
+    el(name, channel, "read_back", { value, t_wall: T1, backend: "mock", ...extra });
+  const ELEMENTS: El[] = [
+    read("FilterTurret1", "stand_ti2e", "2"),
+    read("Nosepiece", "stand_ti2e", "3"),
+    read("CSUW1-Dichroic", "confocal_csuw1", "1"),
+    el("LightPath", "stand_ti2e", "not_read", { reason: "the read returned no position for it" }),
+    read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
+    read("Aura", "stand_ti2e", "0", { control: "draft", draft: "aura" }),
+    el("laser_combiner", "laser_combiner", "sent", {
+      value: "assumed on", reason: "It reports nothing back, so it is shown at the most dangerous state its commands allow.",
+      sent: '{"state": "off"}', sent_at: "2026-10-26T09:00:02Z", control: null,
+    }),
   ];
+  const PATH = { source: "run", run_id: RUN_ID, kind: null, t_wall: T1, written_at: null, ended_at: null, ended_how: null, detail: null, elements: ELEMENTS };
+  const PATH_RUN = { ...RUNNING, path: PATH };
 
-  async function open(run: unknown) {
-    show({ hash: "#/instruments/optics", run });
+  async function open(run: unknown, hash = "#/instruments/optics") {
+    const t = show({ hash, run });
     const panel = await screen.findByRole("region", { name: "Live optical path" });
     const item = (name: string) => {
-      const li = within(panel).getAllByRole("listitem").find((l) => l.textContent?.startsWith(`${name} `));
+      const li = within(panel).getAllByRole("listitem").find((l) => l.getAttribute("data-element")?.endsWith(`/${name}`));
       if (li === undefined) throw new Error(`no item for ${name}`);
       return li;
     };
-    return { panel, item };
+    const names = () => within(panel).getAllByRole("listitem").map((l) => l.querySelector(".inst-name")?.textContent);
+    return { t, panel, item, names };
   }
+  const stateOf = (li: HTMLElement) => Array.from(li.querySelectorAll("[data-state]")).map((n) => n.textContent);
+  const handOf = (li: HTMLElement) => Array.from(li.querySelectorAll("[data-control]")).map((n) => n.textContent);
 
-  it("lists every element of the path, each by its device name", async () => {
-    const { panel } = await open(PATH_RUN);
-    const names = within(within(panel).getByRole("list", { name: "Path elements" })).getAllByRole("listitem").map((l) => l.textContent?.split(" ")[0]);
-    expect(names).toEqual(ELEMENTS);
+  it("shows exactly one state per element, and a filter turret shows read back and moved by hand together", async () => {
+    const { item, names } = await open(PATH_RUN);
+    for (const n of names()) expect(["read back", "sent", "not open", "not read"]).toContain(stateOf(item(n as string))[0]);
+    for (const n of names()) expect(stateOf(item(n as string))).toHaveLength(1);
+    expect(stateOf(item("FilterTurret1"))).toEqual(["read back"]);
+    expect(handOf(item("FilterTurret1"))).toEqual(["moved by hand"]);
   });
 
-  it("takes each element's state and its read time from the run's read-back", async () => {
+  it("each element with a control shows exactly one of moved by hand or drafted, and the laser has neither", async () => {
     const { item } = await open(PATH_RUN);
-    expect(item("FilterTurret1").textContent).toContain("State = 2, Label = DAPI");
-    expect(item("FilterTurret1").textContent).toContain("read 2026-10-26 09:00:01");
-    expect(item("DiaLamp").textContent).toContain("State = 1, Intensity = 12");
-    expect(item("DiaLamp").textContent).toContain("read 2026-10-26 09:00:02");
-    expect(item("CSUW1-Dichroic").textContent).toContain("State = 3");
+    for (const n of ["FilterTurret1", "Nosepiece", "CSUW1-Dichroic", "LightPath"]) expect(handOf(item(n))).toEqual(["moved by hand"]);
+    for (const n of ["DiaLamp", "Aura"]) expect(handOf(item(n))).toEqual([DRAFT_LINK]);
+    expect(handOf(item("laser_combiner"))).toEqual([]);
   });
 
-  it("an element the run does not report reads 'not built yet' with no value and no time", async () => {
+  it("names follow the fixture: a name nobody coded here appears, and one the read-back omits does not", async () => {
+    const odd = { ...PATH, elements: [read("Widget-7", "stand_ti2e", "4"), read("Nosepiece", "stand_ti2e", "3")] };
+    const { names, panel } = await open({ ...RUNNING, path: odd });
+    expect(names()).toEqual(["Widget-7", "Nosepiece"]);
+    expect(within(panel).queryByText("FilterTurret1")).toBeNull();
+    expect(within(panel).queryByText("Aura")).toBeNull();
+  });
+
+  it("an element the read-back names without a position reads not read, with its reason and no value", async () => {
     const { item } = await open(PATH_RUN);
-    for (const name of ["FilterTurret2", "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "LightPath", "CSUW1-Port", "Aura"]) {
-      expect(item(name).textContent).toContain("not built yet");
-      expect(item(name).textContent).not.toContain("=");
-      expect(item(name).textContent).not.toContain("read 2026");
+    const li = item("LightPath");
+    expect(stateOf(li)).toEqual(["not read"]);
+    expect(li.textContent).toContain("the read returned no position for it");
+    expect(li.textContent).not.toContain("=");
+    expect(li.textContent).not.toContain("read 2026");
+  });
+
+  it("a channel the run did not open reads not open with its reason, never off", async () => {
+    const els = [el("laser_combiner", "laser_combiner", "not_open", { reason: "the run did not open it", control: null })];
+    const { item } = await open({ ...RUNNING, path: { ...PATH, elements: els } });
+    expect(stateOf(item("laser_combiner"))).toEqual(["not open"]);
+    expect(item("laser_combiner").textContent).toContain("the run did not open it");
+    expect(item("laser_combiner").textContent).not.toMatch(/\boff\b/);
+  });
+
+  it("a busy channel reads not read with the reason and no value", async () => {
+    const els = [el("FilterTurret1", "stand_ti2e", "not_read", { reason: "busy at the read" })];
+    const { item } = await open({ ...RUNNING, path: { ...PATH, elements: els } });
+    expect(stateOf(item("FilterTurret1"))).toEqual(["not read"]);
+    expect(item("FilterTurret1").textContent).toContain("busy at the read");
+    expect(item("FilterTurret1").textContent).not.toContain("read 2026");
+  });
+
+  it("a blind laser whose sent commands end in off is shown at the dangerous state, not off", async () => {
+    const { item } = await open(PATH_RUN);
+    const li = item("laser_combiner");
+    expect(stateOf(li)).toEqual(["sent"]);
+    expect(li.textContent).toContain("assumed on");
+    expect(li.textContent).toContain('sent {"state": "off"} at 2026-10-26 09:00:02');
+    expect(li.textContent).not.toContain("read back");
+    expect(li.textContent).not.toContain("shown off");
+  });
+
+  it("an apply later than the latest snapshot shows sent, with what was sent and when, not read back", async () => {
+    const els = [read("FilterTurret1", "stand_ti2e", "2")].map((e) => ({ ...e, state: "sent", sent: '{"State": 4}', sent_at: "2026-10-26T09:00:05Z" }));
+    const { item } = await open({ ...RUNNING, path: { ...PATH, elements: els } });
+    const li = item("FilterTurret1");
+    expect(stateOf(li)).toEqual(["sent"]);
+    expect(li.textContent).toContain('sent {"State": 4} at 2026-10-26 09:00:05');
+    expect(li.textContent).not.toContain("read back");
+  });
+
+  it("on the mock every state is labelled the mock's, and on the instrument it is not", async () => {
+    const { item } = await open(PATH_RUN);
+    for (const n of ["FilterTurret1", "Nosepiece", "DiaLamp"]) expect(item(n).textContent).toContain("the mock's state");
+    expect(item("LightPath").textContent).not.toContain("the mock's");
+  });
+
+  it("on the instrument a read is not labelled the mock's", async () => {
+    const els = [read("FilterTurret1", "stand_ti2e", "2", { backend: "micromanager" })];
+    const { item } = await open({ ...RUNNING, path: { ...PATH, elements: els } });
+    expect(stateOf(item("FilterTurret1"))).toEqual(["read back"]);
+    expect(item("FilterTurret1").textContent).not.toContain("the mock's");
+  });
+
+  it("every read value carries its read time", async () => {
+    const { item } = await open(PATH_RUN);
+    for (const n of ["FilterTurret1", "Nosepiece", "CSUW1-Dichroic", "DiaLamp", "Aura"]) expect(item(n).textContent).toContain("read 2026-10-26 09:00:01");
+  });
+
+  it("no element moved by hand offers a control", async () => {
+    const { item } = await open(PATH_RUN);
+    for (const n of ["FilterTurret1", "Nosepiece", "CSUW1-Dichroic", "LightPath"]) {
+      expect(within(item(n)).queryAllByRole("button")).toEqual([]);
+      expect(within(item(n)).queryAllByRole("link")).toEqual([]);
+      expect(within(item(n)).queryAllByRole("textbox")).toEqual([]);
     }
+    expect(within(item("laser_combiner")).queryAllByRole("button")).toEqual([]);
   });
 
-  it("with no run every element reads 'not built yet' and the screen says no run is running", async () => {
-    const { panel, item } = await open(NO_RUN);
-    expect(within(panel).getByText(/^No run is running/)).toBeTruthy();
-    for (const name of ELEMENTS) expect(item(name).textContent).toContain("not built yet");
-  });
-
-  it("no element marked moved by hand offers a control", async () => {
-    const { item } = await open(PATH_RUN);
-    for (const name of ["FilterTurret1", "FilterTurret2", "CSUW1-Filter_Red", "CSUW1-Filter_Blue", "LightPath", "CSUW1-Port", "CSUW1-Dichroic"]) {
-      expect(item(name).textContent).toContain("moved by hand");
-      expect(within(item(name)).queryAllByRole("button")).toEqual([]);
-      expect(within(item(name)).queryAllByRole("link")).toEqual([]);
-      expect(within(item(name)).queryAllByRole("textbox")).toEqual([]);
-    }
-  });
-
-  it("the lamp and the LED carry the draft link and nothing that sends", async () => {
+  it("the lamp and the LED carry the draft link, which opens the Light source tab", async () => {
     const t = await open(PATH_RUN);
-    for (const name of ["DiaLamp", "Aura"]) {
-      expect(t.item(name).textContent).not.toContain("moved by hand");
-      expect(within(t.item(name)).getAllByRole("button").map((b) => b.textContent)).toEqual(["Draft on the Light source tab"]);
-    }
+    for (const n of ["DiaLamp", "Aura"]) expect(within(t.item(n)).getAllByRole("button").map((b) => b.textContent)).toEqual([DRAFT_LINK]);
     fireEvent.click(within(t.item("DiaLamp")).getByRole("button"));
     expect(screen.getByRole("tab", { name: "Light source" }).getAttribute("aria-selected")).toBe("true");
   });
 
-  it("on the mock every reported state is labelled the mock's", async () => {
+  it("beside the draft links it says the run will refuse the draft, and the Aura for longer", async () => {
     const { item } = await open(PATH_RUN);
-    for (const name of ["FilterTurret1", "CSUW1-Dichroic", "DiaLamp"]) expect(item(name).textContent).toContain("the mock's state");
+    const refuse = /The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command/;
+    expect(item("DiaLamp").textContent).toMatch(refuse);
+    expect(item("Aura").textContent).toMatch(refuse);
+    expect(item("Aura").textContent).toContain("stays refused longer than the lamp and the camera, until which light engine feeds which channel is settled");
+    expect(item("DiaLamp").textContent).not.toContain("stays refused longer");
   });
 
-  it("on the instrument a state is labelled read back, and not the mock's", async () => {
-    const run = { ...PATH_RUN, path: PATH_RUN.path.map((p) => ({ ...p, backend: "micromanager" })) };
-    const { item } = await open(run);
-    expect(item("FilterTurret1").textContent).toContain("read back");
-    expect(item("FilterTurret1").textContent).not.toContain("the mock's");
+  it("the Light source drafts say the run will refuse them, the Aura for longer", async () => {
+    show({ hash: "#/instruments/optics" });
+    const aura = await screen.findByRole("group", { name: "Aura III LED" });
+    const lamp = screen.getByRole("group", { name: "Transmitted lamp" });
+    for (const g of [aura, lamp]) expect(g.textContent).toContain("The run will refuse this draft even when it is made and signed");
+    expect(aura.textContent).toContain("stays refused longer than the lamp and the camera");
+    expect(lamp.textContent).not.toContain("stays refused longer");
   });
 
-  it("a run that has ended leaves its last path marked as of, from that run", async () => {
-    const { panel } = await open({ ...PATH_RUN, running: false, ended_how: "completed", ended_at: "2026-10-26T09:05:00Z" });
-    expect(within(panel).getByText(`as of 2026-10-26 09:05:00, from ${RUN_ID}`)).toBeTruthy();
+  it("the red camera's draft on the Cameras page says the run will refuse it", async () => {
+    show({ hash: "#/instruments/cameras" });
+    const cam = await screen.findByRole("group", { name: "Camera red arm" });
+    expect(cam.textContent).toContain("The run will refuse this draft even when it is made and signed");
+    expect(cam.textContent).not.toContain("stays refused longer");
+  });
+
+  it("the piezo draft is not told the run will refuse it", async () => {
+    show({ hash: "#/instruments/piezo" });
+    await screen.findByText(/^No run is running/);
+    expect(screen.queryByText(/The run will refuse this draft/)).toBeNull();
+  });
+
+  it("a made draft shows the server's reasons, the run's refusal among them", async () => {
+    const reasons = ["Refused until you write a limit: your safety file has none for this part yet.", "The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command."];
+    show({
+      hash: "#/instruments/optics",
+      draft: () => ({ status: 200, body: { kind: "dialamp", card: { card: "plan" }, valid: true, problems: [], range_problems: [], refused_today: reasons, saved: false, note: "n" } }),
+    });
+    const lamp = await screen.findByRole("group", { name: "Transmitted lamp" });
+    fireEvent.click(within(lamp).getByRole("button", { name: /^Draft/ }));
+    await waitFor(() => expect(within(lamp).getAllByText(/The run will refuse this draft/).length).toBeGreaterThan(1));
+  });
+
+  it("outside a run it says where the path was read: the status file, with its write time and the run's outcome", async () => {
+    const path = { ...PATH, source: "status_file", run_id: RUN_ID, kind: "operation", written_at: "2026-10-26T09:10:00Z", ended_at: "2026-10-26T09:05:00Z", ended_how: "completed" };
+    const { panel } = await open({ ...ENDED, path });
+    expect(within(panel).getByText(new RegExp(`^From the runtime's status file, written 2026-10-26 09:10:00: run ${RUN_ID}, ended 2026-10-26 09:05:00: completed\\.`))).toBeTruthy();
     expect(within(panel).getByText(/^No run is running/)).toBeTruthy();
   });
 
-  it("says that a position read back is not proof of which element is in the beam, and keeps the known traps in view", async () => {
+  it("a live view leaves no snapshot: the file's run, end time and outcome text are shown as they stand, with no element", async () => {
+    const path = { source: "status_file", run_id: RUN_ID, kind: "live_view", t_wall: null, written_at: "2026-10-26T09:10:00Z", ended_at: "2026-10-26T09:05:00Z",
+      ended_how: "ended: camera_red did not open", detail: "That run took no snapshot (a live view takes none), so no element was read.", elements: [] };
+    const { panel } = await open({ ...ENDED, path });
+    expect(within(panel).getByText(/ended 2026-10-26 09:05:00: ended: camera_red did not open\./)).toBeTruthy();
+    expect(within(panel).getByText(/took no snapshot/)).toBeTruthy();
+    expect(within(panel).queryAllByRole("listitem")).toEqual([]);
+  });
+
+  it("a run's last snapshot, with no status file, is marked as of its time, from that run", async () => {
+    const path = { ...PATH, source: "last_snapshot", ended_at: "2026-10-26T09:05:00Z", ended_how: "completed" };
+    const { panel } = await open({ ...ENDED, path });
+    expect(within(panel).getByText(`as of 2026-10-26 09:00:01, from ${RUN_ID}`)).toBeTruthy();
+  });
+
+  it("with no snapshot and no status file anywhere it says not built yet and lists nothing", async () => {
+    const { panel } = await open(NO_RUN);
+    expect(within(panel).getByText(/^No run is running/)).toBeTruthy();
+    expect(within(panel).getByText(/nothing to show: not built yet/)).toBeTruthy();
+    expect(within(panel).queryAllByRole("listitem")).toEqual([]);
+  });
+
+  it("a running run that has taken no snapshot says so, and does not say not built yet", async () => {
+    const { panel } = await open({ ...RUNNING, path: { ...PATH, t_wall: null, elements: [] } });
+    expect(within(panel).getByText(/has taken no snapshot yet/)).toBeTruthy();
+    expect(within(panel).queryByText(/not built yet/)).toBeNull();
+  });
+
+  it("says that a position read back is the stand's report and not proof of which element is in the beam, and names the two traps", async () => {
     const { panel } = await open(PATH_RUN);
     expect(within(panel).getByText(/not proof of which element is in the beam/)).toBeTruthy();
     expect(within(panel).getByText(/turret label that names the wrong position/)).toBeTruthy();
@@ -441,13 +571,15 @@ describe("the live optical path on Optics and control", () => {
     expect(within(panel).getByText(/No order is given/)).toBeTruthy();
   });
 
-  it("sends nothing: pressing the draft link makes no request", async () => {
-    const t = show({ hash: "#/instruments/optics", run: PATH_RUN });
-    const panel = await screen.findByRole("region", { name: "Live optical path" });
-    const before = t.calls.length;
-    fireEvent.click(within(panel).getAllByRole("button")[0]);
-    await new Promise((r) => setTimeout(r, 30));
-    expect(t.calls.length).toBe(before);
+  it("no request leaves the page while it renders, refreshes or its draft link is pressed, except the reads of files", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const { t, panel } = await open(PATH_RUN);
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    fireEvent.click(within(panel).getAllByRole("button", { name: DRAFT_LINK })[0]);
+    await act(async () => { await vi.advanceTimersByTimeAsync(100); });
     expect(t.calls.filter((c) => c.init?.method !== undefined && c.init.method !== "GET")).toEqual([]);
+    const allowed = new Set<string>([PATHS.status, PATHS.limits, PATHS.latestRun, QPATHS.signing]);
+    expect(t.calls.map((c) => c.path).filter((p) => !allowed.has(p))).toEqual([]);
+    expect(t.calls.filter((c) => c.path === PATHS.latestRun).length).toBeGreaterThan(1);
   });
 });

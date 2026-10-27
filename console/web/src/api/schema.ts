@@ -1922,10 +1922,12 @@ export interface components {
             frame_tap: boolean;
             channels?: components["schemas"]["ChannelsOut"] | null;
             /**
-             * Path
-             * @default []
+             * @default {
+             *       "source": "none",
+             *       "elements": []
+             *     }
              */
-            path: components["schemas"]["PathRowOut"][];
+            path: components["schemas"]["PathOut"];
             /**
              * Events Seen
              * @default 0
@@ -2250,29 +2252,101 @@ export interface components {
             /** Password */
             password: string;
         };
-        /** PathRowOut */
-        PathRowOut: {
-            /** Device */
-            device: string;
+        /** PathElementOut */
+        PathElementOut: {
             /**
-             * Props
-             * @description what the run read back from the device, property by property
+             * Key
+             * @description channel/name, unique in the list
              */
-            props: {
-                [key: string]: string;
-            };
-            /** T S */
-            t_s?: number | null;
+            key: string;
+            /**
+             * Name
+             * @description the element's name exactly as the read-back gives it
+             */
+            name: string;
+            /** Channel */
+            channel: string;
+            /**
+             * State
+             * @description exactly one: a position read back, only sent, the run did not open its channel, or no value could be read
+             * @enum {string}
+             */
+            state: "read_back" | "sent" | "not_open" | "not_read";
+            /**
+             * Value
+             * @description what was read, as text; for the blind laser the most dangerous state its commands allow
+             */
+            value?: string | null;
             /**
              * T Wall
-             * @description when it was read
+             * @description when `value` was read; None where nothing was read
              */
             t_wall?: string | null;
+            /**
+             * Reason
+             * @description why it is not open or not read, or what a sent state assumes
+             */
+            reason?: string | null;
             /**
              * Backend
              * @description which backend answered; `mock` is the mock's own state
              */
             backend?: string | null;
+            /**
+             * Sent
+             * @description what was last sent to the channel, as compact text
+             */
+            sent?: string | null;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Control
+             * @description moved by hand (no control), or drafted on this page; None for the laser
+             */
+            control?: ("hand" | "draft") | null;
+            /**
+             * Draft
+             * @description the draft kind, where control is `draft`
+             */
+            draft?: ("aura" | "dialamp") | null;
+        };
+        /** PathOut */
+        PathOut: {
+            /**
+             * Source
+             * @description where the elements were read: the run's events, the runtime's status file, or the last run's last snapshot
+             * @default none
+             * @enum {string}
+             */
+            source: "run" | "status_file" | "last_snapshot" | "none";
+            /** Run Id */
+            run_id?: string | null;
+            /** Kind */
+            kind?: string | null;
+            /**
+             * T Wall
+             * @description when the snapshot these elements come from was taken
+             */
+            t_wall?: string | null;
+            /**
+             * Written At
+             * @description status file only: when it was written
+             */
+            written_at?: string | null;
+            /** Ended At */
+            ended_at?: string | null;
+            /**
+             * Ended How
+             * @description the run's outcome, as the run's own text has it
+             */
+            ended_how?: string | null;
+            /** Detail */
+            detail?: string | null;
+            /**
+             * Elements
+             * @default []
+             */
+            elements: components["schemas"]["PathElementOut"][];
         };
         /**
          * PermissionOut

@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { type DraftIn, HOW_WORDS, type LatestRun, type Reading, valueText } from "./api";
 import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
-import { PathPanel } from "./path";
+import { PathPanel, RunRefuses } from "./path";
 import {
   ALL_PARTS, BY_HAND, COMBINER, COMBINER_SENTENCE, type DraftKind, MOVED_BY_HAND, type Part, PIEZO_PART, PIEZO_SENTENCE, ROWS, SECTIONS, type Section,
 } from "./parts";
@@ -46,6 +46,7 @@ export function PartDraft({ kind, label }: { kind: DraftKind; label: string }) {
     <div role="group" aria-label={label} className="inst-part-draft">
       <strong>{label}</strong>
       <p className="console-muted">{REFUSED_UNTIL_LIMIT}</p>
+      <p className="console-muted"><RunRefuses aura={kind === "aura"} /></p>
       <div className="inst-form">
         {kind === "aura" && (
           <>

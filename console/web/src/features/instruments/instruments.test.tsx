@@ -52,7 +52,7 @@ const LIMITS = {
   problems: [],
 };
 
-const NO_RUN = { state: "no_run", message: null, run_id: null, started_at: null, traps: [], trap_series: [], strength_last_sent: null, piezo: [] };
+const NO_RUN = { state: "no_run", message: null, run_id: null, started_at: null, traps: [], trap_series: [], strength_last_sent: null, piezo: [], path: { source: "none", elements: [] } };
 const RUN = {
   state: "ok", message: null, run_id: "run-20261024-001", started_at: "2026-10-24T11:00:00Z",
   traps: [{ trap: "trap_1", x_um: 2, y_um: 0, strength: 0.3, on: true }],
