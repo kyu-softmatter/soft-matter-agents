@@ -402,6 +402,78 @@ def check() -> list[str]:
     return problems
 
 
+# Card 061. Which channel is which engine is `lapp_branch_assignment`, still
+# open, and a label on either channel would settle it in passing -- so the two
+# engines' labels sit on their designations under `light_engines` instead.
+UNLABELLED_WHILE_OPEN = ("widefield_source_a", "widefield_source_b")
+SHA256_HEX = set("0123456789abcdef")
+
+
+def label_rows(table: dict) -> list[tuple[str, dict]]:
+    """Every row of the device table carrying `mm_label`, named by its id or model."""
+    rows: list[tuple[str, dict]] = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            if "mm_label" in node:
+                rows.append((node.get("id") or node.get("model"), node))
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk(table)
+    return rows
+
+
+def mm_label_problems(table: dict, entries: dict[str, dict]) -> list[str]:
+    """Each row's `mm_label` is a copy of its entry's, and claims nothing more.
+
+    The row has no grade and no source of its own; the runtime reads the grade
+    off the cited entry. So everything a row says has to be found in that
+    entry, character for character -- the label under `mm_label` or
+    `mm_device` (the store used both keys for one meaning before 061), and the
+    configuration digest under `mm_config_sha256`, which only a run of this
+    system can have recorded.
+    """
+    problems: list[str] = []
+    seen: dict[str, str] = {}
+    for name, row in label_rows(table):
+        m = row["mm_label"]
+        label, ref = m.get("label"), m.get("entry_ref")
+        if name in UNLABELLED_WHILE_OPEN:
+            problems.append(f"{name} carries mm_label {label!r} while lapp_branch_assignment is "
+                            "open; the label would say which engine the channel is")
+        if label in seen:
+            problems.append(f"label {label!r} is on two rows, {seen[label]} and {name}")
+        seen.setdefault(label, name)
+        e = entries.get(ref)
+        if e is None:
+            problems.append(f"{name}: mm_label cites {ref!r}, which is not an entry in kb/entries/")
+            continue
+        ids = e.get("identifiers") or {}
+        if label not in (ids.get("mm_label"), ids.get("mm_device")):
+            problems.append(f"{name}: label {label!r} is not in {ref}'s identifiers "
+                            f"(mm_label {ids.get('mm_label')!r}, mm_device {ids.get('mm_device')!r})")
+        if "config_sha256" in m:
+            sha = m["config_sha256"]
+            if not (isinstance(sha, str) and len(sha) == 64 and set(sha) <= SHA256_HEX):
+                problems.append(f"{name}: config_sha256 {sha!r} is not 64 lowercase hex")
+            if sha != ids.get("mm_config_sha256"):
+                problems.append(f"{name}: config_sha256 is not {ref}'s mm_config_sha256 "
+                                f"{ids.get('mm_config_sha256')!r}")
+        elif "mm_config_sha256" in ids:
+            problems.append(f"{name}: {ref} records the configuration digest and the row "
+                            "leaves it out; the row is a copy of the entry")
+    for eid, e in sorted(entries.items()):
+        if ("mm_config_sha256" in (e.get("identifiers") or {})
+                and not str(e.get("source", "")).startswith("measured:")):
+            problems.append(f"{eid} carries mm_config_sha256 from a {e.get('source')!r} source; "
+                            "which file was loaded is a run's record, and only measured: is one")
+    return problems
+
+
 def _self_test() -> int:
     ok = True
 
@@ -464,6 +536,57 @@ def _self_test() -> int:
         bad("published to something that is not an agent")
     except ValueError:
         pass
+
+    # Card 061: the labels. The snapshot is the only way a label reaches the
+    # runtime, so the table it carries has to be staging's text exactly.
+    if mic["tables"]["devices"]["text"] != (KB / TABLES["devices"]).read_text(encoding="utf-8"):
+        bad("the snapshot's devices text is not staging's; the runtime would read other labels")
+    devices = loaded["tables"]["devices"]
+    if not label_rows(devices):
+        bad("no device row carries mm_label; a check over no rows cannot tell absent from broken")
+    for p in mm_label_problems(devices, live):
+        bad(f"the store's own labels: {p}")
+
+    # Each rule against a table and a store that break exactly that rule, so
+    # a rule that stops being enforced is a test that fails, not a pass that
+    # looks at nothing.
+    good = {"e_meas": {"identifiers": {"mm_label": "Cam", "mm_config_sha256": "a" * 64},
+                       "source": "measured:run-x"},
+            "e_dev": {"identifiers": {"mm_device": "Lamp"}, "source": "prior_run:p@1"}}
+
+    def row(name, label, ref, sha=None):
+        m = {"label": label, "entry_ref": ref}
+        if sha is not None:
+            m["config_sha256"] = sha
+        return {"id": name, "mm_label": m}
+
+    def case(rows, entries, expect, why):
+        found = mm_label_problems({"channels": rows}, entries)
+        if not any(expect in p for p in found):
+            bad(f"{why}: wanted a problem saying {expect!r}, got {found}")
+
+    sound = mm_label_problems({"channels": [row("cam", "Cam", "e_meas", "a" * 64),
+                                            row("lamp", "Lamp", "e_dev")]}, good)
+    if sound:
+        bad(f"a sound table was refused: {sound}")
+    case([row("cam", "Cam", "e_missing")], good, "not an entry",
+         "a label citing no entry")
+    case([row("lamp", "Lamp2", "e_dev")], good, "not in e_dev's identifiers",
+         "a label its entry does not hold")
+    case([row("cam", "Cam", "e_meas", "a" * 64), row("cam2", "Cam", "e_meas", "a" * 64)], good,
+         "on two rows", "one label on two rows")
+    case([row("widefield_source_a", "Lamp", "e_dev")], good, "lapp_branch_assignment",
+         "a label on a widefield channel while the branch assignment is open")
+    case([row("cam", "Cam", "e_meas", "A" * 64)],
+         {"e_meas": {"identifiers": {"mm_label": "Cam", "mm_config_sha256": "A" * 64},
+                     "source": "measured:run-x"}}, "64 lowercase hex",
+         "an uppercase digest")
+    case([row("cam", "Cam", "e_meas", "b" * 64)], good, "not e_meas's mm_config_sha256",
+         "a digest that is not the entry's")
+    case([row("cam", "Cam", "e_meas")], good, "leaves it out",
+         "a row dropping the digest its entry records")
+    case([], {"e": {"identifiers": {"mm_config_sha256": "a" * 64}, "source": "prior_run:p@1"}},
+         "only measured: is one", "a digest on an entry that is not a run of this system")
 
     # envelope_lag, against a built tree rather than against the live one.
     # It has to be exercised on a lag, and the live repository is allowed to
