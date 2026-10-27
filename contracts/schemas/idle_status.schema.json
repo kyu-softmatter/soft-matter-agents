@@ -172,7 +172,8 @@
                   },
                   "error": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "what the open, read or close raised, as the runtime caught it. Present when a step failed; a channel that was simply not opened carries none. It says why the channel went unread, never what its state was"
                   }
                 },
                 "required": [
