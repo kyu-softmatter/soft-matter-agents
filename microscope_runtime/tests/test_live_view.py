@@ -21,10 +21,13 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SRC))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mm_label_registry                                  # noqa: E402  (card 091: a camera's name is its label)
 
 
 def _load(name, path):
@@ -90,6 +93,10 @@ class _Base(unittest.TestCase):
         self.address = root / "app" / "live_host.json"
         self.host_log = root / "app" / "live_host_log.jsonl"
         self._saved = op.RUN_LOCK_PATH, op.load_safety
+        # the real registry carries no label yet, so the frame tap is fed from a test registry that does
+        patched = mock.patch.object(op.orch, "REGISTRY_LOOKUP", [mm_label_registry.write(root)])
+        patched.start()
+        self.addCleanup(patched.stop)
         op.RUN_LOCK_PATH = self.lock_path
         op.load_safety = lambda: {"policy_version": "test", "targets": []}
         self.orchestrators = []

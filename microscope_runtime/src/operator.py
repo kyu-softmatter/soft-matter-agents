@@ -950,25 +950,34 @@ POWER_DOWN = {"ramp_down", "close_shutter", "disable", "blank"}
 ACQUIRE = {"acquire", "acquire_series", "snap", "stream"}
 
 
-def derive_tap_cameras(plan: dict) -> list[str]:
+def derive_tap_cameras(plan: dict, o) -> list[str]:
     """The cameras a plan's run will acquire on, in the order the plan first names them (card 084).
 
     Read from the plan's own acquiring actions, never from a frame: an action whose verb acquires and
     whose device is a camera. A focus search grabs from the red camera, so it names that one if the
     plan's actions have not. A plan that acquires nothing gives [], and the tap then says it takes
     no camera instead of answering for one it was never going to feed.
+
+    A camera's device name is its label in the registry `o` loaded, read through the orchestrator's
+    one lookup (card 091). A camera with no label is not listed, and the run says so.
     """
     cameras: list[str] = []
     for action in plan.get("actions") or []:
         if not isinstance(action, dict) or action.get("action") not in ACQUIRE:
             continue
         device = action.get("device")
-        # A plan names a camera by its registry channel, or by the device label the allow-list holds.
-        camera = orch.CAMERA_DEVICES.get(device, device if device in orch.CAMERA_DEVICES.values() else None)
+        # A plan names a camera by its registry channel, or by the label that channel carries.
+        if device in o.channels:
+            camera = o.camera_label(device)
+        else:
+            camera = next((row["label"] for row in o.mm_labels.values()
+                           if row["label"] == device and row["name"] in o.channels), None)
         if camera is not None and camera not in cameras:
             cameras.append(camera)
-    if "focus_search" in plan and LIVE_VIEW_CAMERA not in cameras:
-        cameras.append(LIVE_VIEW_CAMERA)
+    if "focus_search" in plan:
+        camera = o.camera_label(LIVE_VIEW_ROUTES["Kinetix_red"])
+        if camera is not None and camera not in cameras:
+            cameras.append(camera)
     return cameras
 
 
@@ -1580,7 +1589,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                                                        orch.is_light_command)
             judgements, judgements_event = judgements_mod.build(plan, judge_obj, folder, o.clock.offset)
             o.begin_run(folder, run_id=run_id, plan_id=plan.get("id"),
-                        revision=plan.get("revision"), tap_cameras=derive_tap_cameras(plan),
+                        revision=plan.get("revision"), tap_cameras=derive_tap_cameras(plan, o),
                         watcher=watcher, watcher_event=watcher_event,
                         judgements=judgements, judgements_event=judgements_event)
             if started is not None:
@@ -1687,6 +1696,9 @@ def _load_mm_config(o, checked: dict, folder: Path, config_loader=None) -> dict:
     except mm_gate.ConfigRefused as exc:
         raise Refusal(str(exc)) from None
     o.record(**event)
+    # The digest a label's entry has to name is the approved ORIGINAL's, never the derived copy that
+    # was loaded and never a file name (card 091).
+    o.loaded_config_sha256 = checked["sha256"]
     return event
 
 
@@ -2029,7 +2041,8 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
         if on_orchestrator is not None:
             on_orchestrator(o)
         _install_status(o, status_dir, run_id, "live_view")
-        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None, tap_cameras=[values["camera"]])
+        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None,
+                    tap_cameras=[c for c in [o.camera_label(LIVE_VIEW_ROUTES.get(values["camera"], ""))] if c])
         if started is not None:
             started.set()
         how = "failed"
@@ -2081,6 +2094,7 @@ def _live_view_mm_config(o, checked: dict, folder: Path, config_loader, state: d
         o.record(event="mm_config_already_loaded",
                  original={"path": checked["path"], "sha256": checked["sha256"]},
                  loaded_sha256=held["loaded_sha256"], loaded_in_run=held["run_id"])
+        o.loaded_config_sha256 = held["sha256"]
 
 
 def _live_view_lamp(o, prop: str, value, from_field: str) -> None:

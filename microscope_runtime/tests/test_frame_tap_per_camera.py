@@ -20,6 +20,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 REPO = Path(__file__).resolve().parents[2]
@@ -27,6 +28,7 @@ TESTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SRC))
 sys.path.insert(0, str(TESTS))
 
+import mm_label_registry                                        # noqa: E402  (card 091: labels are the registry's)
 import test_console_signed_approval as t87                      # noqa: E402  (its _Base runs a plan)
 
 orch = t87.orch
@@ -71,12 +73,17 @@ def _check(definition: str, instance) -> None:
 
 
 class _Rig:
-    """A run with a tap and nothing else: the orchestrator's own calls are the only acquisition."""
+    """A run with a tap and nothing else: the orchestrator's own calls are the only acquisition.
 
-    def __init__(self, test, cameras):
+    The camera names the tap keys by are the labels the registry gives (card 091), so the run reads
+    a test registry whose two camera rows carry them; `labels` removes or changes one.
+    """
+
+    def __init__(self, test, cameras, **registry):
         self.tmp = tempfile.TemporaryDirectory()
         test.addCleanup(self.tmp.cleanup)
-        self.o = orch.Orchestrator(backend="mock")
+        self.registry = mm_label_registry.write(self.tmp.name, **registry)
+        self.o = orch.Orchestrator(registry_path=self.registry, backend="mock")
         self.mock = self.o.module_for("camera_red")
         self.mock.reset()
         saved = (self.mock.FRAME_SHAPE, self.mock.FRAME_BYTES, self.mock.FRAME_DELAY_S)
@@ -218,29 +225,40 @@ class T3RunStartedCarriesTapCameras(t87._Base):
 
     def setUp(self):
         super().setUp()
-        # Until the software-motion check resolves a registry name to its Micro-Manager label (card
-        # 091), it refuses a plan naming camera_red or camera_blue, so no plan acquires on a camera
-        # on mock. This class lets that one check pass and changes nothing else in the run.
-        real = orch.Orchestrator.check_software_motion_for
-        orch.Orchestrator.check_software_motion_for = lambda o, plan, commands: None
-        self.addCleanup(setattr, orch.Orchestrator, "check_software_motion_for", real)
+        # The run reads a test registry that labels the two cameras (card 091), and the mock stands
+        # for the approved configuration the labels' entries were read under, since no file is loaded.
+        self.registry = mm_label_registry.write(self.tmp.name)
+        patched = mock.patch.object(orch, "REGISTRY_LOOKUP", [self.registry])
+        patched.start()
+        self.addCleanup(patched.stop)
 
-    def _first_line(self, plan, run_id):
+    def _first_line(self, plan, run_id, blue=False):
+        """The run's first event line. `blue` lets a plan on camera_blue run: the allow-list commands
+        Kinetix_red only, so the software-motion check refuses a plan on the blue camera (as it did
+        before card 091), and the two tests about what the TAP serves for a second camera set that one
+        check aside and change nothing else in the run."""
+        if blue:
+            real = orch.Orchestrator.check_software_motion_for
+            orch.Orchestrator.check_software_motion_for = lambda o, plan, commands: None
+            self.addCleanup(setattr, orch.Orchestrator, "check_software_motion_for", real)
         runs = Path(self.tmp.name) / "runs"
-        record = self.run_plan(plan, run_id, runs_root=runs)
+        record = self.run_plan(
+            plan, run_id, runs_root=runs,
+            on_orchestrator=lambda o: o.set_config_digest_by_hand(mm_label_registry.CONFIG_A))
         folder = runs / run_id
         return json.loads((folder / "events.jsonl").read_text(encoding="utf-8").splitlines()[0]), record
 
     def test_derived_from_the_plans_acquisition_fields_in_order(self):
         plan = {**self.PLAN, "id": "plan-test-084-two", "actions": [self.ACQ_BLUE, self.ACQ]}
-        first, _ = self._first_line(plan, "run-20261026-841")
+        first, _ = self._first_line(plan, "run-20261026-841", blue=True)
         self.assertEqual(first["tap_cameras"], [BLUE, RED])
         self.assertEqual(first["event"], "run_started")
 
     def test_a_plan_may_name_a_camera_by_its_device_label_too(self):
         plan = {**self.PLAN, "actions": [{**self.ACQ, "device": BLUE}, {**self.ACQ, "id": "a2", "device": "camera_red"}]}
-        self.assertEqual(op.derive_tap_cameras(plan), [BLUE, RED])
-        self.assertEqual(op.derive_tap_cameras({**self.PLAN, "focus_search": {"action": "a_red"}}), [RED])
+        o = orch.Orchestrator(registry_path=self.registry, backend="mock")
+        self.assertEqual(op.derive_tap_cameras(plan, o), [BLUE, RED])
+        self.assertEqual(op.derive_tap_cameras({**self.PLAN, "focus_search": {"action": "a_red"}}, o), [RED])
 
     def test_a_camera_named_twice_is_listed_once(self):
         plan = {**self.PLAN, "id": "plan-test-084-dup", "actions": [self.ACQ, {**self.ACQ, "id": "a_red2"}]}
@@ -269,7 +287,7 @@ class T3RunStartedCarriesTapCameras(t87._Base):
             return real(o, *a, **k)
         orch.Orchestrator.end_run = end_run
         self.addCleanup(setattr, orch.Orchestrator, "end_run", real)
-        self._first_line(plan, "run-20261026-845")
+        self._first_line(plan, "run-20261026-845", blue=True)
         for key, camera in (("red", RED), ("blue", BLUE)):
             head, body = captured[key]
             self.assertEqual((head["frame"], head["camera"]), (True, camera))

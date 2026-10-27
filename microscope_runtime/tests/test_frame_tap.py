@@ -22,6 +22,8 @@ from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(SRC))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mm_label_registry                                  # noqa: E402  (card 091: a camera's name is its label)
 
 
 def _load(name, path):
@@ -61,7 +63,9 @@ class _Rig:
     def __init__(self, test):
         self.tmp = tempfile.TemporaryDirectory()
         test.addCleanup(self.tmp.cleanup)
-        self.o = orch.Orchestrator(backend="mock")
+        # the real registry carries no label yet, so the tap is fed from a test registry that does
+        self.registry = mm_label_registry.write(self.tmp.name)
+        self.o = orch.Orchestrator(registry_path=self.registry, backend="mock")
         self.mock = self.o.module_for("camera_red")
         self.mock.reset()
         self.addrs = self.o.begin_run(Path(self.tmp.name) / "run-tap", run_id="run-tap",

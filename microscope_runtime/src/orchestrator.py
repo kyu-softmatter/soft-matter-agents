@@ -221,7 +221,78 @@ def _name_index(channels: dict[str, Channel]) -> dict[str, tuple[str, str | None
     return index
 
 
-def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict]:
+#: The field a registry row (a channel or one of its elements) carries its Micro-Manager label in, and
+#: the keys of that field (librarian card 061, plan.md 15.1 item 9). Read here and nowhere else.
+MM_LABEL_FIELD = "mm_label"
+MM_LABEL_KEYS = {"label", "entry_ref", "config_sha256"}
+#: Where the CITED ENTRY carries the same label, and the configuration it was read under, in its
+#: `identifiers`. The grade is the entry's own `grade`.
+ENTRY_LABEL_IDENTIFIERS = ("mm_label", "mm_device")
+ENTRY_DIGEST_IDENTIFIER = "mm_config_sha256"
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _entry_facts(entries: dict | None, entry_ref: str) -> dict:
+    """What the snapshot's entry says about itself: its grade and the configuration it names.
+
+    Nothing is decided here. An entry the file does not carry (the flat staging form has none) gives
+    no grade and no digest, and the check refuses on that and says so.
+    """
+    held = (entries or {}).get(entry_ref)
+    if held is None:
+        return {"found": False, "grade": None, "digest": None, "label": None}
+    try:
+        entry = json.loads(held["text"]) if isinstance(held.get("text"), str) else held
+    except (ValueError, AttributeError):
+        return {"found": False, "grade": None, "digest": None, "label": None}
+    identifiers = entry.get("identifiers") or {}
+    label = next((identifiers[k] for k in ENTRY_LABEL_IDENTIFIERS if identifiers.get(k)), None)
+    return {"found": True, "grade": entry.get("grade"),
+            "digest": identifiers.get(ENTRY_DIGEST_IDENTIFIER), "label": label}
+
+
+def _mm_labels(channels: dict[str, Channel], entries: dict | None, source: str) -> dict[str, dict]:
+    """Every registry name that carries a label, with the entry it cites. Decides nothing.
+
+    One label per row and one row per label. A malformed field or a label on two rows is not
+    resolved by picking one: the registry stops here, at load (2.1 rule 2).
+    """
+    found: dict[str, dict] = {}
+    owner: dict[str, str] = {}
+    for channel in channels.values():
+        rows = [(channel.id, channel.raw)] + [(eid, el) for eid, el in channel.elements.items()]
+        for name, row in rows:
+            if MM_LABEL_FIELD not in row:
+                continue
+            field = row[MM_LABEL_FIELD]
+            if (not isinstance(field, dict) or not set(field) <= MM_LABEL_KEYS
+                    or not isinstance(field.get("label"), str) or not field["label"]
+                    or not isinstance(field.get("entry_ref"), str) or not field["entry_ref"]):
+                raise GapError(
+                    f"{source}: {name!r} carries {MM_LABEL_FIELD!r} and it is not an object of "
+                    f"{sorted(MM_LABEL_KEYS)} with a label and an entry_ref")
+            label = field["label"]
+            if label in owner:
+                raise GapError(
+                    f"{source}: the label {label!r} sits on both {owner[label]!r} and {name!r}. "
+                    "A label that means two rows is not resolved by choosing one")
+            owner[label] = name
+            facts = _entry_facts(entries, field["entry_ref"])
+            row_digest = field.get("config_sha256")
+            if row_digest is not None and not (isinstance(row_digest, str) and _SHA256.match(row_digest)):
+                raise GapError(f"{source}: {name!r} carries a config_sha256 that is not 64 lowercase hex")
+            if row_digest is not None and facts["digest"] is not None and row_digest != facts["digest"]:
+                raise GapError(
+                    f"{source}: {name!r} carries config_sha256 {row_digest} and its entry "
+                    f"{field['entry_ref']!r} carries {facts['digest']}. The row's digest is a copy "
+                    "of the entry's, and two that differ are not resolved by choosing one")
+            found[name] = {"name": name, "label": label, "entry_ref": field["entry_ref"],
+                           "entry_found": facts["found"], "grade": facts["grade"],
+                           "config_sha256": facts["digest"]}
+    return found
+
+
+def _read_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict, dict | None]:
     source = None
     if path is not None:
         source = path
@@ -236,6 +307,7 @@ def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, di
         )
     data = json.loads(source.read_text())
     rows, provenance = _rows_and_provenance(data, source)
+    entries = data.get("entries") if isinstance(data.get("entries"), dict) else None
 
     channels: dict[str, Channel] = {}
     for row in rows:
@@ -250,7 +322,18 @@ def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, di
             elements=elements,
             raw=row,
         )
-    return channels, str(source.relative_to(REPO)), provenance
+    # Written with forward slashes, the way plan_path is, on every platform. A registry outside this
+    # tree (a test's) is written as it is.
+    try:
+        written = source.resolve().relative_to(REPO.resolve()).as_posix()
+    except ValueError:
+        written = source.as_posix()
+    return channels, written, provenance, entries
+
+
+def load_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict]:
+    channels, written, provenance, _entries = _read_registry(path)
+    return channels, written, provenance
 
 
 # --------------------------------------------------------------------------- #
@@ -290,12 +373,6 @@ class Command:
 #: against it at the moment of the move yet.
 OPERATION_EXEMPT_DEVICE = "piezo_stage"
 OPERATION_EXEMPT_AXES = ("x", "y")
-
-#: The two cameras, by registry channel and by the device name the console and the run log use
-#: (run_interface.schema.json `tap_cameras`). The frame tap keys each camera's latest frame by the
-#: device name of the CHANNEL a call served, never by a name read from a frame's metadata. The
-#: registry carries no device names, so the mapping is declared here, as LIVE_VIEW_ROUTES is.
-CAMERA_DEVICES = {"camera_red": "Kinetix_red", "camera_blue": "Kinetix_blue"}
 
 #: Card 040 item 3 and plan.md 4.6.6 rule 5: the two channels with no read-back
 #: that the PERSON named as exceptions, routed to their wrappers with
@@ -770,16 +847,21 @@ class _FrameTap(threading.Thread):
             head["camera"] = asked
         return json.dumps(head).encode() + b"\n"
 
+    def _unlabelled(self) -> str:
+        """What was not tapped for want of a label, said in the reply that has no frame (card 091)."""
+        why = list(self._o.tap_unlabelled.values())
+        return "; " + "; ".join(why) if why else ""
+
     def _reply(self, asked: str | None) -> bytes:
         camera = asked if asked is not None else (self._cameras[0] if self._cameras else None)
         if camera is None:
             return self._no_frame(asked, "no frame: this run takes no camera, so nothing is "
-                                  "acquired in it, and the tap never acquires")
+                                  "acquired in it, and the tap never acquires" + self._unlabelled())
         with self._lock:
             latest = self._latest.get(camera)
         if latest is None:
             return self._no_frame(asked, "no frame yet: nothing has been "
-                                  "acquired in this run, and the tap never acquires")
+                                  "acquired in this run, and the tap never acquires" + self._unlabelled())
         image, metadata, t_mono = latest
         if hasattr(image, "tobytes"):
             body = image.tobytes()
@@ -818,7 +900,7 @@ class _FrameTap(threading.Thread):
             why = f"{asked} is not a camera this run takes (it takes: {taken}); the tap never acquires"
             self._o.record(event="frame_tap_refused", reason=why, camera=asked, bytes=len(raw))
             return self._no_frame(asked, f"this run does not take {asked}: the tap answers "
-                                  f"for {taken} and never acquires")
+                                  f"for {taken} and never acquires" + self._unlabelled())
         return self._reply(asked)
 
     def _serve(self, conn) -> None:
@@ -937,8 +1019,17 @@ class _WatcherSampler(threading.Thread):
 
 class Orchestrator:
     def __init__(self, registry_path: Path | None = None, backend: str = "mock") -> None:
-        self.channels, self.registry_source, self.registry_provenance = load_registry(registry_path)
+        self.channels, self.registry_source, self.registry_provenance, entries = _read_registry(registry_path)
         self.names = _name_index(self.channels)
+        #: Each registry name's Micro-Manager label with the entry it cites (card 091). Read from the
+        #: registry file this run loaded, and nowhere else; a name not in it has no label.
+        self.mm_labels = _mm_labels(self.channels, entries, self.registry_source)
+        #: The sha256 of the APPROVED ORIGINAL configuration this run loaded (card 069's gate), which a
+        #: label's entry has to name for the label to command anything. None until one is loaded. On
+        #: the instrument the operator sets it; on mock only a test does, by hand.
+        self.loaded_config_sha256: str | None = None
+        #: Cameras the frame tap could not serve for want of a label, with why (card 091).
+        self.tap_unlabelled: dict[str, str] = {}
         self.backend = backend
         self.clock = Clock.start()
         self.log: list[dict] = []
@@ -1102,6 +1193,47 @@ class Orchestrator:
         tap = getattr(self, "_tap", None)
         return None if tap is None else tap.address()
 
+    def mm_label(self, name: str) -> dict | None:
+        """A registry name's Micro-Manager label with its entry's reference, grade and digest, or None.
+
+        THE ONE LOOKUP. It reads what the registry file carried and nothing else, and it decides
+        nothing: which device a name is, never whether it may move or whether this system may use
+        the label. The check asks that.
+        """
+        return self.mm_labels.get(name)
+
+    def camera_label(self, channel_id: str) -> str | None:
+        """The device name the tap keys a camera channel's frames by: its label, or None and why.
+
+        The call's own channel is what is looked up, never a name read from a frame's metadata. A
+        channel with no label taps nothing, and the run's log and the tap's reply name the missing
+        label.
+        """
+        found = self.mm_label(channel_id)
+        if found is not None:
+            return found["label"]
+        if channel_id not in self.tap_unlabelled:
+            why = (f"{channel_id!r} has no Micro-Manager label in the registry "
+                   f"({self.registry_source}), so its frames are not tapped")
+            self.tap_unlabelled[channel_id] = why
+            self.record(event="frame_tap_unlabelled", channel=channel_id, reason=why)
+        return None
+
+    def set_config_digest_by_hand(self, sha256: str | None) -> None:
+        """Mock only: stand for the approved original configuration this run would have loaded.
+
+        On mock no file is loaded, so a test names the digest the mock stands for, the way it gives a
+        selector its position. It is not a command, it is not reachable from a plan or the console,
+        and on the instrument the only digest is the one the operator read from the approved file.
+        """
+        if self.backend != "mock":
+            raise InterlockError(
+                "refusing to set the loaded configuration's digest by hand: this is not the mock "
+                "backend, and nothing here may stand for a configuration that was not loaded")
+        self.loaded_config_sha256 = sha256
+        self.record(event="config_digest_set_by_hand", loaded_config_sha256=sha256,
+                    note="set by a test for the mock; no configuration file was loaded")
+
     def _tap_frame(self, image, metadata, camera: str | None = None) -> None:
         tap = getattr(self, "_tap", None)
         if tap is not None:
@@ -1177,7 +1309,7 @@ class Orchestrator:
         the run's data. The tap adds no camera call: this is the run's
         acquisition, and the tee is the only thing added to it.
         """
-        camera = CAMERA_DEVICES.get(channel_id)         # the call's own camera, never the metadata's
+        camera = self.camera_label(channel_id)          # the call's own camera, never the metadata's
 
         def tee(i, image, metadata):
             sink(i, image, metadata)
@@ -1193,7 +1325,7 @@ class Orchestrator:
         module = self.module_for(channel_id)
         snap_for = getattr(module, "snap_for", None)
         image, metadata = snap_for(channel_id) if snap_for is not None else module.snap()
-        self._tap_frame(image, metadata, CAMERA_DEVICES.get(channel_id))
+        self._tap_frame(image, metadata, self.camera_label(channel_id))
         return image, metadata
 
     #: Frames the mock takes for an acquisition that is a series. Synthetic: no plan's frame count.
@@ -1378,31 +1510,85 @@ class Orchestrator:
         """
         mm = self._device_module("micromanager", needed_by="the software-motion check")
         refused = []
+        resolved: dict[str, dict] = {}
         for command in commands:
-            reached = [command.channel]
-            if command.element and command.element != command.channel:
-                reached.append(command.element)
             settings = (command.params or {}).get("settings") or {}
             why = mm.refusal(None, None, command.action)
             if why:
                 refused.append(f"{command.from_field}: {why}")
-            for name in reached:
-                why = mm.refusal(name, None, "setProperty")
+            for name in self._names_reached(command):
+                why = self._motion_refusal(name, None, None, mm, resolved, command.from_field)
                 if why:
                     refused.append(f"{command.from_field}: {why}")
             for device, props in settings.items():
                 for prop, value in (props or {}).items():
-                    why = mm.refusal(str(device), str(prop), "setProperty", value)
+                    why = self._motion_refusal(str(device), str(prop), value, mm, resolved,
+                                               command.from_field)
                     if why:
                         refused.append(f"{command.from_field}: settings {device}.{prop}: {why}")
+        facts = {"resolved": list(resolved.values()),
+                 "loaded_config_sha256": self.loaded_config_sha256}
         if refused:
             self.record(event="software_motion_refused", commands=len(commands),
-                        refusals=refused)
+                        refusals=refused, **facts)
             raise InterlockError(
                 f"refusing the whole plan before any command goes out: {len(refused)} "
                 "refusal(s). " + " | ".join(refused))
         self.record(event="software_motion_checked", commands=len(commands),
-                    allowed=sorted(mm.SOFTWARE_MAY_COMMAND))
+                    allowed=sorted(mm.SOFTWARE_MAY_COMMAND), **facts)
+
+    def _names_reached(self, command: Command) -> list[str]:
+        """The names one command reaches: its element when one is named, else its channel.
+
+        A registry channel with an element named is the container of that element and the element is
+        the device, so the element is the name that is resolved; a channel the registry does not hold
+        is a name written as it is and is asked as written beside the element.
+        """
+        element = command.element
+        if element and element != command.channel:
+            return ([] if command.channel in self.names else [command.channel]) + [element]
+        return [command.channel]
+
+    def _motion_refusal(self, name: str, prop: str | None, value, mm, resolved: dict,
+                        from_field: str) -> str | None:
+        """Why this name may not be commanded, or None. The policy is micromanager.refusal's and this
+        decides only whether the name is a label this system may use.
+
+        A name that is not a registry name, or is already a label the allow-list holds, is asked as
+        written, exactly as before: a plan that writes `ZDrive` fails as a plan commanding the focus
+        drive. A registry name is a name and never a label, so it is asked through the label the
+        registry gives it, and a label is used only when its entry is E1 and names the configuration
+        this run loaded (plan.md 15.1 item 9).
+        """
+        if name in mm.SOFTWARE_MAY_COMMAND or name not in self.names:
+            return mm.refusal(name, prop, "setProperty", value)
+        found = self.mm_label(name)
+        if found is None:
+            return f"{name!r} has no Micro-Manager label in the registry ({self.registry_source})"
+        label, ref = found["label"], found["entry_ref"]
+        resolved.setdefault(name, {**found, "loaded_config_sha256": self.loaded_config_sha256,
+                                   "from": from_field})
+        why = mm.refusal(label, prop, "setProperty", value)
+        if why:
+            return f"{name!r} is the label {label!r}: {why}"
+        head = f"{name!r} reaches the label {label!r} through entry {ref!r}"
+        if found["grade"] != "E1":
+            grade = found["grade"] or f"unknown (the registry file carries no entry {ref!r})"
+            return (f"{head}, graded {grade}: only a label this system read here (E1) commands a "
+                    "device")
+        digest, loaded = found["config_sha256"], self.loaded_config_sha256
+        if digest is None:
+            return (f"{head}, which names its configuration only in prose: it carries no "
+                    f"{ENTRY_DIGEST_IDENTIFIER}, so the label cannot be tied to the configuration "
+                    "this run loaded")
+        if loaded is None:
+            return (f"{head}, read under configuration sha256 {digest}; no approved configuration "
+                    "is loaded in this run to compare it with")
+        if digest != loaded:
+            return (f"{head}, read under configuration sha256 {digest}; this run loaded the "
+                    f"approved original with sha256 {loaded}. A label read under another "
+                    "configuration commands nothing")
+        return None
 
     def shutters(self) -> list[tuple[str, str]]:
         """Every shutter the registry knows, as (channel, element).
@@ -2198,7 +2384,8 @@ class Orchestrator:
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,
                                         **detail, **{"from": command.from_field})
-                            if command.acquires and self.backend == "mock" and cid in CAMERA_DEVICES:
+                            if (command.acquires and self.backend == "mock"
+                                    and cid in getattr(self.module_for(cid), "CAMERAS", ())):
                                 self._mock_acquire(cid, command)
                             if from_operation_move(command) and verification != "readback":
                                 # Card 040 item 2: an operation move whose read-back
