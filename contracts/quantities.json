@@ -511,6 +511,22 @@
       "unit": "count",
       "kind": "physical",
       "note": "Registered on 2026-10-12 by manager-simulation-20261007-1, for librarian task 049 (39058bd) and plan.md 11-26. The microscope's statistics axis needs the bead count one bleach requires as a store entry, and today that number exists only in prose in sim-20260930-401's result card and in that question's stage2_runs.json (`beads_where_spread_is_a_tie`, about 300). DEFINED AS THE EFFECTIVE COUNT ON PURPOSE. 401 counted beads through the whole chamber at full contrast, because its model bleaches a sharp column. The 2026-10-08 finding `correction_to_sim_20260930_401_bead_count` (fde42cd) showed that at 40x to 100x a widefield bleach is a slab with 0.015 to 0.46 of a column's contrast. So the plain count a design needs is this value divided by the contrast squared: about 100x more beads at contrast 0.1. A name that meant the plain count would carry 401's number into a high-NA design two decades short. A value carries the tie factor it was read against, the spread criterion and the configuration it holds at. It is window-dependent through the recovery record and the frame and bleach fractions, so it is not one number across configurations."
+    },
+    {
+      "id": "exposure_time",
+      "definition": "The time over which one camera frame integrates light. Set per frame, so a value is a claim about one camera in one readout mode.",
+      "unit": "s",
+      "kind": "physical",
+      "registered": "2026-10-27",
+      "note": "Registered for plan.md 15.1 item 10, which keys a binding on a registered quantity name: mic-20260920-001's acquisition carries it in seconds while Micro-Manager's camera takes milliseconds. The canonical unit stays the plan's. The factor to the property's unit comes from units.json, and which property it sets is the binding's, in the store, not this file's. Five simulation cards from September and early October ask for `camera_exposure_time`; check 68 holds them LOST and not FAIL because they predate this entry's `registered` date."
+    },
+    {
+      "id": "frame_count",
+      "definition": "The number of frames one acquisition is asked to return.",
+      "unit": "1",
+      "kind": "physical",
+      "registered": "2026-10-27",
+      "note": "Registered with exposure_time, for the same item. It is a plan parameter and not a device property: plan.md 15.1 item 10 makes it an argument of acquire_series, verified against the frames the sequence returned, so no binding ever names it. Registered so the name means one thing wherever a plan uses it."
     }
   ],
   "not_yet_registered": {

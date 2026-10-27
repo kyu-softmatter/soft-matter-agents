@@ -6420,14 +6420,27 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
     needs is the subject matching, which is check 44's ground. This check is
     worth having because a name nothing can refuse is a permanent hole, not
     because it closes that one.
+
+    JUDGED AGAINST THE REGISTRY AS IT STOOD WHEN THE CARD WAS WRITTEN
+    (2026-10-26, manager-simulation's proposal). Registering `exposure_time`
+    turned five simulation cards red whose gaps asked for
+    `camera_exposure_time` in September, when the name was unregistered and
+    11-1 permitted it. Two of them are run records, which no revision scheme
+    reaches, so the superseded branch below could never clear them. An entry
+    may carry `registered`, a date; a card whose own `created_at` is earlier
+    is LOST, not FAIL. An entry without the date counts as registered before
+    every card, so this changes nothing that was judged before it. The date
+    compared is the card's own claim: a card back-dated to escape is a P1
+    matter this check does not see.
     """
     qreg = CONTRACTS / "quantities.json"
     if not qreg.exists():
         return [Finding(68, PENDING, "contracts/quantities.json is not in this tree")]
     try:
         doc = json.loads(qreg.read_text())
-        registered = {q["id"] for q in doc.get("quantities", [])
-                      if isinstance(q, dict) and q.get("id")}
+        registered_on = {q["id"]: q.get("registered") for q in doc.get("quantities", [])
+                         if isinstance(q, dict) and q.get("id")}
+        registered = set(registered_on)
     except (json.JSONDecodeError, AttributeError, TypeError):
         return [Finding(68, NA, "contracts/quantities.json does not parse; check 1 owns that")]
     if not registered:
@@ -6460,7 +6473,15 @@ def check_68_a_gap_names_a_quantity_not_a_subject(b: Bundle) -> list[Finding]:
                     f"a name states the quantity and never its subject or its locus, because a "
                     f"name that asserts its own subject is a subject nothing can refuse -- check "
                     f"44 refuses the `subject` field and cannot see into a string")
-            if _is_superseded(c.rel):
+            since, written = registered_on.get(quantity), c.data.get("created_at")
+            if (isinstance(since, str) and isinstance(written, str)
+                    and written[:10] < since[:10]):
+                out.append(Finding(68, LOST, core + f". WRITTEN BEFORE THE NAME WAS REGISTERED: "
+                    f"this card's created_at is {written[:10]} and {quantity!r} was registered on "
+                    f"{since[:10]}, when asking for an unregistered name was permitted (11-1). "
+                    "The gap's `searched` line quotes the call actually made, so the record "
+                    "stays as it is; a card written after that date is held to the name", c.rel))
+            elif _is_superseded(c.rel):
                 out.append(Finding(68, LOST, core + ". SUPERSEDED, so no work closes this. A "
                     "later revision is what the next stage reads -- for an axis card, the "
                     "highest prefix set in this folder; for a plan card, the unprefixed path -- "
