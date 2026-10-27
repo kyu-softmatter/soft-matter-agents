@@ -890,10 +890,90 @@ def tool_stale_index(repo: Path) -> tuple:
     named = (f"STALE shared index entry: .git/index holds {stale_rel}" in said
              and f"{staged_rel} is staged in the shared index with content no commit has" in said
              and f"STALE shared index entry: .git/index holds {staged_rel}" not in said)
-    return (code == 0 and clean and kept and named,
+    # And the record says which entries moved, so the next seat reads it off
+    # disk instead of off a watched output (dc4a7843a, 2026-10-26).
+    si = last_record(repo).get("shared_index", {})
+    recorded = (si.get("moved") == [CARD] and sorted(si.get("kept", [])) == sorted([staged_rel, stale_rel])
+                and si.get("not_moved") == [] and si.get("resets") == [0] and si.get("already") == 0)
+    return (code == 0 and clean and kept and named and recorded,
             f"the committed card's shared entry moved to the new commit; the card another seat had staged "
-            f"was left as staged and called staging; the stale one was named stale with its fix "
-            f"(exit {code}, clean={clean}, kept={kept}, named={named})")
+            f"was left as staged and called staging; the stale one was named stale with its fix; the record "
+            f"names each (exit {code}, clean={clean}, kept={kept}, named={named}, recorded={si or None})")
+
+
+REFERENCE_TRANSACTION = r"""#!/bin/sh
+# The fixtures' ref hook: on request, another git process takes
+# .git/index.lock the moment a ref update lands -- inside the tool's window
+# between moving HEAD and moving the shared index to it.
+G=$(git rev-parse --git-dir)
+if [ "$1" = committed ] && [ -f "$G/fixture-lock-after-commit" ]; then
+    rm -f "$G/fixture-lock-after-commit"
+    : > "$G/index.lock"
+fi
+cat > /dev/null
+exit 0
+"""
+
+
+def _lock_after_commit(repo: Path, *lines: str) -> Path:
+    """My change saved as a patch, and the index lock taken as soon as it lands."""
+    hook = repo / ".fixture-hooks" / "reference-transaction"
+    if not hook.exists():
+        hook.write_bytes(REFERENCE_TRANSACTION.encode("utf-8"))
+        os.chmod(hook, 0o755)
+    write(repo, CARD, card(*lines))
+    patch = repo / ".git" / "fixture-mine.patch"
+    tool(repo, "--save-patch", str(patch), "--", CARD)
+    (repo / ".git" / "fixture-lock-after-commit").write_bytes(b"")
+    return patch
+
+
+def naive_refresh_window(repo: Path) -> tuple:
+    """2026-10-26, dc4a7843a: a seat watched the tool's output, stopped at
+    "read back", and read `git diff --cached` while the tool was still moving
+    the shared index to the commit. It saw the inverse of the commit, reset
+    by hand, and nothing on disk could say afterwards whether the tool had
+    moved anything."""
+    patch = _lock_after_commit(repo, "MINE")
+    run = Running(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    seen = run.wait_for_line("read back")
+    inverse = out(repo, "diff", "--cached", "--name-only") if seen else ""
+    (repo / ".git" / "index.lock").unlink(missing_ok=True)
+    run.finish()
+    return seen and inverse == CARD, f"at \"read back\", git diff --cached lists {inverse!r}"
+
+
+def tool_refresh_window(repo: Path) -> tuple:
+    lock = repo / ".git" / "index.lock"
+    # The lock released once the tool is seen waiting for it.
+    patch = _lock_after_commit(repo, "MINE")
+    run = Running(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch))
+    waited = run.wait_for_line("waiting for .git/index.lock")
+    lock.unlink(missing_ok=True)
+    code, said = run.finish()
+    si = last_record(repo).get("shared_index", {})
+    first = (waited and code == 0 and "now matches" in said and si.get("moved") == [CARD]
+             and si.get("not_moved") == [] and si.get("resets") == [0]
+             and out(repo, "diff", "--cached", "--name-only") == "")
+    if not first:
+        return False, f"a lock released in the window: exit {code}, record {si or None}: {said[-400:]}"
+    # And a lock nobody releases: the commit is made and says so, and names the
+    # entry it could not move with the command that moves it.
+    patch = _lock_after_commit(repo, "MINE", "AGAIN")
+    code, said = tool(repo, "--seat", FIX, "-F", message(repo), "--patch", str(patch), "--lock-wait", "1")
+    rec = last_record(repo)
+    si = rec.get("shared_index", {})
+    inverse = out(repo, "diff", "--cached", "--name-only")
+    lock.unlink(missing_ok=True)
+    second = (code == 0 and rec.get("outcome") == "committed" and "nothing was committed" not in said
+              and "does not match it" in said and "git reset -q -- <path>" in said
+              and "AGAIN" in (blob(repo, "HEAD", CARD) or "") and inverse == CARD
+              and si.get("not_moved") == [CARD] and si.get("resets") == ["index.lock held"])
+    if not second:
+        return False, f"a lock never released in the window: exit {code}, record {rec or None}: {said[-400:]}"
+    return True, ("a lock released in the window: waited, moved the entry, and the record says so; one never "
+                  "released: the commit is reported made, and the entry it could not move is named in the "
+                  "output and the record")
 
 
 AROUND = "not made through contracts/tools/seat_commit.py"
@@ -1012,6 +1092,8 @@ FIXTURES = [
     ("a discarded gate run's lines read as a refusal", "discarded", naive_discarded_gate_lines,
      tool_discarded_gate_lines),
     ("the shared index left stale by a private-index commit", "index", naive_stale_index, tool_stale_index),
+    ("the shared index read before the tool has moved it", "refresh", naive_refresh_window,
+     tool_refresh_window),
     ("another push reaching the remote first", "race", naive_push_race, tool_push_race),
     # HP-009 (2026-10-18): the yes to publishing others' commits names them.
     ("the yes to others' commits given before the list", "yes", naive_yes_before_the_list,

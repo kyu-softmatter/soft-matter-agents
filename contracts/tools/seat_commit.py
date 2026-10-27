@@ -51,6 +51,9 @@ What it does, by the numbers of the specification:
    unfiltered, so a `fatal:` is seen as well as a FAIL. Afterwards the shared
    index entry of each committed path is moved to the new commit, but only
    where it still equals the old HEAD's -- where nobody had staged anything.
+   The index and both trees are read once each, not once per path, and a
+   lock still held then leaves the commit made and names the entries it
+   could not move; it never says that nothing was committed.
 7. `--push` fetches first, refuses when the branch is behind (a merge is
    needed, and this tool does not merge), and when the push would carry
    other seats' commits it lists them and needs `--push-includes-others`
@@ -62,7 +65,10 @@ What it does, by the numbers of the specification:
    because another push already published the same commits says they are
    public, and exits 0.
 8. Every use is appended to `.git/sma-seat-commit.jsonl`, outside every tree:
-   seat, mode, paths, lock wait, retries, outcome.
+   seat, mode, paths, lock wait, retries, outcome, and for a commit what the
+   shared index refresh did (`shared_index`: how many entries already
+   matched, which were moved, kept as someone's staging or not moved, and
+   each reset's exit code).
 9. A hold is a record, not a sentence in a window (HP-011). `--hold <commit>
    --why <text>` and `--release <commit>` append to `.git/sma-seat-holds.jsonl`,
    beside that record, and only the seat that committed a commit may hold or
@@ -218,6 +224,28 @@ class Git:
                 mode, _kind, sha = text(meta).split()
                 return (mode, sha)
         return ("", "")
+
+    def entries(self, ref_or_index: str, paths: list[str]) -> dict:
+        """`entry` for many paths, from one read of the whole index or tree.
+
+        One git call costs about a quarter of a second on the Office computer,
+        so reading three entries per path held the shared index stale for
+        29.4 s after a 37-path commit (dc4a7843a, 2026-10-26). The paths are
+        not passed as pathspecs, so a long list never meets a command-line limit.
+        """
+        if ref_or_index == ":index":
+            raw, in_tree = self.run("ls-files", "-s", "-z").stdout, False
+        else:
+            raw, in_tree = self.run("ls-tree", "-r", "-z", "--full-tree", ref_or_index).stdout, True
+        want, found = set(paths), {}
+        for row in raw.split(b"\0"):
+            meta, tab, name = row.partition(b"\t")
+            p = text(name)
+            if not tab or p not in want or p in found:  # the first stage of a conflicted path, as `entry`
+                continue
+            f = text(meta).split()
+            found[p] = (f[0], f[2]) if in_tree else (f[0], f[1])
+        return {p: found.get(p, ("", "")) for p in paths}
 
 
 def base_env() -> dict:
@@ -822,14 +850,21 @@ def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit:
     (2026-10-15). An entry that still equals the old HEAD's is stale and is
     moved. One that equals the new commit's needs nothing. Any other entry is
     somebody's staging, and is left exactly as it is.
+
+    The commit has landed by now, so nothing here may say it did not: a lock
+    still held, or a reset that fails, leaves the commit made and names the
+    paths whose entries do not match it. What was done goes into the record
+    as `shared_index` -- before it, a seat could not tell from disk whether
+    this ran and moved nothing or never ran (dc4a7843a, 2026-10-26).
     """
+    shared, old, now_ = git.entries(":index", paths), git.entries(base, paths), git.entries(new, paths)
     stale, kept = [], []
+    done = {"already": 0, "moved": [], "kept": kept, "not_moved": [], "resets": []}
+    rec.row["shared_index"] = done
     for p in paths:
-        shared = git.entry(":index", p)
-        old, now_ = git.entry(base, p), git.entry(new, p)
-        if shared == now_:
-            continue
-        if shared == old:
+        if shared[p] == now_[p]:
+            done["already"] += 1
+        elif shared[p] == old[p]:
             stale.append(p)
         elif git.intent_to_add(p):
             # `git add -N` marks a file and stages none of it, so it is no
@@ -843,17 +878,35 @@ def reset_shared_entries(git: Git, base: str, new: str, paths: list[str], limit:
             kept.append(p)
     for p in kept:
         say_shared(git, new, p, after=True)
-    if not stale:
-        return
-    for _ in range(3):
-        wait_for(git.path_in_gitdir("index.lock"), limit, ".git/index.lock", rec)
+    why = ""
+    for _ in range(3 if stale else 0):
+        try:
+            wait_for(git.path_in_gitdir("index.lock"), limit, ".git/index.lock", rec)
+        except Refused:
+            # wait_for's own refusal says nothing was committed, which stopped
+            # being true at update-ref.
+            done["resets"].append("index.lock held")
+            why = f".git/index.lock was still held after {limit:.0f} s"
+            break
         r = git.run("--literal-pathspecs", "reset", "-q", new, "--", *stale, check=False)
+        done["resets"].append(r.returncode)
         if r.returncode == 0:
-            say(f"seat_commit: the shared index now matches {new[:9]} for {len(stale)} committed paths")
-            return
+            break
+        why = f"git reset exited {r.returncode}: {text(r.stderr).strip()[-300:]}"
         time.sleep(0.5)
-    say("seat_commit: could not update the shared index for " + ", ".join(stale)
-        + f"; `git diff --cached` will show their inverse until `git reset -q -- <path>` is run")
+    after = git.entries(":index", stale) if stale else {}
+    done["moved"] = [p for p in stale if after[p] == now_[p]]
+    done["not_moved"] = [p for p in stale if after[p] != now_[p]]
+    matched = (f"{len(done['moved']) + done['already']} of {len(paths)} committed paths "
+               f"({len(done['moved'])} moved, {done['already']} already there)")
+    if not done["not_moved"]:
+        say(f"seat_commit: the shared index now matches {new[:9]} for {matched}"
+            + (f"; the other {len(kept)} are left as they are, named above" if kept else ""))
+        return
+    done["error"] = (why or "the reset exited 0 and the entries still differ")[:500]
+    say(f"seat_commit: the commit is made, and the shared index does not match it for "
+        f"{', '.join(done['not_moved'])} -- {done['error']}. It matches for {matched}. `git diff --cached` "
+        "shows the inverse of each until `git reset -q -- <path>` is run for it, if nobody has staged it since")
 
 
 def stale_since(git: Git, ref: str, path: str, shared: tuple) -> str | None:
