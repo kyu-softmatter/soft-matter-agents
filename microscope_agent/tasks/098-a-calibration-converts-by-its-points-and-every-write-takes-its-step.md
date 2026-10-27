@@ -47,6 +47,11 @@ A binding (`mm_bindings` item in the snapshot's devices table) carries
 step as a number named `property_step`, and the librarian's check compares
 the two. The runtime reads the binding's copy.
 
+A binding may also carry `line`, a string: the light line's name exactly as
+the device reports it. A light engine exposes one intensity property per line
+(`GREEN_Intensity`, `NIR_Intensity`, ...), so a row holds at most one binding
+per (quantity, line) and still one per property.
+
 ## What to build
 
 In `microscope_runtime/src/`, in `convert_for_binding` and the write path it
@@ -80,7 +85,17 @@ feeds:
    entry's id.
 4. **The grade is unchanged from card 095**: the worse of the number's and
    E2. Now that a calibration can pass, test it with a number at E1 and at E3.
-5. **Nothing else reads the form.** No fit, no reverse lookup, no range
+5. **Pick the binding by its line.**
+   - Where the bindings for a quantity on a row carry `line`, use the one
+     whose `line` equals the line the plan drives, compared exactly.
+   - If the plan names no line, or names one that no binding carries, refuse,
+     naming the row, the quantity and the lines it has. Do not guess, and do
+     not fall back to a binding without `line`.
+   - Where no binding for that quantity carries `line`, nothing changes.
+   - If no plan field names a line today, stop and report it to this seat
+     before building this part. Where a plan states the line is the plan
+     schema's question, and the schema is mine.
+6. **Nothing else reads the form.** No fit, no reverse lookup, no range
    copied from the form. The range is `validity`'s, which card 095 already
    checks.
 
@@ -107,7 +122,12 @@ feeds:
 5. A binding with no `step`, or a `step` in another unit, refuses the write
    on each route.
 6. The written value's grade with the plan number at E1 is E2; at E3, E3.
-7. The existing suite is unchanged, apart from card 095's tests that asserted
+7. A row with two intensity bindings, `line` "GREEN" and "NIR":
+   - a plan driving GREEN writes GREEN's property;
+   - a plan naming no line refuses, naming both lines;
+   - a plan driving "RED" refuses;
+   - "green" refuses, because the comparison is exact.
+8. The existing suite is unchanged, apart from card 095's tests that asserted
    "carries no conversion form" or wrote an unrounded value. Name each one you
    change and why.
 
