@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "console_inbox_item.schema.json",
   "title": "console inbox item — what the console's server writes into an agent's console_inbox/ (plan.md 7.1.1)",
-  "description": "The common envelope of plan.md 7.1.1 rule 4, and the question item for microscope_agent/ and simulation_agent/. The librarian's three store requests are console_store_request.schema.json (manager-librarian's), which $refs #/$defs/envelope. The inbox is approved (f59f7b45) and not open: no console_inbox/ folder exists until both runners refuse, by code, an unapproved run from another login's question. An item is append-only, never rewritten or removed. It carries no plan, approval, safety value or command; every concrete schema closes with unevaluatedProperties false, and the forbidden-keys check reads every depth besides.",
+  "description": "The common envelope of plan.md 7.1.1 rule 4, and the question item for microscope_agent/ and simulation_agent/. The librarian's items -- the three store requests and a question to the librarian -- are console_store_request.schema.json (manager-librarian's), which $refs #/$defs/envelope. The inbox was approved at f59f7b45 and opened on the person's word at 4f867773, once both runners refused, by code, an unapproved run from another login's question; the three console_inbox/ folders exist from 0c3aa990. An item is append-only, never rewritten or removed. It carries no plan, approval, safety value or command; every concrete schema closes with unevaluatedProperties false, and the forbidden-keys check reads every depth besides.",
   "$defs": {
     "login": {
       "type": "string",
