@@ -175,10 +175,11 @@ class T1OneEventPerDevice(_Base):
             self.assertTrue(event["loaded"])
             self.assertEqual(event["library"], {"value": library, "read_by": f"getDeviceLibrary({label!r})"})
             self.assertEqual(event["device_name"], {"value": name, "read_by": f"getDeviceName({label!r})"})
-            self.assertEqual({p["property"]: p["value"] for p in event["properties"]}, read_only)
+            self.assertEqual({p["property"]: p["value"] for p in event["properties"] if p["read_only"]["value"]},
+                             read_only)
             for p in event["properties"]:
                 self.assertEqual(p["read_by"], f"getProperty({label!r}, {p['property']!r})")
-            self.assertEqual(event["writable_not_read"], writable)
+            self.assertEqual([p["property"] for p in event["properties"] if not p["read_only"]["value"]], writable)
 
     def test_the_reports_are_in_the_streamed_log_too(self):
         self.read()
@@ -207,7 +208,7 @@ class T2NothingIsWritten(_Base):
     def test_the_run_does_not_even_reach_for_one(self):
         self.read()
         self.assertTrue(self.reached)
-        self.assertEqual([n for n in self.reached if n in WRITES or not n.startswith(("get", "is"))], [])
+        self.assertEqual([n for n in self.reached if n in WRITES or not n.startswith(("get", "is", "has"))], [])
 
     def test_only_the_configuration_load_touches_the_stand(self):
         self.read()

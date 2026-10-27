@@ -60,5 +60,71 @@ class T1TheCommandLineRefusesWithExitTwo(unittest.TestCase):
         self.assertEqual(left, [])
 
 
+class T2TheExposureStepOption(unittest.TestCase):
+    """Card 096: the option that asks for the one writing part, three values or nothing."""
+
+    run_cli = T1TheCommandLineRefusesWithExitTwo.run_cli
+
+    def test_the_step_is_off_unless_named(self):
+        seen = {}
+
+        def fake(run_id, **kw):
+            seen.update(kw)
+            raise cli.op.Refusal("stopped here")
+
+        real = cli.op.run_device_reading
+        cli.op.run_device_reading = fake
+        try:
+            self.run_cli("--run-id", "run-test-096-cli", "--mm-config", "x.cfg")
+        finally:
+            cli.op.run_device_reading = real
+        self.assertIsNone(seen["exposure_step"])
+
+    def test_three_values_are_passed_through_as_numbers(self):
+        seen = {}
+
+        def fake(run_id, **kw):
+            seen.update(kw)
+            raise cli.op.Refusal("stopped here")
+
+        real = cli.op.run_device_reading
+        cli.op.run_device_reading = fake
+        try:
+            self.run_cli("--run-id", "run-test-096-cli", "--mm-config", "x.cfg", "--exposure-step", "5", "20", "80")
+        finally:
+            cli.op.run_device_reading = real
+        self.assertEqual(list(seen["exposure_step"]), [5.0, 20.0, 80.0])
+
+    def test_two_values_are_refused_by_the_parser_before_anything_runs(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.run_cli("--run-id", "run-test-096-cli", "--mm-config", "x.cfg", "--exposure-step", "5", "20")
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_a_non_positive_value_is_refused_with_exit_two_and_leaves_no_run(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / "runs"
+            code, err = self.run_cli("--run-id", "run-test-096-cli", "--mm-config", str(Path(tmp) / "x.cfg"),
+                                     "--runs-root", str(runs), "--exposure-step", "5", "0", "80")
+            left = list(runs.glob("*")) if runs.exists() else []
+        self.assertEqual(code, 2)
+        self.assertIn("positive", err)
+        self.assertEqual(left, [])
+
+    def test_a_refused_step_exits_nonzero(self):
+        record = {"run_id": "r", "ended": "failed", "approved_commands": {"sha256": "0" * 64},
+                  "events": [{"event": "exposure_step_refused", "why": "Aura (Aura III) reads '1' (on)"}]}
+        real = cli.op.run_device_reading
+        cli.op.run_device_reading = lambda run_id, **kw: record
+        out = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(out):
+                code = cli.main(["--run-id", "r", "--mm-config", "x.cfg", "--exposure-step", "5", "20", "80"])
+        finally:
+            cli.op.run_device_reading = real
+        self.assertEqual(code, 1)
+        self.assertIn("REFUSED", out.getvalue())
+        self.assertIn("Aura", out.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

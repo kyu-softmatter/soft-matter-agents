@@ -2522,11 +2522,45 @@ def _read_once(call: str, read) -> dict:
         return {"unread": f"{type(exc).__name__}: {exc}", "read_by": call}
 
 
-def _device_report(core, label: str, loaded: tuple, config_sha256: str) -> dict:
-    """What one device says of itself, as the `device_report` event: every read-only property, once.
+def _type_name(kind) -> str:
+    """A property type as a word: pymmcore-plus gives an enum, whose name is the word."""
+    return str(getattr(kind, "name", None) or kind)
 
-    Only reads are asked of `core`. A writable property is named and not read, since its value is a
-    setting and not the device's identity. A read that fails is recorded as unread and not repeated.
+
+def _property_record(core, label: str, prop: str) -> dict:
+    """One property as the core reports it (card 096): value, type, read-only flag, limits and allowed values.
+
+    Every field is its own read, made once and carrying the call that gave it. A read that fails is
+    recorded as unread in its own field and the others are still asked. Limits are recorded only
+    where the core says the property has them, and allowed values only where it lists some: an
+    absent field means the core did not report it, never a value of zero or an empty list.
+    """
+    where = f"({label!r}, {prop!r})"
+    record = {"property": prop,
+              **_read_once(f"getProperty{where}", lambda: str(core.getProperty(label, prop)))}
+    record["property_type"] = _read_once(f"getPropertyType{where}",
+                                         lambda: _type_name(core.getPropertyType(label, prop)))
+    record["read_only"] = _read_once(f"isPropertyReadOnly{where}",
+                                     lambda: bool(core.isPropertyReadOnly(label, prop)))
+    record["has_limits"] = _read_once(f"hasPropertyLimits{where}",
+                                      lambda: bool(core.hasPropertyLimits(label, prop)))
+    if record["has_limits"].get("value"):
+        record["lower_limit"] = _read_once(f"getPropertyLowerLimit{where}",
+                                           lambda: float(core.getPropertyLowerLimit(label, prop)))
+        record["upper_limit"] = _read_once(f"getPropertyUpperLimit{where}",
+                                           lambda: float(core.getPropertyUpperLimit(label, prop)))
+    allowed = _read_once(f"getAllowedPropertyValues{where}",
+                         lambda: [str(v) for v in core.getAllowedPropertyValues(label, prop)])
+    if "unread" in allowed or allowed["value"]:
+        record["allowed_values"] = allowed
+    return record
+
+
+def _device_report(core, label: str, loaded: tuple, config_sha256: str) -> dict:
+    """What one device says of itself, as the `device_report` event: every property, read once (card 096).
+
+    Only reads are asked of `core`; a property's value is read whether or not it is writable. A read
+    that fails is recorded as unread and not repeated.
     """
     event: dict = {"event": "device_report", "label": label, "configuration_sha256": config_sha256}
     if label not in loaded:
@@ -2538,28 +2572,197 @@ def _device_report(core, label: str, loaded: tuple, config_sha256: str) -> dict:
     event["device_name"] = _read_once(f"getDeviceName({label!r})", lambda: str(core.getDeviceName(label)))
     names = _read_once(f"getDevicePropertyNames({label!r})",
                        lambda: [str(n) for n in core.getDevicePropertyNames(label)])
-    properties, writable = [], []
+    properties = []
     if "unread" in names:
         event["properties_unread"] = names
     else:
-        for prop in names["value"]:
-            read_only = _read_once(f"isPropertyReadOnly({label!r}, {prop!r})",
-                                   lambda: bool(core.isPropertyReadOnly(label, prop)))
-            if "unread" in read_only:
-                properties.append({"property": prop, **read_only})
-            elif read_only["value"]:
-                properties.append({"property": prop, **_read_once(
-                    f"getProperty({label!r}, {prop!r})", lambda: str(core.getProperty(label, prop)))})
-            else:
-                writable.append(prop)
+        properties = [_property_record(core, label, prop) for prop in names["value"]]
     event["properties"] = properties
-    event["writable_not_read"] = writable
     return event
+
+
+# --------------------------------------------------------------------------- #
+# the exposure step (card 096): the one part of a device reading that writes, and only when asked for
+# --------------------------------------------------------------------------- #
+
+EXPOSURE_STEP_FROM = "run_argument.exposure_step_ms"
+
+
+def _check_exposure_step_values(values) -> tuple:
+    """The three exposures, as given on the command line: three positive finite numbers, in ms, or a refusal."""
+    if isinstance(values, (str, bytes)) or not hasattr(values, "__len__") or len(values) != 3:
+        raise Refusal("the exposure step takes exactly three exposure values in ms, given as run "
+                      f"arguments, and got {values!r}. Nothing is loaded or written")
+    out = []
+    for value in values:
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value <= 0):
+            raise Refusal(f"each exposure of the exposure step is a positive finite number of ms, and "
+                          f"{value!r} is not. Nothing is loaded or written")
+        out.append(float(value))
+    return tuple(out)
+
+
+def _exposure_step_commands(values: tuple, camera: str) -> list:
+    """The writes the step will make, as commands, so the motion check judges them before the first goes out."""
+    out = []
+    for i, value in enumerate(values):
+        source = f"{EXPOSURE_STEP_FROM}[{i}]"
+        out.append(orch.Command(channel=camera, action="set_exposure", from_field=source,
+                                params={"exposure_ms": {"value": value, "unit": "ms", "from": source}}))
+        out.append(orch.Command(channel=camera, action="acquire_frame", from_field=source, acquires=True))
+    restore = "exposure_step.restore: the exposure read before the step"
+    out.append(orch.Command(channel=camera, action="set_exposure", from_field=restore,
+                            params={"exposure_ms": {"value": None, "unit": "ms", "from": restore}}))
+    return out
+
+
+def _exposure_step_state(core, loaded: tuple, camera: str) -> dict:
+    """What the no-light check reads before the first write, and every reason it has to refuse (card 096).
+
+    Each light source the core can read must read off, each shutter closed, AutoShutter off, and the
+    core's camera must be the one the step writes to, with its exposure readable so it can be put
+    back. A source that reads on, a shutter that reads open, or one that was not read is a refusal
+    naming the device. Sources and shutters with no core device are not read, and the caller lists them.
+    """
+    rows = [(row["source"], row["device"], row["property"], str(row["off"]), "on")
+            for row in orch.LIGHT_SOURCES if row.get("device")]
+    for row in orch.SHUTTER_CLOSES:
+        if row.get("device"):
+            device, prop, closed = row["abort_close"]
+            rows.append((row["device"], device, prop, str(closed), "open"))
+    lights, refusals = [], []
+    for source, device, prop, off, word in rows:
+        call = f"getProperty({device!r}, {prop!r})"
+        reading = {"source": source, "device": device, "property": prop, "off_value": off}
+        if device not in loaded:
+            reading.update(unread="not loaded under this configuration", read_by=call)
+            refusals.append({"device": device, "why": f"{device} ({source}) was not read: it is not loaded "
+                                                      "under this configuration, so no light is known to be off"})
+        else:
+            reading.update(_read_once(call, lambda: str(core.getProperty(device, prop))))
+            if "unread" in reading:
+                refusals.append({"device": device, "why": f"{device} ({source}) was not read: "
+                                                          f"{reading['unread']}"})
+            elif reading["value"] != off:
+                refusals.append({"device": device, "why": f"{device} ({source}) reads {reading['value']!r} "
+                                                          f"({word}); {off!r} is off"})
+        lights.append(reading)
+    auto = _read_once("getAutoShutter()", lambda: bool(core.getAutoShutter()))
+    if "unread" in auto:
+        refusals.append({"device": "AutoShutter", "why": f"AutoShutter was not read: {auto['unread']}"})
+    elif auto["value"]:
+        refusals.append({"device": "AutoShutter", "why": "AutoShutter reads on: a snap would open the "
+                                                         "shutter by itself. Card 069 leaves it off"})
+    core_camera = _read_once("getCameraDevice()", lambda: str(core.getCameraDevice()))
+    if "unread" in core_camera:
+        refusals.append({"device": "camera", "why": f"the core's camera was not read: {core_camera['unread']}"})
+    elif core_camera["value"] != camera:
+        refusals.append({"device": core_camera["value"], "why": f"the core's camera is {core_camera['value']!r} "
+                                                                f"and the step writes only to {camera!r}"})
+    exposure = _read_once("getExposure()", lambda: float(core.getExposure()))
+    if "unread" in exposure:
+        refusals.append({"device": "exposure", "why": f"the exposure of {camera} was not read, so it could not "
+                                                      f"be put back: {exposure['unread']}"})
+    return {"lights": lights, "autoshutter": auto, "camera": core_camera, "exposure": exposure,
+            "refusals": refusals}
+
+
+def _exposure_step_unreadable() -> list:
+    """The sources and shutters software cannot read at all, listed so the person sees what this check left out."""
+    rows = [{"source": row["source"], "why": row.get("why")} for row in orch.LIGHT_SOURCES
+            if not row.get("device")]
+    rows += [{"source": row["element"], "why": row.get("why")} for row in orch.SHUTTER_CLOSES
+             if not row.get("device")]
+    return rows
+
+
+def _exposure_step(o, mm, core, loaded: tuple, folder: Path, values: tuple, config_sha256: str,
+                   approval_file: str) -> bool:
+    """Three exposures on the red camera, a frame at each, then the exposure put back (card 096). True if it ran clean.
+
+    Refused before the first write, naming the device, when any light source reads on, any shutter
+    reads open, or one could not be read. Every write is judged by the motion check first, goes
+    through the backend's read-back, and each frame's tags are kept whole beside the frame.
+    """
+    camera = LIVE_VIEW_CAMERA
+    common = {"section": "exposure_step", "configuration_sha256": config_sha256}
+    state = _exposure_step_state(core, loaded, camera)
+    refusals = state["refusals"]
+    o.record(event="exposure_step_started", **common, approval_file=approval_file, camera=camera,
+             exposure_ms_arguments=list(values), lights_read_off=state["lights"],
+             autoshutter=state["autoshutter"], core_camera=state["camera"],
+             exposure_before=state["exposure"], not_readable_by_software=_exposure_step_unreadable())
+    commands = _exposure_step_commands(values, camera)
+    if not refusals:
+        try:
+            o.check_software_motion(commands)
+        except orch.InterlockError as exc:
+            refusals.append({"device": "software motion check", "why": str(exc)})
+    if refusals:
+        o.record(event="exposure_step_refused", **common, nothing_written=True, refusals=refusals,
+                 device=", ".join(r["device"] for r in refusals), why="; ".join(r["why"] for r in refusals))
+        o.record(event="exposure_step_finished", **common, ok=False)
+        return False
+    import numpy as np
+    original = state["exposure"]["value"]
+    attempted, failure = False, None
+    try:
+        for i, value in enumerate(values):
+            attempted = True
+            source = f"{EXPOSURE_STEP_FROM}[{i}]"
+            got = mm.set_exposure(value)
+            row = {"event": "exposure_step_value", **common, "index": i, "value_set_ms": value,
+                   "set_by": f"set_exposure({value!r})", "value_read_back_ms": got.get("read_ms"),
+                   "verified": bool(got.get("verified")), "from": source}
+            if not row["verified"]:
+                failure = f"{value!r} ms was set and read back as {got.get('read_ms')!r} ms"
+            else:
+                try:
+                    image, meta = mm.snap_tagged()
+                    array = np.asarray(image)
+                    tags = meta["frame_tags"]
+                    stem = f"exposure_step_{i}"
+                    (folder / "frames").mkdir(exist_ok=True)
+                    np.save(str(folder / "frames" / f"{stem}.npy"), array)
+                    (folder / "frames" / f"{stem}_tags.json").write_text(
+                        json.dumps(tags, indent=2, sort_keys=True), encoding="utf-8")
+                    row.update(snap_by="snapImage(); getTaggedImage()", frame_file=f"frames/{stem}.npy",
+                               frame_tags_file=f"frames/{stem}_tags.json", frame_shape=list(array.shape),
+                               frame_dtype=str(array.dtype), frame_tag_count=len(tags),
+                               frame_exposure_tags={k: v for k, v in tags.items() if "exposure" in k.lower()},
+                               exposure_read_after_snap_ms=meta["exposure_ms"])
+                except Exception as exc:                        # noqa: BLE001 - recorded, then the step ends
+                    row["snap_error"] = f"{type(exc).__name__}: {exc}"
+                    failure = f"the frame at {value!r} ms was not taken: {row['snap_error']}"
+            o.record(**row)
+            if failure is None and o._aborted.is_set():
+                failure = "stopped from outside"
+            if failure is not None:
+                break
+    except Exception as exc:                                    # noqa: BLE001 - recorded, then the exposure is put back
+        failure = f"{type(exc).__name__}: {exc}"
+    finally:
+        if attempted:
+            try:
+                back = mm.set_exposure(original)
+                restored = {"value_read_back_ms": back.get("read_ms"), "verified": bool(back.get("verified"))}
+            except Exception as exc:                            # noqa: BLE001
+                restored = {"verified": False, "error": f"{type(exc).__name__}: {exc}"}
+            o.record(event="exposure_step_restored", **common, wanted_ms=original,
+                     read_before_step_by="getExposure()", **restored)
+            if not restored["verified"]:
+                failure = failure or f"the exposure was not read back as {original!r} ms after the step"
+    if failure is not None:
+        o.record(event="exposure_step_failed", **common, error=failure)
+    o.record(event="exposure_step_finished", **common, ok=failure is None)
+    return failure is None
 
 
 def run_device_reading(run_id: str, runs_root: Path | None = None, backend: str = "hardware",
                        lock=None, started=None, on_orchestrator=None, mm_config: Path | None = None,
-                       mm_approvals: Path | None = None, config_loader=None) -> dict:
+                       mm_approvals: Path | None = None, config_loader=None,
+                       exposure_step: tuple | None = None) -> dict:
     """One device reading: the approved configuration loaded, then each device asked what it is (card 092).
 
     A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and `approved_commands`
@@ -2573,6 +2776,10 @@ def run_device_reading(run_id: str, runs_root: Path | None = None, backend: str 
     configuration), a missing or unapproved configuration, no `runs_root` (the derived copy of the
     file is evidence and has nowhere else to go), and a run id already used. This run does not write
     the idle status file: its kind is not one the status schema names.
+
+    `exposure_step` (card 096) is the one thing here that writes, and runs only when three exposures
+    in ms are given: after the reading, on the red camera, a frame at each, the exposure put back.
+    It is refused, the reading kept, if any light reads on. See `_exposure_step`.
     """
     if backend == "mock":
         raise Refusal("a device reading is refused with the mock backend, not ignored: the mock loads "
@@ -2583,6 +2790,8 @@ def run_device_reading(run_id: str, runs_root: Path | None = None, backend: str 
     if runs_root is None:
         raise Refusal("a device reading needs --write: the derived copy of the configuration is evidence "
                       "and no run record would keep it anywhere else. Nothing is loaded")
+    if exposure_step is not None:
+        exposure_step = _check_exposure_step_values(exposure_step)
     checked = _check_mm_config(mm_config, mm_approvals)
     root = Path(runs_root)
     folder = root / run_id
@@ -2614,6 +2823,13 @@ def run_device_reading(run_id: str, runs_root: Path | None = None, backend: str 
                     break
                 o.record(**_device_report(core, label, loaded, checked["sha256"]))
             how = "stopped_from_outside" if getattr(o, "stopped_from_outside", False) else "completed"
+            if exposure_step is not None:
+                if o._aborted.is_set():
+                    o.record(event="exposure_step_skipped", section="exposure_step",
+                             why="the run was stopped before the step began; nothing was written")
+                elif not _exposure_step(o, mm, core, loaded, folder, exposure_step, checked["sha256"],
+                                        approval_file):
+                    how = "failed"
         except Exception as exc:                                # noqa: BLE001 - recorded, then the run ends
             o.record(event="device_reading_failed", error=f"{type(exc).__name__}: {exc}")
         finally:

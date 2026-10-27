@@ -39,10 +39,13 @@ def main(argv: list[str] | None = None) -> int:
                         help="hardware; the mock loads no configuration and is refused")
     parser.add_argument("--runs-root", type=Path, default=None,
                         help="where runs/<run_id>/ is written (default: this folder's runs/)")
+    parser.add_argument("--exposure-step", nargs=3, type=float, metavar="MS", default=None,
+                        help="three exposures in ms: after the reading, a frame at each on the red camera, "
+                             "the exposure put back. The only part that writes; refused if any light reads on")
     args = parser.parse_args(argv)
     try:
         record = op.run_device_reading(args.run_id, runs_root=args.runs_root or op.AGENT / "runs", backend=args.backend,
-                                       mm_config=args.mm_config)
+                                       mm_config=args.mm_config, exposure_step=args.exposure_step)
     except op.Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
@@ -54,10 +57,17 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {event['label']}: not loaded")
                 continue
             unread = [p["property"] for p in event["properties"] if "unread" in p]
-            print(f"  {event['label']}: {len(event['properties'])} read-only properties"
+            print(f"  {event['label']}: {len(event['properties'])} properties"
                   + (f", unread: {unread}" if unread else ""))
         elif event["event"] == "device_reading_failed":
             print(f"  FAILED: {event['error']}")
+        elif event["event"] == "exposure_step_value":
+            print(f"  exposure step: set {event['value_set_ms']} ms, read back {event['value_read_back_ms']} ms"
+                  + (f", frame {event['frame_file']}" if "frame_file" in event else ", no frame"))
+        elif event["event"] == "exposure_step_refused":
+            print(f"  exposure step REFUSED, nothing written: {event['why']}")
+        elif event["event"] == "exposure_step_failed":
+            print(f"  exposure step FAILED: {event['error']}")
     return 0 if record["ended"] == "completed" else 1
 
 

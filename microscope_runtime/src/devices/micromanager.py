@@ -703,6 +703,22 @@ def snap():
     return image, {"camera": core.getCameraDevice(), "exposure_ms": core.getExposure()}
 
 
+def snap_tagged():
+    """One frame with the tags the core hands back with it (card 096), not only the exposure it holds.
+
+    `getTaggedImage` carries what the core reports for the frame it just took: the camera's tags and
+    the state cache, which is the core's own account and not a record the camera wrote into the
+    pixels. They are returned whole and as strings, and the caller says which of them it found.
+    Refused by the guard if AutoShutter is on, as `snap` is.
+    """
+    core = _core()
+    core.snapImage()
+    tagged = core.getTaggedImage()
+    tags = {str(k): str(v) for k, v in dict(getattr(tagged, "tags", None) or {}).items()}
+    return tagged.pix, {"camera": core.getCameraDevice(), "exposure_ms": core.getExposure(),
+                        "frame_tags": tags}
+
+
 def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
     """`n` frames through the sequence calls, each handed to `sink(i, image, metadata)`.
 
