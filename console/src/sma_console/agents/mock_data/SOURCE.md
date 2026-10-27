@@ -72,3 +72,28 @@ Questions screen has earlier questions to show and to offer. They follow
 |---|---|
 | `console/requests/questions/qr-20261023-091500-w3k8.json` | a question addressed to the microscope, by a practice login |
 | `console/requests/questions/qr-20261024-174512-k3p9.json` | the contract's example request |
+
+## The librarian's pages and answers (console card 016)
+
+Four wiki pages were copied byte for byte from `librarian_agent/kb/wiki/` of the soft-matter-agents
+repository on this desktop, at commit `c260712a91de16b2f99a352e2a399b18cfe7d622` (2026-10-26); each path's
+content was last changed at the commit named, and the copies were checked equal to `git show` of that path.
+
+| Path | Last changed at |
+|---|---|
+| `librarian_agent/kb/wiki/index.md` | `3d167ea1eb2fe52b8bc54ff6a87e7f69fb4e1176` |
+| `librarian_agent/kb/wiki/device_dia_lamp.md` | `ba6c2439bdfd0196e629ad750177c9540fe3da92` |
+| `librarian_agent/kb/wiki/device_csuw1_dichroic.md` | `ba6c2439bdfd0196e629ad750177c9540fe3da92` |
+| `librarian_agent/kb/wiki/quantity_na.md` | `ba6c2439bdfd0196e629ad750177c9540fe3da92` |
+
+Only these four pages are here, so the front page links to pages this sample does not hold; a link to one of
+them shows "page not found". That is an artifact of the copy.
+
+Written here, not copied:
+
+| Path | What |
+|---|---|
+| `librarian_agent/kb/index.json` | only `kb_version`, the version the four pages' footers carry; the real file is 185 KB and the console reads nothing else from it |
+| `librarian_agent/answers/ca-20261020-1000NN-exNN.json` (nine) | **example answers**, written to the shape of `contracts/schemas/store_answer.schema.json`, one for each of the seven outcomes of a request (entered, waiting for a name, refuted, in conflict, superseded, kept, no entry of that name), and one `answered` and one `not_in_the_store` answer to a question. The numbers in them are made up. No answer of the real librarian is copied |
+
+The librarian's real answers folder is never read by the console, from the mock store or the real one.

@@ -1,0 +1,18 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answered_by": "seat:librarian-example",
+  "answer_id": "ca-20261020-100005-ex05",
+  "item_id": "ci-20261020-000005-ex05",
+  "request_sha256": "5622503578e6e2a895d522272d61c2ef17b366e0c17d7497fb280a6f7f8e8ad0",
+  "answered_at": "2026-10-20T10:05:00Z",
+  "outcome": "superseded",
+  "reason": "The replacing entry is newer for the same quantity, so the old entry is marked superseded and stays on record.",
+  "kb_version": "kbv-37b1958fb73d",
+  "entries_marked": [
+    "example_entry_old"
+  ],
+  "other_side": [
+    "example_entry_new"
+  ]
+}

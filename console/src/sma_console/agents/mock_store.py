@@ -9,10 +9,12 @@ anywhere else; no goal card is ever made (console card 010).
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from .requests import FOLDER_PARTS as REQUEST_PARTS
 from .requests import quantity_names
@@ -120,6 +122,22 @@ class MockStore:
 
     def runtime_root(self) -> Path | None:
         return None  # the sample has no runtime: nothing here stands in for its files
+
+    def library_root(self) -> Path:
+        return self.sample.root
+
+    def library_answers(self) -> list[dict[str, Any]]:
+        """The sample's example answers, newest first by file name, each as the file has it."""
+        folder = self.sample.root / "librarian_agent" / "answers"
+        out = []
+        for f in sorted(folder.glob("ca-*.json"), reverse=True):
+            try:
+                doc = json.loads(f.read_bytes().decode("utf-8-sig"))
+            except (OSError, ValueError):
+                continue
+            if isinstance(doc, dict):
+                out.append(doc)
+        return out
 
     def approvals_target_present(self) -> bool:
         return True  # practice: there is nothing to look for, and nothing is written

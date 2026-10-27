@@ -1,0 +1,27 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answered_by": "seat:librarian-example",
+  "answer_id": "ca-20261020-100008-ex08",
+  "item_id": "ci-20261020-000008-ex08",
+  "request_sha256": "91fe460b16dbd97de473101a6ae09b3c3103579faf39cc87062a90b7e15fd6ae",
+  "answered_at": "2026-10-20T10:08:00Z",
+  "outcome": "answered",
+  "reason": "The store holds one value that answers the question; it was measured in air and your question named water.",
+  "kb_version": "kbv-37b1958fb73d",
+  "answer": "One recorded value of the example quantity: 1.5 mm. It covers a different medium than the one you asked about.",
+  "entries_cited": [
+    "example_entry_a"
+  ],
+  "numbers": [
+    {
+      "name": "example_quantity",
+      "value": 1.5,
+      "unit": "mm",
+      "entry_id": "example_entry_a",
+      "grade": "E3",
+      "source": "spec:EXAMPLE-0001",
+      "covers_conditions": "no"
+    }
+  ]
+}

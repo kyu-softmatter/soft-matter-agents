@@ -1036,6 +1036,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/library/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Index
+         * @description The wiki's front page, grouped by the kind of data, as generated. Reads only.
+         */
+        get: operations["index_api_library_index_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/pages/{page_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Page
+         * @description One generated wiki page as it stands, with a note when it was built from an older version of the store.
+         */
+        get: operations["page_api_library_pages__page_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Map
+         * @description The data map the librarian generated, as counts. The console computes nothing from it.
+         */
+        get: operations["data_map_api_library_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Answers
+         * @description The librarian's answers: example answers under the mock store, none from a real tree yet.
+         */
+        get: operations["answers_api_library_answers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/simulation/runs": {
         parameters: {
             query?: never;
@@ -1222,6 +1302,52 @@ export interface components {
             /** Approved At */
             approved_at: string | null;
         };
+        /** AnswerOut */
+        AnswerOut: {
+            /** Answer Id */
+            answer_id: string;
+            /** Item Id */
+            item_id: string;
+            /** Answered By */
+            answered_by: string;
+            /** Answered At */
+            answered_at: string;
+            /** Outcome */
+            outcome: string;
+            /** Reason */
+            reason: string;
+            /** Kb Version */
+            kb_version: string | null;
+            /** Answer */
+            answer: string | null;
+            /** Entries Cited */
+            entries_cited: string[];
+            /** Numbers */
+            numbers: components["schemas"]["NumberOut"][];
+            /** Gaps */
+            gaps: components["schemas"]["GapOut"][];
+            /** Entries Marked */
+            entries_marked: string[];
+            /** Other Side */
+            other_side: string[];
+            /** Quantity Name */
+            quantity_name: string | null;
+            /** Entries Made */
+            entries_made: string[];
+            /** Example */
+            example: boolean;
+        };
+        /** AnswersOut */
+        AnswersOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Answers */
+            answers: components["schemas"]["AnswerOut"][];
+            /** Message */
+            message: string | null;
+        };
         /** ApiError */
         ApiError: {
             detail: components["schemas"]["RefusalDetail"];
@@ -1316,6 +1442,28 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** BlockOut */
+        BlockOut: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "heading" | "paragraph" | "quote" | "list" | "code" | "table" | "rule";
+            /** Level */
+            level?: number | null;
+            /** Text */
+            text?: string | null;
+            /** Spans */
+            spans?: components["schemas"]["Span"][] | null;
+            /** Items */
+            items?: components["schemas"]["Span"][][] | null;
+            /** Language */
+            language?: string | null;
+            /** Header */
+            header?: components["schemas"]["Span"][][] | null;
+            /** Rows */
+            rows?: components["schemas"]["Span"][][][] | null;
+        };
         /** CardOut */
         CardOut: {
             /** Name */
@@ -1393,6 +1541,19 @@ export interface components {
             };
             /** Proposals */
             proposals: components["schemas"]["ProposalOut"][];
+        };
+        /** CoverageOut */
+        CoverageOut: {
+            /** E1 */
+            E1: number;
+            /** E2 */
+            E2: number;
+            /** E3 */
+            E3: number;
+            /** E4 */
+            E4: number;
+            /** E5 */
+            E5: number;
         };
         /** CurveOut */
         CurveOut: {
@@ -1516,6 +1677,13 @@ export interface components {
             /** Words */
             words: string;
         };
+        /** FactOut */
+        FactOut: {
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
+        };
         /**
          * FrameOut
          * @description The frame both viewers draw (web/src/features/simulation/frame.ts FrameJson).
@@ -1544,12 +1712,28 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** GapOut */
+        GapOut: {
+            /** Asked For */
+            asked_for: string;
+            /** Looked In */
+            looked_in: string;
+        };
         /** GiveLoginIn */
         GiveLoginIn: {
             /** Email */
             email: string;
             /** Login */
             login: string;
+        };
+        /** GroupOut */
+        GroupOut: {
+            /** Key */
+            key: string;
+            /** Title */
+            title: string;
+            /** Links */
+            links: components["schemas"]["LinkOut"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1660,6 +1844,38 @@ export interface components {
             messages: components["schemas"]["InboxMessageOut"][];
             /** Source */
             source: string;
+        };
+        /** IndexOut */
+        IndexOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "shown" | "not_built" | "not_generated";
+            /** Message */
+            message: string | null;
+            /** Title */
+            title: string | null;
+            /** Facts */
+            facts: components["schemas"]["FactOut"][];
+            /** Groups */
+            groups: components["schemas"]["GroupOut"][];
+            /** Registered Unused */
+            registered_unused: string[];
+            /** Footer */
+            footer: string | null;
+            /** Footer Version */
+            footer_version: string | null;
+            /** Current Version */
+            current_version: string | null;
+            /** Behind */
+            behind: boolean;
+            /** Note */
+            note: string | null;
         };
         /** LampState */
         LampState: {
@@ -1783,6 +1999,17 @@ export interface components {
              */
             problems: string[];
         };
+        /** LinkOut */
+        LinkOut: {
+            /** Label */
+            label: string;
+            /** Page */
+            page: string;
+            /** Kind */
+            kind: string;
+            /** Entries */
+            entries: number | null;
+        };
         /** LiveListOut */
         LiveListOut: {
             /** Name */
@@ -1859,6 +2086,38 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MapOut */
+        MapOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_built" | "not_valid" | "built";
+            /** Message */
+            message: string | null;
+            /** Kb Version */
+            kb_version: string | null;
+            /** Current Version */
+            current_version: string | null;
+            /** Behind */
+            behind: boolean;
+            /** Note */
+            note: string | null;
+            /** Footer */
+            footer: string | null;
+            /** Subjects */
+            subjects: components["schemas"]["SubjectOut"][];
+            /** Relations */
+            relations: {
+                [key: string]: string;
+            }[];
+            /** Evidence Page */
+            evidence_page: boolean;
+        };
         /** Me */
         Me: {
             /** User Id */
@@ -1903,6 +2162,23 @@ export interface components {
             /** Approved At */
             approved_at: string | null;
         };
+        /** NumberOut */
+        NumberOut: {
+            /** Name */
+            name: string;
+            /** Value */
+            value: number | string;
+            /** Unit */
+            unit: string;
+            /** Entry Id */
+            entry_id: string;
+            /** Grade */
+            grade: string;
+            /** Source */
+            source: string;
+            /** Covers Conditions */
+            covers_conditions: string;
+        };
         /** OpSummary */
         OpSummary: {
             /** Op Id */
@@ -1945,6 +2221,29 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /** PageOut */
+        PageOut: {
+            /** Example */
+            example: boolean;
+            /** Example Note */
+            example_note: string | null;
+            /** Page Id */
+            page_id: string;
+            /** Title */
+            title: string;
+            /** Blocks */
+            blocks: components["schemas"]["BlockOut"][];
+            /** Footer */
+            footer: string;
+            /** Footer Version */
+            footer_version: string;
+            /** Current Version */
+            current_version: string | null;
+            /** Behind */
+            behind: boolean;
+            /** Note */
+            note: string | null;
         };
         /** PasswordIn */
         PasswordIn: {
@@ -2864,6 +3163,15 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** Span */
+        Span: {
+            /** Text */
+            text: string;
+            /** Code */
+            code: boolean;
+            /** Page */
+            page: string | null;
+        };
         /**
          * StateGateRow
          * @description One feature gate (T-028 `gates.gate_rows`): off rows come first. Named apart from
@@ -2994,6 +3302,18 @@ export interface components {
             store: string;
             /** Writable */
             writable: boolean;
+        };
+        /** SubjectOut */
+        SubjectOut: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Page */
+            page: string;
+            coverage: components["schemas"]["CoverageOut"];
+            /** Disputed */
+            disputed: number;
         };
         /** SuggestionOut */
         SuggestionOut: {
@@ -5352,6 +5672,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_api_library_index_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexOut"];
+                };
+            };
+        };
+    };
+    page_api_library_pages__page_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageOut"];
+                };
+            };
+            /** @description not a generated page */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_map_api_library_map_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapOut"];
+                };
+            };
+        };
+    };
+    answers_api_library_answers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswersOut"];
                 };
             };
         };

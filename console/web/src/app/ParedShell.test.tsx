@@ -1,11 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import type { ComponentType } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { fakeTransport, TEST_ME } from "../test/fakes";
 import { App } from "./App";
 import { AREAS, DEFAULT_AREA, registry } from "./areas";
-import { Client, ClientProvider } from "./client";
+import { Client } from "./client";
 import { parseHash } from "./route";
 import { STOP_ALL_PATH } from "./StopAllRuns";
 
@@ -295,33 +294,5 @@ describe("the retired routes are still named by no source", () => {
     expect(ROUTE.test("`/api/sample/${id}`")).toBe(true);
     expect(ROUTE.test("/api/console/runs")).toBe(false);
     expect(ROUTE.test("server/api/hardware.GateRow")).toBe(false);
-  });
-});
-
-describe("the new plain screens", () => {
-  const modules = import.meta.glob<{ default: ComponentType }>("../features/*/index.tsx");
-  const CASES = [
-    { id: "library", title: "Library", sentence: "Send the librarian a request. The librarian decides, and nothing is ever erased." },
-  ];
-
-  it.each(CASES)("$title shows its title, one sentence and 'not built yet', and requests nothing", async ({ id, title, sentence }) => {
-    const load = modules[`../features/${id}/index.tsx`];
-    expect(load, `features/${id}/index.tsx exists`).toBeTypeOf("function");
-    const Screen = (await load()).default;
-    const fake = fakeTransport({});
-    const client = new Client(fake.transport, "127.0.0.1");
-    clients.push(client);
-    render(
-      <ClientProvider client={client}>
-        <Screen />
-      </ClientProvider>,
-    );
-    expect(screen.getByRole("heading", { name: title })).toBeTruthy();
-    expect(screen.getByText(sentence)).toBeTruthy();
-    expect(screen.getByText("not built yet")).toBeTruthy();
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
-    expect(screen.queryAllByRole("textbox")).toHaveLength(0);
-    await new Promise((r) => setTimeout(r, 20)); // a request made in an effect would be here by now
-    expect(fake.calls).toEqual([]);
   });
 });

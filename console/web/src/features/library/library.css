@@ -1,0 +1,27 @@
+/* The Library screen (console card 016). Colours and spacing come from questions/console.css. */
+.lib-form .lib-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lib-form input[type="text"],
+.lib-form select,
+.lib-form textarea {
+  width: 100%;
+}
+.lib-answers ul {
+  list-style: none;
+  padding: 0;
+}
+.lib-answer {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.lib-behind {
+  margin: 0.5rem 0;
+}
+.lib-footer {
+  font-size: 0.85em;
+}

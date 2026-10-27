@@ -419,6 +419,16 @@ class AgentStore(Protocol):
         """The tree the runtime's own files are read from, or None when this store has no runtime."""
         ...
 
+    def library_root(self) -> Path:
+        """The tree whose `librarian_agent/kb/` the Library screen shows: generated wiki pages and the
+        store version, as data and nothing else (console card 016)."""
+        ...
+
+    def library_answers(self) -> list[dict[str, Any]]:
+        """The librarian's answers to show: the sample's example answers under the mock store and none from
+        a real tree, whatever its `librarian_agent/answers/` holds (the librarian's inbox is not open)."""
+        ...
+
     def approvals_target_present(self) -> bool:
         """Whether the one place an approval is signed into, `microscope_runtime/approvals/`, is in the
         tree this store reads. No other place counts. (Nothing is written by the console yet.)"""

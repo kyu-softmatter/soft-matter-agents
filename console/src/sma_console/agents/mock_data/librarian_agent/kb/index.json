@@ -1,0 +1,5 @@
+{
+  "schema_version": "0.1",
+  "note": "Written for the console sample, not copied: the real file is 185 KB and the console reads only kb_version from it.",
+  "kb_version": "kbv-37b1958fb73d"
+}

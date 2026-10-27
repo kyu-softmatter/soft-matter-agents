@@ -585,6 +585,12 @@ class SmaFiles:
         """The tree the runtime's own files (status, safety file) are read from."""
         return self._root
 
+    def library_root(self) -> Path:
+        return self._root
+
+    def library_answers(self) -> list[dict[str, Any]]:
+        return []  # the librarian's answers are not read from the real tree until its inbox is open
+
     def approvals_target_present(self) -> bool:
         """`microscope_runtime/approvals/` and only it: the old place, `microscope_agent/approvals/`, is
         read for display and is not a place to sign into (card 011)."""
