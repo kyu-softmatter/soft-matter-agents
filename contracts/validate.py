@@ -10100,6 +10100,11 @@ def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Findi
          `refuted_by` names one of other_side, a superseded entry is the
          `supersedes` of one of other_side, an entry in conflict names one of
          other_side in `conflict_with`.
+      e. an answer in an agent's `answers/` whose item sits in the sibling
+         `console_inbox/` as `<item_id>.json` pins that item's bytes:
+         `request_sha256` is their sha256 (7.1.1 rule 4). This branch reads
+         no store version, so it judges answers that name none. An item that
+         is absent is check 91's.
 
     kb_version hashes the entries, so every commit carrying one version holds
     the same entries and the first one found is read. Git that cannot be read
@@ -10152,9 +10157,27 @@ def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Findi
         return [x for x in v if isinstance(x, str)] if isinstance(v, list) else []
 
     out: list[Finding] = []
-    judged_n = pending = 0
+    judged_n = pending = pinned = 0
     for c in answers:
         d = c.data
+        # e. An answer in an agent's answers/ pins the bytes of the item it
+        # answers, which sits in the sibling console_inbox/ and never changes
+        # once it lands (7.1.1 rule 4: "the request pinned by sha256"). The
+        # folder is -text in .gitattributes, so disk bytes are committed
+        # bytes. An item that is not there is check 91's failure, not this.
+        iid = d.get("item_id")
+        if (c.path.parent.name == "answers" and isinstance(iid, str)
+                and re.fullmatch(r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}", iid)):
+            item = c.path.parent.parent / "console_inbox" / f"{iid}.json"
+            if item.is_file():
+                got = hashlib.sha256(item.read_bytes()).hexdigest()
+                if got != d.get("request_sha256"):
+                    out.append(Finding(95, FAIL, f"pins request_sha256 {d.get('request_sha256')}, and "
+                                                 f"console_inbox/{iid}.json hashes to {got}; the answer's "
+                                                 "request_sha256 is not the sha256 of the item it answers, "
+                                                 "whose bytes never change once they land (7.1.1 rule 4)", c.rel))
+                else:
+                    pinned += 1
         kbv = d.get("kb_version")
         if not isinstance(kbv, str):
             continue
@@ -10211,11 +10234,16 @@ def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Findi
                                              f"and at {kbv} {said}; the mark an answer reports is in the version "
                                              "it names (7.1.1 rule 6)", c.rel))
     if not any(f.status == FAIL for f in out):
+        said = []
         if judged_n:
-            out.append(Finding(95, PASS, f"{judged_n} store answers name a published store version that holds "
-                                         "every entry, number and mark they report"))
+            said.append(f"{judged_n} store answers name a published store version that holds every entry, "
+                        "number and mark they report")
+        if pinned:
+            said.append(f"{pinned} pin the sha256 of the inbox item they answer")
+        if said:
+            out.append(Finding(95, PASS, "; ".join(said)))
         elif not pending:
-            out.append(Finding(95, NA, "no store answer names a store version"))
+            out.append(Finding(95, NA, "no store answer names a store version or sits beside the item it answers"))
     return out
 
 

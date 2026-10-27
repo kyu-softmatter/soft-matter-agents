@@ -1552,6 +1552,55 @@ def fixture_95_an_answer_gives_a_number_its_version_does_not_hold(repo: Path) ->
     return _store_answer_history(repo, newer_number=True)
 
 
+def _store_answer_pinned(repo: Path, *, pin: str = "bytes", item: bool = True) -> str:
+    """7.1.1 rule 4 (2026-10-27): an answer in answers/ pins the bytes of the inbox item it answers.
+
+    On top of the published store above, the console's server writes a
+    recalled-value request into librarian_agent/console_inbox/ and the
+    librarian answers it `waiting_for_a_name`, an outcome that names no store
+    version, so only branch e can judge it. `pin` says what the answer hashed:
+    the item's bytes, or the same item re-serialised without indentation, the
+    in-memory form a writer holds and not the file that landed. With
+    `item=False` the answer is committed and its item is not, which is check
+    91's failure and none of this one's.
+    """
+    rng = _store_answer_history(repo)
+    req = json.loads((repo / "contracts/examples/console_store_request.json").read_text(encoding="utf-8"))
+    req.update(item_id="ci-20261027-090000-h95e", attachments=[],
+               words="The 40x water objective's working distance is 2.5 mm, as I remember it.",
+               request={"kind": "enter_document", "source_kind": "operator_recall", "read_by": "member-1",
+                        "fact_wanted": "the working distance of the 40x water objective",
+                        "value": {"value": 2.5, "unit": "mm"}})
+    irel = f"librarian_agent/console_inbox/{req['item_id']}.json"
+    write(repo, irel, req)
+    if item:
+        commit(repo, "the console's server writes a store request", irel, seat=_console_seat())
+    held = (repo / irel).read_bytes() if pin == "bytes" else json.dumps(req).encode("utf-8")
+    if not item:
+        (repo / irel).unlink()
+    answer = {"artifact": "store_answer", "schema_version": "0.1", "answer_id": "ca-20261027-100000-h95e",
+              "item_id": req["item_id"], "request_sha256": hashlib.sha256(held).hexdigest(),
+              "answered_by": "seat:librarian-20261007-1", "answered_at": "2026-10-27T10:00:00Z",
+              "outcome": "waiting_for_a_name", "reason": "no registered quantity names a working distance",
+              "quantity_name": "working_distance"}
+    arel = f"librarian_agent/answers/{answer['answer_id']}.json"
+    write(repo, arel, answer)
+    commit(repo, "the librarian answers it", arel, seat="librarian")
+    return rng
+
+
+def fixture_95_an_answer_pins_its_items_bytes(repo: Path) -> str:
+    return _store_answer_pinned(repo)
+
+
+def fixture_95_an_answer_pins_its_item_reserialised(repo: Path) -> str:
+    return _store_answer_pinned(repo, pin="reserialised")
+
+
+def fixture_95_an_answer_whose_item_is_not_in_the_tree(repo: Path) -> str:
+    return _store_answer_pinned(repo, item=False)
+
+
 def _device_label_store(repo: Path, change=None) -> str:
     """Librarian card 061 (2026-10-26): a device row's Micro-Manager label is a copy of its cited entry's.
 
@@ -2020,6 +2069,11 @@ FIXTURES = [
      fixture_95_an_answer_on_a_version_the_store_has_moved_past),
     (95, "FAIL", "and no number of that entry at kbv-",
      fixture_95_an_answer_gives_a_number_its_version_does_not_hold),
+    # 7.1.1 rule 4 (2026-10-27): an answer pins the bytes of the item it answers.
+    (95, "PASS", "pin the sha256 of the inbox item they answer", fixture_95_an_answer_pins_its_items_bytes),
+    (95, "FAIL", "is not the sha256 of the item it answers", fixture_95_an_answer_pins_its_item_reserialised),
+    (95, "PASS", "name a published store version that holds",
+     fixture_95_an_answer_whose_item_is_not_in_the_tree),
     # librarian card 061 (2026-10-26): a device row's label is its cited entry's.
     (96, "PASS", "device rows carry a Micro-Manager label that their cited",
      fixture_96_device_labels_copied_from_their_entries),
