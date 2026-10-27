@@ -19,6 +19,7 @@ import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 TESTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TESTS))
@@ -167,6 +168,12 @@ class _Base096(t92._Base):
         super().setUp()
         self.core = _Core096()
         self.saved_identity = None
+        # The step's own mechanics are tested on a bench whose every light and shutter has a core device.
+        # The real table lists sources with none, and the step refuses on them (the follow-up to card 096);
+        # that is tested with the real table, by stopping this patch (T4).
+        self.no_unreadable = mock.patch.object(op, "_exposure_step_unreadable", lambda: [])
+        self.no_unreadable.start()
+        self.addCleanup(self.no_unreadable.stop)
 
     def step(self, values=(5.0, 20.0, 80.0), run_id="run-test-096", **kw):
         return self.read(run_id=run_id, exposure_step=tuple(values), **kw)
@@ -408,8 +415,20 @@ class T4NoLightNoWrite(_Base096):
         refusal = self.of(record, "exposure_step_refused")[0]
         self.assertEqual(sorted(r["device"] for r in refusal["refusals"]), ["Aura", "DiaLamp"])
 
-    def test_the_sources_software_cannot_read_are_named_so_the_person_can_see_them(self):
-        record = self.step()
+    def test_a_light_or_shutter_with_no_core_device_refuses_the_step_naming_each(self):
+        self.no_unreadable.stop()
+        record = self.refused("optical tweezers", _Core096())
+        refusals = self.of(record, "exposure_step_refused")[0]["refusals"]
+        named = {r["device"] for r in refusals}
+        self.assertEqual(named, {row["source"] for row in op._exposure_step_unreadable()})
+        for source in ("optical tweezers", "Spectra III (LightEngine)", "confocal laser lines", "laser_shutter"):
+            self.assertIn(source, named)
+        for r in refusals:
+            self.assertIn("no core device", r["why"])
+
+    def test_the_sources_software_cannot_read_are_still_listed_with_the_start_of_the_step(self):
+        self.no_unreadable.stop()
+        record = self.refused("optical tweezers", _Core096())
         started = self.of(record, "exposure_step_started")[0]
         unreadable = {row["source"] for row in started["not_readable_by_software"]}
         self.assertIn("optical tweezers", unreadable)

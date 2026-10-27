@@ -2626,7 +2626,7 @@ def _exposure_step_state(core, loaded: tuple, camera: str) -> dict:
     Each light source the core can read must read off, each shutter closed, AutoShutter off, and the
     core's camera must be the one the step writes to, with its exposure readable so it can be put
     back. A source that reads on, a shutter that reads open, or one that was not read is a refusal
-    naming the device. Sources and shutters with no core device are not read, and the caller lists them.
+    naming the device. Sources and shutters with no core device cannot be read; the caller refuses on each.
     """
     rows = [(row["source"], row["device"], row["property"], str(row["off"]), "on")
             for row in orch.LIGHT_SOURCES if row.get("device")]
@@ -2685,17 +2685,22 @@ def _exposure_step(o, mm, core, loaded: tuple, folder: Path, values: tuple, conf
     """Three exposures on the red camera, a frame at each, then the exposure put back (card 096). True if it ran clean.
 
     Refused before the first write, naming the device, when any light source reads on, any shutter
-    reads open, or one could not be read. Every write is judged by the motion check first, goes
+    reads open, one could not be read, or one has no core device to read. Every write is judged by the motion check first, goes
     through the backend's read-back, and each frame's tags are kept whole beside the frame.
     """
     camera = LIVE_VIEW_CAMERA
     common = {"section": "exposure_step", "configuration_sha256": config_sha256}
     state = _exposure_step_state(core, loaded, camera)
     refusals = state["refusals"]
+    unreadable = _exposure_step_unreadable()
+    for row in unreadable:
+        refusals.append({"device": row["source"],
+                         "why": f"{row['source']} has no core device, so software cannot read it and no light is "
+                                f"known to be off: {row.get('why')}"})
     o.record(event="exposure_step_started", **common, approval_file=approval_file, camera=camera,
              exposure_ms_arguments=list(values), lights_read_off=state["lights"],
              autoshutter=state["autoshutter"], core_camera=state["camera"],
-             exposure_before=state["exposure"], not_readable_by_software=_exposure_step_unreadable())
+             exposure_before=state["exposure"], not_readable_by_software=unreadable)
     commands = _exposure_step_commands(values, camera)
     if not refusals:
         try:
