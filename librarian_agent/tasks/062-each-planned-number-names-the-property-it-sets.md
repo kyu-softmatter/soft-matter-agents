@@ -127,6 +127,13 @@ recorded (`slot_order: null`). So:
   that state and recorded which detector got light. A run that only read the label back supports "the device has a state
   labelled X". It does not support "X is `empty`", and it grades nothing
   higher than that.
+- **Where that record sits** (added 2026-10-27, with check 98): the entry's
+  `identifiers` carry `lit_detectors`, the list of device rows that recorded
+  light in that state, by their ids in the device table (`camera_red`,
+  `camera_blue`). On `csuw1_port` the list equals what the row's
+  `slot_contents` says that slot `reaches`. A run that disagrees with the
+  table is a finding about the table: report it, and enter no resolution
+  until the two agree.
 - For `lapp_branch`, `inline` and `side` resolve only from such a run. While
   `lapp_branch_assignment` is open, the resolution says which branch, never
   which engine.
@@ -162,7 +169,9 @@ recorded (`slot_order: null`). So:
      label either;
    - no binding names `frame_count`;
    - a resolution on any of those three rows cites a `measured:` entry whose
-     run acquired, not only one that read a label back;
+     run acquired, not only one that read a label back, and whose
+     `lit_detectors` names rows of the table -- on `csuw1_port`, exactly the
+     slot's `reaches`;
    - the snapshot's `devices` table text equals staging's.
 4. Run `python src/kb_index.py` and the validator.
 
@@ -183,4 +192,8 @@ and the commit. It reads them through the same function that reads
 
 A validator check that each row's bindings and resolutions match their
 entries is the manager's, and it lands with its fixtures, separately from this
-card, like check 96 for 061.
+card, like check 96 for 061. It is check 98 (2026-10-27). Beyond the
+self-tests above it holds three things this card already says: a row carrying
+either field carries `mm_label`, a word is one the path table or the row can
+write, and a binding's unit is not `1` when its quantity is registered in a
+unit that is not `1`.

@@ -10345,6 +10345,228 @@ def check_96_a_device_label_is_its_cited_entrys(b: Bundle) -> list[Finding]:
     return out
 
 
+def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> list[Finding]:
+    """A device row's property bindings and state words are copies of their cited entries (librarian card 062).
+
+    A plan carries `exposure_time` in seconds and writes a hand-set position
+    in the path table's words; Micro-Manager takes `Exposure` in milliseconds
+    and reports its own state labels. Which property a quantity sets, in what
+    unit, and which state a word names are facts about this instrument, so
+    they reach the runtime only on rows of kb/staging/devices.v0.json:
+    `mm_bindings` [{quantity, property, unit, entry_ref[, config_sha256]}] and
+    `mm_states` [{word, state_label, entry_ref[, config_sha256]}]. Neither
+    carries a grade or source of its own. This reads each copy against its
+    entry:
+
+      a. each item has exactly those keys, and the row carries `mm_label`:
+         a property or a state belongs to the device under that label;
+      b. `entry_ref` names an entry that is neither refuted nor superseded,
+         whose `identifiers` carry the row's label under `mm_label` and the
+         item's fields -- `mm_property`, `quantity`, `unit` for a binding,
+         `path_word`, `mm_state_label` for a state -- character for character;
+      c. a binding's quantity is registered in contracts/quantities.json and
+         is not `frame_count`, which is a verb's argument and no property
+         holds;
+      d. its unit is a symbol in contracts/units.json and is not `1` when the
+         quantity's registered unit is not: `1` cannot tell 10 from 1 per
+         cent on a fraction-of-scale property;
+      e. one binding per quantity and one per property on a row, one state
+         label per word and one word per state label;
+      f. a word is one the path table can write for that row -- a value of
+         `required_selectors` in optical_paths.v0.json, a `content` in the
+         row's `slot_contents`, or a key of its `states`. A selector the path
+         table states as a sentence yields no word that a plan could name;
+      g. on a row whose state is verified by acquiring (`verify_by:
+         acquisition`) or that the label warning names (`lapp_branch`,
+         `csuw1_disk_position`), the entry is a `measured:` run whose
+         `identifiers.lit_detectors` lists the detector rows that got light,
+         each a row of the table, and -- where the row's `slot_contents` says
+         what a slot reaches -- exactly those. A label read back says the
+         device has a state called X, never that X is the word;
+      h. a `config_sha256` follows check 96's rule: 64 lowercase hex, equal
+         to the entry's `identifiers.mm_config_sha256`.
+
+    Whether a binding may command anything is the runtime's ruling, on the
+    entry's grade and digest; whether a calibration covers a planned value is
+    decided at derivation. This check only keeps the copies honest.
+    """
+    staged = KB_DIR / "staging" / "devices.v0.json"
+    rel = _rel(staged)
+    try:
+        table = json.loads(staged.read_text(encoding="utf-8")) if staged.exists() else None
+    except (OSError, ValueError) as exc:
+        return [Finding(98, FAIL, f"the device table cannot be read ({type(exc).__name__}), so no row's "
+                                  "bindings or state words can be compared with their entries", rel)]
+    rows: list[tuple[str, dict]] = []
+    ids_in_table: set[str] = set()
+
+    def walk(o: object, where: str) -> None:
+        if isinstance(o, dict):
+            if isinstance(o.get("id"), str):
+                ids_in_table.add(o["id"])
+            if "mm_bindings" in o or "mm_states" in o:
+                rows.append((str(o.get("id") or o.get("model") or where), o))
+            for k, v in o.items():
+                walk(v, f"{where}/{k}")
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                walk(v, f"{where}[{i}]")
+    walk(table, "")
+    if not rows:
+        return [Finding(98, NA, "no device row carries mm_bindings or mm_states yet")]
+
+    entries_dir = KB_DIR / "entries"
+    store: dict[str, dict] = {}
+    for p in sorted(entries_dir.glob("*.json")) if entries_dir.is_dir() else []:
+        try:
+            e = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(e, dict) and isinstance(e.get("entry_id"), str):
+            store[e["entry_id"]] = e
+    superseded = {e.get("supersedes"): eid for eid, e in store.items() if isinstance(e.get("supersedes"), str)}
+    try:
+        qreg = {q["id"]: q.get("unit") for q in json.loads((CONTRACTS / "quantities.json").read_text(
+            encoding="utf-8"))["quantities"] if isinstance(q, dict) and "id" in q}
+    except (OSError, ValueError, KeyError, TypeError):
+        qreg = {}
+    symbols = set(UNITS.get("units", {}))
+    words_from_paths: dict[str, set[str]] = {}
+    try:
+        paths = json.loads((KB_DIR / "staging" / "optical_paths.v0.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        paths = {}
+    for conf in paths.get("configurations", []) if isinstance(paths, dict) else []:
+        sel = conf.get("required_selectors") if isinstance(conf, dict) else None
+        for k, v in (sel.items() if isinstance(sel, dict) else ()):
+            if isinstance(v, str):
+                words_from_paths.setdefault(k, set()).add(v)
+
+    # field -> (its keys, the entry identifiers it copies, the keys that are one per row)
+    forms = {"mm_bindings": ({"quantity", "property", "unit", "entry_ref"},
+                             {"mm_property": "property", "quantity": "quantity", "unit": "unit"},
+                             ("quantity", "property")),
+             "mm_states": ({"word", "state_label", "entry_ref"},
+                           {"path_word": "word", "mm_state_label": "state_label"},
+                           ("word", "state_label"))}
+    out: list[Finding] = []
+    n_items = 0
+    for name, row in rows:
+        m = row.get("mm_label")
+        label = m.get("label") if isinstance(m, dict) else None
+        if not isinstance(label, str) or not label:
+            out.append(Finding(98, FAIL, f"row {name} carries bindings or state words and no mm_label; a "
+                                         "property or a state belongs to the device under a label "
+                                         "(librarian card 062)", rel))
+        slots = row.get("slot_contents")
+        reaches = {s["content"]: s.get("reaches") for s in slots
+                   if isinstance(s, dict) and isinstance(s.get("content"), str)} if isinstance(slots, list) else {}
+        words = set(words_from_paths.get(str(row.get("id")), set())) | set(reaches)
+        if isinstance(row.get("states"), dict):
+            words |= set(row["states"])
+        observed = row.get("verify_by") == "acquisition" or row.get("id") in ("lapp_branch", "csuw1_disk_position")
+        for field, (required, copied, unique) in forms.items():
+            if field not in row:
+                continue
+            items = row[field]
+            if not isinstance(items, list):
+                out.append(Finding(98, FAIL, f"row {name}: {field} is {json.dumps(items)[:80]}, not a list "
+                                             "(librarian card 062)", rel))
+                continue
+            seen: dict[str, dict[str, int]] = {k: {} for k in unique}
+            for it in items:
+                n_items += 1
+                if (not isinstance(it, dict) or not required <= set(it)
+                        or set(it) - required - {"config_sha256"}
+                        or not all(isinstance(it[k], str) and it[k] for k in required)):
+                    out.append(Finding(98, FAIL, f"row {name}: a {field} item is {json.dumps(it)[:120]}, not "
+                                                 f"{{{', '.join(sorted(required))}[, config_sha256]}}; the field "
+                                                 "has no grade or source of its own (librarian card 062)", rel))
+                    continue
+                for k in unique:
+                    seen[k][it[k]] = seen[k].get(it[k], 0) + 1
+                what = f"row {name}: {field} {it.get('quantity') or it.get('word')!r}"
+                if field == "mm_bindings":
+                    q, unit = it["quantity"], it["unit"]
+                    if q not in qreg:
+                        out.append(Finding(98, FAIL, f"{what} is not a quantity in contracts/quantities.json; a "
+                                                     "binding keys on a registered name only (librarian card 062)",
+                                           rel))
+                    if q == "frame_count":
+                        out.append(Finding(98, FAIL, f"{what}: frame_count is a verb's argument and no property "
+                                                     "holds it, so it is not bound (librarian card 062)", rel))
+                    if unit not in symbols:
+                        out.append(Finding(98, FAIL, f"{what} names unit {unit!r}, which is not a symbol in "
+                                                     "contracts/units.json (librarian card 062)", rel))
+                    elif unit == "1" and q in qreg and qreg[q] != "1":
+                        out.append(Finding(98, FAIL, f"{what} sets {it['property']!r} in unit '1' while the "
+                                                     f"quantity is registered in {qreg[q]!r}; '1' cannot tell 10 "
+                                                     "from 1 per cent on a fraction-of-scale property, so the "
+                                                     "unit names the scale (librarian card 062)", rel))
+                elif it["word"] not in words:
+                    out.append(Finding(98, FAIL, f"{what} is not a word the path table writes for this row "
+                                                 f"({', '.join(sorted(words)) or 'none'}); a selector stated as a "
+                                                 "sentence yields no word, and none is invented for it "
+                                                 "(librarian card 062)", rel))
+                ref = it["entry_ref"]
+                e = store.get(ref)
+                if e is None:
+                    out.append(Finding(98, FAIL, f"{what} cites {ref}, and no entry by that id is in "
+                                                 "kb/entries/ (librarian card 062)", rel))
+                    continue
+                ids = e.get("identifiers") if isinstance(e.get("identifiers"), dict) else {}
+                pairs = [("mm_label", label)] + [(ek, it[rk]) for ek, rk in copied.items()]
+                wrong = [f"{ek} {ids.get(ek)!r} against {v!r}" for ek, v in pairs if ids.get(ek) != v]
+                if wrong:
+                    out.append(Finding(98, FAIL, f"{what}: its entry {ref} records {'; '.join(wrong)}; the row "
+                                                 "is a copy of the entry, field for field (librarian card 062)",
+                                       rel))
+                if e.get("refuted_by"):
+                    out.append(Finding(98, FAIL, f"{what} cites {ref}, which "
+                                                 f"{', '.join(map(str, e['refuted_by']))} refutes; a refuted "
+                                                 "entry backs nothing (librarian card 062)", rel))
+                if ref in superseded:
+                    out.append(Finding(98, FAIL, f"{what} cites {ref}, which {superseded[ref]} supersedes; cite "
+                                                 "the entry that replaced it (librarian card 062)", rel))
+                if field == "mm_states" and observed:
+                    lit = ids.get("lit_detectors")
+                    if not str(e.get("source", "")).startswith("measured:"):
+                        out.append(Finding(98, FAIL, f"{what} cites {ref}, sourced {e.get('source')!r}; on this "
+                                                     "row a word's meaning is observed by a run that acquired, "
+                                                     "not read off a label (librarian card 062)", rel))
+                    elif (not isinstance(lit, list) or not lit
+                          or not all(isinstance(d, str) and d in ids_in_table for d in lit)):
+                        out.append(Finding(98, FAIL, f"{what} cites {ref}, whose lit_detectors is "
+                                                     f"{json.dumps(lit)[:80]}, not the detector rows that got "
+                                                     "light; a run that only read the label back says the device "
+                                                     "has a state by that name, not what the word is "
+                                                     "(librarian card 062)", rel))
+                    elif isinstance(reaches.get(it["word"]), list) and sorted(lit) != sorted(reaches[it["word"]]):
+                        out.append(Finding(98, FAIL, f"{what}: its run lit {', '.join(sorted(lit))} and the slot "
+                                                     f"reaches {', '.join(sorted(map(str, reaches[it['word']])))}; "
+                                                     "the observation and the table disagree, so one of them is "
+                                                     "wrong (librarian card 062)", rel))
+                if "config_sha256" in it:
+                    sha, theirs = it["config_sha256"], ids.get("mm_config_sha256")
+                    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha):
+                        out.append(Finding(98, FAIL, f"{what}: config_sha256 {sha!r} is not 64 lowercase hex "
+                                                     "(librarian card 062)", rel))
+                    elif sha != theirs:
+                        out.append(Finding(98, FAIL, f"{what}: config_sha256 {sha[:12]}... and its entry {ref} "
+                                                     f"records {str(theirs)[:12] + '...' if theirs else 'no digest'}"
+                                                     "; the digest is a copy of the entry's (librarian card 062)",
+                                           rel))
+            for k, counts in seen.items():
+                for v, n in sorted(counts.items()):
+                    if n > 1:
+                        out.append(Finding(98, FAIL, f"row {name}: {k} {v!r} appears in {n} {field} items; one "
+                                                     "of them is wrong (librarian card 062)", rel))
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(98, PASS, f"{n_items} bindings and state words on {len(rows)} device rows are copies "
+                                     "of their cited entries"))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -10390,6 +10612,7 @@ CHECKS = [
     check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
     check_95_a_store_answer_stands_on_a_published_store,
     check_96_a_device_label_is_its_cited_entrys,
+    check_98_a_binding_and_a_state_word_are_their_cited_entrys,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

@@ -1656,6 +1656,231 @@ def fixture_96_a_label_with_a_grade_of_its_own(repo: Path) -> str:
         grade="E1"))
 
 
+def _binding_store(repo: Path, change=None) -> str:
+    """Librarian card 062 (2026-10-27): a row's bindings and state words are copies of their cited entries.
+
+    Check 98 reads no history; it is here for check 96's reason -- its input
+    is the store's own files at a fixed path. The store is small and
+    synthetic: a camera whose `Exposure` is bound from a run measured here,
+    with its digest; the confocal unit's port, whose `empty` slot resolves
+    from a run that acquired and lit the camera that slot reaches; the disk,
+    whose word is a key of its own `states`; the branch selector, whose word
+    comes only from the path table; and the confocal unit's shutter, a row no
+    label warning names, whose word stands on a specification.
+    `change(table, entries)` breaks one thing.
+    """
+    start = base(repo)
+    run = "measured:run-20261027-001"
+
+    def state(eid: str, label: str, word: str, mm_state: str, lit: list) -> dict:
+        return {"entry_id": eid, "source": run, "grade": "E1", "supersedes": None, "refuted_by": [],
+                "identifiers": {"mm_label": label, "path_word": word, "mm_state_label": mm_state,
+                                "lit_detectors": lit}}
+    entries = {
+        "exposure_is_ms_on_kinetix_red": {
+            "entry_id": "exposure_is_ms_on_kinetix_red", "source": run, "grade": "E1",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "Kinetix_red", "mm_property": "Exposure", "quantity": "exposure_time",
+                            "unit": "ms", "mm_config_sha256": "a" * 64}},
+        "port_empty_lights_red": state("port_empty_lights_red", "CSUW1-Port", "empty", "Position-1",
+                                       ["camera_red"]),
+        "disk_out_lights_red": state("disk_out_lights_red", "CSUW1-Disk", "out", "Bright Field", ["camera_red"]),
+        "branch_inline_lights_red": state("branch_inline_lights_red", "LAPP-Branch", "inline", "State-0",
+                                          ["camera_red"]),
+        "shutter_open_is_labelled_open": {
+            "entry_id": "shutter_open_is_labelled_open", "source": "spec:CSU-W1", "grade": "E3",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "CSUW1-Shutter", "path_word": "open", "mm_state_label": "Open"}},
+    }
+    table = {
+        "channels": [
+            {"id": "camera_red", "mm_label": {"label": "Kinetix_red", "entry_ref": "exposure_is_ms_on_kinetix_red"},
+             "mm_bindings": [{"quantity": "exposure_time", "property": "Exposure", "unit": "ms",
+                              "entry_ref": "exposure_is_ms_on_kinetix_red", "config_sha256": "a" * 64}]},
+            {"id": "camera_blue"},
+            {"id": "csuw1_port", "mm_label": {"label": "CSUW1-Port", "entry_ref": "port_empty_lights_red"},
+             "verify_by": "acquisition", "slot_order": None,
+             "slot_contents": [{"content": "empty", "reaches": ["camera_red"], "starves": ["camera_blue"]},
+                               {"content": "100/0 mirror", "reaches": ["camera_blue"], "starves": ["camera_red"]}],
+             "mm_states": [{"word": "empty", "state_label": "Position-1", "entry_ref": "port_empty_lights_red"}]},
+            {"id": "csuw1_disk_position", "mm_label": {"label": "CSUW1-Disk", "entry_ref": "disk_out_lights_red"},
+             "states": {"in": "confocal", "out": "widefield fluorescence and brightfield"},
+             "mm_states": [{"word": "out", "state_label": "Bright Field", "entry_ref": "disk_out_lights_red"}]},
+            {"id": "lapp_branch", "mm_label": {"label": "LAPP-Branch", "entry_ref": "branch_inline_lights_red"},
+             "mm_states": [{"word": "inline", "state_label": "State-0", "entry_ref": "branch_inline_lights_red"}]},
+            {"id": "csuw1_shutter", "mm_label": {"label": "CSUW1-Shutter", "entry_ref": "shutter_open_is_labelled_open"},
+             "mm_states": [{"word": "open", "state_label": "Open", "entry_ref": "shutter_open_is_labelled_open"}]},
+        ],
+    }
+    paths = {"configurations": [
+        {"id": "widefield_inline", "required_selectors": {
+            "csuw1_port": "the slot that reaches the camera being used", "lapp_branch": "inline"}},
+        {"id": "widefield_side", "required_selectors": {"lapp_branch": "side"}},
+        {"id": "confocal", "required_selectors": {"csuw1_shutter": "open"}},
+    ]}
+    if change is not None:
+        change(table, entries)
+    kb = "librarian_agent/kb"
+    for eid, e in entries.items():
+        write(repo, f"{kb}/entries/{eid}.json", e)
+    write(repo, f"{kb}/staging/devices.v0.json", table)
+    write(repo, f"{kb}/staging/optical_paths.v0.json", paths)
+    commit(repo, "device rows carry the bindings and state words their entries hold", kb, seat="librarian")
+    return f"{start}..HEAD"
+
+
+def _row(table: dict, rid: str) -> dict:
+    return next(r for r in table["channels"] if r.get("id") == rid)
+
+
+def _binding(table: dict) -> dict:
+    return _row(table, "camera_red")["mm_bindings"][0]
+
+
+def _port_state(table: dict) -> dict:
+    return _row(table, "csuw1_port")["mm_states"][0]
+
+
+def fixture_98_bindings_and_words_copied_from_their_entries(repo: Path) -> str:
+    return _binding_store(repo)
+
+
+def fixture_98_a_label_alone_is_not_judged(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        for r in t["channels"]:
+            r.pop("mm_bindings", None)
+            r.pop("mm_states", None)
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_binding_with_a_grade_of_its_own(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _binding(t).update(grade="E1"))
+
+
+def fixture_98_a_state_word_on_a_row_with_no_label(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _row(t, "lapp_branch").pop("mm_label"))
+
+
+def fixture_98_a_binding_cites_no_entry(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _binding(t).update(entry_ref="exposure_nowhere"))
+
+
+def fixture_98_a_binding_its_entry_does_not_hold(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["exposure_is_ms_on_kinetix_red"]["identifiers"].update(unit="s"))
+
+
+def fixture_98_a_state_word_its_entry_does_not_hold(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _port_state(t).update(state_label="Position-2"))
+
+
+def fixture_98_a_binding_from_a_refuted_entry(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["exposure_is_ms_on_kinetix_red"].update(
+        refuted_by=["exposure_reads_in_seconds"]))
+
+
+def fixture_98_a_state_word_from_a_superseded_entry(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["port_empty_lights_red_again"] = dict(copy.deepcopy(e["port_empty_lights_red"]),
+                                                entry_id="port_empty_lights_red_again",
+                                                supersedes="port_empty_lights_red")
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_binding_on_an_unregistered_quantity(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _binding(t).update(quantity="exposure_duration")
+        e["exposure_is_ms_on_kinetix_red"]["identifiers"].update(quantity="exposure_duration")
+    return _binding_store(repo, change)
+
+
+def fixture_98_frame_count_bound(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["frames_on_kinetix_red"] = {
+            "entry_id": "frames_on_kinetix_red", "source": "spec:Kinetix", "grade": "E3", "supersedes": None,
+            "refuted_by": [], "identifiers": {"mm_label": "Kinetix_red", "mm_property": "Frames",
+                                              "quantity": "frame_count", "unit": "1"}}
+        _row(t, "camera_red")["mm_bindings"].append({"quantity": "frame_count", "property": "Frames", "unit": "1",
+                                                     "entry_ref": "frames_on_kinetix_red"})
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_unit_units_json_lacks(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _binding(t).update(unit="msec")
+        e["exposure_is_ms_on_kinetix_red"]["identifiers"].update(unit="msec")
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_fraction_of_scale_in_unit_one(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["green_intensity_on_the_engine"] = {
+            "entry_id": "green_intensity_on_the_engine", "source": "spec:Spectra III", "grade": "E3",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "Kinetix_red", "mm_property": "GREEN_Intensity",
+                            "quantity": "illumination_power", "unit": "1"}}
+        _row(t, "camera_red")["mm_bindings"].append({"quantity": "illumination_power", "property": "GREEN_Intensity",
+                                                     "unit": "1", "entry_ref": "green_intensity_on_the_engine"})
+    return _binding_store(repo, change)
+
+
+def fixture_98_one_quantity_into_two_properties(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["exposure_is_also_trigger_width"] = {
+            "entry_id": "exposure_is_also_trigger_width", "source": "spec:Kinetix", "grade": "E3",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "Kinetix_red", "mm_property": "TriggerWidth",
+                            "quantity": "exposure_time", "unit": "ms"}}
+        _row(t, "camera_red")["mm_bindings"].append({"quantity": "exposure_time", "property": "TriggerWidth",
+                                                     "unit": "ms", "entry_ref": "exposure_is_also_trigger_width"})
+    return _binding_store(repo, change)
+
+
+def fixture_98_two_words_for_one_state_label(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["disk_in_is_bright_field"] = {
+            "entry_id": "disk_in_is_bright_field", "source": "measured:run-20261027-001", "grade": "E1",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "CSUW1-Disk", "path_word": "in", "mm_state_label": "Bright Field",
+                            "lit_detectors": ["camera_red"]}}
+        _row(t, "csuw1_disk_position")["mm_states"].append({"word": "in", "state_label": "Bright Field",
+                                                            "entry_ref": "disk_in_is_bright_field"})
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_word_the_path_table_never_writes(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        _row(t, "lapp_branch")["mm_states"][0].update(word="straight")
+        e["branch_inline_lights_red"]["identifiers"].update(path_word="straight")
+    return _binding_store(repo, change)
+
+
+def fixture_98_a_port_word_read_off_a_label(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["port_empty_lights_red"].update(
+        source="prior_run:agentic-microscope@34a432c", grade="E3"))
+
+
+def fixture_98_a_branch_word_from_a_run_that_lit_nothing(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["branch_inline_lights_red"]["identifiers"].pop("lit_detectors"))
+
+
+def fixture_98_a_branch_word_lighting_a_detector_the_table_lacks(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["branch_inline_lights_red"]["identifiers"].update(
+        lit_detectors=["camera_green"]))
+
+
+def fixture_98_a_port_word_whose_run_lit_the_other_camera(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: e["port_empty_lights_red"]["identifiers"].update(
+        lit_detectors=["camera_blue"]))
+
+
+def fixture_98_a_binding_digest_that_is_not_hex(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _binding(t).update(config_sha256="A" * 64))
+
+
+def fixture_98_a_binding_digest_its_entry_does_not_record(repo: Path) -> str:
+    return _binding_store(repo, lambda t, e: _binding(t).update(config_sha256="b" * 64))
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1818,6 +2043,51 @@ FIXTURES = [
      fixture_96_a_digest_from_no_run),
     (96, "FAIL", "the field has no grade or source",
      fixture_96_a_label_with_a_grade_of_its_own),
+    # librarian card 062 (2026-10-27): a row's bindings and state words are its cited entries'.
+    (98, "PASS", "5 bindings and state words on 5 device rows are copies",
+     fixture_98_bindings_and_words_copied_from_their_entries),
+    (98, "N/A", "no device row carries mm_bindings or mm_states",
+     fixture_98_a_label_alone_is_not_judged),
+    (98, "FAIL", "the field has no grade or source of its own",
+     fixture_98_a_binding_with_a_grade_of_its_own),
+    (98, "FAIL", "carries bindings or state words and no mm_label",
+     fixture_98_a_state_word_on_a_row_with_no_label),
+    (98, "FAIL", "and no entry by that id",
+     fixture_98_a_binding_cites_no_entry),
+    (98, "FAIL", "unit 's' against 'ms'",
+     fixture_98_a_binding_its_entry_does_not_hold),
+    (98, "FAIL", "mm_state_label 'Position-1' against 'Position-2'",
+     fixture_98_a_state_word_its_entry_does_not_hold),
+    (98, "FAIL", "a refuted entry backs nothing",
+     fixture_98_a_binding_from_a_refuted_entry),
+    (98, "FAIL", "supersedes; cite the entry that replaced it",
+     fixture_98_a_state_word_from_a_superseded_entry),
+    (98, "FAIL", "a binding keys on a registered name only",
+     fixture_98_a_binding_on_an_unregistered_quantity),
+    (98, "FAIL", "frame_count is a verb's argument",
+     fixture_98_frame_count_bound),
+    (98, "FAIL", "which is not a symbol in contracts/units.json",
+     fixture_98_a_unit_units_json_lacks),
+    (98, "FAIL", "'1' cannot tell 10 from 1 per cent",
+     fixture_98_a_fraction_of_scale_in_unit_one),
+    (98, "FAIL", "quantity 'exposure_time' appears in 2 mm_bindings items",
+     fixture_98_one_quantity_into_two_properties),
+    (98, "FAIL", "state_label 'Bright Field' appears in 2 mm_states items",
+     fixture_98_two_words_for_one_state_label),
+    (98, "FAIL", "is not a word the path table writes for this row",
+     fixture_98_a_word_the_path_table_never_writes),
+    (98, "FAIL", "observed by a run that acquired, not read off a label",
+     fixture_98_a_port_word_read_off_a_label),
+    (98, "FAIL", "not the detector rows that got light",
+     fixture_98_a_branch_word_from_a_run_that_lit_nothing),
+    (98, "FAIL", "not the detector rows that got light",
+     fixture_98_a_branch_word_lighting_a_detector_the_table_lacks),
+    (98, "FAIL", "the observation and the table disagree",
+     fixture_98_a_port_word_whose_run_lit_the_other_camera),
+    (98, "FAIL", "is not 64 lowercase hex (librarian card 062)",
+     fixture_98_a_binding_digest_that_is_not_hex),
+    (98, "FAIL", "the digest is a copy of the entry's",
+     fixture_98_a_binding_digest_its_entry_does_not_record),
 ]
 
 
