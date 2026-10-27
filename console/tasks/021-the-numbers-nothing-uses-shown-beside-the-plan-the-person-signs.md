@@ -5,13 +5,23 @@ Written by `manager-console-office-20261017-1`. You read this; you do not edit i
 **Assigned to `console-office-20261017-1` (Console 1)**, after card 019. If
 you are not that seat, take nothing from this card and report up.
 
-**Held until the rule lands.** The list this card shows is computed by one
-rule in `contracts/`, which manager-microscope writes with its fixtures
+**Held until the rule landed.** The list this card shows is computed by one
+rule in `contracts/`, which manager-microscope wrote with its fixtures
 (plan.md 15.1 item 10, `574499c9`; what counts as using a number is
-worded field by field at `9e9c480b`). It is not there yet. This seat releases
-the card with one added line that names the rule's path, its fixtures' path
-and the commit it landed in. Build to that commit. Start nothing here before
-that line exists.
+worded field by field at `9e9c480b`).
+
+**Released against `f5699603`. Build to that commit.**
+- The rule is `unused_numbers(plan)` in `contracts/validate.py`.
+  - It returns `{name, value, unit, from}` per number, in `numbers[]`
+    order, with `from` as `"numbers[i]"`. That is the shape proposed below.
+  - It carries no `source`.
+- Its cases are the eleven `contracts/examples/unused_numbers_case_*.json`,
+  under `contracts/schemas/unused_numbers_case.schema.json`.
+  - Each case holds a `plan` and the exact `unused` list for it.
+  - Check 97 holds every case to the rule.
+- Three rejected cases sit in
+  `contracts/examples/rejected/bad_unused_numbers_case_*.json`. Each lists
+  something the rule does not give.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window.**
@@ -62,7 +72,11 @@ exists yet.
      - no plan: nothing;
      - a list, possibly empty;
      - "could not be worked out", with the copy's reason in words, when the
-       copy cannot apply the rule to the card.
+       copy cannot apply the rule to the card. The rule at `f5699603`
+       raises on some malformed plans, for example an action, a criterion
+       or a number that is not an object. Wherever the rule would raise,
+       the copy gives this state instead. On every plan the rule completes
+       on, the copy gives exactly the rule's list.
    - The mock store gives it the same way, and `to_dict` and `from_dict`
      carry it. So does the question detail the API returns. Regenerate
      `web/src/api/schema.ts`; do not hand-edit it.
@@ -72,7 +86,8 @@ exists yet.
      this plan that nothing sets"**.
    - One line per number: `name: value unit (provenance)`. Use
      `provenanceWord` for the provenance, as `devicesTouched` does, so a
-     guess still reads "guessed".
+     guess still reads "guessed". When the unit is `null` or `"1"` (a pure
+     number), nothing is printed after the value.
    - With an empty list, say: "Every number in this plan is one the run
      sets, hands to a step, sizes itself by, or checks against." It puts
      item 10's meaning of "used" (`9e9c480b`) in plain words, and a
@@ -89,10 +104,15 @@ exists yet.
      this card asks for no such change.
 
 5. **Tests, each watched failing first.**
-   - The copy run on the rule's fixtures, read from the tree's
-     `contracts/` through `repository_root()`. Each fixture's expected list
-     equals the copy's output. A missing fixture file fails the test; it
-     does not skip it.
+   - The copy run on the rule's cases, read from the tree's
+     `contracts/` through `repository_root()`.
+     - Each case's `unused` equals the copy's output exactly, in order,
+       with value, unit and `from` included.
+     - The test names the eleven case files present at `f5699603`, so a
+       missing one fails rather than being skipped.
+     - A case added later is picked up as well.
+   - The copy run on the three rejected cases gives, for each, a list that
+     differs from that case's `unused`.
    - Break the copy once by hand: stop counting one of the fields the rule
      counts, see a fixture fail, then restore it. Name that fixture in your
      report.
