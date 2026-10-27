@@ -1,0 +1,25 @@
+{
+  "artifact": "kb_map",
+  "schema_version": "0.1",
+  "kb_version": "kbv-000000000000",
+  "footer": "Generated from the knowledge store at kbv-000000000000. Do not edit by hand: correct the store and regenerate.",
+  "nodes": [
+    {
+      "id": "page:device_example",
+      "kind": "device",
+      "page": "device_example.md",
+      "coverage": {"E1": 0, "E2": 0, "E3": 1, "E4": 0, "E5": 0},
+      "disputed": 0
+    },
+    {
+      "id": "entry:example_entry",
+      "kind": "entry",
+      "grade": "E3",
+      "status": "current"
+    }
+  ],
+  "edges": [
+    {"type": "about", "from": "entry:example_entry", "to": "page:device_example", "stated_by": "example_entry"}
+  ],
+  "dangling": []
+}

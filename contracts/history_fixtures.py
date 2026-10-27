@@ -1075,7 +1075,8 @@ def _wiki_map(v: str, footer_v: str | None = None, node: dict | None = None) -> 
     """A kb_map as task 060 shapes it: one page node, one entry node, one edge."""
     return {"artifact": "kb_map", "schema_version": "0.1", "kb_version": v,
             "footer": _wiki_footer(footer_v or v),
-            "nodes": [{"id": "page:device_dev0", "kind": "device", "page": "device_dev0.md"},
+            "nodes": [{"id": "page:device_dev0", "kind": "device", "page": "device_dev0.md",
+                       "coverage": {"E1": 0, "E2": 0, "E3": 1, "E4": 0, "E5": 0}, "disputed": 0},
                       node or {"id": "entry:e1", "kind": "entry", "grade": "E3", "source": "spec:x",
                                "status": "current"}],
             "edges": [{"type": "about", "from": "entry:e1", "to": "page:device_dev0", "stated_by": "e1"}],
@@ -1113,6 +1114,17 @@ def fixture_87_map_at_the_published_version_while_the_store_moved(repo: Path) ->
     return _wiki_repo(repo, "kbv-cccccccccccc", "kbv-bbbbbbbbbbbb", [_wiki_footer("kbv-bbbbbbbbbbbb")],
                       "an entry committed after the last publish, with the wiki and map at the published version",
                       wiki_map=_wiki_map("kbv-bbbbbbbbbbbb"))
+
+
+def fixture_01_a_map_entry_node_without_its_grade(repo: Path) -> str:
+    """An entry drawn on the map with no grade beside it: the console would
+    show a relation whose provenance it cannot say. Current in every other
+    respect, so check 87 passes it and only the schema refuses it."""
+    return _wiki_repo(repo, "kbv-bbbbbbbbbbbb", "kbv-bbbbbbbbbbbb", [_wiki_footer("kbv-bbbbbbbbbbbb")],
+                      "a map entry node without its grade",
+                      wiki_map=_wiki_map("kbv-bbbbbbbbbbbb",
+                                         node={"id": "entry:e1", "kind": "entry", "source": "spec:x",
+                                               "status": "current"}))
 
 
 def fixture_87_a_publish_that_left_the_wiki_behind(repo: Path) -> str:
@@ -1728,6 +1740,14 @@ FIXTURES = [
      fixture_87_a_map_carrying_a_value),
     (87, "PASS", "the map at kbv-bbbbbbbbbbbb, the published version",
      fixture_87_map_at_the_published_version_while_the_store_moved),
+    # The map's schema (2026-10-27). A check 87 row reads only check 87, so a
+    # map that check 1 refused passed all of the rows above; these read check 1.
+    (1, "PASS", "conform to their schema",
+     fixture_87_map_at_the_published_version_while_the_store_moved),
+    (1, "FAIL", "'grade' is a required property [librarian_agent/kb/wiki/map.json]",
+     fixture_01_a_map_entry_node_without_its_grade),
+    (87, "PASS", "the map at kbv-bbbbbbbbbbbb",
+     fixture_01_a_map_entry_node_without_its_grade),
     (89,"FAIL", "rewrote lines its parent held; this log is append-only",
      fixture_89_a_harness_log_line_rewritten),
     # HP-007: an example is judged at its own instant, a real permit by the

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kb_map.schema.json",
+  "title": "librarian_agent/kb/wiki/map.json -- the store's relations, as nodes and typed edges, for the console to draw",
+  "description": "Rendered from the store by librarian_agent/src/wiki.py beside the wiki pages (librarian task 060) and never edited by hand. Added 2026-10-27: the map was shaped in task 060 and judged by check 87 for its version, footer and value keys, but no line in ARTIFACT_SCHEMA named it, so the first real render failed check 1 as an unknown artifact. Check 87's history fixtures could not see that, because each row reads only the check it names. A node is a wiki page or an entry; an entry node carries its grade, source and status as the entry records them, so nothing the console draws is shown without its provenance. No node or edge carries a number taken from an entry -- values stay on the pages -- and check 87 refuses a `value` or `values` key anywhere. Edge types are an open word, because the store's relation fields grow; the shape of an edge does not.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "kb_map" },
+    "schema_version": { "const": "0.1" },
+    "kb_version": { "type": "string", "pattern": "^kbv-[0-9a-f]{12}$" },
+    "footer": {
+      "type": "string",
+      "pattern": "^Generated from the knowledge store at kbv-[0-9a-f]{12}\\. Do not edit by hand: correct the store and regenerate\\.$",
+      "description": "the wiki pages' one footer line. Check 87 requires it to name kb_version"
+    },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "dangling": {
+      "type": "array",
+      "description": "a relation an entry states toward an id the store does not hold. Listed, never drawn as an edge",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stated_by": { "$ref": "#/$defs/entry_id" },
+          "field": { "type": "string", "pattern": "^[a-z_]+$" },
+          "names": { "type": "string", "minLength": 1 }
+        },
+        "required": ["stated_by", "field", "names"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["artifact", "schema_version", "kb_version", "footer", "nodes", "edges", "dangling"],
+  "additionalProperties": false,
+  "$defs": {
+    "entry_id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "node_id": { "type": "string", "pattern": "^(entry|page):[a-z0-9_]+$" },
+    "node": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "if": { "properties": { "kind": { "const": "entry" } } },
+      "then": { "$ref": "#/$defs/entry_node" },
+      "else": { "$ref": "#/$defs/page_node" }
+    },
+    "entry_node": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^entry:[a-z0-9_]+$" },
+        "kind": { "const": "entry" },
+        "grade": { "enum": ["E1", "E2", "E3", "E4", "E5"], "description": "as the entry records it. E6 never enters the store, so it never reaches the map" },
+        "source": { "type": "string", "pattern": "^[a-z_]+:.+", "description": "the entry's source, verbatim" },
+        "status": { "enum": ["current", "superseded", "refuted"], "description": "the server's status. Being in conflict is not a status: it is a conflict_with edge, and it counts in the page's disputed" }
+      },
+      "required": ["id", "kind", "grade", "source", "status"],
+      "additionalProperties": false
+    },
+    "page_node": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^page:[a-z0-9_]+$" },
+        "kind": { "type": "string", "pattern": "^[a-z_]+$", "description": "the page's subject kind: device, quantity, observable, sample, configuration" },
+        "page": { "type": "string", "pattern": "^[a-z0-9_]+\\.md$", "description": "the page's file in kb/wiki/" },
+        "coverage": {
+          "type": "object",
+          "description": "how many current entries about the subject stand at each grade, zeros written",
+          "properties": {
+            "E1": { "type": "integer", "minimum": 0 },
+            "E2": { "type": "integer", "minimum": 0 },
+            "E3": { "type": "integer", "minimum": 0 },
+            "E4": { "type": "integer", "minimum": 0 },
+            "E5": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["E1", "E2", "E3", "E4", "E5"],
+          "additionalProperties": false
+        },
+        "disputed": { "type": "integer", "minimum": 0, "description": "how many entries about the subject stand in a conflict" }
+      },
+      "required": ["id", "kind", "page", "coverage", "disputed"],
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "pattern": "^[a-z_]+$", "description": "about, supports, input_of, conflict_with, refutes, supersedes, and whatever relation field the store adds next" },
+        "from": { "$ref": "#/$defs/node_id" },
+        "to": { "$ref": "#/$defs/node_id" },
+        "stated_by": { "$ref": "#/$defs/entry_id", "description": "the entry whose field states the relation" }
+      },
+      "required": ["type", "from", "to", "stated_by"],
+      "additionalProperties": false
+    }
+  }
+}

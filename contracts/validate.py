@@ -319,6 +319,12 @@ ARTIFACT_SCHEMA = {
     # 2026-10-27, plan.md 15.1 item 10: one case of the unused-number rule, as
     # data, so the console's copy of the rule is tested on the cases check 97 is.
     "unused_numbers_case": "unused_numbers_case.schema.json",
+    # 2026-10-27, librarian task 060: kb/wiki/map.json, the store's relations
+    # for the console to draw. Check 87 judged its version and footer from
+    # 2026-10-25 while no line here named it, so the first real render failed
+    # check 1 as an unknown artifact -- and check 87's history rows read only
+    # check 87, so none of them could see that.
+    "kb_map": "kb_map.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
