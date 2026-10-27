@@ -648,11 +648,13 @@ class T7TheLightAndTheLevel(_Base):
         first = {"event": "apply", "t_mono": 0.0, "channel": "widefield_source_a", "verification": "readback"}
         self.tick(w, frames=1, events=[first], seed=1)
         self.pump(w, lambda e: len(self.of("watcher_state")) == 1)
-        second = {"event": "apply", "t_mono": self.clock(), "channel": "widefield_source_a",
+        # Fixed times, like the rest of T7. The first command is stamped 0.0 and the watcher tells commands
+        # apart by their stamp; this clock is time.monotonic(), which ticks every 15.6 ms on Windows, so a
+        # second stamp read from it could be 0.0 too and the later command would not be told from the first.
+        second = {"event": "apply", "t_mono": 10.0, "channel": "widefield_source_a",
                   "verification": "readback"}
-        time.sleep(0.01)
-        w.put_frame(frame(1) // 2, {}, self.clock())                  # the light is now at half the level
-        w.tick({**SNAPSHOT, "t_mono": self.clock()}, [second], {}, self.clock())
+        w.put_frame(frame(1) // 2, {}, 10.5)                          # the light is now at half the level
+        w.tick({**SNAPSHOT, "t_mono": 10.5}, [second], {}, 10.5)
         self.pump(w, lambda e: len(self.of("watcher_state")) == 2)
         v = self.of("watcher_state")[1]["watcher"]["image"]["intensity_normalised"]["value"]
         self.assertAlmostEqual(v, 1.0, places=6)                      # normalised to the NEW settled level
