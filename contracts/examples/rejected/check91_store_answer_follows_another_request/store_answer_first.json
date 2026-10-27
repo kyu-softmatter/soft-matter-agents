@@ -1,0 +1,12 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-122000-oth1",
+  "item_id": "ci-20261026-122000-oth1",
+  "request_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "answered_by": "seat:librarian-20261007-1",
+  "answered_at": "2026-10-26T10:10:00Z",
+  "outcome": "kept",
+  "reason": "FIXTURE: answers the ask in this group",
+  "kb_version": "kbv-0123456789ab"
+}

@@ -1765,6 +1765,13 @@ ALLOWED_PATHS = [
     r"^simulation_agent/envelope/(budget|snapshot)\.json$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
+    # The console inbox and the answers beside it (7.1.1 rules 1, 3 and 6, the
+    # opening sitting, 2026-10-26). An inbox holds a zero-byte .gitkeep, items
+    # and the attachments each item names (check 92 judges which); answers/
+    # holds answers named by their answer id, written by that agent alone.
+    r"^(microscope|simulation|librarian)_agent/console_inbox/(\.gitkeep|ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json|"
+    r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127})$",
+    r"^(microscope|simulation|librarian)_agent/answers/(\.gitkeep|ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json)$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
@@ -3199,6 +3206,11 @@ SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|READ
 # 2026-09-19, and check 48 exists to make a `paths` entry that cannot be
 # granted fail loudly instead of silently.
 INBOX = re.compile(r"^(microscope|simulation)_agent/inbox/")
+# A console inbox sits in the receiving agent's tree and belongs to the
+# console (7.1.1 rule 2, the opening sitting, 2026-10-26): the console's
+# server writes it and the console execution seat commits it, .gitkeep and
+# items alike. An agent able to write it could mint a question no login asked.
+CONSOLE_INBOX = re.compile(r"^(microscope|simulation|librarian)_agent/console_inbox/")
 
 DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|microscope_runtime|bridge|console)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
 
@@ -3217,6 +3229,8 @@ def seat_boundary_of(path: str) -> str:
     # is the one thing the bridge exists to make impossible.
     if INBOX.match(path):
         return "bridge"
+    if CONSOLE_INBOX.match(path):
+        return "console"
     for rx, agent in AGENT_OF_PATH:
         if rx.match(path):
             return agent
@@ -9452,6 +9466,41 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
         if iid not in requests:
             out.append(Finding(91, FAIL, f"the store answer names item {iid}, which no store request is", a.rel))
         store_answered.add(iid)
+    # An answer that follows another names one that exists, for the same
+    # request, and not itself (7.1.1 rule 6: waiting_for_a_name, then a second
+    # answer). Matched on the answer id the path carries, so an example tree
+    # is judged the way librarian_agent/answers/ will be.
+    by_answer_id = {}
+    for a in store_answers:
+        by_answer_id.setdefault(a.data.get("answer_id"), a)
+    for a in store_answers:
+        fol = a.data.get("follows")
+        if not fol:
+            continue
+        m = re.search(r"(ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4})\.json$", str(fol))
+        prior = by_answer_id.get(m.group(1)) if m else None
+        if prior is None or prior is a:
+            out.append(Finding(91, FAIL, f"the store answer follows {fol!r}, and no other store answer in this "
+                                         "tree is that one; a second answer follows an answer that was written "
+                                         "(7.1.1 rule 6)", a.rel))
+        elif prior.data.get("item_id") != a.data.get("item_id"):
+            out.append(Finding(91, FAIL, f"the store answer to {a.data.get('item_id')} follows {fol!r}, which "
+                                         f"answers {prior.data.get('item_id')}; an answer follows one to the same "
+                                         "request (7.1.1 rule 6)", a.rel))
+
+    # One item id, one item, across every agent's inbox and both kinds. The
+    # joins above keep the first and would read a second as already answered,
+    # so a duplicate is refused here rather than resolved by load order.
+    holders: dict = {}
+    for c in list(b.of_artifact("console_question")) + list(b.of_artifact("console_store_request")):
+        if "__unreadable__" not in c.data and c.data.get("item_id"):
+            holders.setdefault(c.data["item_id"], []).append(c.rel)
+    for iid, rels in sorted(holders.items()):
+        if len(rels) > 1:
+            for rel in rels:
+                out.append(Finding(91, FAIL, f"item id {iid} is held by {len(rels)} items ({', '.join(sorted(rels))}); "
+                                             "the console's server mints one id per item, and an answer naming it "
+                                             "could not say which it answers (7.1.1 rules 3 and 6)", rel))
     for iid, req in sorted(requests.items(), key=lambda kv: str(kv[0])):
         if iid not in store_answered:
             out.append(Finding(91, FAIL, f"store request {iid} has no store answer naming it; every request is "
