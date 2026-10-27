@@ -83,6 +83,7 @@ describe("Send", () => {
   it("never sends: a good form and a bad one both answer not sent", () => {
     const good = sendOutcome(buildAsk({ question: "what is the lamp power?", conditions: "" }));
     expect(good).toEqual({ sent: false, message: NOT_SENT, problems: [] });
+    expect(NOT_SENT).toBe("Not sent: the console does not send to the librarian yet.");
     const bad = sendOutcome(buildAsk({ question: "", conditions: "" }));
     expect(bad.sent).toBe(false);
     expect(bad.problems.length).toBe(1);

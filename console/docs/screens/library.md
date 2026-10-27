@@ -35,8 +35,10 @@ rank and no single number. A map whose version is behind the store says so.
 
 ## The four forms
 
-All four are open to every login the console allows. **Send checks the form and answers "Not sent: the librarian's
-inbox is not open yet." It writes no file and sends nothing**, and the check calls no server. The shapes are the
+All four are open to every login the console allows. **Send checks the form and answers "Not sent: the console does not
+send to the librarian yet." It writes no file and sends nothing**, and the check calls no server. The librarian's inbox is open; the console writes no item into it until the
+inbox-writer card. The note above each form says so: "The console does not send to the librarian yet, so Send only
+checks the form. Nothing you type here is kept or sent." The shapes are the
 four requests of `console_store_request.schema.json`; `shapes.fixture.json` holds one case per shape, the web tests
 assert the forms build exactly those, and `tests/server/test_library_request_shapes.py` validates each against the
 schema.
@@ -51,7 +53,10 @@ schema.
 ## Answers
 
 Under `--store mock` the list holds nine example answers, each labelled "example data", covering the seven
-outcomes of a request and the two answers to a question. Under `--store sma` it says "No answers yet.", whatever
-lies in the librarian's answers folder: the console reads none of the real ones until the inbox is open. Every number comes with its entry,
+outcomes of a request and the two answers to a question, newest first by `answered_at` (`answer_id` breaks a tie;
+the file name plays no part). The list carries its own note, not the pages': "These are example answers written
+for the console's practice data, not answers from any librarian. Their names and numbers are made up." (The pages,
+the front page and the map keep the note that they are copies of recorded files.) Under `--store sma` it says "No answers yet.", whatever
+lies in the librarian's answers folder: the console reads none of the real ones until the inbox-writer card. Every number comes with its entry,
 grade and source as recorded, and whether it covers the conditions asked. No E6 appears and the console adds no
 search.

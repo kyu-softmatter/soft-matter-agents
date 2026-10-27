@@ -1,13 +1,13 @@
 /**
  * The Library's request forms (console card 016): what each form would hand the librarian, and the console's own
- * check of the form. **Nothing here sends.** The librarian's inbox is not open, so Send builds the request, checks
+ * check of the form. **Nothing here sends.** The librarian's inbox is open, but the console writes no item into it yet, so Send builds the request, checks
  * it, and says it was not sent. A request is never an instruction to write: the librarian decides.
  *
  * The shapes are the four kinds of `console_store_request.schema.json`. `shapes.fixture.json` holds one case per
  * shape, and a pytest validates each against that schema, so this file cannot drift from it unnoticed.
  */
 
-export const NOT_SENT = "Not sent: the librarian's inbox is not open yet.";
+export const NOT_SENT = "Not sent: the console does not send to the librarian yet.";
 
 export const REMEMBERED_NOTE =
   "A remembered value enters at the lowest grade. The grade comes from the kind of source and is never chosen here.";

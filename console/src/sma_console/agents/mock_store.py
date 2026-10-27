@@ -127,16 +127,20 @@ class MockStore:
         return self.sample.root
 
     def library_answers(self) -> list[dict[str, Any]]:
-        """The sample's example answers, newest first by file name, each as the file has it."""
+        """The sample's example answers, newest first by `answered_at` (`answer_id` breaks a tie), each as the file has it.
+
+        The file name plays no part in the order.
+        """
         folder = self.sample.root / "librarian_agent" / "answers"
         out = []
-        for f in sorted(folder.glob("ca-*.json"), reverse=True):
+        for f in folder.glob("ca-*.json"):
             try:
                 doc = json.loads(f.read_bytes().decode("utf-8-sig"))
             except (OSError, ValueError):
                 continue
             if isinstance(doc, dict):
                 out.append(doc)
+        out.sort(key=lambda d: (str(d.get("answered_at", "")), str(d.get("answer_id", ""))), reverse=True)
         return out
 
     def approvals_target_present(self) -> bool:

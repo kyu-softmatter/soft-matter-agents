@@ -426,7 +426,7 @@ class AgentStore(Protocol):
 
     def library_answers(self) -> list[dict[str, Any]]:
         """The librarian's answers to show: the sample's example answers under the mock store and none from
-        a real tree, whatever its `librarian_agent/answers/` holds (the librarian's inbox is not open)."""
+        a real tree, whatever its `librarian_agent/answers/` holds (the console reads none until the inbox-writer card)."""
         ...
 
     def approvals_target_present(self) -> bool:

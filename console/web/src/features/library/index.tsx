@@ -1,7 +1,7 @@
 /**
  * Library area (console card 016): the librarian's generated pages grouped by the kind of data, the data map,
  * and four request forms with the answers list. It shows generated files and nothing else of the store, holds
- * no caller id and keeps nothing. Send writes and sends nothing: the librarian's inbox is not open yet.
+ * no caller id and keeps nothing. Send writes and sends nothing: the librarian's inbox is open, but the console writes no item into it yet.
  * `rest` forms (after `#/library/`): "" | "pages" | "pages/<page>" | "map" | "ask" | "add" | "withdraw" | "offer".
  */
 

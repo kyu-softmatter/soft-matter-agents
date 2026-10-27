@@ -1,7 +1,7 @@
 /**
  * The four request forms (console card 016): add a document or value, withdraw a value, offer a result, ask the
  * librarian. Every login the console allows may use them. **Send writes no file and sends nothing**: the
- * librarian's inbox is not open, so Send checks the form and says "Not sent". The check is the console's own and
+ * librarian's inbox is open and the console writes no item into it yet, so Send checks the form and says "Not sent". The check is the console's own and
  * calls no server.
  */
 
@@ -82,7 +82,7 @@ function RequestForm<T>(p: {
       <h3>{p.title}</h3>
       <p className="console-muted">{p.intro}</p>
       <p role="note" className="console-reason">
-        The librarian&apos;s inbox is not open yet, so Send only checks the form. Nothing you type here is kept or sent.
+        The console does not send to the librarian yet, so Send only checks the form. Nothing you type here is kept or sent.
       </p>
       {p.children(form, (patch) => {
         setForm({ ...form, ...patch });

@@ -3,8 +3,8 @@
 Four routes, all reads. **Nothing of the store is shown but the generated files under `librarian_agent/kb/wiki/`
 and the store's version** (`agents/library.py` is the only reader and takes nothing else). The console holds
 no caller id, makes no query, keeps nothing and cites no page. There is no route that sends: the librarian's
-inbox is not open, so Send on every form answers in the browser that nothing was sent. The answers list is the
-mock store's example answers, or "No answers yet." from a real tree.
+inbox is open, but the console writes no item into it yet, so Send on every form answers in the browser that
+nothing was sent. The answers list is the mock store's example answers, or "No answers yet." from a real tree.
 """
 
 from __future__ import annotations
@@ -22,6 +22,8 @@ router = APIRouter()
 
 EXAMPLE_NOTE = ("This is example data: a copy of recorded files kept with the console, not from this "
                 "microscope's librarian. Where each file came from is written in mock_data/SOURCE.md.")
+EXAMPLE_ANSWERS_NOTE = ("These are example answers written for the console's practice data, not answers from any "
+                        "librarian. Their names and numbers are made up.")
 NO_ANSWERS = "No answers yet."
 
 
@@ -225,6 +227,7 @@ def data_map(store: AgentStoreDep) -> MapOut:
 @router.get("/answers", response_model=AnswersOut)
 def answers(store: AgentStoreDep) -> AnswersOut:
     """The librarian's answers: example answers under the mock store, none from a real tree yet."""
-    example, note = _example(store)
+    example, _ = _example(store)
+    note = EXAMPLE_ANSWERS_NOTE if example else None
     found = [_answer(d, example) for d in store.library_answers()]
     return AnswersOut(example=example, example_note=note, answers=found, message=None if found else NO_ANSWERS)

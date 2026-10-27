@@ -589,7 +589,7 @@ class SmaFiles:
         return self._root
 
     def library_answers(self) -> list[dict[str, Any]]:
-        return []  # the librarian's answers are not read from the real tree until its inbox is open
+        return []  # the librarian's answers are not read from the real tree until the console's inbox-writer card
 
     def approvals_target_present(self) -> bool:
         """`microscope_runtime/approvals/` and only it: the old place, `microscope_agent/approvals/`, is

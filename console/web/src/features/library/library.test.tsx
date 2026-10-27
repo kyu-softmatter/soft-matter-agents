@@ -16,10 +16,15 @@ afterEach(() => {
 
 const V = "kbv-0123456789ab";
 const OLD = "kbv-ba9876543210";
-const NOT_SENT = "Not sent: the librarian's inbox is not open yet.";
+const NOT_SENT = "Not sent: the console does not send to the librarian yet.";
+const FORM_NOTE =
+  "The console does not send to the librarian yet, so Send only checks the form. Nothing you type here is kept or sent.";
 const EXAMPLE =
   "This is example data: a copy of recorded files kept with the console, not from this microscope's librarian. " +
   "Where each file came from is written in mock_data/SOURCE.md.";
+const EXAMPLE_ANSWERS =
+  "These are example answers written for the console's practice data, not answers from any librarian. " +
+  "Their names and numbers are made up.";
 const footer = (v = V) => `Generated from the knowledge store at ${v}. Do not edit by hand: correct the store and regenerate.`;
 const BEHIND = "This page was built from an older version of the store. Correct the store and regenerate the pages.";
 
@@ -57,7 +62,7 @@ const answer = (outcome: string, over: Record<string, unknown> = {}) => ({
 
 const OUTCOMES = ["entered", "waiting_for_a_name", "refuted", "in_conflict", "superseded", "kept", "no_entry_of_that_name"];
 const ANSWERS = (over: Record<string, unknown> = {}) => ({
-  example: true, example_note: EXAMPLE, message: null,
+  example: true, example_note: EXAMPLE_ANSWERS, message: null,
   answers: [
     ...OUTCOMES.map((o) => answer(o)),
     answer("answered", {
@@ -272,13 +277,28 @@ describe("the notes and the answers on each tab", () => {
     ["ask", "Ask the librarian"], ["add", "Add a document or value"], ["withdraw", "Withdraw a value"], ["offer", "Offer a result"],
   ];
   for (const [tab, title] of FORMS) {
-    it(`the ${tab} form says the inbox is not open and Send only checks`, async () => {
+    it(`the ${tab} form says the console does not send yet and Send only checks`, async () => {
       show({ hash: `#/library/${tab}` });
       const form = await screen.findByRole("form", { name: title });
-      expect(within(form).getByText(/inbox is not open yet, so Send only checks the form/)).toBeTruthy();
-      expect(within(form).getByText(/Nothing you type here is kept or sent/)).toBeTruthy();
+      expect(within(form).getByText(FORM_NOTE).getAttribute("role")).toBe("note");
+    });
+
+    it(`nothing on the ${tab} tab says the librarian's inbox is not open`, async () => {
+      show({ hash: `#/library/${tab}`, answers: ANSWERS() });
+      const form = await screen.findByRole("form", { name: title });
+      await screen.findByRole("region", { name: "Answers" });
+      fireEvent.click(within(form).getByRole("button", { name: "Send" }));
+      await within(form).findByRole("status");
+      expect(document.body.textContent).not.toMatch(/not open/i);
     });
   }
+
+  it("the answers list carries the example answers' own note, not the pages' note", async () => {
+    show({ hash: "#/library/ask", answers: ANSWERS() });
+    const list = await screen.findByRole("region", { name: "Answers" });
+    expect(within(list).getByText(EXAMPLE_ANSWERS)).toBeTruthy();
+    expect(within(list).queryByText(EXAMPLE)).toBeNull();
+  });
 
   it("lists the answers under the forms", async () => {
     show({ hash: "#/library/ask", answers: ANSWERS() });
