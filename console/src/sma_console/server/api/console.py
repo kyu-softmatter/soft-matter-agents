@@ -41,6 +41,7 @@ from ...agents import (
 )
 from ...agents import requests as question_requests
 from ...auth import AuditKind, TooManyAttempts
+from ...signing.approval_writer import NO_APPROVALS_FOLDER, WRITTEN_MESSAGE, SigningRefused, write_approval
 from . import (
     AgentStoreDep,
     Auth,
@@ -343,8 +344,9 @@ class SignCheckIn(BaseModel):
 
 
 class SignCheckOut(BaseModel):
-    outcome: Literal["not_built", "practice_signed"]
+    outcome: Literal["written", "practice_signed"]
     message: str
+    file_name: str | None = Field(default=None, description="the approval file written; none for practice")
 
 
 class SuggestionOut(BaseModel):
@@ -882,12 +884,9 @@ def question_cards(store: AgentStoreDep) -> QuestionCardsOut:
     return QuestionCardsOut(requests=requests, questions=_newest_first(cards))
 
 
-# -- the sign dialog: it checks, and writes nothing (card 011) -------------------------------------
+# -- the sign dialog: practice writes nothing; a real tree goes through the approval writer (cards 011, 013) --
 
-NOT_BUILT_MESSAGE = "Signing is not built yet: the part that writes your approval waits for your OK."
 PRACTICE_MESSAGE = "Practice: this login is shown as signed. Nothing was written."
-NO_APPROVALS_FOLDER = ("Nothing can be signed here: the folder microscope_runtime/approvals/ is not in the tree "
-                       "this console reads, and no other place is used.")
 
 
 def _signing_state(store: Any, me: Any, seat: Any) -> SigningStateOut:
@@ -917,39 +916,62 @@ def signing_state(store: AgentStoreDep, me: Login, seat: Auth) -> SigningStateOu
 )
 def sign_check(body: SignCheckIn, request: Request, store: AgentStoreDep, me: Login,
                seat: Auth) -> SignCheckOut:
-    """Check the person's password for the plan whose fingerprint the dialog showed. **Writes nothing.**
-    Under the mock store a practice login is shown as signed; under a real tree the answer is that signing
-    is not built yet. A tree without `microscope_runtime/approvals/` says so first, and offers no other place."""
+    """Sign the plan whose fingerprint the dialog showed, with the password typed again.
+
+    Under the mock store a practice login is shown as signed and **nothing is written**. Under a real tree
+    `signing.approval_writer` writes one approval into `microscope_runtime/approvals/` when every condition
+    holds in this request, and otherwise refuses in words and writes nothing. The route keeps the name
+    `sign-check` it was built under (card 011); it writes now."""
     if why := logged_in_refusal(me):
         raise why.http()
     if not me.local:
         raise remote_view("Signing is done at the microscope computer only.").http()
     state = _signing_state(store, me, seat)
-    if not state.person_named:
-        raise Refusal(403, "person_not_named", "The person's login is not named yet, so no one can sign.").http()
-    if not state.is_person:
-        raise Refusal(403, "not_person", "Only the person's own login signs.").http()
     try:
         detail = store.get_question(body.qid)
     except NotFoundError as e:
         raise _not_found(e).http() from e
     except StoreError as e:
         raise _store_error(e).http() from e
-    if detail.plan_hash is None or detail.plan_hash != body.plan_hash:
-        raise Refusal(409, "plan_changed", "The plan is not the one whose fingerprint was shown. Open it again.").http()
-    if not state.practice and not state.approvals_folder:
-        raise Refusal(409, "no_approvals_folder", NO_APPROVALS_FOLDER).http()
+    plan_card = detail.plan.data if detail.plan is not None and isinstance(detail.plan.data, dict) else None
+    tree = store.runtime_root() if hasattr(store, "runtime_root") else None
     client = request.client.host if request.client else None
+    login = me.info.user_id
+
+    def password_is_right() -> bool:  # the login's own throttle: it raises TooManyAttempts, answered below
+        return bool(seat.logins.check_password(login, body.password, client))
+
     try:
-        ok = seat.logins.check_password(me.info.user_id, body.password, client)
+        if tree is None and not state.practice:
+            raise SigningRefused(409, "no_approvals_folder", NO_APPROVALS_FOLDER)
+        if state.practice:
+            # same refusals as a real signing, then the password; nothing is written and nothing is looked up
+            if not state.person_named:
+                raise SigningRefused(403, "person_not_named", "The person's login is not named yet, so no one can sign.")
+            if not state.is_person:
+                raise SigningRefused(403, "not_person", "Only the person's own login signs.")
+            if detail.plan_hash is None or detail.plan_hash != body.plan_hash:
+                raise SigningRefused(409, "plan_changed", "The plan changed; review it again.")
+            if not password_is_right():
+                raise SigningRefused(401, "bad_credentials", "Wrong password.")
+            written = None
+        else:
+            written = write_approval(
+                tree=tree, practice=False, session_login=login, person_login=seat.accounts.person_login(),
+                qid=body.qid, shown_plan_hash=body.plan_hash, plan_card=plan_card, check_password=password_is_right)
     except TooManyAttempts as e:
         return JSONResponse(  # type: ignore[return-value]  # same words and Retry-After as login and unlock
             {"detail": {"code": "too_many_attempts", "message": str(e)}}, status_code=429,
             headers={"X-DinoAF-Refusal": "too_many_attempts", "Retry-After": str(e.retry_after_s)})
-    if not ok:
-        raise Refusal(401, "bad_credentials", "Wrong password.").http()
-    outcome = "practice_signed" if state.practice else "not_built"
-    if seat.audit is not None:  # who, which question and plan, what came of it: never a password or a hash of one
-        seat.audit.append(AuditKind.SIGN_CHECKED, me.user_id, origin="console", qid=body.qid,
-                          plan_hash=body.plan_hash, outcome=outcome)
-    return SignCheckOut(outcome=outcome, message=PRACTICE_MESSAGE if state.practice else NOT_BUILT_MESSAGE)  # type: ignore[arg-type]
+    except SigningRefused as e:
+        raise Refusal(e.status, e.code, e.message).http() from e
+    if written is None:
+        if seat.audit is not None:
+            seat.audit.append(AuditKind.SIGN_CHECKED, login, origin="console", qid=body.qid,
+                              plan_hash=body.plan_hash, outcome="practice_signed")
+        return SignCheckOut(outcome="practice_signed", message=PRACTICE_MESSAGE)
+    if seat.audit is not None:  # who, which plan and revision, which file: never a password or a hash of one
+        seat.audit.append(AuditKind.APPROVAL_WRITTEN, login, origin="console", qid=written.qid,
+                          plan_id=written.plan_id, plan_revision=written.plan_revision,
+                          plan_hash=written.plan_hash, file_name=written.file_name)
+    return SignCheckOut(outcome="written", message=WRITTEN_MESSAGE, file_name=written.file_name)

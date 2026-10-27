@@ -33,7 +33,7 @@ All are mounted at `/api/console` by T-009's area-router mechanism. Bodies are t
 | `POST /question-requests` | `{words, addressed_to}` (nothing else is accepted) | `201`, `QuestionRequest`: `contracts/schemas/question_request.schema.json`, exactly as written | `write_request(store.request_write_folder(), ...)` |
 | `GET /question-cards` | | `{requests: RequestCard[], questions: QuestionProgress[]}`: requests written in the console (newest first), and the agents' questions with five steps | `read_requests`, `list_questions`, `get_question`, `list_runs` |
 | `GET /signing` | | `SigningState`: `person_named`, `is_person`, `practice`, `approvals_folder` (the screen's offer to this login) | `settings.json` `person_login`; `approvals_target_present()` |
-| `POST /sign-check` | `{qid, plan_hash, password}` (nothing else) | `SignCheck`: `outcome` `not_built` or `practice_signed`, `message`. **Writes nothing** | `AccountStore.person_login()`, `LoginSessions.check_password` |
+| `POST /sign-check` | `{qid, plan_hash, password}` (nothing else) | `SignCheck`: `outcome` `written` (with `file_name`) or `practice_signed`, `message`. **Writes one approval on a real tree, nothing under the mock store** | `AccountStore.person_login()`, `LoginSessions.check_password` |
 | `GET /suggestions` | | `[{text, kind}]`, `kind` `earlier question` or `registered name`: strings already on disk | `read_requests`, `registered_names()` |
 
 Error mapping (all T-009b refusals: `detail = {code, message}` and the `X-DinoAF-Refusal` header):
@@ -130,18 +130,31 @@ card tabs and the two-version diff are gone; the version picker stays when a que
   plan_approval's `plan_hash` (a test runs that function's own source against the contracts' example plan
   and its approval's `plan_hash`). A password field is typed again and never pre-filled, and is cleared
   after every try.
-- **Sign checks the password at the server and writes nothing.** The order is: the person's login; the
-  plan is the question's current one (409 `plan_changed` otherwise); the approvals folder; then the
-  password, counted by the login's own attempt limit (401, then 429 with Retry-After). The answer is
-  "Signing is not built yet: the part that writes your approval waits for your OK." Under the mock store
-  a practice login is shown as signed, with "Nothing was written". No password, and no hash of one, is in
-  a response, a log or an audit line; the audit line `sign_checked` names the login, the question, the
-  plan's fingerprint and the outcome.
+- **Sign writes one approval, or refuses and writes nothing** (card 013). The route keeps the name
+  `sign-check`. The order is: the person's login; the store is real; the plan is the question's current
+  one by fingerprint (409 `plan_changed`, "The plan changed; review it again."); the approvals folder;
+  then the password, counted by the login's own attempt limit (401, then 429 with Retry-After); then the
+  person's own login file `microscope_runtime/envelope/console_login.json` (409 `login_file_missing`,
+  `login_file_invalid` or `login_file_other_login`; the console reads it and never writes it); then an
+  approval of that name is not already there (409 `already_approved`). The fingerprint and the folder come
+  before the password so that a password is counted only for something that could be signed. All hold in
+  the same request, or nothing is written. The answer, `written`, says: "Approval written. The runtime
+  reads it from disk now. Commit it yourself when you choose: no session may commit a file under
+  approvals/." and names the file, `appr-<qid>-r<revision>.json`. Under the mock store a practice login is
+  shown as signed, with "Nothing was written". No password, and no hash of one, is in a file, a response,
+  a log or an audit line; the audit line `approval_written` names the login, the question, the plan, its
+  revision, its fingerprint and the file name (a practice signing stays `sign_checked`).
+- **What is written.** One `plan_approval` card, built to `plan_approval.schema.json` and validated
+  against it first, with `approved_by` the login, `approved_at` UTC now and
+  `signed_through: {via: console, login}`. It is written whole under a hidden temporary name that does not
+  end in `.json` (the runtime reads every `*.json` there), then linked to its name so a file is never
+  replaced; nothing else in the folder is touched.
 - **No approvals folder.** Only `microscope_runtime/approvals/` counts. Without it in the tree the console
   reads, the dialog says nothing can be signed and offers no form and no other place; the old
   `microscope_agent/approvals/` is read for display and is not a place to sign.
-- **What this card does not build:** the writer. It writes an approval into `microscope_runtime/approvals/`,
-  is part of the person's guard, and waits for the person's answer to Q-20261024-office-01.
+- **The writer is part of the person's guard.** `src/sma_console/signing/approval_writer.py` is the one
+  place the console writes into `microscope_runtime/`, built on the person's word (Q-20261024-office-01,
+  `b4f340ee`). Any change to it needs the person's word through the intake seat.
 
 ## A run soft-matter-agents executes (C-04, C-08)
 

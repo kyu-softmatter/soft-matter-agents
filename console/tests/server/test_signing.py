@@ -1,9 +1,8 @@
-"""The sign dialog's server side (console card 011, plan.md 6.1, 15.1): it checks and writes nothing.
+"""The sign dialog's server side (console card 011, plan.md 6.1, 15.1): who may see Sign, the fingerprint
+the dialog shows, the password check with its throttle, and that every refusal writes nothing.
 
 The part that writes an approval into `microscope_runtime/approvals/` is part of the person's guard and
-is built only on the person's word (Q-20261024-office-01, not answered). So these tests hold the
-console to the other half: who may see Sign, the fingerprint the dialog shows, the password check with
-its throttle, and that **nothing is written anywhere**.
+is tested in `test_approval_writer.py` (card 013, on the person's word, Q-20261024-office-01).
 """
 
 from __future__ import annotations
@@ -28,7 +27,6 @@ EXAMPLE_APPROVAL = REPO / "contracts" / "examples" / "plan_approval.json"
 QID = "mic-20260917-001"
 STATE = "/api/console/signing"
 CHECK = "/api/console/sign-check"
-NOT_BUILT = "Signing is not built yet: the part that writes your approval waits for your OK."
 
 
 def refusal(r) -> tuple[int, str]:
@@ -80,6 +78,15 @@ def sma_client(engine, make_client, sma_root):
 def with_folder(sma_root):
     (sma_root / "microscope_runtime" / "approvals").mkdir(parents=True)
     return sma_root / "microscope_runtime" / "approvals"
+
+
+def place_login_file(root: Path, login: str, **over) -> Path:
+    """The person's own login file, placed by hand beside the safety policy (the console never writes it)."""
+    path = root / "microscope_runtime" / "envelope" / "console_login.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"artifact": "console_login", "schema_version": "0.1", "login": login,
+                                "written_by": "the person", "written_at": "2026-10-26", **over}), encoding="utf-8")
+    return path
 
 
 def body(**over):
@@ -154,12 +161,13 @@ def test_the_old_place_is_not_a_place_to_sign(sma_client, seat, sma_root):
 # -- the check ---------------------------------------------------------------------------------------
 
 
-def test_sign_answers_that_it_is_not_built_and_writes_nothing(sma_client, seat, sma_root, with_folder):
+def test_a_real_tree_without_the_persons_login_file_writes_nothing(sma_client, seat, sma_root, with_folder):
+    """Card 013 took the place of "not built": a right password on a real tree writes only when the person's
+    own login file is there. Without it the answer is a refusal in words and the tree is untouched."""
     settle(seat, person_login=OPERATOR)
     before_tree, before_repo = tree_hash(sma_root), tree_hash(REPO / "console" / "src")
     r = sma_client().post(CHECK, json=body())
-    assert r.status_code == 200, r.text
-    assert r.json() == {"outcome": "not_built", "message": NOT_BUILT}
+    assert refusal(r) == (409, "login_file_missing")
     assert tree_hash(sma_root) == before_tree and list(with_folder.iterdir()) == []
     assert tree_hash(REPO / "console" / "src") == before_repo
 
@@ -255,8 +263,9 @@ def test_a_remote_browser_and_a_locked_login_cannot_check(sma_client, seat, with
     assert c.post(CHECK, json=body()).status_code == 423
 
 
-def test_no_password_and_no_hash_of_one_in_any_response_or_log_line(sma_client, seat, with_folder):
+def test_no_password_and_no_hash_of_one_in_any_response_or_log_line(sma_client, seat, sma_root, with_folder):
     settle(seat, person_login=OPERATOR)
+    place_login_file(sma_root, OPERATOR)
     c = sma_client()
     secret = "very-secret-pass-77"
     texts = [c.post(CHECK, json=body(password=secret)).text, c.post(CHECK, json=body()).text, c.get(STATE).text]
@@ -266,6 +275,6 @@ def test_no_password_and_no_hash_of_one_in_any_response_or_log_line(sma_client, 
     log = seat.audit.path.read_text(encoding="utf-8")
     assert secret not in log and TEST_PASSWORD not in log and hashed not in log and "scrypt" not in log
     kinds = [e["kind"] for e in seat.audit.entries()]
-    assert "login_failed" in kinds and "sign_checked" in kinds
-    line = [e for e in seat.audit.entries() if e["kind"] == "sign_checked"][-1]
-    assert line["user_id"] == OPERATOR and line["qid"] == QID and line["outcome"] == "not_built"
+    assert "login_failed" in kinds and "approval_written" in kinds
+    line = [e for e in seat.audit.entries() if e["kind"] == "approval_written"][-1]
+    assert line["user_id"] == OPERATOR and line["qid"] == QID and line["file_name"] == f"appr-{QID}-r1.json"

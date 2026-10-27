@@ -856,9 +856,12 @@ export interface paths {
         put?: never;
         /**
          * Sign Check
-         * @description Check the person's password for the plan whose fingerprint the dialog showed. **Writes nothing.**
-         *     Under the mock store a practice login is shown as signed; under a real tree the answer is that signing
-         *     is not built yet. A tree without `microscope_runtime/approvals/` says so first, and offers no other place.
+         * @description Sign the plan whose fingerprint the dialog showed, with the password typed again.
+         *
+         *     Under the mock store a practice login is shown as signed and **nothing is written**. Under a real tree
+         *     `signing.approval_writer` writes one approval into `microscope_runtime/approvals/` when every condition
+         *     holds in this request, and otherwise refuses in words and writes nothing. The route keeps the name
+         *     `sign-check` it was built under (card 011); it writes now.
          */
         post: operations["sign_check_api_console_sign_check_post"];
         delete?: never;
@@ -2754,9 +2757,14 @@ export interface components {
              * Outcome
              * @enum {string}
              */
-            outcome: "not_built" | "practice_signed";
+            outcome: "written" | "practice_signed";
             /** Message */
             message: string;
+            /**
+             * File Name
+             * @description the approval file written; none for practice
+             */
+            file_name?: string | null;
         };
         /**
          * SigningStateOut

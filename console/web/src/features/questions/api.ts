@@ -124,9 +124,11 @@ export async function askQuestion(client: Client, body: AskIn): Promise<Question
 }
 
 /**
- * `POST /api/console/sign-check`: the server checks the person's password for the plan whose fingerprint
- * the dialog showed. **It writes nothing.** Every refusal (wrong password, the throttle, a missing
- * approvals folder, a login that is not the person's) is thrown with its reason, in words.
+ * `POST /api/console/sign-check` (the name it was built under; it signs since card 013): the server checks
+ * the person's password for the plan whose fingerprint the dialog showed and, on a real tree, writes one
+ * approval into `microscope_runtime/approvals/`. Under the mock store nothing is written. Every refusal
+ * (wrong password, the throttle, a changed plan, a missing approvals folder or login file, a login that is
+ * not the person's) is thrown with its reason, in words.
  */
 export async function signCheck(client: Client, body: SignCheckIn): Promise<SignCheck> {
   const r = await client.post<SignCheck>(PATHS.signCheck, body);

@@ -39,6 +39,8 @@ class AuditKind(StrEnum):
     ACCOUNT_PASSWORD_RESET = "account_password_reset"
     #: the sign dialog checked the person's password; it wrote no approval (console card 011)
     SIGN_CHECKED = "sign_checked"
+    #: the approval writer wrote one plan approval into microscope_runtime/approvals/ (console card 013)
+    APPROVAL_WRITTEN = "approval_written"
     #: an administrator gave an email-keyed account its plain login id (names both)
     ACCOUNT_LOGIN_GIVEN = "account_login_given"
     COMMAND_PROPOSED = "command_proposed"

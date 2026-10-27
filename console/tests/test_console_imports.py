@@ -19,7 +19,7 @@ PKG = TREE / "src" / "sma_console"
 TESTS = TREE / "tests"
 
 #: The only subpackages of sma_console that live under console/.
-PACKAGES = {"server", "agents", "assistant", "auth"}
+PACKAGES = {"server", "agents", "assistant", "auth", "signing"}  # signing: the approval writer (card 013)
 SCANNED_ROUTER_PACKAGE = "sma_console.server.api"
 
 
@@ -72,7 +72,7 @@ def _rel(path: Path) -> str:
     return path.relative_to(TREE).as_posix()
 
 
-def test_only_the_four_packages_are_here():
+def test_only_the_five_packages_are_here():
     here = {m.split(".")[1] for m in MODULES if m.count(".") >= 1}
     assert here == PACKAGES, sorted(here ^ PACKAGES)
     for folder in sorted(p.name for p in TESTS.iterdir() if p.is_dir() and p.name != "__pycache__"):

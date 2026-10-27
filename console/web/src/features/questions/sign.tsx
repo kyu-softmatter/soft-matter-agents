@@ -4,9 +4,10 @@
  * removed, as `contracts/validate.py`'s `card_sha` and a plan_approval's `plan_hash` have it). The
  * password is typed again and never pre-filled.
  *
- * **Sign checks the password at the server and writes nothing.** The part that writes an approval into
- * `microscope_runtime/approvals/` is part of the person's guard and waits for the person's OK, so the
- * answer is that signing is not built yet. With the mock store a practice login is shown as signed.
+ * **Sign sends the plan's fingerprint and the password to the server, which decides** (console card 013).
+ * On a real tree it writes one approval into `microscope_runtime/approvals/` when every condition holds,
+ * and says what it wrote and that the person commits it; otherwise it refuses in words and writes
+ * nothing. With the mock store a practice login is shown as signed and nothing is written.
  * Without that folder in the tree the console reads, nothing can be signed and no other place is offered.
  */
 
@@ -120,7 +121,7 @@ export function SignDialog({
 
   async function sign(e: FormEvent) {
     e.preventDefault();
-    if (busy || password === "" || detail.plan_hash == null) return;
+    if (busy || password === "" || detail.plan_hash == null || done?.outcome === "written") return;
     typed.current = password;
     setBusy(true);
     setError(undefined);
@@ -215,7 +216,7 @@ export function SignDialog({
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          <button type="submit" disabled={busy || password === ""}>
+          <button type="submit" disabled={busy || password === "" || done?.outcome === "written"}>
             Sign
           </button>
           {error !== undefined && (
@@ -223,7 +224,17 @@ export function SignDialog({
               {error}
             </p>
           )}
-          {done !== undefined && <p role="status">{done.message}</p>}
+          {done !== undefined && (
+            <p role="status">
+              {done.message}
+              {done.file_name != null && (
+                <>
+                  {" "}
+                  File: <code>{done.file_name}</code>
+                </>
+              )}
+            </p>
+          )}
         </form>
       )}
       <p>

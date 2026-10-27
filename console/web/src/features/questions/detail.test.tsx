@@ -12,7 +12,8 @@ import QuestionsScreen from "./index";
 
 const QID = "mic-20260917-001";
 const HASH = "sha256:2bd6c3fbe49cfe89e2a5d94f7943789f4543e02cbd68c2e69e3bc98aca8d6dd9";
-const NOT_BUILT = "Signing is not built yet: the part that writes your approval waits for your OK.";
+const WRITTEN = "Approval written. The runtime reads it from disk now. Commit it yourself when you choose: no session may commit a file under approvals/.";
+const WRITTEN_FILE = `appr-${QID}-r1.json`;
 const SIGNING = "/api/console/signing";
 const CHECK = "/api/console/sign-check";
 
@@ -115,7 +116,7 @@ function show(opts: Opts = {}) {
     [PATHS.suggestions]: () => ({ status: 200, body: [] }),
     [SIGNING]: () =>
       opts.signing === null ? { status: 500, body: { detail: "no" } } : { status: 200, body: opts.signing ?? STATE },
-    [CHECK]: opts.check ?? (() => ({ status: 200, body: { outcome: "not_built", message: NOT_BUILT } })),
+    [CHECK]: opts.check ?? (() => ({ status: 200, body: { outcome: "written", message: WRITTEN, file_name: WRITTEN_FILE } })),
   });
   const client = new Client(fake.transport, "127.0.0.1");
   clients.push(client);
@@ -437,12 +438,15 @@ describe("the sign dialog", () => {
     expect((within(d).getByRole("button", { name: "Sign" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("checks the password at the server and says signing is not built yet; it writes nothing", async () => {
+  it("sends the fingerprint and the password to the server, and shows what it wrote and who commits it", async () => {
     const t = show();
     const d = await openDialog();
     fireEvent.change(within(d).getByLabelText("Your password, again"), { target: { value: "my-password-1" } });
     fireEvent.click(within(d).getByRole("button", { name: "Sign" }));
-    expect((await within(d).findByRole("status")).textContent).toBe(NOT_BUILT);
+    const status = (await within(d).findByRole("status")).textContent ?? "";
+    expect(status).toContain(WRITTEN);
+    expect(status).toContain(WRITTEN_FILE);
+    expect((within(d).getByRole("button", { name: "Sign" }) as HTMLButtonElement).disabled).toBe(true); // once
     const sent = t.posts();
     expect(sent.map((p) => p.path)).toEqual([CHECK]); // the one call, and no other write anywhere
     expect(JSON.parse(String(sent[0].init?.body))).toEqual({ qid: QID, plan_hash: HASH, password: "my-password-1" });
