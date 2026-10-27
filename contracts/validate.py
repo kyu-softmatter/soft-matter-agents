@@ -1747,6 +1747,13 @@ ALLOWED_PATHS = [
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
+    # A console inbox item's attachment beside its example or fixture item
+    # (check 92, 2026-10-26), named <item_id>--<name> with whatever extension
+    # the asker's file had. A check-92 fixture may nest a console_inbox/ to
+    # test what may sit inside one.
+    r"^contracts/examples/(rejected/check[0-9]{2}_[a-z0-9_]+/(console_inbox/)?)?"
+    r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+    r"^contracts/examples/rejected/check92_[a-z0-9_]+/console_inbox/(ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json|\.gitkeep)$",
     r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
     # An imported subtree, whole (IMPORTED_SUBTREES, 2026-10-15). Its layout is
     # the imported project's, so it is declared once, not file by file.
@@ -9544,6 +9551,109 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
     return out
 
 
+def _named_documents(node: object) -> list[str]:
+    """Every string under a `document` key anywhere inside a store request."""
+    found: list[str] = []
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == "document" and isinstance(v, str):
+                found.append(v)
+            else:
+                found.extend(_named_documents(v))
+    elif isinstance(node, list):
+        for v in node:
+            found.extend(_named_documents(v))
+    return found
+
+
+def check_92_a_console_item_holds_the_files_it_names(b: Bundle) -> list[Finding]:
+    """A console inbox item names only files it carries, and carries them intact (plan.md 7.1.1 rule 4).
+
+    An entry made from a document request names the request as its source
+    (rule 3), so the attached document is part of that entry's provenance.
+    The schemas say a request names a file and the envelope lists files with
+    a sha256; they cannot say the two agree, or that the bytes are there:
+
+      a. every `document` a console_store_request names is one of its
+         envelope's attachments;
+      b. every attachment's file name begins with the item's own id and
+         `--` (the schema pins only the ci-...-- form), so an item cannot
+         list another item's file;
+      c. every attachment is a file beside its item whose bytes hash to the
+         sha256 the item records;
+      d. inside a console_inbox/ folder, every file is an item or an
+         attachment its item lists, so no file sits there bound to no hash.
+         The one exception is an empty `.gitkeep`, which lets git hold the
+         folder before its first item: the runners refuse when it is absent.
+
+    It holds for both item kinds, the console's questions and the
+    librarian's store requests; (b) to (d) by manager-console's agreement
+    (2026-10-26). An attachment missing `file` or `sha256` is the schema's
+    refusal and is skipped here. The bytes hashed are the judged tree's:
+    under --staged that is the hook's checkout-index export, which equals
+    the committed blob under **/console_inbox/** because .gitattributes
+    turns end-of-line conversion off there. The examples' attachments carry
+    no line ending, so they hash alike on every computer.
+    """
+    out: list[Finding] = []
+    items = [c for c in b.of_artifact("console_question", "console_store_request")
+             if "__unreadable__" not in c.data]
+    allowed = {c.path for c in items}
+    files = 0
+    for c in items:
+        iid = str(c.data.get("item_id") or "")
+        atts = [a for a in (c.data.get("attachments") or [])
+                if isinstance(a, dict) and isinstance(a.get("file"), str) and isinstance(a.get("sha256"), str)]
+        listed = {a["file"] for a in atts}
+        if c.data.get("artifact") == "console_store_request":
+            for doc in _named_documents(c.data.get("request")):
+                if doc not in listed:
+                    out.append(Finding(92, FAIL, f"the request names document {doc!r} and its attachments list "
+                                                 f"{sorted(listed) if listed else 'nothing'}; a document is handed "
+                                                 "in by attaching it (7.1.1 rule 4)", c.rel))
+        for a in atts:
+            name = a["file"]
+            if not name.startswith(iid + "--"):
+                out.append(Finding(92, FAIL, f"attachment {name!r} does not begin with the item's own id "
+                                             f"{iid}--; an item carries only its own files (7.1.1 rule 4)", c.rel))
+                continue
+            path = c.path.parent / name
+            allowed.add(path)
+            if not path.is_file():
+                out.append(Finding(92, FAIL, f"attachment {name} is listed and no such file is beside the item; "
+                                             "an item and its files land together (7.1.1 rule 4)", c.rel))
+                continue
+            got = hashlib.sha256(path.read_bytes()).hexdigest()
+            if got != a["sha256"]:
+                out.append(Finding(92, FAIL, f"attachment {name} is recorded as sha256 {a['sha256']} and its "
+                                             f"bytes hash to {got}; the file beside the item is not the one "
+                                             "the asker attached (7.1.1 rule 3)", c.rel))
+                continue
+            files += 1
+    inbox_files = 0
+    for p in b.all_files:
+        try:
+            rel = p.relative_to(REPO).as_posix()
+        except ValueError:
+            rel = p.as_posix()
+        if "console_inbox" not in rel.split("/")[:-1] or is_imported(rel) or is_mock_data(rel):
+            continue
+        if p.name == ".gitkeep" and p.stat().st_size == 0:
+            continue
+        inbox_files += 1
+        if p not in allowed:
+            out.append(Finding(92, FAIL, f"{rel} sits in a console_inbox/ and is neither an item nor an "
+                                         "attachment an item lists; nothing there is bound to no hash "
+                                         "(7.1.1 rules 3 and 4)", rel))
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(92, PASS if items or inbox_files else NA,
+                           f"{len(items)} console inbox items name only files they attach, {files} attached files "
+                           f"sit beside their items with matching bytes, and {inbox_files} files in console_inbox/ "
+                           "folders are each an item or a listed attachment"
+                           if items or inbox_files else "no console inbox items in this tree"))
+    return out
+
+
 def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Finding]:
     """An execution folder's settings deny writing the person's files (plan.md 15).
 
@@ -9644,6 +9754,7 @@ CHECKS = [
     check_89_harness_records,
     check_90_an_execution_folder_guards_the_persons_files,
     check_91_console_questions_are_linked_and_answered,
+    check_92_a_console_item_holds_the_files_it_names,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

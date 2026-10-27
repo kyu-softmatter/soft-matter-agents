@@ -1,0 +1,1 @@
+Example attachment bytes for contracts/examples/console_store_request.json. Not a maker's sheet and states no value.

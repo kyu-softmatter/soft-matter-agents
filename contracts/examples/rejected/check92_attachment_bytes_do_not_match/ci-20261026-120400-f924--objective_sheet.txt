@@ -1,0 +1,1 @@
+Fixture attachment bytes for item ci-20261026-120400-f924. States no value. Changed after it was attached.
