@@ -121,7 +121,10 @@ folders, and both sit beside `inbox/`:
 
 - **`simulation_agent/console_inbox/`** holds console question items, one
   `console_question` file each (`contracts/schemas/console_inbox_item.schema.json`)
-  with its attachments beside it. Only the console's server writes there. You
+  with its attachments beside it. Only the console writes there: its server
+  writes the items, and `manager-console` commits the folder's opening
+  `.gitkeep`. **The opening `.gitkeep` is not this seat's**, and no agent seat
+  creates its own folder. You
   **read** it and never write it, the same as the bridge's `inbox/`, and
   nothing in it is rewritten or removed: a correction arrives as a new item.
   An item carries the asker's words, the asking login and a question id of the
