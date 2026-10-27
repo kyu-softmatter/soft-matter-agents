@@ -1992,7 +1992,8 @@
       "seat": "manager-console-office-20261017-1",
       "committer_email": "manager-console-office-20261017-1@seat.invalid",
       "owns": [
-        "design"
+        "design",
+        "console"
       ],
       "paths": [
         "README.md",
@@ -2000,7 +2001,10 @@
         "console/CLAUDE.md",
         "console/.claude/",
         "console/tasks/",
-        "console/README.md"
+        "console/README.md",
+        "microscope_agent/console_inbox/",
+        "simulation_agent/console_inbox/",
+        "librarian_agent/console_inbox/"
       ],
       "excludes": [
         "contracts/seats.json",
@@ -2130,7 +2134,8 @@
       "seat": "manager-console-scope-20261019-1",
       "committer_email": "manager-console-scope-20261019-1@seat.invalid",
       "owns": [
-        "design"
+        "design",
+        "console"
       ],
       "paths": [
         "README.md",
@@ -2138,7 +2143,10 @@
         "console/CLAUDE.md",
         "console/.claude/",
         "console/tasks/",
-        "console/README.md"
+        "console/README.md",
+        "microscope_agent/console_inbox/",
+        "simulation_agent/console_inbox/",
+        "librarian_agent/console_inbox/"
       ],
       "excludes": [
         "contracts/seats.json",
