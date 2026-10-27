@@ -22,15 +22,32 @@ The app cards run in 007's order, from 008 on. **Nothing under `console/`
 other than these instructions is written before a card in `tasks/` names
 it.**
 
+**The console inbox is open** (the person, `4f867773`, 2026-10-26; `plan.md`
+7.1.1). Card 019 delivers a question addressed to the microscope or the
+simulation into that agent's `console_inbox/`. The librarian's inbox, with
+the Library's requests and its answers, is the card after it.
+
+The order of commits is `plan.md` 7.1.1 rule 10: the console side commits an
+item alone and promptly, and the agent commits its answer after. The
+checker's half is in (`f3ca6dce`). Until a card says which console seat
+commits and when, **no session commits an item the server wrote**.
+
 ## The four standing rules
 
-These held where the console sat before and hold here unchanged (11-25).
+These are 11-25's, and they hold wherever the console sits.
 
-1. **It writes nothing into this tree outside `console/`.** It reads
-   `<agent>/questions/`, `<agent>/approvals/`, `<agent>/runs/` and
-   `bridge/threads/` as data and writes none of them. A draft plan reaches
-   `approvals/` only through the person, because `approvals/` is the
-   person's.
+1. **It writes nothing into this tree outside `console/`, with the two
+   exceptions 11-25 names, each the person's.**
+   - The signed approval is written into the person's `approvals/` at the
+     moment the person's password is typed (`plan.md` 6.2.2).
+   - An inbox item is written into `<agent>_agent/console_inbox/`, and
+     nothing else of the agent's (`plan.md` 7.1.1 rule 2). It is written
+     once, whole, and never rewritten or removed.
+
+   It reads `<agent>/questions/`, `<agent>/answers/`, `<agent>/approvals/`,
+   `<agent>/runs/` and `bridge/threads/` as data and writes none of them. A
+   draft plan reaches `approvals/` only through the person, because
+   `approvals/` is the person's.
 2. **A draft is an ordinary plan card** -- `operation`, `trap_steps` or
    `focus_search` -- and passes the same schema as any other. There is no
    console-only shape. A draft the console's tests build is validated against
@@ -91,9 +108,9 @@ under `librarian_agent/kb/wiki/`, read as data and nothing else of the store.
 - Nothing shown is kept or lands on a card. A fact is cited by its entry,
   never by a page.
 - What an account may ask of the store is only the three requests of
-  `plan.md` 7.1.1 and a question to the librarian (its rule 4), and none
-  reaches the librarian until that inbox is
-  approved and open.
+  `plan.md` 7.1.1 and a question to the librarian (its rule 4). The inbox
+  is open, and the console writes nothing into the librarian's until the
+  card that brings the Library's Send.
 
 ## Tier 0 only
 
@@ -129,7 +146,8 @@ the person, go through the intake seat and not this window.
 
 ## What it must never do
 
-Write outside `console/`. Write a card into the tree. Open a core, call a
+Write outside `console/`, except rule 1's two exceptions. Write a goal,
+plan, result or run card, or an answer, into the tree. Open a core, call a
 device, start a hardware backend, reach a live host. Hold a `caller_id` or
 call the librarian's service. Show a number without its source. Decide for
 the person, or relay a decision as one.
@@ -143,7 +161,9 @@ uv run --offline --no-project --python 3.12 --with jsonschema python contracts/v
 That is the Office computer's form; for another computer, read the root
 `CLAUDE.md` for the interpreter. Commit through
 `contracts/tools/seat_commit.py`, never by hand. A commit from this seat
-touches `console/` and nothing else (checks 35 and 41).
+touches `console/` and nothing else (checks 35 and 41). That holds even
+though this seat's boundary also covers the three `console_inbox/` folders,
+because no item is committed until the card on committing items.
 `console/CLAUDE.md`, `console/README.md`, `console/tasks/` and
 `console/.claude/` are the manager's. A dead end goes in
 `console/failures.jsonl`.
