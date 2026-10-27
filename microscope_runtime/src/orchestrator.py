@@ -302,7 +302,7 @@ MM_BINDINGS_FIELD = "mm_bindings"
 MM_STATES_FIELD = "mm_states"
 _MM_ITEM_SHAPES = {
     MM_BINDINGS_FIELD: {"required": ("quantity", "property", "unit", "entry_ref"),
-                        "optional": ("config_sha256",), "unique": ("quantity", "property")},
+                        "optional": ("config_sha256", "step"), "unique": ("quantity", "property")},
     MM_STATES_FIELD: {"required": ("word", "state_label", "entry_ref"),
                       "optional": ("config_sha256",), "unique": ("word", "state_label")},
 }
@@ -365,6 +365,45 @@ def _mm_row_lists(channels: dict[str, Channel], entries: dict | None, source: st
 def _units() -> dict:
     """contracts/units.json's `units`, read from the file each time: no factor is written in code (card 095)."""
     return json.loads((REPO / "contracts" / "units.json").read_text(encoding="utf-8"))["units"]
+
+
+_DECIMAL = re.compile(r"^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$")
+
+
+def _exact_number(x) -> Fraction | None:
+    """A number as an exact fraction of its decimal text, or None when it is not a finite number (card 098).
+
+    A float is read through `str`, the way the exact-factor route always did, so 0.1 is one tenth and
+    not the double nearest to it; a string counts only when it is a decimal. A bool is not a number.
+    """
+    if isinstance(x, bool):
+        return None
+    if isinstance(x, int):
+        return Fraction(x)
+    if isinstance(x, float):
+        return None if x != x or x in (float("inf"), float("-inf")) else Fraction(str(x))
+    if isinstance(x, str) and _DECIMAL.match(x.strip()):
+        return Fraction(x.strip())
+    return None
+
+
+def _number_out(x: Fraction):
+    """A whole number as an int and any other as a float: what a property is handed and a log records."""
+    return int(x) if x.denominator == 1 else float(x)
+
+
+def _exact_factor(from_unit, to_unit) -> Fraction | None:
+    """The exact factor from one unit to another of the same dimension, from contracts/units.json, or None."""
+    if from_unit == to_unit:
+        return Fraction(1)
+    if not (isinstance(from_unit, str) and isinstance(to_unit, str)):
+        return None
+    units = _units()
+    a, b = units.get(from_unit), units.get(to_unit)
+    if (a is not None and b is not None and a.get("dim") == b.get("dim")
+            and a.get("si_factor") and b.get("si_factor")):
+        return Fraction(str(a["si_factor"])) / Fraction(str(b["si_factor"]))
+    return None
 
 
 def _read_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict, dict | None]:
@@ -1336,11 +1375,33 @@ class Orchestrator:
                 return f"{head}: its entry carries {key} {got!r} and the row says {want!r}"
         return None
 
+    @staticmethod
+    def _binding_head(binding: dict) -> str:
+        return (f"the binding of {binding['quantity']!r} on {binding['name']!r} "
+                f"({binding['property']!r} through entry {binding['entry_ref']!r})")
+
+    def binding_step(self, binding: dict) -> tuple[Fraction | None, str | None]:
+        """(the binding's step as an exact fraction, why not): its own step, in its own unit (card 098).
+
+        Silence about the step does not mean any value, so a binding with none, with a step in
+        another unit or with one that is not a positive number cannot be written through.
+        """
+        head = self._binding_head(binding)
+        step = binding.get("step")
+        if not isinstance(step, dict):
+            return None, f"{head} carries no step, and a value is written only to a multiple of one"
+        if step.get("unit") != binding["unit"]:
+            return None, (f"{head} carries a step in {step.get('unit')!r}, not in the binding's unit "
+                          f"{binding['unit']!r}")
+        exact = _exact_number(step.get("value"))
+        if exact is None or exact <= 0:
+            return None, f"{head} carries a step of {step.get('value')!r}: a step is a positive number"
+        return exact, None
+
     def binding_refusal(self, binding: dict) -> str | None:
         """Why a binding may not be written through, or None. One grade for every binding: E1 under this run's digest."""
         label = (self.mm_label(binding["name"]) or {}).get("label")
-        head = (f"the binding of {binding['quantity']!r} on {binding['name']!r} "
-                f"({binding['property']!r} through entry {binding['entry_ref']!r})")
+        head = self._binding_head(binding)
         why = self._entry_refusal("binding", head, binding["entry_ref"], binding["grade"],
                                   binding["config_sha256"])
         return why or self._identifier_refusal(head, binding["identifiers"], {
@@ -1374,29 +1435,49 @@ class Orchestrator:
                     and ids.get("mm_property") == prop and ids.get("quantity") == quantity):
                 found.append({"entry_ref": ref, "grade": entry.get("grade"),
                               "valid_until": entry.get("valid_until"),
-                              "validity": entry.get("validity")})
+                              "validity": entry.get("validity"),
+                              "conversion": entry.get("conversion")})
         if len(found) > 1:
             raise GapError(f"the snapshot holds {len(found)} calibrations for {quantity!r} of "
                            f"{label!r}.{prop}: {[f['entry_ref'] for f in found]}")
         return found[0] if found else None
 
     def convert_for_binding(self, value, unit: str, binding: dict) -> tuple[object, str | None, str | None]:
-        """(written value, calibration entry used, why not): a plan's number in the binding's unit.
+        """(written value, calibration entry used, why not): `convert_detail` without the detail."""
+        detail, ref, why = self.convert_detail(value, unit, binding)
+        return (detail["written"] if detail else None), ref, why
+
+    def convert_detail(self, value, unit: str, binding: dict) -> tuple[dict | None, str | None, str | None]:
+        """(detail, calibration entry used, why not): a plan's number in the binding's unit, on its step.
 
         Three routes and no formula here. Unchanged when the unit matches; an exact factor read from
         contracts/units.json when both units are there with one dimension; otherwise an unexpired E2
-        calibration from the snapshot whose range covers the value. Anything else is a refusal naming
-        what was needed.
+        calibration from the snapshot whose range covers the value and whose points convert it. Every
+        route ends the same way, in exact fractions: rounded to the nearest multiple of the binding's
+        step, ties to even (card 098). The detail carries what was written and what it was before
+        rounding, the step, and on the calibration route the value in the form's physical unit.
         """
+        step, why = self.binding_step(binding)
+        if why:
+            return None, None, why
         target = binding["unit"]
+        number = _exact_number(value)
+
+        def detail(unrounded: Fraction, physical=None, physical_unit=None) -> dict:
+            return {"written": _number_out(round(unrounded / step) * step),
+                    "unrounded": _number_out(unrounded), "step": dict(binding["step"]),
+                    "physical_value": None if physical is None else _number_out(physical),
+                    "physical_unit": physical_unit}
+
         if unit == target:
-            return value, None, None
-        units = _units()
-        a, b = units.get(unit), units.get(target)
-        if (a is not None and b is not None and a.get("dim") == b.get("dim")
-                and a.get("si_factor") and b.get("si_factor")):
-            exact = Fraction(str(value)) * Fraction(str(a["si_factor"])) / Fraction(str(b["si_factor"]))
-            return (int(exact) if exact.denominator == 1 else float(exact)), None, None
+            if number is None:
+                return None, None, f"{value!r} {unit!r} is not a number"
+            return detail(number), None, None
+        factor = _exact_factor(unit, target)
+        if factor is not None:
+            if number is None:
+                return None, None, f"{value!r} {unit!r} is not a number"
+            return detail(number * factor), None, None
         label = (self.mm_label(binding["name"]) or {}).get("label")
         need = (f"a calibration of {binding['quantity']!r} for {label}.{binding['property']} "
                 f"covering {value} {unit} (the plan's unit is not the property's {target!r} and "
@@ -1419,15 +1500,84 @@ class Orchestrator:
             return None, ref, (f"needs {need}; calibration {ref!r} is valid only until an event the "
                                "runtime cannot check, and ambiguity stops")
         span = (found["validity"] or {}).get(binding["quantity"]) if isinstance(found["validity"], dict) else None
-        lo, hi = (span.get("min"), span.get("max")) if isinstance(span, dict) else (None, None)
-        if (not isinstance(span, dict) or span.get("unit") != unit
-                or not isinstance(value, (int, float)) or isinstance(value, bool)
-                or not isinstance(lo, (int, float)) or not isinstance(hi, (int, float))
-                or not lo <= value <= hi):
+        lo = _exact_number(span.get("min")) if isinstance(span, dict) else None
+        hi = _exact_number(span.get("max")) if isinstance(span, dict) else None
+        span_unit = span.get("unit") if isinstance(span, dict) else None
+        in_span = None
+        if number is not None and lo is not None and hi is not None:
+            span_factor = _exact_factor(unit, span_unit)
+            if span_factor is None:
+                return None, ref, (f"needs {need}; calibration {ref!r} is valid in {span_unit!r} and "
+                                   f"contracts/units.json holds no exact factor between {unit!r} and "
+                                   f"{span_unit!r}")
+            in_span = number * span_factor
+        if in_span is None or not lo <= in_span <= hi:
             return None, ref, (f"needs {need}; calibration {ref!r} covers {span!r}, which does not "
                                "cover it")
-        return None, ref, (f"needs {need}; calibration {ref!r} covers it but carries no conversion "
-                           "form the runtime can apply, and it holds no formula of its own")
+        return self._by_points(found, need, number, unit, binding, detail)
+
+    @staticmethod
+    def _by_points(found: dict, need: str, number: Fraction, unit: str, binding: dict, detail):
+        """Apply a calibration's `piecewise_linear_within_points` form to a number, in exact fractions.
+
+        Only that form and only that direction. The points are read, never fitted, and a value outside
+        the first and last of them is refused rather than extended. The range the calibration is good
+        over is `validity`'s and was checked before this.
+        """
+        ref = found["entry_ref"]
+        form = found.get("conversion")
+
+        def refuse(field: str, what: str):
+            return None, ref, f"needs {need}; calibration {ref!r}: {field} {what}"
+
+        if not isinstance(form, dict):
+            return None, ref, (f"needs {need}; calibration {ref!r} covers it but carries no conversion "
+                               "form the runtime can apply, and it holds no formula of its own")
+        if form.get("direction") != "physical_to_control":
+            return refuse("conversion.direction", f"is {form.get('direction')!r}; the runtime applies "
+                          "only 'physical_to_control'")
+        if form.get("rule") != "piecewise_linear_within_points":
+            return refuse("conversion.rule", f"is {form.get('rule')!r}; the runtime applies only "
+                          "'piecewise_linear_within_points'")
+        physical, control = form.get("physical"), form.get("control")
+        got = physical.get("quantity") if isinstance(physical, dict) else physical
+        if got != binding["quantity"]:
+            return refuse("conversion.physical.quantity", f"is {got!r}, not {binding['quantity']!r}")
+        got = control.get("unit") if isinstance(control, dict) else control
+        if got != binding["unit"]:
+            return refuse("conversion.control.unit", f"is {got!r}, not the binding's {binding['unit']!r}")
+        p_unit, c_unit = physical.get("unit"), control["unit"]
+        points = form.get("points")
+        if not isinstance(points, list) or len(points) < 2:
+            return refuse("conversion.points", "is not a list of at least two points")
+        xs, ys = [], []
+        for i, pt in enumerate(points):
+            at = f"conversion.points[{i}]"
+            for side, unit_want, store in (("physical", p_unit, xs), ("control", c_unit, ys)):
+                part = pt.get(side) if isinstance(pt, dict) else None
+                if not isinstance(part, dict) or part.get("unit") != unit_want:
+                    return refuse(f"{at}.{side}.unit", f"is not the form's {unit_want!r}")
+                exact = _exact_number(part.get("value"))
+                if exact is None:
+                    return refuse(f"{at}.{side}.value", f"is {part.get('value')!r}, not a number")
+                store.append(exact)
+            if i and xs[i] <= xs[i - 1]:
+                return refuse(f"{at}.physical", "does not increase over the point before it")
+            if i and (ys[i] == ys[i - 1] or (i > 1 and (ys[i] > ys[i - 1]) != (ys[1] > ys[0]))):
+                return refuse(f"{at}.control", "does not keep to one direction over the points before it")
+        factor = _exact_factor(unit, p_unit)
+        if factor is None:
+            return None, ref, (f"needs {need}; calibration {ref!r} converts from {p_unit!r} and "
+                               f"contracts/units.json holds no exact factor between {unit!r} and "
+                               f"{p_unit!r}")
+        x = number * factor
+        if not xs[0] <= x <= xs[-1]:
+            return None, ref, (f"needs {need}; calibration {ref!r}: {_number_out(x)} {p_unit} is "
+                               f"outside its points, which span {_number_out(xs[0])} to "
+                               f"{_number_out(xs[-1])} {p_unit}")
+        i = next(k for k in range(len(xs) - 1) if x <= xs[k + 1])
+        control_value = ys[i] + (x - xs[i]) * (ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i])
+        return detail(control_value, x, p_unit), ref, None
 
     def camera_label(self, channel_id: str) -> str | None:
         """The device name the tap keys a camera channel's frames by: its label, or None and why.

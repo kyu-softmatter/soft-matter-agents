@@ -57,8 +57,10 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
     `states` is `{name: [{"word", "state_label"[, "grade", "digest"]}]}`: each item goes on the row as
     a list entry citing a synthetic entry written beside the labels, E1 under CONFIG_A unless it says
     otherwise (`digest: None` writes the entry with no digest). `calibrations` is a list of
-    `{"label", "property", "quantity", "validity", "valid_until"[, "grade"]}`, each a `kind:
-    calibration` entry graded E2.
+    `{"label", "property", "quantity", "validity", "valid_until"[, "grade", "conversion"]}`, each a
+    `kind: calibration` entry graded E2. A binding item may carry `step` ({"value", "unit"}; card 098):
+    it goes on the row, one in the binding's own unit when the item says nothing, and `"step": None`
+    leaves the row without one.
     """
     real = json.loads(REAL_SNAPSHOT.read_text(encoding="utf-8"))
     table = json.loads(real["tables"]["devices"]["text"])
@@ -77,9 +79,12 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
                 ids["mm_config_sha256"] = item.get("digest", CONFIG_A)
             entries[ref] = {"text": json.dumps({"entry_id": ref, "grade": item.get("grade", "E1"),
                                                 "identifiers": ids, "source": "a test's own synthetic entry"})}
-            row_lists.setdefault(name, {}).setdefault("mm_bindings", []).append(
-                {"quantity": item["quantity"], "property": item["property"], "unit": item["unit"],
-                 "entry_ref": ref})
+            row_item = {"quantity": item["quantity"], "property": item["property"], "unit": item["unit"],
+                        "entry_ref": ref}
+            step = item["step"] if "step" in item else {"value": 1, "unit": item["unit"]}
+            if step is not None:
+                row_item["step"] = step
+            row_lists.setdefault(name, {}).setdefault("mm_bindings", []).append(row_item)
     for name, items in (states or {}).items():
         for item in items:
             ref = f"mm_state_{name}_{item['word']}"
@@ -98,6 +103,7 @@ def write(folder, *, labels: dict | None = None, grade: dict | None = None,
             "identifiers": {"mm_label": cal["label"], "mm_property": cal["property"],
                             "quantity": cal["quantity"]},
             "valid_until": cal["valid_until"], "validity": cal["validity"],
+            **({"conversion": cal["conversion"]} if "conversion" in cal else {}),
             "source": "a test's own synthetic entry"})}
     for name, label in wanted.items():
         if label is None:

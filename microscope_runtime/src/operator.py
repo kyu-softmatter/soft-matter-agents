@@ -1490,15 +1490,18 @@ def _write_parameter(o, command, name: str, param: dict) -> str | None:
     if why:
         return why
     try:
-        written, calibration, why = o.convert_for_binding(param.get("value"), param.get("unit"), binding)
+        detail, calibration, why = o.convert_detail(param.get("value"), param.get("unit"), binding)
     except (ValueError, TypeError, ArithmeticError) as exc:
         return f"{param.get('value')!r} {param.get('unit')!r} cannot be converted ({exc})"
     if why:
         return why
     cal_grade = (o.calibration_for(label, binding["property"], name) or {}).get("grade") if calibration else None
+    written = detail["written"]
     command.settings.setdefault(label, {})[binding["property"]] = written
     command.written.append({
         "from": param["from"], "plan_value": param.get("value"), "plan_unit": param.get("unit"),
+        "physical_value": detail["physical_value"], "physical_unit": detail["physical_unit"],
+        "unrounded": detail["unrounded"], "step": detail["step"],
         "written": written, "unit": binding["unit"], "label": label, "property": binding["property"],
         "binding": _binding_text(binding), "calibration": calibration,
         "grade": _worse_grade(param.get("grade"), cal_grade)})
