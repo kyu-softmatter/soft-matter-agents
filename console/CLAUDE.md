@@ -24,8 +24,12 @@ it.**
 
 **The console inbox is open** (the person, `4f867773`, 2026-10-26; `plan.md`
 7.1.1). Card 019 delivers a question addressed to the microscope or the
-simulation into that agent's `console_inbox/`. The librarian's inbox, with
-the Library's requests and its answers, is the card after it.
+simulation into that agent's `console_inbox/`. Card 020 delivers the
+Library's requests, and a question addressed to the librarian, into
+`librarian_agent/console_inbox/`, and reads the librarian's answers in
+`librarian_agent/answers/`. Card 022 takes "Let the agents decide" off the
+Ask form (the person, `c5cea87e`), so every question names one of the three
+agents and is delivered.
 
 The order of commits is `plan.md` 7.1.1 rule 10: the console side commits an
 item alone and promptly, and the agent commits its answer after. The
@@ -108,9 +112,11 @@ under `librarian_agent/kb/wiki/`, read as data and nothing else of the store.
 - Nothing shown is kept or lands on a card. A fact is cited by its entry,
   never by a page.
 - What an account may ask of the store is only the three requests of
-  `plan.md` 7.1.1 and a question to the librarian (its rule 4). The inbox
-  is open, and the console writes nothing into the librarian's until the
-  card that brings the Library's Send.
+  `plan.md` 7.1.1 and a question to the librarian (its rule 4). Since card
+  020 the console writes them into `librarian_agent/console_inbox/`, with
+  the one file a request may attach, and nothing else of the librarian's.
+  It reads `librarian_agent/answers/` as data; an answer is the librarian's
+  to write.
 
 ## Tier 0 only
 
