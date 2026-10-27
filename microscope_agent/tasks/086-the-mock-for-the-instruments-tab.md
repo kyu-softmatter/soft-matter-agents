@@ -145,6 +145,28 @@ does not imply, as `FOCUS_Z_UM`'s does.
    channel carries a value.
 8. The existing suite is unchanged.
 
+## Added 2026-10-26: a run id is never reused, tested
+
+Card 085 (`4f5bb17b`) gave host-started runs the ids `run-YYYYMMDD-900` to
+`-999`. What keeps them apart from plan runs is the run folder:
+`operator.py` refuses an existing folder at the plan run, the live view
+and the check-now run ("A run id is never reused"), and the host's
+`_next_run_id` skips any id whose folder exists. The run lock is taken
+before an id is used, so two runs cannot meet in flight. Nothing tests any
+of this today. A plan run without `--write` makes no folder, so a repeated
+id there collides with nothing, and no range refusal is wanted for plan
+runs.
+
+**As its own small commit, after items 5 and 7**, each watched failing by
+removing the refusal or the skip it tests:
+
+9. A plan run with `--write` into an existing `run-YYYYMMDD-9NN` folder is
+   refused before any command, and the folder is byte-identical after.
+10. `_next_run_id` skips a 9NN folder a plan run wrote and returns the next
+    free one.
+11. Each of the three entry points refuses an existing run folder with the
+    same refusal.
+
 ## Boundaries
 
 - Write `microscope_runtime/src/` and `tests/` only. No `contracts/`, no
