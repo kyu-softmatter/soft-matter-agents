@@ -469,6 +469,29 @@ def read_for(channel_id: str, wait: bool = True, elements=()) -> dict:
         _LOCK.release()
 
 
+_OPEN: set[str] = set()
+
+
+def open_for(channel_id: str) -> dict:
+    """Open a channel's interface to read it (card 085). It sends nothing and takes no device lock.
+
+    On the instrument an open is the device layer's own act and is inert only for the channels a
+    person's check-now list says so for; the mock keeps which are open so a test can tell that a
+    channel that was opened was closed.
+    """
+    _OPEN.add(str(channel_id))
+    return {"opened": True, "backend": "mock"}
+
+
+def close_for(channel_id: str) -> dict:
+    _OPEN.discard(str(channel_id))
+    return {"closed": True, "backend": "mock"}
+
+
+def open_channels() -> list[str]:
+    return sorted(_OPEN)
+
+
 def set_by_hand(channel_id: str, element_id: str, value: object) -> None:
     """Stand for the person turning one element at the instrument. Never reached by a command."""
     with _LOCK:
@@ -489,6 +512,7 @@ def reset() -> None:
         _STATE.clear()
         _PROPS.clear()
         _HAND.clear()
+        _OPEN.clear()
         _SNAPS[0] = 0
     with _PIEZO_LOCK:
         _PIEZO.clear()

@@ -88,6 +88,8 @@ mm_gate = _load("_mic_mm_config_gate", Path(__file__).resolve().parent / "mm_con
 #: The run-time watcher (card 076): it records and never acts, and holds nothing of this module.
 watcher_mod = _load("_mic_watcher", Path(__file__).resolve().parent / "watcher.py")
 judgements_mod = _load("_mic_judgements", Path(__file__).resolve().parent / "judgements.py")
+#: The idle status file (card 085): written from a run's own log as it ends.
+idle_status = _load("_mic_idle_status", Path(__file__).resolve().parent / "idle_status.py")
 
 #: Where the one-run-at-a-time lock lives (card 062). None means
 #: run_lock.default_path(), outside this tree. Tests point it elsewhere.
@@ -1441,7 +1443,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
         root: Path | None = None, mm_config: Path | None = None,
         config_loader=None, watcher_backend=None, judgement_backend=None,
-        approvals_dir: Path | None = None) -> dict:
+        approvals_dir: Path | None = None, status_dir: Path | None = None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     Returns the run record. Writes nothing until the gate has been passed,
@@ -1556,6 +1558,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     try:
         o = orch.Orchestrator(backend=backend)
         o.pre_stop_length_s = pre_stop_length
+        _install_status(o, status_dir, run_id, "plan")
         folder = None
         if runs_root is not None:
             folder = Path(runs_root) / run_id
@@ -1962,7 +1965,8 @@ def check_live_view_list(doc: dict) -> dict:
 def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
                   backend: str = "mock", lock=None, started=None, on_orchestrator=None,
                   mm_config: Path | None = None, mm_approvals: Path | None = None,
-                  mm_state: dict | None = None, config_loader=None) -> dict:
+                  mm_state: dict | None = None, config_loader=None,
+                  status_dir: Path | None = None) -> dict:
     """One live view: lamp on at the person's intensity, one sequence to the ceiling, lamp off.
 
     A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and
@@ -2011,6 +2015,7 @@ def run_live_view(list_path: Path, run_id: str, runs_root: Path | None = None,
         o = orch.Orchestrator(backend=backend)
         if on_orchestrator is not None:
             on_orchestrator(o)
+        _install_status(o, status_dir, run_id, "live_view")
         o.begin_run(folder, run_id=run_id, plan_id=None, revision=None, tap_cameras=[values["camera"]])
         if started is not None:
             started.set()
@@ -2117,6 +2122,180 @@ def _live_view_body(o, values: dict) -> None:
         _live_view_lamp(o, "State", "0", "live_view.end: the lamp off at the frame ceiling")
 
 
+# --------------------------------------------------------------------------- #
+# the idle status file, and check now (card 085)
+# --------------------------------------------------------------------------- #
+
+def _install_status(o, status_dir, run_id: str, kind: str, check_now: dict | None = None) -> None:
+    """Have `o` write the idle status file when its run ends, from its own log. None writes nothing.
+
+    The writer runs inside end_run, before run_ended, and a failure there is recorded as an event
+    and never raised: the run ends as it would have.
+    """
+    if status_dir is None:
+        return
+
+    def write(orchestrator, how):
+        ended_at = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+        doc = idle_status.build(orchestrator, run_id, kind, how, ended_at, check_now=check_now)
+        idle_status.write(status_dir, doc)
+    o.status_writer = write
+
+
+#: The channels a check-now list may never name: the same set check 85 refuses at commit time.
+CHECK_NOW_MOTION_SET = frozenset({
+    "z_drive", "nosepiece", "motor_stage", "pfs", "piezo_stage", "optical_tweezers",
+    "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset",
+})
+
+CHECK_NOW_NO_PLAN = (
+    "check now: the person asked the console to look at what the instrument reports, with no sample "
+    "and no plan. It opens, reads and closes only the channels in the check-now list the person "
+    "approved in approvals/, named by its sha256, and nothing else; it moves nothing and sends no "
+    "command to any device")
+CHECK_NOW_NOT_DISPATCHED = (
+    "This run did not come through the plan dispatcher and dispatched nothing. A check now has no "
+    "plan and no apply: for each channel the approved list names it asks the channel's preflight, "
+    "opens it, reads it without waiting, and closes it, and records each step")
+
+
+def check_check_now_list(doc: dict) -> list[str]:
+    """The channels of a runnable check-now list, in its order, or Refusal. Closed: anything unnamed refuses.
+
+    contracts/schemas/check_now_list.schema.json holds the same shape at commit time; this is the
+    run-time copy, because the file the host runs is the one on disk now.
+    """
+    def need(cond, why):
+        if not cond:
+            raise Refusal(f"not a runnable check-now list: {why}")
+    need(isinstance(doc, dict), "not a JSON object")
+    need(doc.get("artifact") == "check_now_list", "artifact is not check_now_list")
+    need(doc.get("schema_version") == "0.1", "schema_version is not 0.1")
+    allowed = {"artifact", "schema_version", "written_by", "written_at", "label", "channels"}
+    need(not set(doc) - allowed, f"unknown fields {sorted(set(doc) - allowed)}")
+    for key in ("written_by", "written_at", "label"):
+        need(isinstance(doc.get(key), str) and doc[key], f"no {key}")
+    rows = doc.get("channels")
+    need(isinstance(rows, list) and rows, "channels is not a non-empty list")
+    out: list[str] = []
+    for i, row in enumerate(rows):
+        need(isinstance(row, dict) and set(row) == {"channel", "opening_is_inert_because"},
+             f"channels[{i}] is not exactly channel and opening_is_inert_because")
+        cid, why = row["channel"], row["opening_is_inert_because"]
+        need(isinstance(cid, str) and re.fullmatch(r"[a-z0-9_]+", cid), f"channels[{i}].channel is not a channel id")
+        need(isinstance(why, str) and len(why) >= 10,
+             f"channels[{i}] ({cid}) gives no reason, of at least 10 characters, why opening it is inert")
+        need(cid not in CHECK_NOW_MOTION_SET,
+             f"channels[{i}] names {cid}, which is in the motion set: a check now never touches it")
+        need(cid not in out, f"channels[{i}] names {cid} a second time")
+        out.append(cid)
+    return out
+
+
+def _check_now_channel(o, cid: str) -> dict:
+    """One channel: preflight, open, read without waiting, close. Returns the state it saw.
+
+    A step that fails is recorded and the next is not tried for this channel, except that a channel
+    that was opened is always closed. Nothing here sends anything: there is no apply.
+    """
+    def failed(step, exc):
+        o.record(event="check_now_step_failed", channel=cid, step=step,
+                 error=f"{type(exc).__name__}: {exc}")
+        return {"not_read": True, "why": f"{step} failed: {type(exc).__name__}: {exc}"}
+    try:
+        o.preflight([cid])
+    except Exception as exc:                                    # noqa: BLE001 - a failed step is a fact
+        return failed("preflight", exc)
+    try:
+        o.open_channel(cid)
+    except Exception as exc:                                    # noqa: BLE001
+        return failed("open", exc)
+    try:
+        try:
+            state = o._read_channel(cid, wait=False)
+            o.record(event="check_now_read", channel=cid, state=state)
+        except Exception as exc:                                # noqa: BLE001
+            if getattr(exc, "would_wait", False):
+                state = {"not_read": True, "why": str(exc)}
+                o.record(event="check_now_read", channel=cid, not_read=True, why=str(exc))
+            else:
+                state = failed("read", exc)
+    finally:
+        try:
+            o.close_channel(cid)
+        except Exception as exc:                                # noqa: BLE001
+            failed("close", exc)
+    return state
+
+
+def run_check_now(list_path: Path, run_id: str, runs_root: Path | None = None,
+                  backend: str = "mock", lock=None, started=None, on_orchestrator=None,
+                  status_dir: Path | None = None) -> dict:
+    """One check now: each channel of the person's approved list opened, read and closed, in order.
+
+    A preparatory run (plan.md 11-21): plan_id null, `no_plan_because`, and `approved_commands`
+    naming the list by path and sha256 of its raw bytes. Nothing in the motion set and no command
+    to anything. A channel the registry does not hold refuses the whole run before anything opens.
+    `lock` is a held run lock handed over by the host; without one this takes its own, and it is
+    released when the run ends however it ends.
+    """
+    import hashlib
+    list_path = Path(list_path)
+    data = list_path.read_bytes()
+    sha = hashlib.sha256(data).hexdigest()
+    lock = lock or _take_run_lock({"kind": "check_now", "run_id": run_id})
+    try:
+        channels = check_check_now_list(json.loads(data.decode("utf-8-sig")))
+        root = AGENT / "runs" if runs_root is None else Path(runs_root)
+        folder = root / run_id
+        if folder.exists():
+            raise Refusal(f"{folder} already exists. A run id is never reused; raise it (P9)")
+        o = orch.Orchestrator(backend=backend)
+        if on_orchestrator is not None:
+            on_orchestrator(o)
+        unknown = [c for c in channels if c not in o.channels]
+        if unknown:
+            raise Refusal(f"the registry ({o.registry_source}) holds no channel {unknown}: nothing was opened")
+        try:
+            approved_path = str(list_path.resolve().relative_to(REPO)).replace("\\", "/")
+        except ValueError:
+            approved_path = str(list_path.resolve())
+        listed = {"run_id": run_id, "t_mono": 0.0, "path": approved_path, "sha256": sha,
+                  "channels": channels}
+        _install_status(o, status_dir, run_id, "check_now", check_now=listed)
+        o.begin_run(folder, run_id=run_id, plan_id=None, revision=None, tap_cameras=[])
+        listed["t_mono"] = o.clock.offset()
+        if started is not None:
+            started.set()
+        how = "failed"
+        try:
+            states = {}
+            for cid in channels:
+                if o._aborted.is_set():
+                    break
+                states[cid] = _check_now_channel(o, cid)
+            o.record(event="snapshot", label="check_now", states=states)
+            how = "stopped_from_outside" if getattr(o, "stopped_from_outside", False) else "completed"
+        except Exception as exc:                                # noqa: BLE001 - recorded, then the run ends
+            o.record(event="check_now_failed", error=f"{type(exc).__name__}: {exc}")
+        finally:
+            o.end_run(how)
+        record = {
+            "artifact": "run_log", "schema_version": "0.1", "run_id": run_id,
+            "plan_id": None, "revision": None,
+            "no_plan_because": CHECK_NOW_NO_PLAN, "not_dispatched": CHECK_NOW_NOT_DISPATCHED,
+            "approved_commands": {"path": approved_path, "sha256": sha},
+            "approval": {"id": None, "kind": None}, "stop_criteria": [],
+            **o.log_header(), "events": o.log,
+            "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "ended": how,
+        }
+        write_run(record, runs_root=root)
+        return record
+    finally:
+        lock.release()
+
+
 def write_run(record: dict, deviations: list[dict] | None = None,
               runs_root: Path | None = None) -> Path:
     """runs/<run_id>/ is append-only; a second write makes a new run (P9).
@@ -2199,7 +2378,8 @@ def main(argv: list[str] | None = None) -> int:
         record = run(args.plan, run_id=args.run_id, backend=args.backend,
                      runs_root=AGENT / "runs" if args.write else None,
                      handover=handover, mm_config=args.mm_config, watcher_backend=args.watcher_backend,
-                     judgement_backend=args.judgement_backend, approvals_dir=args.approvals)
+                     judgement_backend=args.judgement_backend, approvals_dir=args.approvals,
+                     status_dir=AGENT / ".runtime_status" if args.write else None)
     except Refusal as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2

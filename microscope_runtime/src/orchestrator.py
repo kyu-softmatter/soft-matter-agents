@@ -1079,6 +1079,14 @@ class Orchestrator:
         if tap is not None:
             tap.close()
             self._tap = None
+        # The idle status file (card 085) is written from this run's own log, BEFORE run_ended, so a
+        # write that failed is an event in the log and in the stream. It never changes how the run ended.
+        writer = getattr(self, "status_writer", None)
+        if writer is not None:
+            try:
+                writer(self, how)
+            except Exception as exc:                    # noqa: BLE001 - said, never raised
+                self.record(event="idle_status_write_failed", error=f"{type(exc).__name__}: {exc}")
         with self._log_lock:
             if getattr(self, "_stream", None) is not None:
                 self._stream_line({"event": "run_ended", "how": how,
@@ -2575,6 +2583,25 @@ class Orchestrator:
         if read_for is None:
             return module.read(wait=wait)
         return read_for(cid, wait=wait, elements=self.channels[cid].element_ids())
+
+    def open_channel(self, cid: str) -> None:
+        """Open one channel's interface to read it (card 085). Sends nothing: there is no apply here.
+
+        A module with no `open_for` has nothing to open, and the event says so rather than implying
+        an open happened. A failure is raised for the caller to record.
+        """
+        module = self.module_for(cid)
+        open_for = getattr(module, "open_for", None)
+        if open_for is not None:
+            open_for(cid)
+        self.record(event="check_now_open", channel=cid, implicit=open_for is None)
+
+    def close_channel(self, cid: str) -> None:
+        module = self.module_for(cid)
+        close_for = getattr(module, "close_for", None)
+        if close_for is not None:
+            close_for(cid)
+        self.record(event="check_now_close", channel=cid, implicit=close_for is None)
 
     def set_element_by_hand(self, channel_id: str, element_id: str, value: object) -> None:
         """Mock only: stand for the person turning one registry element at the instrument.

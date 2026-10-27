@@ -98,8 +98,10 @@ class LiveHost:
     def __init__(self, approvals_dir: Path, runs_root: Path, address_file: Path | None = None,
                  log_path: Path | None = None, backend: str = "mock",
                  run_lock_path: Path | None = None, on_orchestrator=None,
-                 mm_config: Path | None = None, config_loader=None) -> None:
+                 mm_config: Path | None = None, config_loader=None,
+                 status_dir: Path | None = None) -> None:
         self.approvals_dir = Path(approvals_dir)
+        self.status_dir = Path(status_dir) if status_dir else None
         self.runs_root = Path(runs_root)
         self.address_file = Path(address_file) if address_file else app_dir() / "live_host.json"
         self.log_path = Path(log_path) if log_path else app_dir() / "live_host_log.jsonl"
@@ -242,10 +244,12 @@ class LiveHost:
             message = json.loads(text)
         except ValueError:
             return self._refuse("not JSON", raw)
+        if isinstance(message, dict) and "check_now" in message:
+            return self._handle_check_now(message, raw)
         if not isinstance(message, dict) or set(message) != {"live_on"} \
                 or not isinstance(message["live_on"], str):
-            return self._refuse('not the one request this host answers, {"live_on": "<sha256>"}',
-                                raw)
+            return self._refuse('not a request this host answers: {"live_on": "<sha256>"} or '
+                                '{"check_now": "<sha256>"}', raw)
         sha = message["live_on"].lower()
         found = self._find(sha)
         if found is None:
@@ -255,16 +259,16 @@ class LiveHost:
             op.check_live_view_list(json.loads(data.decode("utf-8-sig")))
         except (op.Refusal, ValueError) as exc:
             return self._refuse(f"{path.name}: {exc}", raw)
-        run_id = "run-" + datetime.now().strftime("%Y%m%d") + "-live-" + \
-                 datetime.now().strftime("%H%M%S%f")[:9]
+        try:
+            run_id = self._next_run_id()
+        except RuntimeError as exc:
+            return self._refuse(str(exc), raw)
         lock = run_lock.RunLock(self.run_lock_path if self.run_lock_path is not None
                                 else op.RUN_LOCK_PATH)
         try:
             lock.acquire({"kind": "live_view", "run_id": run_id})
         except run_lock.RunLockHeld as exc:
-            holder = exc.holder or {}
-            return self._refuse(f"a run holds the lock: {holder.get('run_id') or 'unknown run'}"
-                                f" ({holder.get('kind') or 'unknown kind'})", raw)
+            return self._refuse(self._held_reason(exc), raw)
         started, box = threading.Event(), {}
 
         def go():
@@ -272,7 +276,8 @@ class LiveHost:
                 op.run_live_view(path, run_id, runs_root=self.runs_root, backend=self.backend,
                                  lock=lock, started=started, on_orchestrator=self.on_orchestrator,
                                  mm_config=self.mm_config, mm_approvals=self.approvals_dir,
-                                 mm_state=self._mm_state, config_loader=self.config_loader)
+                                 mm_state=self._mm_state, config_loader=self.config_loader,
+                                 status_dir=self.status_dir)
             except Exception as exc:                            # noqa: BLE001 - reported below
                 box["error"] = f"{type(exc).__name__}: {exc}"
                 started.set()
@@ -288,6 +293,79 @@ class LiveHost:
             return self._refuse(f"the run did not start: {box['error']}", raw)
         self.record(event="live_on_started", run_id=run_id, list=path.name, sha256=sha)
         return {"live_on": "started", "run_id": run_id}
+
+    # -- check now (card 085) ----------------------------------------------- #
+
+    @staticmethod
+    def _held_reason(exc) -> str:
+        holder = exc.holder or {}
+        return (f"a run holds the lock: {holder.get('run_id') or 'unknown run'}"
+                f" ({holder.get('kind') or 'unknown kind'})")
+
+    def _next_run_id(self) -> str:
+        """`run-YYYYMMDD-NNN` with NNN in 900..999: the range a host-started run takes, so it never
+        meets an id the person or a plan gave, and the id is one the console's interface accepts."""
+        today = datetime.now().strftime("%Y%m%d")
+        taken = set()
+        if self.runs_root.is_dir():
+            for entry in self.runs_root.iterdir():
+                if entry.name.startswith(f"run-{today}-") and entry.name[-3:].isdigit():
+                    taken.add(int(entry.name[-3:]))
+        free = [n for n in range(900, 1000) if n not in taken]
+        if not free:
+            raise RuntimeError(f"all 100 host run ids of {today} (run-{today}-900 to -999) are taken")
+        return f"run-{today}-{free[0]:03d}"
+
+    def _refuse_check_now(self, reason: str, raw: bytes) -> dict:
+        self.record(event="check_now_refused", reason=reason, bytes=len(raw))
+        return {"check_now": "refused", "reason": reason}
+
+    def _handle_check_now(self, message: dict, raw: bytes) -> dict:
+        """{"check_now": "<sha256>"} and nothing else: find the approved list, run it, say who started."""
+        if set(message) != {"check_now"} or not isinstance(message["check_now"], str):
+            return self._refuse_check_now('not the one check-now request this host answers, '
+                                          '{"check_now": "<sha256>"}', raw)
+        sha = message["check_now"].lower()
+        found = self._find(sha)
+        if found is None:
+            return self._refuse_check_now("no approved check-now list has that sha256", raw)
+        path, data = found
+        try:
+            op.check_check_now_list(json.loads(data.decode("utf-8-sig")))
+        except (op.Refusal, ValueError) as exc:
+            return self._refuse_check_now(f"{path.name}: {exc}", raw)
+        try:
+            run_id = self._next_run_id()
+        except RuntimeError as exc:
+            return self._refuse_check_now(str(exc), raw)
+        lock = run_lock.RunLock(self.run_lock_path if self.run_lock_path is not None
+                                else op.RUN_LOCK_PATH)
+        try:
+            lock.acquire({"kind": "check_now", "run_id": run_id})
+        except run_lock.RunLockHeld as exc:
+            return self._refuse_check_now(self._held_reason(exc), raw)
+        started, box = threading.Event(), {}
+
+        def go():
+            try:
+                op.run_check_now(path, run_id, runs_root=self.runs_root, backend=self.backend,
+                                 lock=lock, started=started, on_orchestrator=self.on_orchestrator,
+                                 status_dir=self.status_dir)
+            except Exception as exc:                            # noqa: BLE001 - reported below
+                box["error"] = str(exc) if isinstance(exc, op.Refusal) else f"{type(exc).__name__}: {exc}"
+                started.set()
+            finally:
+                if lock.held:
+                    lock.release()
+        thread = threading.Thread(target=go, name=f"check-now:{run_id}", daemon=True)
+        self._runs.append(thread)
+        thread.start()
+        if not started.wait(START_TIMEOUT_S):
+            return self._refuse_check_now(f"the run did not start within {START_TIMEOUT_S:g} s", raw)
+        if "error" in box:
+            return self._refuse_check_now(f"the run did not start: {box['error']}", raw)
+        self.record(event="check_now_started", run_id=run_id, list=path.name, sha256=sha)
+        return {"check_now": "started", "run_id": run_id}
 
 
 def parse_shape(text: str) -> tuple[int, int]:
@@ -339,7 +417,7 @@ def main(argv: list[str] | None = None) -> int:
             camera.FRAME_DELAY_S = args.mock_frame_delay
     host = LiveHost(args.approvals, args.runs_root, address_file=args.address_file,
                     backend=args.backend, on_orchestrator=configure_mock if mock_flags else None,
-                    mm_config=args.mm_config)
+                    mm_config=args.mm_config, status_dir=AGENT / ".runtime_status")
     try:
         addr = host.start()
     except op.Refusal as exc:
