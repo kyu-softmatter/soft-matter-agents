@@ -282,6 +282,11 @@
           "action": {
             "type": "string"
           },
+          "line": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Which light line of the device this action drives, named exactly as the device reports it (GREEN, NIR, ...). Every parameter of the action applies to that line; two lines take two actions. Absent when the device has no lines. The runtime picks the binding whose line equals this one and refuses when a quantity has bound lines and the action names none or one no binding carries (microscope card 098 part 5; mm_bindings line, librarian card 062 as amended 2026-10-27)."
+          },
           "reversible": {
             "type": "boolean"
           },
