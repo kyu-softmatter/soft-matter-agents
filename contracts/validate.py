@@ -4937,8 +4937,18 @@ def check_41_seat_attribution(b: Bundle, commit_range: str | None = None, staged
         # while merging (6.2.1). Plain -r prints nothing for a merge, so
         # skipping on an empty list let exactly that edit through unattributed.
         merge = len(parents.split()) > 1
-        shape = ["--cc"] if merge else ["-r"]
-        paths = [x for x in git("diff-tree", "--no-commit-id", "--name-only", *shape, sha).splitlines() if x.strip()]
+        if merge:
+            # The paths are read off the --cc patch, not --name-only. With
+            # --name-only, --cc lists every path that differs from all parents,
+            # which includes a path both sides edited and git merged with no
+            # hand at all. The dense patch keeps only the hunks that match no
+            # parent. --name-only refused a clean merge of the other computer's
+            # plan.md commit to the intake seat at e9c9ad52 (2026-10-27), and
+            # then no seat could ever make the merge plan.md 6.2.1 asks for.
+            patch = git("diff-tree", "--no-commit-id", "--cc", "-p", sha)
+            paths = [x[len("diff --cc "):] for x in patch.splitlines() if x.startswith("diff --cc ")]
+        else:
+            paths = [x for x in git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).splitlines() if x.strip()]
         if not paths:
             # A clean merge contributes nothing, so there is nothing to
             # attribute. That is an answer, not a gap.

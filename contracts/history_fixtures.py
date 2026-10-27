@@ -214,6 +214,60 @@ def fixture_41_a_planning_seat_writes_into_the_runtime(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def readme(first: str, middle: str, last: str) -> str:
+    """README.md with a first, a middle and a last line far enough apart to merge cleanly."""
+    return "".join(line + chr(10) for line in [first, "", "one", "two", middle, "four", "five", "", last])
+
+
+def _two_sided_readme(repo: Path) -> str:
+    """Both sides of a merge edit README.md, the first line on main and the last on a branch.
+
+    The regions are apart, so git merges them with no hand. Returns the range
+    start, before main's edit; the caller makes the merge as microscope-1,
+    whose paths do not cover README.md.
+    """
+    base(repo)
+    write(repo, "README.md", readme("# fixture", "three", "end"))
+    start = commit(repo, "a README with room for two edits", "README.md", seat="architecture")
+    run(repo, "checkout", "-q", "-b", "other")
+    write(repo, "README.md", readme("# fixture", "three", "end, on the branch"))
+    commit(repo, "the branch edits the last line", "README.md", seat="architecture")
+    run(repo, "checkout", "-q", "main")
+    write(repo, "README.md", readme("# fixture, on main", "three", "end"))
+    commit(repo, "main edits the first line", "README.md", seat="architecture")
+    return start
+
+
+def fixture_41_a_clean_merge_attributes_nothing(repo: Path) -> str:
+    """A merge git made without a hand, by a seat that does not own the file both sides edited.
+
+    plan.md 6.2.1 (e284452f): the seat whose push is refused as behind makes
+    the merge, and what a merge contributes is what `--cc` shows. Check 41
+    read a merge's paths with `--cc --name-only`, which lists every path that
+    differs from all parents, so it attributed README.md to microscope-1 and
+    refused. That refused the intake seat's merge e9c9ad52 on 2026-10-27, where
+    the file was plan.md. The dense patch prints no hunk here, so nothing is
+    attributed.
+    """
+    start = _two_sided_readme(repo)
+    run(repo, "merge", "-q", "--no-ff", "--no-edit", "other", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
+def fixture_41_a_merge_that_adds_its_own_line_is_judged(repo: Path) -> str:
+    """The same merge, with a line in no parent added while merging, outside the merger's seat.
+
+    The other half of reading `--cc` by its hunks: a change the merge made
+    itself still lands on the merging seat, so the fix for the clean merge
+    cannot turn into skipping merges.
+    """
+    start = _two_sided_readme(repo)
+    run(repo, "merge", "-q", "--no-ff", "--no-commit", "other", seat="microscope-1")
+    write(repo, "README.md", readme("# fixture, on main", "three, added while merging", "end, on the branch"))
+    commit(repo, "a merge that adds a line of its own", "README.md", seat="microscope-1")
+    return f"{start}..HEAD"
+
+
 def fixture_41_the_runtime_seat_inside_the_runtime(repo: Path) -> str:
     """A seat narrowed to microscope_runtime/ committing runtime code is admitted.
 
@@ -1947,6 +2001,8 @@ FIXTURES = [
     (41, "FAIL", "is narrowed to ['microscope_agent/'], which does not cover this path",
      fixture_41_a_planning_seat_writes_into_the_runtime),
     (41, "PASS", "2 commits stay inside the seat that made them", fixture_41_the_runtime_seat_inside_the_runtime),
+    (41, "PASS", "and 1 merges contributed nothing of their own", fixture_41_a_clean_merge_attributes_nothing),
+    (41, "FAIL", "owns ['microscope_agent']; this path is design's", fixture_41_a_merge_that_adds_its_own_line_is_judged),
     (35, "PASS", "stay inside one boundary (microscope_agent)",
      fixture_35_the_design_and_runtime_folders_are_one_boundary),
     (35, "FAIL", "one commit writes into ['microscope_agent', 'simulation_agent']",
