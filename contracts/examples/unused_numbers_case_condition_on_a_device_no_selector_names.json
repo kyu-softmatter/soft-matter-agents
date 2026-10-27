@@ -1,0 +1,41 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "condition_on_a_device_no_selector_names",
+  "what": "A condition that names a device is still only a declaration, so its number is listed: naming a device is not the run acting on it.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "lamp_level",
+        "value": 30,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "conditions": [
+      {
+        "parameter": "lamp_level",
+        "number": "lamp_level",
+        "device": "dia_lamp"
+      }
+    ],
+    "system_configuration": {
+      "selectors": [
+        {
+          "element": "nosepiece",
+          "value": "5",
+          "selects": []
+        }
+      ]
+    }
+  },
+  "unused": [
+    {
+      "name": "lamp_level",
+      "value": 30,
+      "unit": "1",
+      "from": "numbers[0]"
+    }
+  ]
+}

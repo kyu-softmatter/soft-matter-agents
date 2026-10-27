@@ -1827,8 +1827,13 @@
     },
     "derivation": {
       "type": "object",
-      "description": "One record per plan run, written at derivation and before the first command (plan.md 15.1 item 10, card 095). Every action parameter is sorted into exactly one class, every selector is a setting or a required state, and every number nothing uses is listed rather than dropped in silence. Added 2026-10-27 by manager-microscope-20261003-1 for card 095 and for the console's sign dialog, which reads the unused list from here.",
+      "description": "One record per plan run, written at derivation and before the first command (plan.md 15.1 item 10, card 095). Every action parameter is sorted into exactly one class, every selector is a setting or a required state, and every number nothing uses is listed rather than dropped in silence. Added 2026-10-27 by manager-microscope-20261003-1 for card 095. The unused list is exactly what validate.unused_numbers gives for the plan, and check 97 holds it there; the console's sign dialog applies the same rule to the plan before any run exists, tested on the unused_numbers_case examples.",
       "properties": {
+        "plan_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "the plan_hash of the card the operator derived from, computed as an approval's is (status dropped). An id and revision name a card and not its contents, and a run that needed no approval carries no hash anywhere else, so this is what check 97 finds the card by; under a plan_approval it equals that approval's plan_hash"
+        },
         "parameters": {
           "type": "array",
           "items": {
@@ -2022,6 +2027,7 @@
         }
       },
       "required": [
+        "plan_hash",
         "parameters",
         "selectors",
         "unused_numbers"

@@ -1,0 +1,57 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "no_field_names_it",
+  "what": "A number no field names is listed. The condition that declares it is not a use, and neither is the cost estimate that counts it.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "exposure_time",
+        "value": 0.1,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "bleach_window",
+        "value": 60,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "conditions": [
+      {
+        "parameter": "bleach_window",
+        "number": "bleach_window"
+      }
+    ],
+    "actions": [
+      {
+        "id": "act_acquire",
+        "verb": "acquire_series",
+        "parameters": [
+          "exposure_time"
+        ]
+      }
+    ],
+    "cost": {
+      "numbers": [
+        "bleach_window"
+      ]
+    },
+    "envelope_check": {
+      "checked_against": [
+        "bleach_window"
+      ]
+    }
+  },
+  "unused": [
+    {
+      "name": "bleach_window",
+      "value": 60,
+      "unit": "s",
+      "from": "numbers[1]"
+    }
+  ]
+}

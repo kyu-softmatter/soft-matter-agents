@@ -1,0 +1,46 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "counts_a_computed_numbers_input_as_used",
+  "what": "Rejected fixture: record_length is left off the list because frame_count is computed from it. Being an input is not a use, so the rule lists it.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "exposure_time",
+        "value": 0.1,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "record_length",
+        "value": 60,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "frame_count",
+        "value": 600,
+        "unit": "1",
+        "source": "computed:record_length_over_exposure_time",
+        "grade": "E5",
+        "inputs": [
+          "record_length",
+          "exposure_time"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "act_acquire",
+        "verb": "acquire_series",
+        "parameters": [
+          "exposure_time",
+          "frame_count"
+        ]
+      }
+    ]
+  },
+  "unused": []
+}

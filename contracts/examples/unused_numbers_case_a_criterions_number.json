@@ -1,0 +1,48 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "a_criterions_number",
+  "what": "The threshold a stop or success criterion names is used, and a criterion that names a target instead uses no number.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "frame_count",
+        "value": 600,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "snr_floor",
+        "value": 10,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "stop_criteria": [
+      {
+        "id": "sc",
+        "metric": "frames_acquired",
+        "comparator": ">=",
+        "number": "frame_count"
+      }
+    ],
+    "success_criteria": [
+      {
+        "id": "ok",
+        "metric": "x_decades_resolved",
+        "comparator": ">=",
+        "target": "x"
+      }
+    ]
+  },
+  "unused": [
+    {
+      "name": "snr_floor",
+      "value": 10,
+      "unit": "1",
+      "from": "numbers[1]"
+    }
+  ]
+}

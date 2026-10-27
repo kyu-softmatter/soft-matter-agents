@@ -1,0 +1,41 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "left_behind_a_selector",
+  "what": "A condition whose device is a selector's element is not a use: the run acts on the selector's value, so the number left behind it is listed, and a plan where the two disagree shows.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "nosepiece_position",
+        "value": 5,
+        "unit": "count",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "conditions": [
+      {
+        "parameter": "nosepiece_position",
+        "number": "nosepiece_position",
+        "device": "nosepiece"
+      }
+    ],
+    "system_configuration": {
+      "selectors": [
+        {
+          "element": "nosepiece",
+          "value": "5",
+          "selects": []
+        }
+      ]
+    }
+  },
+  "unused": [
+    {
+      "name": "nosepiece_position",
+      "value": 5,
+      "unit": "count",
+      "from": "numbers[0]"
+    }
+  ]
+}

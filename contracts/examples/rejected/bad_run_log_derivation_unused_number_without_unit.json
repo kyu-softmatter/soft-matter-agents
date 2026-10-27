@@ -33,6 +33,7 @@
       "event": "derivation",
       "from": "actions",
       "derivation": {
+        "plan_hash": "sha256:2bd6c3fbe49cfe89e2a5d94f7943789f4543e02cbd68c2e69e3bc98aca8d6dd9",
         "parameters": [
           {
             "action": "acquire_series",

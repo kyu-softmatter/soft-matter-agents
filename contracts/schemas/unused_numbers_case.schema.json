@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "unused_numbers_case.schema.json",
+  "title": "unused_numbers_case -- one case of the unused-number rule (plan.md 15.1 item 10)",
+  "description": "A plan and the list the one rule in contracts/ gives for it: contracts/validate.py `unused_numbers`. Data and not code, so a copy of the rule outside this repository -- the console's, which imports nothing from the tree -- is tested on the same cases the validator is. Check 97 holds every case's `unused` equal to the rule applied to its `plan`. The plan is the part of a plan card the rule reads and need not be a whole card; it is never judged as one, because it is not a file of its own. Added 2026-10-27 by manager-microscope-20261003-1.",
+  "type": "object",
+  "required": ["artifact", "schema_version", "case", "what", "plan", "unused"],
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {"const": "unused_numbers_case"},
+    "schema_version": {"const": "0.1"},
+    "case": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "the case's name, the file's name after `unused_numbers_case_`"},
+    "what": {"type": "string", "minLength": 10, "description": "what the case holds and why the list is what it is"},
+    "plan": {"type": "object", "description": "the plan, or the fields of one the rule reads"},
+    "unused": {
+      "type": "array",
+      "description": "what the rule gives, in numbers[] order: each number nothing at run time uses, with its value and unit, and `from` its index in numbers[]",
+      "items": {
+        "type": "object",
+        "required": ["name", "value", "unit", "from"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "value": {},
+          "unit": {"type": ["string", "null"]},
+          "from": {"type": "string", "pattern": "^numbers\\[[0-9]+\\]$"}
+        }
+      }
+    }
+  }
+}

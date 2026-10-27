@@ -316,6 +316,9 @@ ARTIFACT_SCHEMA = {
     # until the inbox opens.
     "console_store_request": "console_store_request.schema.json",
     "store_answer": "store_answer.schema.json",
+    # 2026-10-27, plan.md 15.1 item 10: one case of the unused-number rule, as
+    # data, so the console's copy of the rule is tested on the cases check 97 is.
+    "unused_numbers_case": "unused_numbers_case.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -700,6 +703,126 @@ def card_sha(card: dict) -> str:
 def plan_hash(plan: dict) -> str:
     """What a plan_approval signs (5.5). The same hash, named for its use."""
     return card_sha(plan)
+
+
+def unused_numbers(plan: dict) -> list[dict]:
+    """The numbers in a plan that nothing at run time uses (15.1 item 10).
+
+    One rule, a function of the plan card alone: the console shows its result
+    beside the plan the person signs, the operator records it at derivation,
+    and a check holds the two equal. A number is used when an action names it
+    as a parameter, or when a stop or success criterion, a camera ceiling, a
+    depth of field or the smoke fraction names it. Declaring a number in a
+    condition, an arm or a sweep level is not a use, nor is cost, the
+    envelope check, a precondition's basis, or being an input to a computed
+    number: `record_length` feeds `frame_count` and nothing at run time reads
+    it. A condition on a selector's element is not a use either: the run acts
+    on the selector's value, so a number left behind a selector is listed,
+    which is how a plan where the two disagree shows.
+    """
+    used: set[str] = set()
+    for a in plan.get("actions") or []:
+        used.update(n for n in (a.get("parameters") or []) if isinstance(n, str))
+    for key in ("stop_criteria", "success_criteria"):
+        for c in plan.get(key) or []:
+            used.add(c.get("number"))
+    fs = plan.get("focus_search") or {}
+    used.add((fs.get("camera_ceiling") or {}).get("number"))
+    used.add(((fs.get("success") or {}).get("depth_of_field") or {}).get("number"))
+    stats = ((plan.get("watcher") or {}).get("image") or {}).get("frame_stats") or {}
+    used.add((stats.get("camera_ceiling") or {}).get("number"))
+    used.add((plan.get("smoke") or {}).get("record_fraction"))
+    return [{"name": n["name"], "value": n.get("value"), "unit": n.get("unit"),
+             "from": f"numbers[{i}]"}
+            for i, n in enumerate(plan.get("numbers") or [])
+            if n.get("name") not in used]
+
+
+def check_97_the_unused_list_is_the_rules(b: Bundle) -> list[Finding]:
+    """A run's unused-number list is the one rule applied to the plan it ran (15.1 item 10).
+
+    The console shows the list beside the plan the person signs and the
+    operator records it at derivation, so two copies of one rule meet in one
+    record. Two things are held, both against `unused_numbers` above:
+
+      a. every `unused_numbers_case` in contracts/examples/ lists exactly what
+         the rule gives for its plan. The cases are data so the console's
+         copy, which imports nothing from this tree, is tested on the same
+         ones; a case that drifts from the rule fails here first.
+      b. every derivation event in a run log lists exactly what the rule gives
+         for the plan card the run derived from: the one card in the judged
+         tree whose plan hash is the event's `plan_hash`. No such card is a
+         FAIL, since the card the run executed was changed after it ran or
+         never committed. Its id and revision must be the log's, and when a
+         plan_approval authorised the run, the approval's plan_hash must be
+         the event's. A run with no plan is not judged.
+
+    The comparison is exact and in order, value and unit included: the list
+    is a function of the plan, so any difference is a second rule.
+    """
+    out: list[Finding] = []
+    cases = [c for c in b.of_artifact("unused_numbers_case") if "__unreadable__" not in c.data]
+    for c in cases:
+        plan, said = c.data.get("plan"), c.data.get("unused")
+        if not isinstance(plan, dict):
+            continue                                   # check 1's
+        got = unused_numbers(plan)
+        if said != got:
+            out.append(Finding(97, FAIL, f"case {c.data.get('case')!r} lists "
+                                         f"{[u.get('name') for u in said or [] if isinstance(u, dict)]} and the rule "
+                                         f"gives {[u['name'] for u in got]}"
+                                         + ("" if [u.get("name") for u in said or [] if isinstance(u, dict)]
+                                            != [u["name"] for u in got] else ", differing in value, unit or from"),
+                               c.rel))
+    plans = [c for c in b.of_kind("plan") if "__unreadable__" not in c.data]
+    approvals = b.of_kind("plan_approval")
+    judged = 0
+    for log in b.of_artifact("run_log"):
+        if "__unreadable__" in log.data:
+            continue
+        events = [e for e in log.data.get("events") or []
+                  if isinstance(e, dict) and e.get("event") == "derivation"]
+        if not events or log.data.get("plan_id") is None:
+            continue
+        for e in events:
+            d = e.get("derivation") or {}
+            want = d.get("plan_hash")
+            hits = {plan_hash(p.data): p for p in plans if want and plan_hash(p.data) == want}
+            plan = next(iter(hits.values()), None)
+            if plan is None:
+                out.append(Finding(97, FAIL, f"the derivation's plan_hash {str(want)[:19]}... is no plan card in "
+                                             "this tree: the card the run derived from was changed after it ran, "
+                                             "or never committed", log.rel))
+                continue
+            appr = log.data.get("approval") or {}
+            if appr.get("kind") == "plan_approval":
+                signed = [a.data.get("plan_hash") for a in approvals
+                          if str(a.data.get("id") or "") == str(appr.get("id"))]
+                other = [h for h in signed if h != want]
+                if other:
+                    out.append(Finding(97, FAIL, f"the derivation ran plan hash {want[:19]}... and the approval "
+                                                 f"{appr.get('id')} signed {str(other[0])[:19]}...", log.rel))
+                    continue
+            if (plan.data.get("id"), plan.data.get("revision")) != (log.data.get("plan_id"), log.data.get("revision")):
+                out.append(Finding(97, FAIL, f"the derivation's plan, {plan.rel}, is {plan.data.get('id')} "
+                                             f"revision {plan.data.get('revision')} and the run log says "
+                                             f"{log.data.get('plan_id')} revision {log.data.get('revision')}", log.rel))
+                continue
+            judged += 1
+            said, got = d.get("unused_numbers"), unused_numbers(plan.data)
+            if said != got:
+                missing = [u["name"] for u in got if u not in (said or [])]
+                extra = [u.get("name") for u in said or [] if isinstance(u, dict) and u not in got]
+                out.append(Finding(97, FAIL, f"the derivation lists unused numbers that are not the rule's for "
+                                             f"{plan.rel}: missing {missing or 'none'}, not the rule's "
+                                             f"{extra or 'none'}"
+                                             + ("" if missing or extra else ", in another order"), log.rel))
+    if not cases and not judged and not out:
+        return [Finding(97, NA, "no unused-number cases and no derivation with a plan in this tree")]
+    if not any(f.status == FAIL for f in out):
+        out.insert(0, Finding(97, PASS, f"{len(cases)} unused-number cases and {judged} derivations list "
+                                        "exactly what the rule gives"))
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -10130,6 +10253,7 @@ CHECKS = [
     check_90_an_execution_folder_guards_the_persons_files,
     check_91_console_questions_are_linked_and_answered,
     check_92_a_console_item_holds_the_files_it_names,
+    check_97_the_unused_list_is_the_rules,
     check_93_an_agent_cannot_write_its_console_inbox,
     check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
     check_95_a_store_answer_stands_on_a_published_store,

@@ -1,0 +1,69 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "sweep_levels",
+  "what": "A sweep's levels and its points' conditions declare numbers and use none of them.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "level_low",
+        "value": 1,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "level_high",
+        "value": 10,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "sweep": {
+      "axes": [
+        {
+          "parameter": "drive",
+          "levels": [
+            "level_low",
+            "level_high"
+          ]
+        }
+      ],
+      "points": [
+        {
+          "id": "p1",
+          "conditions": [
+            {
+              "parameter": "drive",
+              "number": "level_low"
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "conditions": [
+            {
+              "parameter": "drive",
+              "number": "level_high"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "unused": [
+    {
+      "name": "level_low",
+      "value": 1,
+      "unit": "1",
+      "from": "numbers[0]"
+    },
+    {
+      "name": "level_high",
+      "value": 10,
+      "unit": "1",
+      "from": "numbers[1]"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "named_twice",
+  "what": "A number two fields name is used, and is not listed once for each field.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "frame_count",
+        "value": 600,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "actions": [
+      {
+        "id": "act_acquire",
+        "verb": "acquire_series",
+        "parameters": [
+          "frame_count"
+        ]
+      }
+    ],
+    "stop_criteria": [
+      {
+        "id": "sc",
+        "metric": "frames_acquired",
+        "comparator": ">=",
+        "number": "frame_count"
+      }
+    ]
+  },
+  "unused": []
+}

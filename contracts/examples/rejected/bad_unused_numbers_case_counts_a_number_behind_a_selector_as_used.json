@@ -1,0 +1,34 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "counts_a_number_behind_a_selector_as_used",
+  "what": "Rejected fixture: the number behind a selector is left off the list as though the selector used it. The run acts on the selector's value, so the rule lists it.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "nosepiece_position",
+        "value": 5,
+        "unit": "count",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "conditions": [
+      {
+        "parameter": "nosepiece_position",
+        "number": "nosepiece_position",
+        "device": "nosepiece"
+      }
+    ],
+    "system_configuration": {
+      "selectors": [
+        {
+          "element": "nosepiece",
+          "value": "5",
+          "selects": []
+        }
+      ]
+    }
+  },
+  "unused": []
+}

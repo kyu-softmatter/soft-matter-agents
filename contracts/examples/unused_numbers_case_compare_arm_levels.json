@@ -1,0 +1,85 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "compare_arm_levels",
+  "what": "An arm's condition is a declaration like a top-level one, so a level no field uses is listed, an arm's condition on a selector's element included.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "exposure_short",
+        "value": 0.05,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "exposure_long",
+        "value": 0.2,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "objective_a",
+        "value": 3,
+        "unit": "count",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "system_configuration": {
+      "selectors": [
+        {
+          "element": "nosepiece",
+          "value": "3",
+          "selects": []
+        }
+      ]
+    },
+    "compare_arms": [
+      {
+        "id": "arm_a",
+        "conditions": [
+          {
+            "parameter": "exposure_time",
+            "number": "exposure_short"
+          },
+          {
+            "parameter": "nosepiece_position",
+            "number": "objective_a",
+            "device": "nosepiece"
+          }
+        ]
+      },
+      {
+        "id": "arm_b",
+        "conditions": [
+          {
+            "parameter": "exposure_time",
+            "number": "exposure_long"
+          }
+        ]
+      }
+    ]
+  },
+  "unused": [
+    {
+      "name": "exposure_short",
+      "value": 0.05,
+      "unit": "s",
+      "from": "numbers[0]"
+    },
+    {
+      "name": "exposure_long",
+      "value": 0.2,
+      "unit": "s",
+      "from": "numbers[1]"
+    },
+    {
+      "name": "objective_a",
+      "value": 3,
+      "unit": "count",
+      "from": "numbers[2]"
+    }
+  ]
+}

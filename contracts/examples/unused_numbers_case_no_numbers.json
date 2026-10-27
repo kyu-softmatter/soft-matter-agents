@@ -1,0 +1,17 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "no_numbers",
+  "what": "A plan with an empty numbers[] lists nothing.",
+  "plan": {
+    "numbers": [],
+    "actions": [
+      {
+        "id": "act_retract",
+        "verb": "retract_objective",
+        "parameters": []
+      }
+    ]
+  },
+  "unused": []
+}

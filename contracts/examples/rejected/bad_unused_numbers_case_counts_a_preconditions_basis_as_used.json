@@ -1,0 +1,92 @@
+{
+  "artifact": "unused_numbers_case",
+  "schema_version": "0.1",
+  "case": "counts_a_preconditions_basis_as_used",
+  "what": "Rejected fixture: lock_margin is left off the list because a precondition's basis names it. A basis is what an axis stood on, not a use, so the rule lists it.",
+  "plan": {
+    "numbers": [
+      {
+        "name": "ceiling_search",
+        "value": 65535,
+        "unit": "ADU",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "depth_of_field",
+        "value": 1.2,
+        "unit": "um",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "ceiling_watch",
+        "value": 4095,
+        "unit": "ADU",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "smoke_fraction",
+        "value": 0.1,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "lock_margin",
+        "value": 2,
+        "unit": "s",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      },
+      {
+        "name": "spare",
+        "value": 1,
+        "unit": "1",
+        "source": "assumed:a_case",
+        "grade": "E5"
+      }
+    ],
+    "focus_search": {
+      "camera_ceiling": {
+        "number": "ceiling_search"
+      },
+      "success": {
+        "depth_of_field": {
+          "number": "depth_of_field"
+        }
+      }
+    },
+    "watcher": {
+      "image": {
+        "frame_stats": {
+          "camera_ceiling": {
+            "number": "ceiling_watch"
+          }
+        }
+      }
+    },
+    "smoke": {
+      "record_fraction": "smoke_fraction"
+    },
+    "preconditions": [
+      {
+        "parameter": "lock",
+        "requires": "hold the lock for the margin",
+        "basis": [
+          "lock_margin",
+          "kb:some_entry"
+        ]
+      }
+    ]
+  },
+  "unused": [
+    {
+      "name": "spare",
+      "value": 1,
+      "unit": "1",
+      "from": "numbers[5]"
+    }
+  ]
+}

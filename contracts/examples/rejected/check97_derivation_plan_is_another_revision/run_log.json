@@ -1,0 +1,133 @@
+{
+  "artifact": "run_log",
+  "schema_version": "0.1",
+  "run_id": "run-20261027-972",
+  "plan_id": "plan-mic-20260917-001-r2",
+  "revision": 2,
+  "approved_commands": {
+    "path": "D:/soft-matter-agents-frames/run-20260924-901/commands.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "approved_by": "the person, in words, before any light"
+  },
+  "approval": {
+    "id": null,
+    "kind": null
+  },
+  "safety_policy_version": "4",
+  "stop_criteria": [],
+  "t0_wall": "2026-09-24T00:00:00+00:00",
+  "t0_mono": 100.0,
+  "backend": "micromanager",
+  "time_base_note": "software offsets order the log and nothing else (4.6.9)",
+  "events": [
+    {
+      "t_mono": 0.0,
+      "time_base": "software",
+      "event": "not_dispatched",
+      "note": "this run did not come through the plan dispatcher"
+    },
+    {
+      "t_mono": 0.05,
+      "time_base": "software",
+      "event": "derivation",
+      "from": "actions",
+      "derivation": {
+        "plan_hash": "sha256:2bd6c3fbe49cfe89e2a5d94f7943789f4543e02cbd68c2e69e3bc98aca8d6dd9",
+        "parameters": [],
+        "selectors": [],
+        "unused_numbers": [
+          {
+            "name": "exposure_floor_darkfield",
+            "value": 0.5,
+            "unit": "s",
+            "from": "numbers[2]"
+          },
+          {
+            "name": "exposure_ceiling_darkfield",
+            "value": 0.02,
+            "unit": "s",
+            "from": "numbers[3]"
+          },
+          {
+            "name": "bead_diameter",
+            "value": 2,
+            "unit": "um",
+            "from": "numbers[4]"
+          },
+          {
+            "name": "temperature",
+            "value": 293,
+            "unit": "K",
+            "from": "numbers[5]"
+          },
+          {
+            "name": "viscosity",
+            "value": 0.001,
+            "unit": "Pa*s",
+            "from": "numbers[6]"
+          },
+          {
+            "name": "diffusivity",
+            "value": 0.2,
+            "unit": "um^2/s",
+            "from": "numbers[7]"
+          },
+          {
+            "name": "tau_d",
+            "value": 20,
+            "unit": "s",
+            "from": "numbers[8]"
+          },
+          {
+            "name": "pixel_size",
+            "value": 0.1,
+            "unit": "um",
+            "from": "numbers[11]"
+          },
+          {
+            "name": "total_time_estimate",
+            "value": 300,
+            "unit": "s",
+            "from": "numbers[15]"
+          },
+          {
+            "name": "max_lag_time",
+            "value": 2,
+            "unit": "s",
+            "from": "numbers[16]"
+          }
+        ]
+      }
+    },
+    {
+      "t_mono": 0.1,
+      "time_base": "software",
+      "event": "apply",
+      "channel": "Aura",
+      "action": "set_property",
+      "params": {
+        "GREEN_Intensity": {
+          "value": "50",
+          "from": "approved_commands[1]"
+        }
+      },
+      "verification": "readback"
+    },
+    {
+      "t_mono": 0.2,
+      "time_base": "software",
+      "event": "acquire",
+      "channel": "Kinetix_red",
+      "action": "snap"
+    },
+    {
+      "t_mono": 0.3,
+      "time_base": "software",
+      "event": "shutdown",
+      "reason": "finished"
+    }
+  ],
+  "finished_at": "2026-09-24T00:00:01+00:00",
+  "plan_path": "contracts/examples/rejected/check97_derivation_plan_is_another_revision/plan_microscope_mic-20260917-001.json",
+  "ended": "completed"
+}
