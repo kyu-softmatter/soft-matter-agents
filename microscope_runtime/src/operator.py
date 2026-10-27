@@ -114,7 +114,19 @@ def _contracts_validate():
     Two implementations of that would agree until the day they did not, and the
     day they did not, an approval would be honoured for a plan nobody approved.
     """
-    return _load("_contracts_validate", CONTRACTS / "validate.py")
+    path = CONTRACTS / "validate.py"
+    stat = path.stat()
+    key = (stat.st_mtime_ns, stat.st_size)
+    if _VALIDATE_CACHE.get("key") != key:
+        _VALIDATE_CACHE["module"] = _load("_contracts_validate", path)
+        _VALIDATE_CACHE["key"] = key
+    return _VALIDATE_CACHE["module"]
+
+
+#: The validator is read once per file version, not once per call: loading it takes close to a second,
+#: a run asks for it at its approval and again at its derivation, and that second would fall between
+#: the watcher's start and the run's first step (card 095).
+_VALIDATE_CACHE: dict = {}
 
 
 class Refusal(RuntimeError):
@@ -949,6 +961,17 @@ POWER_UP = {"set_power", "ramp_up", "open_shutter", "enable"}
 POWER_DOWN = {"ramp_down", "close_shutter", "disable", "blank"}
 ACQUIRE = {"acquire", "acquire_series", "snap", "stream"}
 
+#: The parameters a verb takes as ARGUMENTS and not as settings of a device, each with what it is
+#: verified against (card 095). `acquire_series` takes `frame_count` and the run counts the frames
+#: the sequence returned, by image number. Any other entry is the manager's to say yes to first: a
+#: parameter that is neither a setting through a binding nor listed here refuses the run.
+VERB_ARGUMENTS = {
+    "acquire_series": {
+        "frame_count": "the frames the sequence returned, counted by image number",
+    },
+}
+_GRADE_ORDER = ("E1", "E2", "E3", "E4", "E5", "E6")
+
 
 def derive_tap_cameras(plan: dict, o) -> list[str]:
     """The cameras a plan's run will acquire on, in the order the plan first names them (card 084).
@@ -1344,6 +1367,142 @@ def derive_commands(plan: dict) -> list[orch.Command]:
             tier=int(action.get("tier", 0)),
         ))
     return commands
+
+
+def _worse_grade(*grades) -> str | None:
+    known = [g for g in grades if g in _GRADE_ORDER]
+    return max(known, key=_GRADE_ORDER.index) if known else None
+
+
+def _binding_text(binding: dict) -> str:
+    return (f"{binding['quantity']} -> {binding['name']}.{binding['property']} "
+            f"via {binding['entry_ref']}")
+
+
+def classify_parameters(o, plan: dict, commands: list[orch.Command]) -> tuple[list[orch.Command], list[dict]]:
+    """Sort every parameter and selector of a plan run into what it is, and record that once (card 095).
+
+    A parameter is a SETTING (written into `settings[label][property]` from a binding in the
+    registry, converted by one of three routes), a VERB ARGUMENT (listed in VERB_ARGUMENTS with what
+    it is verified against) or REFUSED (the run stops naming it, before any command). Nothing is
+    dropped. A selector on a device software may command is a setting through its binding; on any
+    other it is a REQUIRED STATE, read and compared after preflight and never written, so its
+    `select_<element>` command is taken out of the list here. The record is the run log's
+    `derivation` event, one per run, and it is recorded before the refusal is raised so a refused
+    plan says what it was refused for.
+
+    Returns the commands to dispatch and the required states to check. Operation and trap-step
+    plans are not read here: their commands are not parameters of a plan's actions.
+    """
+    if "operation" in plan or "trap_steps" in plan:
+        return commands, []
+    validate = _contracts_validate()
+    may_command = o._device_module("micromanager", needed_by="the selector split").SOFTWARE_MAY_COMMAND
+    parameters, selectors, required, refusals, kept = [], [], [], [], []
+
+    for command in commands:
+        if command.from_field.startswith("system_configuration.selectors["):
+            element, entry = command.channel, command.params[command.channel]
+            word = entry.get("value")
+            label = (o.mm_label(element) or {}).get("label")
+            if label is None and element not in o.names:
+                kept.append(command)         # not a registry name: the motion check refuses it
+                continue
+            if label in may_command:
+                binding = o.mm_binding(element, element)
+                state = o.mm_state(element, word)
+                if binding is None:
+                    why = f"{element!r} has no binding keyed {element!r} to write its mode through"
+                elif state is None:
+                    why = f"{element!r} has no state label for {word!r}"
+                else:
+                    why = o.binding_refusal(binding) or o.state_refusal(state)
+                if why:
+                    refusals.append(f"{entry['from']}: {why}")
+                    continue
+                command.settings = {label: {binding["property"]: state["state_label"]}}
+                command.written = [{"from": entry["from"], "plan_value": word,
+                                    "written": state["state_label"], "label": label,
+                                    "property": binding["property"], "binding": _binding_text(binding)}]
+                selectors.append({"element": element, "from": entry["from"], "class": "setting",
+                                  "binding": _binding_text(binding)})
+                kept.append(command)
+                continue
+            state = o.mm_state(element, word)
+            if state is None:
+                refusals.append(f"{entry['from']}: {element!r} has no state label in the registry "
+                                f"for {word!r}")
+                continue
+            why = o.state_refusal(state)
+            if why:
+                refusals.append(f"{entry['from']}: {why}")
+                continue
+            required.append({"element": element, "from": entry["from"], "word": word,
+                             "state": state["state_label"]})
+            selectors.append({"element": element, "from": entry["from"], "class": "required_state",
+                              "state": state["state_label"]})
+            continue                                    # a required state is read, never written
+        kept.append(command)
+        for name, param in command.params.items():
+            origin = param["from"]
+            row = {"action": command.from_field, "name": name, "from": origin}
+            verification = VERB_ARGUMENTS.get(command.action, {}).get(name)
+            if verification is not None:
+                value = param.get("value")
+                if name == "frame_count" and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
+                    why = f"{name} is {value!r}: a count of frames is a whole number of at least one"
+                    parameters.append({**row, "class": "refused", "why": why})
+                    refusals.append(f"{origin}: {why}")
+                    continue
+                command.frame_count = value
+                parameters.append({**row, "class": "verb_argument", "verification": verification})
+                continue
+            why = _write_parameter(o, command, name, param)
+            if why:
+                parameters.append({**row, "class": "refused", "why": why})
+                refusals.append(f"{origin}: {name!r} on {command.action!r}: {why}")
+            else:
+                parameters.append({**row, "class": "setting",
+                                   "binding": command.written[-1]["binding"]})
+
+    derivation = {"plan_hash": validate.plan_hash(plan), "parameters": parameters,
+                  "selectors": selectors, "unused_numbers": validate.unused_numbers(plan)}
+    o.record(event="derivation", **{"from": "actions"}, derivation=derivation)
+    if refusals:
+        raise Refusal("refusing the whole plan before any command: " + " | ".join(refusals))
+    return kept, required
+
+
+def _write_parameter(o, command, name: str, param: dict) -> str | None:
+    """Put a parameter into the command's settings through its binding; why it cannot be, or None."""
+    if name in orch.NEVER_A_BINDING:
+        return (f"{name} is a verb argument of acquire_series only; on {command.action!r} it is "
+                "neither that nor a setting")
+    device = command.channel
+    binding = o.mm_binding(device, name)
+    if binding is None:
+        return (f"{name!r} is neither a verb argument of {command.action!r} nor bound: the registry "
+                f"carries no binding of it on {device!r}")
+    label = (o.mm_label(device) or {}).get("label")
+    if label is None:
+        return f"{device!r} has no Micro-Manager label, so {name!r} has no device to be written to"
+    why = o.binding_refusal(binding)
+    if why:
+        return why
+    try:
+        written, calibration, why = o.convert_for_binding(param.get("value"), param.get("unit"), binding)
+    except (ValueError, TypeError, ArithmeticError) as exc:
+        return f"{param.get('value')!r} {param.get('unit')!r} cannot be converted ({exc})"
+    if why:
+        return why
+    cal_grade = (o.calibration_for(label, binding["property"], name) or {}).get("grade") if calibration else None
+    command.settings.setdefault(label, {})[binding["property"]] = written
+    command.written.append({
+        "from": param["from"], "plan_value": param.get("value"), "plan_unit": param.get("unit"),
+        "written": written, "unit": binding["unit"], "label": label, "property": binding["property"],
+        "binding": _binding_text(binding), "calibration": calibration,
+        "grade": _worse_grade(param.get("grade"), cal_grade)})
+    return None
 
 
 # --------------------------------------------------------------------------- #
@@ -1775,8 +1934,10 @@ def _run_body(o, plan: dict, run_id: str, backend: str, observe, handover, ask_p
     # approved operation plan's piezo X/Y moves the derived-point envelope
     # check instead -- both inside check_software_motion_for, one call, so no
     # caller can lift the one without running the other.
+    commands, required_states = classify_parameters(o, plan, commands)
     o.check_software_motion_for(plan, commands)
-    o.preflight(sorted({c.channel for c in commands}))
+    o.preflight(sorted({c.channel for c in commands} | {r["element"] for r in required_states}))
+    o.check_required_states(required_states)
     o.snapshot("before")
     if "trap_steps" in plan:
         dispatched = _run_trap_steps(o, plan, commands, ask_person)

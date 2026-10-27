@@ -30,6 +30,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
+from fractions import Fraction
 from pathlib import Path
 
 AGENT = Path(__file__).resolve().parent.parent
@@ -240,15 +241,16 @@ def _entry_facts(entries: dict | None, entry_ref: str) -> dict:
     """
     held = (entries or {}).get(entry_ref)
     if held is None:
-        return {"found": False, "grade": None, "digest": None, "label": None}
+        return {"found": False, "grade": None, "digest": None, "label": None, "identifiers": {}}
     try:
         entry = json.loads(held["text"]) if isinstance(held.get("text"), str) else held
     except (ValueError, AttributeError):
-        return {"found": False, "grade": None, "digest": None, "label": None}
+        return {"found": False, "grade": None, "digest": None, "label": None, "identifiers": {}}
     identifiers = entry.get("identifiers") or {}
     label = next((identifiers[k] for k in ENTRY_LABEL_IDENTIFIERS if identifiers.get(k)), None)
     return {"found": True, "grade": entry.get("grade"),
-            "digest": identifiers.get(ENTRY_DIGEST_IDENTIFIER), "label": label}
+            "digest": identifiers.get(ENTRY_DIGEST_IDENTIFIER), "label": label,
+            "identifiers": identifiers}
 
 
 def _mm_labels(channels: dict[str, Channel], entries: dict | None, source: str) -> dict[str, dict]:
@@ -290,6 +292,79 @@ def _mm_labels(channels: dict[str, Channel], entries: dict | None, source: str) 
                            "entry_found": facts["found"], "grade": facts["grade"],
                            "config_sha256": facts["digest"]}
     return found
+
+
+#: The two lists a registry row may carry beside its label (librarian card 062, plan.md 15.1 item 9):
+#: bindings, which say which property of the label a quantity is written to and in what unit, and
+#: states, which say which state label of a device a plan's word for it means. Each item cites its
+#: entry; the row is a copy of the entry and the entry decides.
+MM_BINDINGS_FIELD = "mm_bindings"
+MM_STATES_FIELD = "mm_states"
+_MM_ITEM_SHAPES = {
+    MM_BINDINGS_FIELD: {"required": ("quantity", "property", "unit", "entry_ref"),
+                        "optional": ("config_sha256",), "unique": ("quantity", "property")},
+    MM_STATES_FIELD: {"required": ("word", "state_label", "entry_ref"),
+                      "optional": ("config_sha256",), "unique": ("word", "state_label")},
+}
+#: A count of frames is what a sequence returned, never a property of a device.
+NEVER_A_BINDING = ("frame_count",)
+
+
+def _mm_row_lists(channels: dict[str, Channel], entries: dict | None, source: str,
+                  field: str) -> dict[str, list[dict]]:
+    """Every registry name's `mm_bindings` or `mm_states`, with the facts of the entry each item cites.
+
+    Decides nothing about whether an item may be used; that is asked where it is used. A malformed
+    list, a repeated quantity, property, word or state label on one row, or a row digest that
+    differs from its entry's is not resolved by choosing one: the registry stops here, at load.
+    """
+    shape = _MM_ITEM_SHAPES[field]
+    allowed = set(shape["required"]) | set(shape["optional"])
+    found: dict[str, list[dict]] = {}
+    for channel in channels.values():
+        rows = [(channel.id, channel.raw)] + [(eid, el) for eid, el in channel.elements.items()]
+        for name, row in rows:
+            if field not in row:
+                continue
+            items = row[field]
+            if not isinstance(items, list) or not items:
+                raise GapError(f"{source}: {name!r} carries {field!r} and it is not a non-empty list")
+            seen = {key: set() for key in shape["unique"]}
+            kept = []
+            for item in items:
+                if (not isinstance(item, dict) or not set(item) <= allowed
+                        or not all(isinstance(item.get(k), str) and item[k] for k in shape["required"])):
+                    raise GapError(
+                        f"{source}: an item of {field!r} on {name!r} is not an object with "
+                        f"{list(shape['required'])} (and optionally {list(shape['optional'])})")
+                if field == MM_BINDINGS_FIELD and item["quantity"] in NEVER_A_BINDING:
+                    raise GapError(f"{source}: {name!r} binds {item['quantity']!r}, which is never a "
+                                   "binding: it is counted from what the sequence returned")
+                for key in shape["unique"]:
+                    if item[key] in seen[key]:
+                        raise GapError(f"{source}: {name!r} carries two {field!r} items with the "
+                                       f"{key} {item[key]!r}. Two that differ are not resolved by "
+                                       "choosing one")
+                    seen[key].add(item[key])
+                facts = _entry_facts(entries, item["entry_ref"])
+                row_digest = item.get("config_sha256")
+                if row_digest is not None and not (isinstance(row_digest, str) and _SHA256.match(row_digest)):
+                    raise GapError(f"{source}: {name!r} carries a config_sha256 that is not 64 lowercase hex")
+                if row_digest is not None and facts["digest"] is not None and row_digest != facts["digest"]:
+                    raise GapError(
+                        f"{source}: {name!r} carries config_sha256 {row_digest} and its entry "
+                        f"{item['entry_ref']!r} carries {facts['digest']}. The row's digest is a copy "
+                        "of the entry's, and two that differ are not resolved by choosing one")
+                kept.append({**item, "name": name, "entry_found": facts["found"],
+                             "grade": facts["grade"], "config_sha256": facts["digest"],
+                             "identifiers": facts["identifiers"]})
+            found[name] = kept
+    return found
+
+
+def _units() -> dict:
+    """contracts/units.json's `units`, read from the file each time: no factor is written in code (card 095)."""
+    return json.loads((REPO / "contracts" / "units.json").read_text(encoding="utf-8"))["units"]
 
 
 def _read_registry(path: Path | None = None) -> tuple[dict[str, Channel], str, dict, dict | None]:
@@ -358,6 +433,15 @@ class Command:
     lowers_power: bool = False
     acquires: bool = False
     tier: int = 1
+    #: What the derivation wrote for the device, `{label: {property: value}}`, from bindings (card 095).
+    #: Kept apart from `params`, which carry the plan's numbers each with its `from`: a settings
+    #: dict has no `from` and the run log's `params` need one. Dispatch sends both.
+    settings: dict = field(default_factory=dict)
+    #: One row per written value: the plan's number with its `from`, the value written, the binding
+    #: and any calibration. It goes on the apply event.
+    written: list = field(default_factory=list)
+    #: Frames the plan asked for, when the verb counts them (a verb argument, card 095).
+    frame_count: int | None = None
 
     def __post_init__(self) -> None:
         if not self.from_field:
@@ -1024,6 +1108,11 @@ class Orchestrator:
         #: Each registry name's Micro-Manager label with the entry it cites (card 091). Read from the
         #: registry file this run loaded, and nowhere else; a name not in it has no label.
         self.mm_labels = _mm_labels(self.channels, entries, self.registry_source)
+        #: The snapshot's entries as the registry file carried them, for what a binding, a state or a
+        #: calibration cites (card 095). Read from the same file as the labels and nowhere else.
+        self.entries = entries or {}
+        self.mm_bindings = _mm_row_lists(self.channels, entries, self.registry_source, MM_BINDINGS_FIELD)
+        self.mm_states = _mm_row_lists(self.channels, entries, self.registry_source, MM_STATES_FIELD)
         #: The sha256 of the APPROVED ORIGINAL configuration this run loaded (card 069's gate), which a
         #: label's entry has to name for the label to command anything. None until one is loaded. On
         #: the instrument the operator sets it; on mock only a test does, by hand.
@@ -1202,6 +1291,144 @@ class Orchestrator:
         """
         return self.mm_labels.get(name)
 
+    def mm_binding(self, name: str, quantity: str) -> dict | None:
+        """The binding a registry name carries for a quantity, with its entry's facts, or None (card 095).
+
+        Like mm_label it reads what the registry file carried and decides nothing: whether the
+        binding may be used is `binding_refusal`'s.
+        """
+        return next((b for b in self.mm_bindings.get(name, []) if b["quantity"] == quantity), None)
+
+    def mm_state(self, name: str, word: str) -> dict | None:
+        """The state label a registry name's `mm_states` gives a plan's word, with its entry's facts, or None."""
+        return next((s for s in self.mm_states.get(name, []) if s["word"] == word), None)
+
+    def _entry_refusal(self, what: str, head: str, ref: str, grade, digest) -> str | None:
+        """Why an entry cannot be acted on in this run, or None: E1, and read under the configuration loaded.
+
+        The one test a label, a binding and a state each pass (plan.md 15.1 item 9). `what` names the
+        kind in the words of the refusal.
+        """
+        if grade != "E1":
+            shown = grade or f"unknown (the registry file carries no entry {ref!r})"
+            return (f"{head}, graded {shown}: only a {what} this system read here (E1) commands a "
+                    "device")
+        loaded = self.loaded_config_sha256
+        if digest is None:
+            return (f"{head}, which names its configuration only in prose: it carries no "
+                    f"{ENTRY_DIGEST_IDENTIFIER}, so the {what} cannot be tied to the configuration "
+                    "this run loaded")
+        if loaded is None:
+            return (f"{head}, read under configuration sha256 {digest}; no approved configuration "
+                    "is loaded in this run to compare it with")
+        if digest != loaded:
+            return (f"{head}, read under configuration sha256 {digest}; this run loaded the "
+                    f"approved original with sha256 {loaded}. A {what} read under another "
+                    "configuration commands nothing")
+        return None
+
+    @staticmethod
+    def _identifier_refusal(head: str, facts: dict, expected: dict) -> str | None:
+        """An entry that names another label, property, quantity or unit than its row copied is not used."""
+        for key, want in expected.items():
+            got = facts.get(key)
+            if got != want:
+                return f"{head}: its entry carries {key} {got!r} and the row says {want!r}"
+        return None
+
+    def binding_refusal(self, binding: dict) -> str | None:
+        """Why a binding may not be written through, or None. One grade for every binding: E1 under this run's digest."""
+        label = (self.mm_label(binding["name"]) or {}).get("label")
+        head = (f"the binding of {binding['quantity']!r} on {binding['name']!r} "
+                f"({binding['property']!r} through entry {binding['entry_ref']!r})")
+        why = self._entry_refusal("binding", head, binding["entry_ref"], binding["grade"],
+                                  binding["config_sha256"])
+        return why or self._identifier_refusal(head, binding["identifiers"], {
+            "mm_label": label, "mm_property": binding["property"],
+            "quantity": binding["quantity"], "unit": binding["unit"]})
+
+    def state_refusal(self, state: dict) -> str | None:
+        """Why a state resolution may not be used, or None. The same grade and digest as a label."""
+        label = (self.mm_label(state["name"]) or {}).get("label")
+        head = (f"the state {state['word']!r} of {state['name']!r} "
+                f"({state['state_label']!r} through entry {state['entry_ref']!r})")
+        why = self._entry_refusal("state", head, state["entry_ref"], state["grade"],
+                                  state["config_sha256"])
+        return why or self._identifier_refusal(head, state["identifiers"], {
+            "mm_label": label, "path_word": state["word"], "mm_state_label": state["state_label"]})
+
+    def calibration_for(self, label: str, prop: str, quantity: str) -> dict | None:
+        """The snapshot's calibration entry for a label, property and quantity, found by its identifiers.
+
+        A calibration is its own entry and is never on the row. Several are not resolved by choosing
+        one: the snapshot carrying two for the same triple is refused where it is asked.
+        """
+        found = []
+        for ref, held in self.entries.items():
+            try:
+                entry = json.loads(held["text"]) if isinstance(held.get("text"), str) else held
+            except (ValueError, AttributeError):
+                continue
+            ids = entry.get("identifiers") or {}
+            if (entry.get("kind") == "calibration" and ids.get("mm_label") == label
+                    and ids.get("mm_property") == prop and ids.get("quantity") == quantity):
+                found.append({"entry_ref": ref, "grade": entry.get("grade"),
+                              "valid_until": entry.get("valid_until"),
+                              "validity": entry.get("validity")})
+        if len(found) > 1:
+            raise GapError(f"the snapshot holds {len(found)} calibrations for {quantity!r} of "
+                           f"{label!r}.{prop}: {[f['entry_ref'] for f in found]}")
+        return found[0] if found else None
+
+    def convert_for_binding(self, value, unit: str, binding: dict) -> tuple[object, str | None, str | None]:
+        """(written value, calibration entry used, why not): a plan's number in the binding's unit.
+
+        Three routes and no formula here. Unchanged when the unit matches; an exact factor read from
+        contracts/units.json when both units are there with one dimension; otherwise an unexpired E2
+        calibration from the snapshot whose range covers the value. Anything else is a refusal naming
+        what was needed.
+        """
+        target = binding["unit"]
+        if unit == target:
+            return value, None, None
+        units = _units()
+        a, b = units.get(unit), units.get(target)
+        if (a is not None and b is not None and a.get("dim") == b.get("dim")
+                and a.get("si_factor") and b.get("si_factor")):
+            exact = Fraction(str(value)) * Fraction(str(a["si_factor"])) / Fraction(str(b["si_factor"]))
+            return (int(exact) if exact.denominator == 1 else float(exact)), None, None
+        label = (self.mm_label(binding["name"]) or {}).get("label")
+        need = (f"a calibration of {binding['quantity']!r} for {label}.{binding['property']} "
+                f"covering {value} {unit} (the plan's unit is not the property's {target!r} and "
+                "contracts/units.json holds no exact factor between them)")
+        found = self.calibration_for(label, binding["property"], binding["quantity"])
+        if found is None:
+            return None, None, f"needs {need}; the snapshot holds none"
+        ref = found["entry_ref"]
+        if found["grade"] != "E2":
+            return None, ref, f"needs {need}; calibration {ref!r} is graded {found['grade']}, not E2"
+        until = found["valid_until"]
+        date = until.get("date") if isinstance(until, dict) else None
+        try:
+            expired = date is None or datetime.fromisoformat(str(date)).date() < datetime.now(timezone.utc).date()
+        except ValueError:
+            expired = True
+        if expired:
+            return None, ref, f"needs {need}; calibration {ref!r} is expired or carries no date ({date!r})"
+        if not (isinstance(until, dict) and until.get("no_event")):
+            return None, ref, (f"needs {need}; calibration {ref!r} is valid only until an event the "
+                               "runtime cannot check, and ambiguity stops")
+        span = (found["validity"] or {}).get(binding["quantity"]) if isinstance(found["validity"], dict) else None
+        lo, hi = (span.get("min"), span.get("max")) if isinstance(span, dict) else (None, None)
+        if (not isinstance(span, dict) or span.get("unit") != unit
+                or not isinstance(value, (int, float)) or isinstance(value, bool)
+                or not isinstance(lo, (int, float)) or not isinstance(hi, (int, float))
+                or not lo <= value <= hi):
+            return None, ref, (f"needs {need}; calibration {ref!r} covers {span!r}, which does not "
+                               "cover it")
+        return None, ref, (f"needs {need}; calibration {ref!r} covers it but carries no conversion "
+                           "form the runtime can apply, and it holds no formula of its own")
+
     def camera_label(self, channel_id: str) -> str | None:
         """The device name the tap keys a camera channel's frames by: its label, or None and why.
 
@@ -1342,8 +1569,31 @@ class Orchestrator:
         """
         if command.action in ("snap", "acquire"):
             self.acquire_snap(channel_id)
-        else:
-            self.acquire_sequence(channel_id, self.MOCK_SERIES_FRAMES, lambda i, image, metadata: None)
+            return
+        wanted = command.frame_count or self.MOCK_SERIES_FRAMES
+        got = self.acquire_sequence(channel_id, wanted, lambda i, image, metadata: None)
+        if command.frame_count is not None:
+            self._check_frame_count(command, got)
+
+    def _check_frame_count(self, command, returned) -> None:
+        """The frames a plan's `frame_count` asked for against the frames the sequence returned (card 095).
+
+        Counted by image number, so a frame delivered twice counts once and a gap is a missing
+        frame. Fewer frames is a logged disagreement and not a refusal: the frames are taken and
+        the run says it did not get all it asked for. It is its own event with `plan_field` and no
+        `from`, so check 66 does not read it as a second dispatch of the command.
+        """
+        numbers = returned.get("image_numbers") if isinstance(returned, dict) else None
+        counted = len(set(numbers)) if numbers is not None else None
+        if counted is not None and counted >= command.frame_count:
+            self.record(event="frame_count_verified", plan_field=command.from_field,
+                        wanted=command.frame_count, counted=counted)
+            return
+        self.record(event="frame_count_disagreed", plan_field=command.from_field,
+                    wanted=command.frame_count, counted=counted,
+                    note=("fewer frames came back than the plan asked for, counted by image number"
+                          if counted is not None else
+                          "the sequence returned no image numbers, so no frames could be counted"))
 
     def _stop_request(self, raw: bytes) -> bytes | None:
         """Judge one message on the stop channel. A reply for a valid stop, None for a refusal.
@@ -1512,7 +1762,7 @@ class Orchestrator:
         refused = []
         resolved: dict[str, dict] = {}
         for command in commands:
-            settings = (command.params or {}).get("settings") or {}
+            settings = command.settings or (command.params or {}).get("settings") or {}
             why = mm.refusal(None, None, command.action)
             if why:
                 refused.append(f"{command.from_field}: {why}")
@@ -1572,23 +1822,7 @@ class Orchestrator:
         if why:
             return f"{name!r} is the label {label!r}: {why}"
         head = f"{name!r} reaches the label {label!r} through entry {ref!r}"
-        if found["grade"] != "E1":
-            grade = found["grade"] or f"unknown (the registry file carries no entry {ref!r})"
-            return (f"{head}, graded {grade}: only a label this system read here (E1) commands a "
-                    "device")
-        digest, loaded = found["config_sha256"], self.loaded_config_sha256
-        if digest is None:
-            return (f"{head}, which names its configuration only in prose: it carries no "
-                    f"{ENTRY_DIGEST_IDENTIFIER}, so the label cannot be tied to the configuration "
-                    "this run loaded")
-        if loaded is None:
-            return (f"{head}, read under configuration sha256 {digest}; no approved configuration "
-                    "is loaded in this run to compare it with")
-        if digest != loaded:
-            return (f"{head}, read under configuration sha256 {digest}; this run loaded the "
-                    f"approved original with sha256 {loaded}. A label read under another "
-                    "configuration commands nothing")
-        return None
+        return self._entry_refusal("label", head, ref, found["grade"], found["config_sha256"])
 
     def shutters(self) -> list[tuple[str, str]]:
         """Every shutter the registry knows, as (channel, element).
@@ -1808,6 +2042,41 @@ class Orchestrator:
                 f"the plan names {name!r}, which is neither a channel nor an element in "
                 f"{self.registry_source}"
             ) from None
+
+    def check_required_states(self, required: list[dict]) -> None:
+        """Read each required state and compare it with the plan's value; refuse the whole plan on any miss.
+
+        A selector on a device software may not command is a state the plan needs and nothing here
+        writes: after preflight and before the first action each element is READ, and the state label
+        the plan's word resolved to must be what came back (card 095). A mismatch, an element that was
+        not read, or a read that failed refuses, naming the element. Nothing is sent: this is a read.
+        """
+        rows, refused = [], []
+        for item in required:
+            element = item["element"]
+            got, note = None, None
+            try:
+                cid, inner = self.resolve(element)
+                if inner is None:
+                    note = f"{element!r} is a channel, not an element whose state is read"
+                else:
+                    got = (self._read_channel(cid, wait=True).get("elements") or {}).get(inner)
+            except Exception as exc:                        # noqa: BLE001 - recorded, and it refuses
+                note = f"the read raised {type(exc).__name__}: {exc}"
+            matched = got is not None and str(got) == item["state"]
+            rows.append({"element": element, "from": item["from"], "word": item["word"],
+                         "state": item["state"], "read": got, "matched": matched})
+            if not matched:
+                refused.append(f"{item['from']}: {element!r} must read {item['state']!r} "
+                               f"(the plan's {item['word']!r}) and "
+                               + (f"was not read ({note})" if got is None and note else
+                                  "was not read" if got is None else f"reads {got!r}"))
+        if refused:
+            self.record(event="required_states_refused", states=rows, refusals=refused)
+            raise InterlockError("refusing the whole plan before any action: a state it needs is not "
+                                 "the one read. " + " | ".join(refused))
+        if rows:
+            self.record(event="required_states_checked", states=rows)
 
     def preflight(self, names: list[str]) -> list[dict]:
         """Ask every channel the plan reaches for its state before anything moves (O1).
@@ -2354,8 +2623,11 @@ class Orchestrator:
                             self.check_acquisition_allowed(command)
                             module = self.module_for(cid)
                             apply_for = getattr(module, "apply_for", None)
-                            value = (apply_for(cid, command.params) if apply_for
-                                     else module.apply(command.params))
+                            # What the derivation wrote for the device goes to the device beside the
+                            # plan's numbers; the log keeps the two apart (card 095).
+                            sent = ({**command.params, "settings": command.settings}
+                                    if command.settings else command.params)
+                            value = apply_for(cid, sent) if apply_for else module.apply(sent)
                             verification, why = self.verification_of(cid, value)
                             out.append({"command": command.action, "ok": True, "returned": value,
                                         "verification": verification})
@@ -2380,6 +2652,9 @@ class Orchestrator:
                                     "before_um", "after_um", "points_planned", "points_sent",
                                     "late_points", "dt_s", "samples", "settle",
                                     "settle_wait_s")}
+                            if command.settings:
+                                detail["settings_sent"] = command.settings
+                                detail["written"] = command.written
                             self.record(event="apply", channel=cid, element=command.element,
                                         action=command.action, params=command.params,
                                         verification=verification, verification_note=why,
