@@ -42,8 +42,10 @@ beside `identifiers`:
 }
 ```
 
-A binding (`mm_bindings` item, and its cited entry's `identifiers`) carries
-`step: {value, unit}`, in the binding's unit.
+A binding (`mm_bindings` item in the snapshot's devices table) carries
+`step: {value, unit}`, in the binding's unit. Its cited entry holds the same
+step as a number named `property_step`, and the librarian's check compares
+the two. The runtime reads the binding's copy.
 
 ## What to build
 
@@ -53,10 +55,13 @@ feeds:
 1. **Apply `piecewise_linear_within_points`, and only that rule.**
    - Refuse unless `direction` is `physical_to_control` and `rule` is this
      name. Name the calibration and the field.
-   - Refuse unless `physical.unit` is the plan number's unit and
-     `control.unit` is the binding's. Do not convert between units on the way
-     in. A number in another unit of the same dimension refuses, naming
-     both units.
+   - Refuse unless `control.unit` is the binding's.
+   - `physical.unit` is the quantity's canonical unit, the same as
+     `validity`'s (the librarian's check enforces that). A plan number in
+     another unit of the same dimension is first brought into `physical.unit`
+     by the exact factor from `contracts/units.json`, as the exact-factor
+     route does, and both values are recorded. If there is no exact factor
+     between the two units, refuse, naming both.
    - Refuse unless there are at least 2 points, physical values strictly
      increasing, control values strictly monotone, and every point's units
      equal the form's.
@@ -81,8 +86,9 @@ feeds:
 
 ## Tests, each watched failing first
 
-1. A calibration whose points are (0 mW, 0 permille), (2 mW, 400 permille),
-   (5 mW, 1000 permille), with a binding step of 1 permille:
+1. A calibration whose points are (0 W, 0 permille), (0.002 W, 400 permille),
+   (0.005 W, 1000 permille), with a binding step of 1 permille. Plan numbers
+   are given in mW, so each passes through the exact factor first:
    - 1 mW writes 200;
    - 2 mW writes 400;
    - 3.5 mW writes 700;
@@ -94,7 +100,7 @@ feeds:
    - wrong `direction`, unknown `rule`;
    - one point, a repeated physical value, a non-monotone control;
    - a point in another unit;
-   - `physical.unit` other than the plan's.
+   - a plan number whose unit has no exact factor to `physical.unit`.
 4. With a step of 1 permille, both other routes round, ties to even:
    - unchanged route: 12.5 permille writes 12;
    - exact-factor route: 0.0135 in unit `1` writes 14.
