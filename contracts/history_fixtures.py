@@ -1455,18 +1455,23 @@ def _console_inbox(repo: Path, *, rewrite: bool = False, delete: bool = False) -
     commit fails at that commit.
     """
     start = base(repo)
+    # The examples stay in the copied tree, so the item takes ids of its own:
+    # an item id two items hold, or a question id two items ask, is a failure
+    # of its own and not the one these fixtures test.
     item = json.loads((repo / "contracts/examples/console_question.json").read_text(encoding="utf-8"))
+    item.update(item_id="ci-20261024-231500-h91a", question_id="mic-20261024-c091")
     answer = json.loads((repo / "contracts/examples/console_answer.json").read_text(encoding="utf-8"))
+    answer.update(answer_id="ca-20261026-120001-h91a", item_id=item["item_id"], question_id=item["question_id"])
     irel = f"microscope_agent/console_inbox/{item['item_id']}.json"
-    arel = f"microscope_agent/answers/{item['item_id']}.json"
+    arel = f"microscope_agent/answers/{answer['answer_id']}.json"
     write(repo, irel, item)
-    commit(repo, "the console's server writes a question item", irel, seat="human")
+    commit(repo, "the console's server writes a question item", irel, seat=_console_seat())
     write(repo, arel, answer)
     commit(repo, "the microscope agent answers it", arel, seat="microscope-office-20261015-1")
     if rewrite:
         item["words"] = item["words"] + " (edited)"
         write(repo, irel, item)
-        commit(repo, "the item is rewritten", irel, seat="human")
+        commit(repo, "the item is rewritten", irel, seat=_console_seat())
     if delete:
         run(repo, "rm", "-q", "--", arel)
         run(repo, "commit", "-q", "--no-verify", "-m", "the answer is removed", seat="microscope-office-20261015-1")
