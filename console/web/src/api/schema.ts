@@ -772,7 +772,9 @@ export interface paths {
         put?: never;
         /**
          * Write Question Request
-         * @description Write one question request into the console's own folder. Nothing reaches an agent.
+         * @description A question to the microscope or the simulation is written as an item into that agent's
+         *     inbox (`artifact` is `console_question`); one to the librarian or "let the agents decide" is
+         *     written as a request into the console's own folder and is not delivered (`question_request`).
          */
         post: operations["write_question_request_api_console_question_requests_post"];
         delete?: never;
@@ -811,9 +813,10 @@ export interface paths {
         };
         /**
          * Question Cards
-         * @description The cards below the question field: requests written in the console, newest first (each
-         *     "request written · not picked up yet": the inbox is not open), and the agents' questions on
-         *     disk with their five steps. Reads only.
+         * @description The cards below the question field: the items in the two inboxes, newest first, each with what
+         *     the agent's answers say became of it; requests written in the console's own folder, newest first
+         *     (each "written in the console · not delivered"); and the agents' questions on disk with their five
+         *     steps. Reads only.
          */
         get: operations["question_cards_api_console_question_cards_get"];
         put?: never;
@@ -1409,6 +1412,14 @@ export interface components {
             login: string;
             console_role: components["schemas"]["ConsoleRoleOut"];
         };
+        /** AskerMarkOut */
+        AskerMarkOut: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "other_login";
+        };
         /**
          * AssistantStatus
          * @description Exactly these three names (T-010 status bar). `connected` is true only for the
@@ -1512,6 +1523,35 @@ export interface components {
              * @default []
              */
             rows: components["schemas"]["ChannelOut"][];
+        };
+        /**
+         * ConsoleQuestionOut
+         * @description `contracts/schemas/console_inbox_item.schema.json`'s `console_question`, exactly: the item that
+         *     was written into the agent's inbox.
+         */
+        ConsoleQuestionOut: {
+            /**
+             * Artifact
+             * @constant
+             */
+            artifact: "console_question";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "0.1";
+            /** Item Id */
+            item_id: string;
+            /** Question Id */
+            question_id: string;
+            /** Words */
+            words: string;
+            asked_by: components["schemas"]["AskedByOut"];
+            /** Asked At */
+            asked_at: string;
+            asker_mark: components["schemas"]["AskerMarkOut"];
+            /** Attachments */
+            attachments: unknown[];
         };
         /** ConsoleRoleOut */
         ConsoleRoleOut: {
@@ -1876,6 +1916,32 @@ export interface components {
             behind: boolean;
             /** Note */
             note: string | null;
+        };
+        /**
+         * ItemCardOut
+         * @description An item delivered to the microscope's or the simulation's inbox, as a card, with what its
+         *     `console_answer` files say became of it.
+         */
+        ItemCardOut: {
+            /** Item Id */
+            item_id: string;
+            /** Question Id */
+            question_id: string;
+            /**
+             * Agent
+             * @enum {string}
+             */
+            agent: "microscope" | "simulation";
+            /** Words */
+            words: string;
+            /** Login */
+            login: string;
+            /** Asked At */
+            asked_at: string;
+            /** State */
+            state: string;
+            /** Runs Wait For Signature */
+            runs_wait_for_signature: boolean;
         };
         /** LampState */
         LampState: {
@@ -2596,6 +2662,8 @@ export interface components {
         QuestionCardsOut: {
             /** Requests */
             requests: components["schemas"]["RequestCardOut"][];
+            /** Items */
+            items: components["schemas"]["ItemCardOut"][];
             /** Questions */
             questions: components["schemas"]["QuestionProgressOut"][];
         };
@@ -2742,7 +2810,8 @@ export interface components {
         };
         /**
          * RequestCardOut
-         * @description A request written in the console, as a card. The inbox is not open, so none is picked up.
+         * @description A request written in the console's own folder, as a card. It is not delivered: the librarian
+         *     and "let the agents decide" have no inbox the console writes into.
          */
         RequestCardOut: {
             /** Id */
@@ -5368,7 +5437,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QuestionRequestOut"];
+                    "application/json": components["schemas"]["ConsoleQuestionOut"] | components["schemas"]["QuestionRequestOut"];
                 };
             };
             /** @description remote view or role (D16) */
@@ -5378,7 +5447,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description the id was taken five times */
+            /** @description the agent's inbox is not there or is full for the day, or the id was taken five times */
             409: {
                 headers: {
                     [name: string]: unknown;

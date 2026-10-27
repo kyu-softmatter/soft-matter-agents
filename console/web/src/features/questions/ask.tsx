@@ -1,7 +1,8 @@
 /**
- * The question window (console card 010, plan.md 4.5): one field, an Ask choice and Send. Send
- * writes one question request into the console's own folder, with the words exactly as typed.
- * Nothing reaches an agent until the agents' new inbox opens, and the screen says so.
+ * The question window (console cards 010 and 019, plan.md 4.5): one field, an Ask choice and Send.
+ * Send to the microscope or the simulation writes the words, exactly as typed, into that agent's
+ * inbox, and the form says which question id it became. To the librarian or "Let the agents decide"
+ * it writes a request in the console's own folder, and the form says plainly it was not delivered.
  *
  * Autocomplete offers only strings already on disk -- the words of earlier requests and the
  * registered quantity names, each labelled -- never a model's completion and never the store's
@@ -15,13 +16,13 @@ import { type ReadOnlyState, useClient } from "../../app/client";
 import {
   ADDRESSEES,
   type Addressee,
+  afterSend,
+  type AskResult,
   askQuestion,
   CHECKING_PERMISSIONS,
-  NOT_PICKED_UP_SENTENCE,
   PATHS,
   PERMISSION_CHECK_UNAVAILABLE,
   type Permissions,
-  type QuestionRequest,
   READ_ONLY_REMOTE,
   READ_ONLY_STORE_REASON,
   type StoreInfo,
@@ -82,11 +83,6 @@ export function insertSuggestion(text: string, s: Suggestion): string {
   return word === undefined ? text + s.text : text.slice(0, text.length - word.length) + s.text;
 }
 
-function timeOf(iso: string): string {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
 export function AskBox({
   reason,
   refreshKey,
@@ -95,7 +91,7 @@ export function AskBox({
   reason: string | undefined;
   /** changes when the cards are read again, so a new request is offered next time */
   refreshKey: number;
-  onWritten: (r: QuestionRequest) => void;
+  onWritten: (r: AskResult) => void;
 }) {
   const client = useClient();
   const [words, setWords] = useState("");
@@ -103,7 +99,7 @@ export function AskBox({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [done, setDone] = useState<QuestionRequest | undefined>(undefined);
+  const [done, setDone] = useState<string | undefined>(undefined);
   const all = useLoad(() => client.get<Suggestion[]>(PATHS.suggestions), [client, refreshKey]);
   const shown = useMemo(() => (open ? suggestionsFor(words, all.data ?? []) : []), [open, words, all.data]);
 
@@ -119,7 +115,7 @@ export function AskBox({
       const r = await askQuestion(client, { words, addressed_to: to });
       setWords("");
       setOpen(false);
-      setDone(r);
+      setDone(afterSend(r, to));
       onWritten(r);
     } catch (err) {
       setError(errorText(err));
@@ -182,8 +178,8 @@ export function AskBox({
         </p>
       )}
       {done !== undefined && (
-        <p role="status" data-testid="request-written">
-          Request written · {timeOf(done.asked_at)} · as {done.asked_by.login}. {NOT_PICKED_UP_SENTENCE}
+        <p role="status" data-testid="send-result">
+          {done}
         </p>
       )}
     </form>

@@ -7,7 +7,6 @@ import { fakeTransport } from "../../test/fakes";
 import {
   ADDRESSEES,
   CHECKING_PERMISSIONS,
-  NOT_PICKED_UP_SENTENCE,
   PERMISSION_CHECK_UNAVAILABLE,
   READ_ONLY_REMOTE,
   READ_ONLY_STORE_REASON,
@@ -49,6 +48,18 @@ const ready = async () => {
   await screen.findByRole("region", { name: "Question cards" });
 };
 
+/** Ask `to` the words and read the status line the form shows. */
+async function sendTo(words: string, to: string) {
+  const t = show();
+  await ready();
+  type(words);
+  fireEvent.change(screen.getByLabelText("Ask"), { target: { value: to } });
+  await waitFor(() => expect(send().disabled).toBe(false));
+  await act(async () => void fireEvent.click(send()));
+  const status = await screen.findByRole("status");
+  return { t, status };
+}
+
 describe("the field", () => {
   it("is one field, an Ask choice and Send, with no purpose and no observable", async () => {
     show();
@@ -82,17 +93,31 @@ describe("the field", () => {
     expect(t.posts().map((p) => p.path)).toEqual(["/api/console/question-requests"]);
   });
 
-  it("answers 'Request written · time · as login' and says nothing reaches an agent yet", async () => {
-    show();
-    await ready();
-    type("Is the bead stuck?");
-    await waitFor(() => expect(send().disabled).toBe(false));
-    await act(async () => void fireEvent.click(send()));
-    const status = await screen.findByTestId("request-written");
-    expect(status.textContent).toContain("Request written");
-    expect(status.textContent).toMatch(/Request written · .+ · as otto/);
-    expect(status.textContent).toContain(NOT_PICKED_UP_SENTENCE);
+  it("says 'Sent to the microscope as question <id>.' when the microscope was asked", async () => {
+    const { status } = await sendTo("Is the bead stuck?", "microscope");
+    expect(status.textContent).toBe("Sent to the microscope as question mic-20261026-c001.");
     expect(field().value).toBe(""); // sent: the field is free for the next
+  });
+
+  it("says 'Sent to the simulation as question <id>.' when the simulation was asked", async () => {
+    const { status } = await sendTo("Does it relax?", "simulation");
+    expect(status.textContent).toBe("Sent to the simulation as question sim-20261026-c001.");
+  });
+
+  it("says plainly that a question to the librarian was not delivered", async () => {
+    const { status } = await sendTo("Which entry holds the pixel size?", "librarian");
+    expect(status.textContent).toBe("Not delivered: the console does not send to the librarian yet.");
+    expect(field().value).toBe("");
+  });
+
+  it("says plainly that a question left to the agents was not delivered", async () => {
+    const { status } = await sendTo("Is the bead stuck?", "agents_decide");
+    expect(status.textContent).toBe("Not delivered: no agent takes a question left to the agents yet.");
+  });
+
+  it("says nothing of an inbox not being open: that is over", async () => {
+    const { status } = await sendTo("Is the bead stuck?", "microscope");
+    expect(status.textContent).not.toMatch(/until the agents|not picked up|new inbox/i);
   });
 
   it("does not send an empty or blank field", async () => {
@@ -242,7 +267,7 @@ describe("autocomplete: only strings already on disk, each labelled", () => {
   });
 
   it("an empty disk offers nothing", async () => {
-    show({ ...FAKE_DATA, suggestions: [], cards: { requests: [], questions: [] } });
+    show({ ...FAKE_DATA, suggestions: [], cards: { requests: [], items: [], questions: [] } });
     await ready();
     type("a");
     expect(screen.queryByRole("listbox", { name: "Suggestions" })).toBeNull();
@@ -282,15 +307,55 @@ function cleanupField() {
 }
 
 describe("the cards below the field", () => {
-  it("shows a request written in the console as 'request written · not picked up yet'", async () => {
+  it("shows a request written in the console as 'written in the console · not delivered'", async () => {
     show();
     const cards = await screen.findByRole("region", { name: "Question cards" });
     const req = within(cards).getByText("How far apart are the wells at 4x?").closest("article") as HTMLElement;
-    expect(req.textContent).toContain("request written · not picked up yet");
+    expect(req.textContent).toContain("written in the console · not delivered");
+    expect(req.textContent).not.toContain("not picked up");
     expect(req.textContent).toContain("member-2");
-    expect(req.textContent).toContain("The microscope");
+    expect(req.textContent).toContain("The librarian");
     expect(req.textContent).toContain("Every run from it waits for the person's signature");
     expect(within(req).queryByRole("list", { name: "Progress" })).toBeNull(); // nothing to measure yet
+  });
+
+  it("shows every item delivered to an inbox, newest first, each with its words, login, time, agent and question id", async () => {
+    show();
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    const items = [...cards.querySelectorAll("article[data-kind='item']")] as HTMLElement[];
+    expect(items.map((a) => a.querySelector(".ask-words")?.textContent)).toEqual([
+      "Is the stage drifting?", "How long does relaxation take?", "Image the whole well at 40x", "What is the pixel size?",
+    ]);
+    const first = items[0];
+    expect(first.textContent).toContain("otto");
+    expect(first.textContent).toContain("The microscope");
+    expect(first.textContent).toContain("mic-20261026-c004");
+    expect(first.textContent).toContain("Every run from it waits for the person's signature.");
+    expect(within(first).queryByRole("list", { name: "Progress" })).toBeNull();
+    expect(items[1].textContent).toContain("The simulation");
+    expect(items[2].textContent).toContain("member-2");
+  });
+
+  it("shows exactly one of the four states on an item, the reason as written", async () => {
+    show();
+    const cards = await screen.findByRole("region", { name: "Question cards" });
+    const items = [...cards.querySelectorAll("article[data-kind='item']")] as HTMLElement[];
+    expect(items.map((a) => a.querySelector(".console-tag")?.textContent)).toEqual([
+      "delivered · not answered yet",
+      "taken up as sim-20261026-c002",
+      "refused · that objective is not on this stand",
+      "an answer is on disk and cannot be read",
+    ]);
+    for (const a of items) expect(a.querySelectorAll(".console-tag")).toHaveLength(1);
+  });
+
+  it("shows a question just sent to the microscope as an item card on the next read", async () => {
+    const { t } = await sendTo("A fresh one", "microscope");
+    await waitFor(() => expect(t.gets("/api/console/question-cards")).toBe(2));
+    const cards = screen.getByRole("region", { name: "Question cards" });
+    const first = cards.querySelector("article[data-kind='item']") as HTMLElement;
+    expect(first.querySelector(".ask-words")?.textContent).toBe("A fresh one");
+    expect(first.textContent).toContain("delivered · not answered yet");
   });
 
   it("shows the agents' questions with the five-step bar, from the files", async () => {
@@ -331,8 +396,15 @@ describe("the cards below the field", () => {
   });
 
   it("says plainly when there are no questions yet", async () => {
-    show({ ...FAKE_DATA, cards: { requests: [], questions: [] }, suggestions: [] });
+    show({ ...FAKE_DATA, cards: { requests: [], items: [], questions: [] }, suggestions: [] });
     expect(await screen.findByText("No questions yet.")).toBeTruthy();
+  });
+
+  it("does not say there are no questions when only an inbox item is there", async () => {
+    const item = FAKE_DATA.cards.items[0];
+    show({ ...FAKE_DATA, cards: { requests: [], items: [item], questions: [] } });
+    expect(await screen.findByText(item.words)).toBeTruthy();
+    expect(screen.queryByText("No questions yet.")).toBeNull();
   });
 
   it("reads once on open, again on Refresh; no polling", async () => {

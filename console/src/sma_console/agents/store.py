@@ -433,3 +433,27 @@ class AgentStore(Protocol):
         """Whether the one place an approval is signed into, `microscope_runtime/approvals/`, is in the
         tree this store reads. No other place counts. (Nothing is written by the console yet.)"""
         ...
+
+
+@runtime_checkable
+class InboxStore(Protocol):
+    """Where a question to the microscope or the simulation is delivered, and where its answers are read
+    from (console card 019). Kept apart from `AgentStore` so a store without an inbox is still a store.
+    `agent` is `microscope` or `simulation`."""
+
+    def inbox_write_folder(self, agent: str) -> Path:
+        """The agent's `console_inbox/`. A real tree's is the agent's own and is never made by the
+        console; the mock makes its practice copy."""
+        ...
+
+    def inbox_folders(self, agent: str) -> list[Path]:
+        """Every folder the agent's items are read from. Made by nothing."""
+        ...
+
+    def answers_folders(self, agent: str) -> list[Path]:
+        """Every folder the agent's `console_answer` files are read from. Read only."""
+        ...
+
+    def outgoing_folder(self) -> Path:
+        """The console's own `requests/outgoing/`, where an item is written whole before it is linked."""
+        ...

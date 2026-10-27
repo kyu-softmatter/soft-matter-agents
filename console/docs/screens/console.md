@@ -61,15 +61,17 @@ The first screen of the Questions area is one field ("Your question"), an "Ask" 
 decide, the microscope, the simulation, the librarian) and Send. The old form's purpose and observable
 fields are gone: the agents settle those. A card per question sits below it.
 
-**Send writes one question request**, exactly in the shape of `contracts/schemas/question_request.schema.json`
-and no other: `id` is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<4 random lowercase letters or digits>` and the file
+**Send to the microscope or the simulation delivers the question into that agent's inbox** (card 019, the
+person's decision in `plan.md` 7.1.1); **Send to the librarian or to "Let the agents decide" writes a question
+request** into the console's own folder and delivers nothing. The request is written exactly in the shape of
+`contracts/schemas/question_request.schema.json` and no other: `id` is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<4 random lowercase letters or digits>` and the file
 is `<id>.json`; `words` is the text exactly as typed (not trimmed, not rewritten; only a blank field is
 refused); `asked_by` is the session's login and its console role; `asked_at` is UTC; `addressed_to` is the
 choice. There is no key the schema does not name and no claim that the asker is the person's own.
 Until the admin card brings console-side roles the role is derived from today's role: admin and operator
 get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets none and cannot send.
 
-- **Where.** `--store sma`: `<root>/console/requests/questions/`. `--store mock`: the mock store's own
+- **Where a request goes.** `--store sma`: `<root>/console/requests/questions/`. `--store mock`: the mock store's own
   write folder (a temporary one by default), in the same layout, which is the practice copy. The shipped
   sample (`mock_data/console/requests/questions/`, two practice requests) is read, never written, and
   the real tree is not written under the mock.
@@ -80,12 +82,29 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
 - **Who may send** stays the server's present rule (the access middleware, then `server_action_why` for
   `submit_question`: operator or admin, on the microscope PC), with the refusal said in words. A viewer is
   told the login can only look; another computer is told questions are asked from the microscope computer.
-- **Nothing reaches an agent.** No write into any agent's folder, inbox or the bridge; nothing reads a
-  request until the agents' new inbox opens, which is designed on its own and approved by the person
-  (Q-20261022-office-04). The screen says so after Send: "Request written · <time> · as <login>", then
-  that nothing reaches an agent until that inbox opens and that every run from this question waits for the
-  person's signature. The audit line `question_submitted` carries the login, `origin: "console"`, the
-  addressee and the request id, never the words.
+- **A delivered question** is one `console_question` item, `contracts/schemas/console_inbox_item.schema.json`
+  exactly, written whole into `<root>/<agent>_agent/console_inbox/<item_id>.json` and nowhere else of the
+  agent's tree. `item_id` is `ci-<UTC yyyymmdd>-<UTC hhmmss>-<4 random lowercase letters or digits>`;
+  `question_id` is `mic-` or `sim-`, the UTC date, `-c` and three digits, the next after the highest that
+  date already carries in that agent's inbox (the two agents count apart). After `c999` nothing is written and
+  the asker is told that the agent has had 999 questions from the console today and to ask again after
+  midnight UTC. `words` are as typed; `asked_at` is UTC; `asker_mark` is `other_login` (only the person's own
+  login is ever marked as the person); `attachments` is empty. The item is checked against its schema before
+  it is written.
+- **How it is written.** The inbox folder must already be there: the console never makes it, and without it
+  nothing is written and the asker is told "This agent's inbox is not there, so nothing was sent." The file
+  is written whole under a temporary name in `console/requests/outgoing/`, **linked** to its final name in
+  the inbox and the temporary name removed; a taken name gets another `item_id`, up to five times. An item
+  is never rewritten, renamed or removed (a correction is a new item), and the console commits nothing.
+  Reading the inbox, numbering and linking happen under one lock in the server; one console server runs
+  against a tree. Under `--store mock` the item goes into the mock's own write folder as
+  `<agent>_agent/console_inbox/`; the shipped sample is never written.
+- **What the form says after Send.** To an agent: "Sent to the microscope as question mic-20261026-c001."
+  (or the simulation, with its id). To the librarian: "Not delivered: the console does not send to the
+  librarian yet." To "Let the agents decide": "Not delivered: no agent takes a question left to the agents
+  yet." The route's answer tells the two apart by its `artifact` (`console_question` or `question_request`).
+  The audit line `question_submitted` carries the login, `origin: "console"`, the addressee, and for a
+  delivery the `item_id` and `question_id`; for a request the request id; never the words.
 - **Autocomplete** offers only strings already on disk: the `words` of earlier requests and the quantity
   names in `contracts/quantities.json`, each labelled "earlier question" or "registered name". Never a
   model's completion and never the store's contents (the cards' titles are not offered). The list is read
@@ -93,8 +112,13 @@ get may_ask, may_draft, all three agents and may_ask_model_run; a viewer gets no
   offers nothing. Choosing a suggestion inserts its text (an earlier question replaces the field, a name
   replaces the word being typed); it registers nothing and sends nothing. A file in the requests folder
   that is not a request is skipped, never offered.
-- **The cards.** A request written in the console: the words, who asked, when, whom, "request written ·
-  not picked up yet", and that every run from it waits for the person's signature. An agents' question on
+- **The cards.** A request written in the console: the words, who asked, when, whom, "written in the
+  console · not delivered", and that every run from it waits for the person's signature. Beside them, **every
+  item in the two inboxes**, newest first by `asked_at` (`item_id` breaks a tie): the words, login, time,
+  agent and question id, with exactly one state read from the agent's `answers/` (`console_answer` files that
+  name the item): "delivered · not answered yet"; "taken up as <question id>"; "refused · <the reason as
+  written>"; or "an answer is on disk and cannot be read", which the card says rather than guess. An
+  agents' question on
   disk, with a five-step bar read from the files: asked (a goal card exists), designed (a plan card
   exists), signed (a plan_approval card for that plan's hash exists and its status is APPROVED), run (a
   run log names the question), result (a result card exists). When the runs folder cannot be read the run

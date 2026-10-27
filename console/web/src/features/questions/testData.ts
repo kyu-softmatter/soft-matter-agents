@@ -7,7 +7,9 @@ import type { Route } from "../../test/fakes";
 import {
   type AskIn,
   type Card,
+  type ConsoleQuestion,
   type InboxThread,
+  NOT_DELIVERED,
   PATHS,
   type Permissions,
   type QuestionCards,
@@ -48,6 +50,7 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
   const questions = [...data.questions];
   const submitted: AskIn[] = [];
   const requests = [...data.cards.requests];
+  const items = [...data.cards.items];
   const ok = (body: unknown) => ({ status: 200, body });
   const latest = (qid: string) => {
     const vs = questions.filter((d) => d.summary.qid === qid);
@@ -61,7 +64,7 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
       const qids = [...new Set(questions.map((d) => d.summary.qid))].sort().reverse();
       return ok(qids.map((q) => latest(q).summary));
     },
-    [PATHS.questionCards]: () => ok({ requests, questions: data.cards.questions }),
+    [PATHS.questionCards]: () => ok({ requests, items, questions: data.cards.questions }),
     [PATHS.suggestions]: () => ok([...requests.map((r) => ({ text: r.words, kind: "earlier question" })), ...data.suggestions.filter((s) => s.kind === "registered name")]),
     [PATHS.runs()]: () => ok(data.runs.map((r) => r.summary)),
     [PATHS.inbox]: () => ok(data.inbox),
@@ -83,18 +86,32 @@ export function consoleRoutes(data: FakeData): { routes: Record<string, Route>; 
     }
     const body = JSON.parse(String(init?.body)) as AskIn;
     submitted.push(body);
+    const asked_by = {
+      login: FAKE_LOGIN,
+      console_role: { may_ask: true, may_draft: true, agents: ["microscope", "simulation", "librarian"], may_ask_model_run: true },
+    } satisfies QuestionRequest["asked_by"];
+    if (body.addressed_to === "microscope" || body.addressed_to === "simulation") {
+      // delivered into the agent's inbox: an item, and no request file beside it
+      const prefix = body.addressed_to === "microscope" ? "mic" : "sim";
+      const n = submitted.filter((x) => x.addressed_to === body.addressed_to).length; // this fake's own sends, from c001
+      const sent: ConsoleQuestion = {
+        artifact: "console_question", schema_version: "0.1", item_id: `ci-20261026-12000${n}-abcd`,
+        question_id: `${prefix}-20261026-c${String(n).padStart(3, "0")}`, words: body.words, asked_by,
+        asked_at: "2026-10-26T12:00:00Z", asker_mark: { kind: "other_login" }, attachments: [],
+      };
+      items.unshift({
+        item_id: sent.item_id, question_id: sent.question_id, agent: body.addressed_to, words: sent.words,
+        login: FAKE_LOGIN, asked_at: sent.asked_at, state: "delivered · not answered yet", runs_wait_for_signature: true,
+      });
+      return { status: 201, body: sent };
+    }
     const written: QuestionRequest = {
       artifact: "question_request", schema_version: "0.1", id: `qr-20261001-12000${submitted.length}-abcd`,
-      words: body.words,
-      asked_by: {
-        login: FAKE_LOGIN,
-        console_role: { may_ask: true, may_draft: true, agents: ["microscope", "simulation", "librarian"], may_ask_model_run: true },
-      },
-      asked_at: "2026-10-01T12:00:00Z", addressed_to: body.addressed_to,
+      words: body.words, asked_by, asked_at: "2026-10-01T12:00:00Z", addressed_to: body.addressed_to,
     };
     requests.unshift({
       id: written.id, words: written.words, login: FAKE_LOGIN, asked_at: written.asked_at,
-      addressed_to: written.addressed_to, state: "request written · not picked up yet", runs_wait_for_signature: true,
+      addressed_to: written.addressed_to, state: NOT_DELIVERED, runs_wait_for_signature: true,
     });
     return { status: 201, body: written };
   };
@@ -203,8 +220,31 @@ export const FAKE_DATA: FakeData = {
     requests: [
       {
         id: "qr-20261023-091500-w3k8", words: "How far apart are the wells at 4x?", login: "member-2",
-        asked_at: "2026-10-23T09:15:00Z", addressed_to: "microscope", state: "request written · not picked up yet",
+        asked_at: "2026-10-23T09:15:00Z", addressed_to: "librarian", state: NOT_DELIVERED,
         runs_wait_for_signature: true,
+      },
+    ],
+    // newest first, as the server sends them: one card in each of the four states
+    items: [
+      {
+        item_id: "ci-20261026-101500-aaaa", question_id: "mic-20261026-c004", agent: "microscope",
+        words: "Is the stage drifting?", login: "otto", asked_at: "2026-10-26T10:15:00Z",
+        state: "delivered · not answered yet", runs_wait_for_signature: true,
+      },
+      {
+        item_id: "ci-20261026-091500-bbbb", question_id: "sim-20261026-c002", agent: "simulation",
+        words: "How long does relaxation take?", login: "otto", asked_at: "2026-10-26T09:15:00Z",
+        state: "taken up as sim-20261026-c002", runs_wait_for_signature: true,
+      },
+      {
+        item_id: "ci-20261026-081500-cccc", question_id: "mic-20261026-c003", agent: "microscope",
+        words: "Image the whole well at 40x", login: "member-2", asked_at: "2026-10-26T08:15:00Z",
+        state: "refused · that objective is not on this stand", runs_wait_for_signature: true,
+      },
+      {
+        item_id: "ci-20261026-071500-dddd", question_id: "mic-20261026-c001", agent: "microscope",
+        words: "What is the pixel size?", login: "otto", asked_at: "2026-10-26T07:15:00Z",
+        state: "an answer is on disk and cannot be read", runs_wait_for_signature: true,
       },
     ],
     questions: [

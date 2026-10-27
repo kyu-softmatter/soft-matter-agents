@@ -86,6 +86,7 @@ function show(opts: Opts = {}) {
   const detail = opts.detail ?? detailOf();
   const cards: QuestionCards = opts.cards ?? {
     requests: [],
+    items: [],
     questions: [{
       qid: QID, agent: "microscope", title: "tracer diffusivity", status: "VALIDATED", created_at: "2026-09-17T08:00:00Z",
       steps: { asked: true, designed: true, signed: false, run: true, result: false, run_known: true },
@@ -152,15 +153,18 @@ describe("the question and its steps", () => {
       cards: {
         requests: [{
           id: "qr-20261023-091500-w3k8", words: "How far apart are the wells at 4x?", login: "member-2", asked_at: "2026-10-23T09:15:00Z",
-          addressed_to: "microscope", state: "request written · not picked up yet", runs_wait_for_signature: true,
+          addressed_to: "librarian", state: "written in the console · not delivered", runs_wait_for_signature: true,
         }],
+        items: [],
         questions: [],
       },
     });
     const p = await screen.findByRole("region", { name: "Question request" });
     expect(p.textContent).toContain("How far apart are the wells at 4x?");
     expect(p.textContent).toContain("member-2");
-    expect(p.textContent).toContain("request written · not picked up yet");
+    expect(p.textContent).toContain("written in the console · not delivered");
+    expect(p.textContent).toContain("was not delivered to an agent");
+    expect(p.textContent).not.toContain("picked this up");
     expect(p.textContent).toContain("Every run from it waits for the person's signature");
     expect(within(p).queryByRole("button", { name: "Review and sign" })).toBeNull();
   });

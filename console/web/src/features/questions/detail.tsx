@@ -279,7 +279,7 @@ export function RequestPage({ id, cards }: { id: string; cards: RequestCard[] })
       <p>
         <span className="console-tag">{r.state}</span>
       </p>
-      <p>Nothing has started: no agent has picked this up yet.</p>
+      <p>Nothing has started: this request was written in the console and was not delivered to an agent.</p>
       {r.runs_wait_for_signature && <p className="console-muted">Every run from it waits for the person's signature.</p>}
     </section>
   );

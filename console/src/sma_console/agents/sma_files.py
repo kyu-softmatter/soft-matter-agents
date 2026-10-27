@@ -569,14 +569,30 @@ class SmaFiles:
 
     # -- question requests (console card 010) -----------------------------------------------------
     #
-    # The one place the console writes: its own folder, inside console/. No agent's folder, no inbox,
-    # no bridge. Everything else here is read only.
+    # A request is written into the console's own folder, inside console/. A question to the microscope
+    # or the simulation goes into that agent's console_inbox/ instead (card 019, inbox_write_folder
+    # below), the one thing the console writes into an agent's tree. No bridge. Everything else is read only.
 
     def request_write_folder(self) -> Path:
         return self._root.joinpath(*REQUEST_PARTS)
 
     def request_folders(self) -> list[Path]:
         return [self.request_write_folder()]
+
+    # -- the agents' inboxes (console card 019) ----------------------------------------------------
+
+    def inbox_write_folder(self, agent: str) -> Path:
+        """`<agent>_agent/console_inbox/`: the agent's own folder, which the console never makes."""
+        return self._root / f"{agent}_agent" / "console_inbox"
+
+    def inbox_folders(self, agent: str) -> list[Path]:
+        return [self.inbox_write_folder(agent)]
+
+    def answers_folders(self, agent: str) -> list[Path]:
+        return [self._root / f"{agent}_agent" / "answers"]
+
+    def outgoing_folder(self) -> Path:
+        return self._root.joinpath(*REQUEST_PARTS[:-1], "outgoing")
 
     def registered_names(self) -> list[str]:
         return quantity_names(self._root)

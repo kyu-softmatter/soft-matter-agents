@@ -1,16 +1,20 @@
 /**
  * The cards below the question field (console card 010): one per question.
  *
- * - A request written in the console: the words, who asked, when, and "request written · not picked
- *   up yet", because the agents' inbox is not open. It says every run from it waits for the person's
- *   signature. There is nothing to measure yet, so no progress bar.
+ * - A request written in the console (a question to the librarian or left to the agents): the words,
+ *   who asked, when, and "written in the console · not delivered", because it went to no agent. It
+ *   says every run from it waits for the person's signature. No progress bar: nothing to measure.
+ * - An item delivered to the microscope's or the simulation's inbox (card 019): the words, login, time,
+ *   agent and question id, and exactly one state the server read from the agent's answers: "delivered
+ *   · not answered yet", "taken up as <id>", "refused · <reason>", or "an answer is on disk and cannot
+ *   be read". The server orders them, newest first; the cards keep that order.
  * - An agents' question already on disk, as the files say: a five-step bar -- asked (a goal card
  *   exists), designed (a plan exists), signed (an approval for that plan's hash exists), run (a run
  *   log names it), result (a result card exists). When the runs folder could not be read the run step
  *   says "not known": that is not "no run".
  */
 
-import { ADDRESSEES, type QuestionCards, type QuestionProgress, type RequestCard } from "./api";
+import { ADDRESSEES, type ItemCard, type QuestionCards, type QuestionProgress, type RequestCard } from "./api";
 import { shortTime } from "./ui";
 
 const STEPS = [
@@ -21,7 +25,7 @@ const STEPS = [
   ["result", "Result"],
 ] as const;
 
-const addressee = (v: RequestCard["addressed_to"]) => ADDRESSEES.find((a) => a.value === v)?.label ?? v;
+const addressee = (v: RequestCard["addressed_to"] | ItemCard["agent"]) => ADDRESSEES.find((a) => a.value === v)?.label ?? v;
 
 export function QuestionStepsList({ q }: { q: QuestionProgress }) {
   return (
@@ -49,7 +53,7 @@ export function QuestionCardsView({
   onOpen: (qid: string) => void;
   onOpenRequest: (id: string) => void;
 }) {
-  const empty = cards.requests.length === 0 && cards.questions.length === 0;
+  const empty = cards.requests.length === 0 && cards.items.length === 0 && cards.questions.length === 0;
   return (
     <section aria-label="Question cards" className="ask-cards">
       {empty && <p className="console-muted">No questions yet.</p>}
@@ -65,6 +69,20 @@ export function QuestionCardsView({
             <span className="console-tag">{r.state}</span>
           </p>
           {r.runs_wait_for_signature && (
+            <p className="console-muted">Every run from it waits for the person's signature.</p>
+          )}
+        </article>
+      ))}
+      {cards.items.map((i) => (
+        <article key={i.item_id} className="ask-card" data-kind="item">
+          <p className="console-link ask-words">{i.words}</p>
+          <p className="console-muted">
+            {i.login} · {shortTime(i.asked_at)} · {addressee(i.agent)} · {i.question_id}
+          </p>
+          <p>
+            <span className="console-tag">{i.state}</span>
+          </p>
+          {i.runs_wait_for_signature && (
             <p className="console-muted">Every run from it waits for the person's signature.</p>
           )}
         </article>

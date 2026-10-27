@@ -2,10 +2,12 @@
 
 A request is `contracts/schemas/question_request.schema.json`: the asker's words exactly as typed,
 the asking login and that login's console role, the time (UTC) and the agent addressed. It is
-written into the console's own folder, `console/requests/questions/<id>.json`, and **nothing reaches
-an agent**: nothing reads a request until the agents' new inbox opens, which is designed on its own
-and approved by the person (Q-20261022-office-04). So this module writes a file in one place and
-reads that place back for the cards and for autocomplete, and does nothing else.
+written into the console's own folder, `console/requests/questions/<id>.json`. **A request in that
+folder is not delivered**: the agents' inbox is open since 2026-10-26, and a question to the
+microscope or the simulation goes there as an item (`inbox_items.py`, card 019), so what this module
+writes is what the console keeps for the librarian and for "let the agents decide", neither of which
+has an inbox the console may write into yet. This module writes a file in one place and reads that
+place back for the cards and for autocomplete, and does nothing else.
 
 * The id is `qr-<UTC yyyymmdd>-<UTC hhmmss>-<four random lowercase letters or digits>`, and the file
   is `<id>.json`.
@@ -40,7 +42,7 @@ MAX_WORDS = 4000
 FOLDER_PARTS = ("console", "requests", "questions")
 ID_PATTERN = re.compile(r"qr-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}")
 SUGGESTION_KINDS = ("earlier question", "registered name")
-NOT_PICKED_UP = "request written · not picked up yet"
+NOT_DELIVERED = "written in the console · not delivered"
 _ALPHABET = string.ascii_lowercase + string.digits
 
 
@@ -74,10 +76,9 @@ def console_role_for(role: str) -> dict[str, Any] | None:
     return None
 
 
-def build_request(*, words: str, login: str, role: str, addressed_to: str, now: datetime,
-                  suffix: str) -> dict[str, Any]:
-    """The request as the schema has it, or `RequestError`. `words` is kept exactly: not trimmed,
-    not rewritten. Only a question that is blank or cannot be written is refused."""
+def check_asker(*, words: str, login: str, role: str) -> dict[str, Any]:
+    """The asker's console role, or `RequestError` when the words or the login cannot be written.
+    `words` is kept exactly as typed: only a question that is blank or cannot be written is refused."""
     if not isinstance(words, str) or words.strip() == "":
         raise RequestError("a question needs words")
     if len(words) > MAX_WORDS:
@@ -86,8 +87,6 @@ def build_request(*, words: str, login: str, role: str, addressed_to: str, now: 
         words.encode("utf-8")
     except UnicodeEncodeError as e:
         raise RequestError("the words contain a character that cannot be written") from e
-    if addressed_to not in ADDRESSEES:
-        raise RequestError(f"addressed_to is one of {', '.join(ADDRESSEES)}")
     try:
         check_login(login)
     except AccountError as e:
@@ -95,6 +94,16 @@ def build_request(*, words: str, login: str, role: str, addressed_to: str, now: 
     console_role = console_role_for(role)
     if console_role is None:
         raise RequestError("this login may not ask a question")
+    return console_role
+
+
+def build_request(*, words: str, login: str, role: str, addressed_to: str, now: datetime,
+                  suffix: str) -> dict[str, Any]:
+    """The request as the schema has it, or `RequestError`. `words` is kept exactly: not trimmed,
+    not rewritten. Only a question that is blank or cannot be written is refused."""
+    if addressed_to not in ADDRESSEES:
+        raise RequestError(f"addressed_to is one of {', '.join(ADDRESSEES)}")
+    console_role = check_asker(words=words, login=login, role=role)
     when = now.astimezone(UTC)
     return {
         "artifact": "question_request",

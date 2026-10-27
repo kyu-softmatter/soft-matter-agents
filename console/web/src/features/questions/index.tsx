@@ -1,8 +1,9 @@
 /**
  * Questions area (formerly the Console area; PLAN F1, ui-spec 7.1, docs/screens/console.md). The
  * first screen is the question window -- one field, an Ask choice, Send -- with a card per question
- * below it (console card 010). The one write is a question request into the console's own folder,
- * which the server allows or refuses; nothing reaches an agent. The rest reads only.
+ * below it (console cards 010 and 019). The write is a question: to the microscope or the simulation
+ * into that agent's inbox, to the librarian or the agents a request in the console's own folder that
+ * reaches no agent. The server allows or refuses it. The rest reads only.
  *
  * `rest` forms (after `#/questions/`):
  *   "" | "questions"          the question window and its cards

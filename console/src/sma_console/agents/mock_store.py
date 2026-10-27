@@ -120,6 +120,27 @@ class MockStore:
         mine = [] if self._write_dir is None else [long_path(self._write_dir).joinpath(*REQUEST_PARTS)]
         return [*mine, self.sample.root.joinpath(*REQUEST_PARTS)]
 
+    # -- the agents' inboxes (console card 019): a practice copy in the write dir, never the sample ----
+
+    def _practice(self, agent: str, *parts: str) -> Path:
+        return long_path(self.write_dir).joinpath(f"{agent}_agent", *parts)
+
+    def inbox_write_folder(self, agent: str) -> Path:
+        folder = self._practice(agent, "console_inbox")
+        folder.mkdir(parents=True, exist_ok=True)  # the mock may make it, here and only here
+        return folder
+
+    def inbox_folders(self, agent: str) -> list[Path]:
+        mine = [] if self._write_dir is None else [self._practice(agent, "console_inbox")]
+        return [*mine, self.sample.root / f"{agent}_agent" / "console_inbox"]
+
+    def answers_folders(self, agent: str) -> list[Path]:
+        mine = [] if self._write_dir is None else [self._practice(agent, "answers")]
+        return [*mine, self.sample.root / f"{agent}_agent" / "answers"]
+
+    def outgoing_folder(self) -> Path:
+        return long_path(self.write_dir).joinpath(*REQUEST_PARTS[:-1], "outgoing")
+
     def runtime_root(self) -> Path | None:
         return None  # the sample has no runtime: nothing here stands in for its files
 
