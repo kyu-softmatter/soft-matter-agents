@@ -3,6 +3,7 @@
   "permissions": {
     "$comment_deny_outside": "THE TEN BELOW ARE INERT, AND KEPT ON PURPOSE. A path pattern resolves against the session root, and this session starts in librarian_agent/ -- so `Write(bridge/**)` means `librarian_agent/bridge/**`, which cannot exist. All ten name a sibling directory, contracts/ or plan.md, so none can ever match. Not deleted, because deleting them deletes the intent; labelled, because an unlabelled inert rule reads as protection to the next person, and that is the failure rather than the rule. What enforces this boundary is the commit gate and check 35. A tool denial WOULD work here -- tool names do not resolve against a root -- and this file contains none, so do not read this label as covering a kind of rule that is not here.",
     "$comment_deny_inside": "THE FOUR BELOW ARE LIVE. They resolve inside this root and they fire. The rule that picks them is ownership, not a list: anything inside this agent's own tree that ANOTHER seat owns. contracts/seats.json gives manager-librarian exactly these four -- CLAUDE.md, README.md, tasks/ and .claude/ -- and the executing seat owns kb/, queries/, src/ and failures.jsonl. This file claimed on 2026-09-19 that nothing could be aimed inward, reasoning from the absence of envelope/ and inbox/; that was a list where a rule was needed, and manager-simulation found the same error in its own file from the same relay. `tasks/` is the one that mattered: 6.2 rule 2 makes it the home of instructions that come DOWN, and until now the seat receiving them could edit them. A seat that can edit its own instructions has preferences, not instructions. `.claude/**` covers this file, which is correct and is why the manager writes it.",
+    "$comment_deny_console_inbox": "THE LAST FOUR ARE LIVE, and joined on 2026-10-26 when the person opened the console inbox (4f867773). console_inbox/ is written by the console's server and by nothing else (plan.md 7.1.1 rule 2); this seat reads it and answers in answers/, which stays its own. The two path patterns carry a leading /, which anchors them at the session's primary working directory, librarian_agent/; a bare pattern resolves against the current directory, which can move. The Bash and PowerShell patterns are tool denials and match a command's text, so a redirect, sed -i or heredoc into the folder is refused as well as Write and Edit, and a Bash line alone does not reach the PowerShell tool (INC-20261018-07), hence the twin. They also refuse a shell command that only reads the folder, which is the cost: read an item or an attachment with Read, Grep and Glob. An attachment's bytes are compared with its sha256 by check 92, on the working copy at every validator run and on the staged tree at commit, so hashing needs no shell here. Written by manager-librarian-20261007-1, mirroring simulation_agent/.claude/settings.json.",
     "deny": [
       "Write(microscope_agent/**)",
       "Edit(microscope_agent/**)",
@@ -21,7 +22,11 @@
       "Write(tasks/**)",
       "Edit(tasks/**)",
       "Write(.claude/**)",
-      "Edit(.claude/**)"
+      "Edit(.claude/**)",
+      "Write(/console_inbox/**)",
+      "Edit(/console_inbox/**)",
+      "Bash(*console_inbox*)",
+      "PowerShell(*console_inbox*)"
     ]
   },
   "hooks": {
