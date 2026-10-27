@@ -1,0 +1,13 @@
+{
+  "$comment": "FIXTURE for check 93: one star guards the folder's files and leaves a subfolder open",
+  "permissions": {
+    "deny": [
+      "Edit(/approvals/**)",
+      "Edit(/inbox/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/tasks/**)",
+      "Edit(/.claude/**)",
+      "Edit(/console_inbox/*)"
+    ]
+  }
+}

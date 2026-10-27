@@ -1,0 +1,14 @@
+{
+  "$comment": "FIXTURE for check 93: the bridge inbox's unanchored pair copied for the console inbox; Write is never consulted and the Edit line does not resolve to this folder's console_inbox/",
+  "permissions": {
+    "deny": [
+      "Edit(/approvals/**)",
+      "Edit(/inbox/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/tasks/**)",
+      "Edit(/.claude/**)",
+      "Write(console_inbox/**)",
+      "Edit(console_inbox/**)"
+    ]
+  }
+}

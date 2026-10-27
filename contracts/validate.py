@@ -9715,6 +9715,203 @@ def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Fin
                                      "at the folder, in the form Claude Code consults")]
 
 
+#: The agents a console inbox delivers to (plan.md 7.1.1 rule 1). Each denies
+#: its own session the folder, because the console's server writes it and the
+#: agent only reads it (rule 2).
+RECEIVING_AGENTS = ("microscope_agent", "simulation_agent", "librarian_agent")
+#: The guard, in the one form check 90 accepts: Edit(...), anchored at the
+#: session's own folder by a single leading slash.
+CONSOLE_INBOX_GUARD = "Edit(/console_inbox/**)"
+
+
+def check_93_an_agent_cannot_write_its_console_inbox(b: Bundle) -> list[Finding]:
+    """A receiving agent's settings deny its session its own console_inbox/ (plan.md 7.1.1 rules 2 and 8).
+
+    The console's server writes an agent's console_inbox/; the agent reads it
+    and never writes it, "denied in its settings the way the bridge's
+    `inbox/**` is". So each receiving agent's .claude/settings.json carries
+    Edit(/console_inbox/**), and carries it before the folder exists, as check
+    90 asks of the runtime's guards: a session that can write the folder can
+    write an item no console asked.
+
+    The form is check 90's, for check 90's reason: a Write path rule is never
+    consulted, and a pattern without the leading slash, or one naming the
+    agent's folder, does not resolve to that folder's console_inbox/. One star
+    is reported as well, because it leaves a subfolder unguarded.
+
+    WHAT A SETTINGS LINE CANNOT DO. It refuses the session's file tools, not
+    what a shell command writes, and a settings file this check does not see
+    can add refusals and cannot be relied on to; this asks only that the
+    repository's own file says the line. Who may commit into the folder is the
+    commit gate's, and that nothing landed there changes is check 91's.
+
+    Judged: the repository's own agent folders, and an agent folder directly
+    inside a rejected group that is a fixture for this check. An agent folder
+    inside another check's group is that check's input, not a session's root,
+    and the console's mock data and imported trees are neither.
+    """
+    roots: set[Path] = set()
+    for p in b.all_files:
+        for parent in p.parents:
+            if parent.name not in RECEIVING_AGENTS:
+                continue
+            rel = _rel(parent)
+            group = fixture_group(rel + "/-")
+            if parent.parent == REPO or (group is not None and group[1] == 93
+                                         and rel == f"{group[0]}/{parent.name}"):
+                roots.add(parent)
+            break
+    if not roots:
+        return [Finding(93, NA, f"no receiving agent folder ({', '.join(RECEIVING_AGENTS)}) holds a file in "
+                                "this tree")]
+    out: list[Finding] = []
+    for root in sorted(roots):
+        settings = root / ".claude" / "settings.json"
+        rel = _rel(settings).replace("\\", "/")
+        if not settings.exists():
+            out.append(Finding(93, FAIL, f"{root.name} has no .claude/settings.json, so a session rooted there "
+                                         "can write its own console_inbox/ (7.1.1 rule 2)", rel))
+            continue
+        try:
+            deny = (json.loads(settings.read_text(encoding="utf-8")).get("permissions") or {}).get("deny") or []
+        except (OSError, json.JSONDecodeError) as exc:
+            out.append(Finding(93, FAIL, f"unreadable settings: {exc}", rel))
+            continue
+        if CONSOLE_INBOX_GUARD in deny:
+            continue
+        near = {"Write(/console_inbox/**)": "a Write path rule is never consulted",
+                "Edit(console_inbox/**)": "a pattern without the leading slash does not resolve to this "
+                                          "folder's console_inbox/",
+                "Write(console_inbox/**)": "a Write path rule is never consulted",
+                f"Edit({root.name}/console_inbox/**)": "a pattern naming the folder itself resolves inside it, "
+                                                       "to a path that does not exist",
+                f"Write({root.name}/console_inbox/**)": "a Write path rule is never consulted",
+                "Edit(/console_inbox/*)": "one star leaves a subfolder unguarded"}
+        found = [d for d in deny if isinstance(d, str) and d in near]
+        why = "".join(f"; {d} is there and guards nothing: {near[d]}" for d in found)
+        out.append(Finding(93, FAIL, f"the deny list lacks {CONSOLE_INBOX_GUARD}{why} (7.1.1 rule 2)", rel))
+    return out or [Finding(93, PASS, f"{len(roots)} receiving agent folder(s) deny their session "
+                                     f"{CONSOLE_INBOX_GUARD}, anchored at the folder, in the form Claude Code "
+                                     "consults")]
+
+
+#: What a console inbox item never carries (plan.md 7.1.1 rule 4), by the keys
+#: that carry each in this repository's own contracts: a plan's three kinds and
+#: the fields every plan must have (plan.schema.json), what an approval binds
+#: and grants (plan_approval and scope_approval), a safety policy's version and
+#: targets (envelope_safety), and the run interface's messages with the command
+#: kinds the imported engine took (console/CLAUDE.md).
+FORBIDDEN_ITEM_KEYS: dict[str, str] = {
+    **dict.fromkeys(("operation", "trap_steps", "focus_search", "actions", "envelope_check",
+                     "stop_criteria", "success_criteria", "plan_id"), "a plan"),
+    **dict.fromkeys(("plan_hash", "plan_revision", "approved_by", "approved_at", "signed_through",
+                     "valid_until", "max_runs"), "an approval"),
+    **dict.fromkeys(("policy_version", "targets", "safety", "limits"), "a safety value"),
+    **dict.fromkeys(("command", "commands", "run", "stop", "abort", "live_on", "check_now", "frame_tap",
+                     "light_set", "goto_xy", "objective_change", "trap_move", "pattern_run"), "a command"),
+}
+#: The schemas that shape an inbox item; none may declare a forbidden key.
+INBOX_ITEM_SCHEMAS = ("console_inbox_item.schema.json", "console_store_request.schema.json")
+
+
+def _forbidden_in(node, where: str, depth: int = 0) -> list[str]:
+    """Every forbidden key in node, at every depth, as `where.path: what it is`.
+
+    `artifact` and `card` are forbidden below the top: the item's own
+    `artifact` is its kind, and either key anywhere else is a card riding
+    inside it -- the two keys by which this repository's files declare a
+    card.
+    """
+    found: list[str] = []
+    if isinstance(node, dict):
+        for k, v in node.items():
+            here = f"{where}.{k}"
+            if k in FORBIDDEN_ITEM_KEYS:
+                found.append(f"{here} ({FORBIDDEN_ITEM_KEYS[k]})")
+            elif k in ("artifact", "card") and depth > 0:
+                found.append(f"{here} (another card, {v!r})")
+            found.extend(_forbidden_in(v, here, depth + 1))
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            found.extend(_forbidden_in(v, f"{where}[{i}]", depth + 1))
+    return found
+
+
+def check_94_a_console_item_carries_no_plan_approval_safety_value_or_command(b: Bundle) -> list[Finding]:
+    """A console inbox item carries no plan, approval, safety value or command (plan.md 7.1.1 rules 4 and 8).
+
+    Every object in both item schemas is closed, so check 1 already refuses a
+    key they do not declare. This holds the same line three places check 1
+    does not reach:
+
+      a. it reads every depth with the standard library alone, so it still
+         judges where check 1 goes PENDING for want of `jsonschema` and
+         `referencing` -- the Office computer's bare `python` is one such;
+      b. it reads inside every attachment an item lists whose bytes parse as
+         JSON, which no schema sees: a plan, an approval or any card attached
+         as a file is carried all the same (a document that is not JSON is
+         not read);
+      c. it reads the item schemas themselves, and fails one that declares a
+         forbidden key, since an item could then carry it and pass check 1.
+
+    The keys are FORBIDDEN_ITEM_KEYS, plus `artifact` and `card` below the
+    top: an item embeds no card and attaches none, since every other check
+    would read an attached card as a real one. The asker's words are free text and are never judged; a
+    question may talk about a plan, an approval or a stop, and may not carry
+    one. An attachment that is not the item's own (check 92) is not read here.
+    """
+    out: list[Finding] = []
+    for name in INBOX_ITEM_SCHEMAS:
+        path = CONTRACTS / "schemas" / name
+        try:
+            schema = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        declared: set[str] = set()
+        stack = [schema]
+        while stack:
+            node = stack.pop()
+            if isinstance(node, dict):
+                if isinstance(node.get("properties"), dict):
+                    declared.update(node["properties"])
+                stack.extend(node.values())
+            elif isinstance(node, list):
+                stack.extend(node)
+        both = sorted(declared & set(FORBIDDEN_ITEM_KEYS))
+        if both:
+            out.append(Finding(94, FAIL, f"the schema declares {', '.join(both)}, which an inbox item may never "
+                                         "carry; an item could then hold one and pass check 1 (7.1.1 rule 4)",
+                               _rel(path)))
+    items = [c for c in b.of_artifact("console_question", "console_store_request")
+             if "__unreadable__" not in c.data]
+    read = 0
+    for c in items:
+        found = _forbidden_in(c.data, "item")
+        iid = str(c.data.get("item_id") or "")
+        for a in c.data.get("attachments") or []:
+            name = a.get("file") if isinstance(a, dict) else None
+            if not isinstance(name, str) or not name.startswith(iid + "--"):
+                continue
+            path = c.path.parent / name
+            try:
+                doc = json.loads(path.read_bytes())
+            except (OSError, ValueError):
+                continue
+            read += 1
+            found.extend(_forbidden_in(doc, f"attachment {name}", 1))
+        if found:
+            more = f" and {len(found) - 3} more" if len(found) > 3 else ""
+            out.append(Finding(94, FAIL, f"the item carries {'; '.join(found[:3])}{more}; an inbox item carries "
+                                         "no plan, approval, safety value or command (7.1.1 rule 4)", c.rel))
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(94, PASS if items else NA,
+                           f"{len(items)} console inbox items and {read} attachments that are JSON carry no plan, "
+                           "approval, safety value or command at any depth, and the item schemas declare none"
+                           if items else "no console inbox items in this tree; the item schemas declare no "
+                                         "forbidden key"))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -9755,6 +9952,8 @@ CHECKS = [
     check_90_an_execution_folder_guards_the_persons_files,
     check_91_console_questions_are_linked_and_answered,
     check_92_a_console_item_holds_the_files_it_names,
+    check_93_an_agent_cannot_write_its_console_inbox,
+    check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

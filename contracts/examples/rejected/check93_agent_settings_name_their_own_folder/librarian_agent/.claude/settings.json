@@ -1,0 +1,11 @@
+{
+  "$comment": "FIXTURE for check 93: the guard names the agent's own folder, so from a session rooted there it names librarian_agent/librarian_agent/console_inbox/",
+  "permissions": {
+    "deny": [
+      "Edit(/CLAUDE.md)",
+      "Edit(/tasks/**)",
+      "Edit(/.claude/**)",
+      "Edit(librarian_agent/console_inbox/**)"
+    ]
+  }
+}
