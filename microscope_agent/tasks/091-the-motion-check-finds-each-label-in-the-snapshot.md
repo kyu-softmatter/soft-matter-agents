@@ -50,16 +50,11 @@ In `microscope_runtime/src/orchestrator.py`:
      the second copy this card forbids. The camera tap and the operator's
      camera lookup both read through the new function. A camera with no
      label taps nothing and says why. Test 6 finds it if it stays.
-   - **The lookup returns the label with its `entry_ref` and grade, and
-     decides nothing from the grade.** Whether a label at E3, read on the
-     prior project's configuration and never re-read here, may let software
-     command a device is an open question put to design (2026-10-26). So is
-     matching an entry's "with configuration X loaded" against the
-     configuration actually loaded. This card neither gates on the grade nor
-     waives it. It records `entry_ref` and the grade in the check's
-     `software_motion_checked` or `software_motion_refused` event for each
-     name resolved, so whichever rule is
-     decided applies to records that already say what they stood on.
+   - **The lookup returns the label with its `entry_ref`, the entry's grade
+     and the configuration digest the entry carries.** It decides nothing
+     from them; the check in item 2 does. The digest field is manager-librarian's
+     to add to card 061's form (plan.md 15.1 item 9 at `344d115a`). Read it in
+     one place, and build against a test registry that carries it.
 2. **The check resolves before it asks.** For each name a command reaches
    (the channel, the element if named, and each device under
    `params.settings`), `check_software_motion` asks `refusal()`:
@@ -72,6 +67,27 @@ In `microscope_runtime/src/orchestrator.py`:
      no label for is refused, and **the refusal names the missing label**:
      "`<name>` has no Micro-Manager label in the registry (`<source>`)".
      That is today's refusal, with its reason.
+   - **A label lets software command its device only when this system read
+     it here, under the configuration that is loaded** (plan.md 15.1 item 9
+     at `344d115a`). A label the lookup gives is used only when both hold;
+     otherwise the name is refused and the refusal says which failed:
+     - **the cited entry is E1.** E3 (the prior project's configuration, or
+       a person's reading off the property browser) commands nothing. One
+       grade for every allow-listed device, with no split by moving or
+       emitting;
+     - **the entry's configuration digest equals the sha256 of the approved
+       original** that `mm_config_gate.check` returns for this run (card
+       069), not the derived copy that is loaded. File names are never
+       compared. An entry with no digest refuses, as "names its
+       configuration only in prose".
+     - **On mock**, no file is loaded, so the test gives the mock the digest
+       it stands for, the way a test gives a selector its position. With
+       none given, every label-resolved name refuses. Put that digest
+       wherever a test sets a selector's position, and nowhere a plan can
+       reach.
+   - `entry_ref`, grade and digest for each name resolved go in the
+     `software_motion_checked` or `software_motion_refused` event, along
+     with the loaded original's sha256 they were compared against.
    - Every refusal is still collected, and the whole plan is still refused
      before the first command.
 3. **The registry's source is written with forward slashes.** The refusal in
@@ -86,6 +102,12 @@ In `microscope_runtime/src/orchestrator.py`:
    refused, now naming the missing label.
 
 ## Not in this card
+
+- **The run that makes any label pass on the instrument** is card 092.
+  Today the store's E1 labels were read under
+  `single_cam_red_noDMD_nocom10.cfg`, and the approved file is
+  `DMD_dualcam_LUNF.cfg`, so on the instrument this card refuses every
+  label-resolved name. That refusal is correct.
 
 - **The settings derivation** (15.1 item 9's second gap). Once a label
   resolves, the check judges the right device, but `derive_commands` still
@@ -121,8 +143,15 @@ In `microscope_runtime/src/orchestrator.py`:
    against a test registry whose two camera rows carry `mm_label`. With
    the label removed from one row, that camera's tap answers with no frame
    and names the missing label.
-10. Every resolved name's `entry_ref` and grade appear in the run's
-    events, and no test makes a plan's outcome depend on the grade.
+10. Every resolved name's `entry_ref`, grade and digest appear in the run's
+    events, with the sha256 they were compared against.
+11. A test registry row whose entry is E3 refuses its name, the refusal
+    naming the grade. The same row cited to an E1 entry passes.
+12. An E1 entry whose digest differs from the given one refuses, naming
+    both digests. An E1 entry with no digest refuses, naming the missing
+    digest. A mock given no digest refuses every label-resolved name.
+13. Two configurations with the same file name and different bytes are
+    two digests: the label read under one refuses under the other.
 
 ## Boundaries
 
