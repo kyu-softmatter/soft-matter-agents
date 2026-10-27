@@ -427,6 +427,22 @@ def label_rows(table: dict) -> list[tuple[str, dict]]:
     return rows
 
 
+def _digest_problems(name: str, m: dict, ids: dict, ref: str) -> list[str]:
+    """A row field's config_sha256 is its entry's mm_config_sha256, copied, or absent with it."""
+    if "config_sha256" in m:
+        sha, out = m["config_sha256"], []
+        if not (isinstance(sha, str) and len(sha) == 64 and set(sha) <= SHA256_HEX):
+            out.append(f"{name}: config_sha256 {sha!r} is not 64 lowercase hex")
+        if sha != ids.get("mm_config_sha256"):
+            out.append(f"{name}: config_sha256 is not {ref}'s mm_config_sha256 "
+                       f"{ids.get('mm_config_sha256')!r}")
+        return out
+    if "mm_config_sha256" in ids:
+        return [f"{name}: {ref} records the configuration digest and the row "
+                "leaves it out; the row is a copy of the entry"]
+    return []
+
+
 def mm_label_problems(table: dict, entries: dict[str, dict]) -> list[str]:
     """Each row's `mm_label` is a copy of its entry's, and claims nothing more.
 
@@ -456,21 +472,109 @@ def mm_label_problems(table: dict, entries: dict[str, dict]) -> list[str]:
         if label not in (ids.get("mm_label"), ids.get("mm_device")):
             problems.append(f"{name}: label {label!r} is not in {ref}'s identifiers "
                             f"(mm_label {ids.get('mm_label')!r}, mm_device {ids.get('mm_device')!r})")
-        if "config_sha256" in m:
-            sha = m["config_sha256"]
-            if not (isinstance(sha, str) and len(sha) == 64 and set(sha) <= SHA256_HEX):
-                problems.append(f"{name}: config_sha256 {sha!r} is not 64 lowercase hex")
-            if sha != ids.get("mm_config_sha256"):
-                problems.append(f"{name}: config_sha256 is not {ref}'s mm_config_sha256 "
-                                f"{ids.get('mm_config_sha256')!r}")
-        elif "mm_config_sha256" in ids:
-            problems.append(f"{name}: {ref} records the configuration digest and the row "
-                            "leaves it out; the row is a copy of the entry")
+        problems += _digest_problems(name, m, ids, ref)
     for eid, e in sorted(entries.items()):
         if ("mm_config_sha256" in (e.get("identifiers") or {})
                 and not str(e.get("source", "")).startswith("measured:")):
             problems.append(f"{eid} carries mm_config_sha256 from a {e.get('source')!r} source; "
                             "which file was loaded is a run's record, and only measured: is one")
+    return problems
+
+
+# Card 062. A verb's argument is no device property, so no binding names one.
+VERB_ARGUMENTS = ("frame_count",)
+# The rows `label_warning` in optical_paths.v0.json names: a label and a state
+# read back consistently there while the light went elsewhere. A word on one of
+# these, or on any row marked verify_by "acquisition", resolves only from a run
+# that acquired.
+SEEN_BY_LIGHT = ("csuw1_port", "lapp_branch", "csuw1_disk_position")
+
+
+def run_acquired(run_id: str) -> bool:
+    """Did this system's run of that id acquire a frame? Read from its log, never from an entry's prose."""
+    for log in (REPO / "microscope_runtime" / "runs" / run_id / "log.json",
+                REPO / "microscope_agent" / "runs" / run_id / "log.json"):
+        if log.is_file():
+            body = json.loads(log.read_text(encoding="utf-8"))
+            return any(ev.get("event") == "acquire" for ev in body.get("events") or [])
+    return False
+
+
+def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[str],
+                        units: set[str], acquired=run_acquired) -> list[str]:
+    """Each row's `mm_bindings` and `mm_states` are copies of their entries, as `mm_label` is.
+
+    A binding says which property a registered quantity sets and in the
+    property's own unit; a state says which device state label a path-table
+    word names. Neither has a grade or source of its own.
+
+    The unit `1` is refused on every binding, not only on a property known to
+    take a fraction of full scale: nothing in a row or an entry says which
+    properties those are, and `1` cannot tell 10 from 1 per cent. A pure-number
+    property that ever needs binding goes to manager-librarian first.
+    """
+    problems: list[str] = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            if "mm_bindings" in node or "mm_states" in node:
+                rows.append(node)
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    rows: list[dict] = []
+    walk(table)
+    for row in rows:
+        name = row.get("id") or row.get("model")
+        label = (row.get("mm_label") or {}).get("label")
+        if label is None:
+            problems.append(f"{name}: carries bindings or states and no mm_label; they sit on a labelled row")
+        held: dict[str, set] = {"quantity": set(), "property": set(), "word": set(), "state_label": set()}
+
+        def once(key, v):
+            if v in held[key]:
+                problems.append(f"{name}: {key} {v!r} appears twice; one of the two is wrong")
+            held[key].add(v)
+
+        def entry_for(m, want):
+            ref = m.get("entry_ref")
+            e = entries.get(ref)
+            if e is None:
+                problems.append(f"{name}: cites {ref!r}, which is not an entry in kb/entries/")
+                return None, {}
+            ids = e.get("identifiers") or {}
+            for idk, v in want.items():
+                if ids.get(idk) != v:
+                    problems.append(f"{name}: {ref}'s identifiers give {idk} {ids.get(idk)!r}, the row {v!r}")
+            problems.extend(_digest_problems(name, m, ids, ref))
+            return e, ids
+
+        for b in row.get("mm_bindings") or []:
+            q, prop, unit = b.get("quantity"), b.get("property"), b.get("unit")
+            once("quantity", q)
+            once("property", prop)
+            if q not in quantities:
+                problems.append(f"{name}: quantity {q!r} is not registered in contracts/quantities.json")
+            if q in VERB_ARGUMENTS:
+                problems.append(f"{name}: binds {q!r}, a verb's argument that no property holds")
+            if unit not in units:
+                problems.append(f"{name}: unit {unit!r} is not in contracts/units.json")
+            if unit == "1":
+                problems.append(f"{name}: binds {prop!r} in unit '1', which cannot tell 10 from 1 per cent")
+            entry_for(b, {"mm_label": label, "mm_property": prop, "quantity": q, "unit": unit})
+        for s in row.get("mm_states") or []:
+            word, sl = s.get("word"), s.get("state_label")
+            once("word", word)
+            once("state_label", sl)
+            e, _ = entry_for(s, {"mm_label": label, "path_word": word, "mm_state_label": sl})
+            if e is not None and (name in SEEN_BY_LIGHT or row.get("verify_by") == "acquisition"):
+                src = str(e.get("source", ""))
+                if not (src.startswith("measured:") and acquired(src[len("measured:"):])):
+                    problems.append(f"{name}: word {word!r} rests on {s.get('entry_ref')} from {src!r}; on this "
+                                    "row a word resolves only from a run that acquired in that state")
     return problems
 
 
@@ -587,6 +691,96 @@ def _self_test() -> int:
          "a row dropping the digest its entry records")
     case([], {"e": {"identifiers": {"mm_config_sha256": "a" * 64}, "source": "prior_run:p@1"}},
          "only measured: is one", "a digest on an entry that is not a run of this system")
+
+    # Card 062: bindings and state words, the store's own first, then each
+    # rule against a table that breaks exactly it.
+    qids = {q["id"] for q in json.loads((REPO / "contracts" / "quantities.json")
+                                        .read_text(encoding="utf-8"))["quantities"]}
+    usyms = set(json.loads((REPO / "contracts" / "units.json").read_text(encoding="utf-8"))["units"])
+    for p in mm_binding_problems(devices, live, qids, usyms):
+        bad(f"the store's own bindings and states: {p}")
+    if "frame_count" not in qids or "exposure_time" not in qids or "1" not in usyms:
+        bad("the binding cases below lean on frame_count, exposure_time and unit '1' being registered")
+
+    store = {"e_bind": {"identifiers": {"mm_label": "Cam", "mm_property": "Exposure",
+                                        "quantity": "exposure_time", "unit": "ms",
+                                        "mm_config_sha256": "a" * 64}, "source": "measured:run-acq"},
+             "e_word": {"identifiers": {"mm_label": "Port", "path_word": "empty",
+                                        "mm_state_label": "Slot-1"}, "source": "measured:run-acq"},
+             "e_read": {"identifiers": {"mm_label": "Port", "path_word": "empty",
+                                        "mm_state_label": "Slot-1"}, "source": "measured:run-read"},
+             "e_man": {"identifiers": {"mm_label": "Port", "path_word": "empty",
+                                       "mm_state_label": "Slot-1"}, "source": "spec:manual"}}
+
+    def acq(run):
+        return run == "run-acq"
+
+    def bind(q="exposure_time", prop="Exposure", unit="ms", ref="e_bind", sha="a" * 64):
+        b = {"quantity": q, "property": prop, "unit": unit, "entry_ref": ref}
+        if sha is not None:
+            b["config_sha256"] = sha
+        return b
+
+    def word(w="empty", sl="Slot-1", ref="e_word"):
+        return {"word": w, "state_label": sl, "entry_ref": ref}
+
+    def brow(name, label, bindings=(), states=(), **extra):
+        r = {"id": name, **extra}
+        if label is not None:
+            r["mm_label"] = {"label": label, "entry_ref": "e_any"}
+        if bindings:
+            r["mm_bindings"] = list(bindings)
+        if states:
+            r["mm_states"] = list(states)
+        return r
+
+    def bcase(rows, entries, expect, why):
+        found = mm_binding_problems({"channels": rows}, entries, qids, usyms, acquired=acq)
+        if not any(expect in p for p in found):
+            bad(f"{why}: wanted a problem saying {expect!r}, got {found}")
+
+    sound = mm_binding_problems({"channels": [brow("camera_red", "Cam", [bind()]),
+                                              brow("csuw1_port", "Port", states=[word()])]},
+                                store, qids, usyms, acquired=acq)
+    if sound:
+        bad(f"a sound binding and state were refused: {sound}")
+    bcase([brow("cam", None, [bind()])], store, "no mm_label", "a binding on an unlabelled row")
+    bcase([brow("cam", "Cam", [bind(ref="e_gone")])], store, "not an entry", "a binding citing no entry")
+    bcase([brow("cam", "Cam", [bind(prop="Exposure2")])], store, "mm_property",
+          "a property its entry does not hold")
+    bcase([brow("cam", "Other", [bind()])], store, "mm_label",
+          "a binding whose entry is another device's")
+    bcase([brow("cam", "Cam", [bind(q="exposure_tme")])], store, "not registered",
+          "an unregistered quantity")
+    bcase([brow("cam", "Cam", [bind(unit="msec")])], store, "not in contracts/units.json",
+          "a unit units.json lacks")
+    bcase([brow("cam", "Cam", [bind(unit="1")])], store, "cannot tell 10 from 1 per cent",
+          "unit '1' on a binding")
+    bcase([brow("cam", "Cam", [bind(q="frame_count")])], store, "a verb's argument",
+          "a binding for frame_count")
+    bcase([brow("cam", "Cam", [bind(), bind(prop="Exposure2")])], store, "quantity 'exposure_time' appears twice",
+          "one quantity into two properties")
+    bcase([brow("cam", "Cam", [bind(), bind(q="illumination_power")])], store, "property 'Exposure' appears twice",
+          "two quantities into one property")
+    bcase([brow("cam", "Cam", [bind(sha=None)])], store, "leaves it out",
+          "a binding dropping its entry's digest")
+    bcase([brow("csuw1_port", "Port", states=[word(sl="Slot-2")])], store, "mm_state_label",
+          "a state label its entry does not hold")
+    bcase([brow("csuw1_port", "Port", states=[word(), word(sl="Slot-2")])], store, "word 'empty' appears twice",
+          "one word on two labels")
+    bcase([brow("csuw1_port", "Port", states=[word(), word(w="full")])], store, "state_label 'Slot-1' appears twice",
+          "one label for two words")
+    for row_name, extra in (("csuw1_port", {}), ("lapp_branch", {}), ("csuw1_disk_position", {}),
+                            ("some_selector", {"verify_by": "acquisition"})):
+        bcase([brow(row_name, "Port", states=[word(ref="e_read")], **extra)], store, "a run that acquired",
+              f"a word on {row_name} from a run that only read a label back")
+        bcase([brow(row_name, "Port", states=[word(ref="e_man")], **extra)], store, "a run that acquired",
+              f"a word on {row_name} from a manual")
+    if mm_binding_problems({"channels": [brow("other_selector", "Port", states=[word(ref="e_man")])]},
+                           store, qids, usyms, acquired=acq):
+        bad("a word on a row the path table does not warn about was held to the acquisition rule")
+    if not run_acquired("run-20260924-002") or run_acquired("run-20260924-008"):
+        bad("run_acquired misreads the logs: run 002 acquired frames and run 008 only read devices back")
 
     # envelope_lag, against a built tree rather than against the live one.
     # It has to be exercised on a lag, and the live repository is allowed to
