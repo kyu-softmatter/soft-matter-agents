@@ -1540,6 +1540,110 @@ def fixture_95_an_answer_gives_a_number_its_version_does_not_hold(repo: Path) ->
     return _store_answer_history(repo, newer_number=True)
 
 
+def _device_label_store(repo: Path, change=None) -> str:
+    """Librarian card 061 (2026-10-26): a device row's Micro-Manager label is a copy of its cited entry's.
+
+    Check 96 reads no history; it is here because its input is the store's
+    own files, which a rejected group cannot carry -- a group is found through
+    a card or an artifact, and the device table and the entries are neither.
+    The store is built small and synthetic so the fixtures do not move when
+    the real one does: a camera labelled from an entry measured here, with
+    its configuration digest, and a light engine's designation labelled from
+    a specification. `change(table, entries)` breaks one thing.
+    """
+    start = base(repo)
+    entries = {
+        "label_kinetix_red_read_here": {
+            "entry_id": "label_kinetix_red_read_here", "source": "measured:run-20261026-001", "grade": "E1",
+            "supersedes": None, "refuted_by": [],
+            "identifiers": {"mm_label": "Kinetix_red", "mm_config_sha256": "a" * 64}},
+        "label_aura_is_the_aura_iii": {
+            "entry_id": "label_aura_is_the_aura_iii", "source": "spec:Aura III", "grade": "E3",
+            "supersedes": None, "refuted_by": [], "identifiers": {"mm_device": "Aura"}},
+        "label_lightengine_is_the_spectra_iii": {
+            "entry_id": "label_lightengine_is_the_spectra_iii", "source": "spec:Spectra III", "grade": "E3",
+            "supersedes": None, "refuted_by": [], "identifiers": {"mm_label": "LightEngine"}},
+    }
+    table = {
+        "channels": [
+            {"id": "camera_red", "mm_label": {"label": "Kinetix_red", "entry_ref": "label_kinetix_red_read_here",
+                                              "config_sha256": "a" * 64}},
+            {"id": "widefield_source_a"},
+            {"id": "stand_ti2e", "elements": [{"id": "z_drive"}]},
+        ],
+        "light_engines": {"installed": [
+            {"model": "Aura III 5-NII-WA", "mm_label": {"label": "Aura", "entry_ref": "label_aura_is_the_aura_iii"}},
+        ]},
+    }
+    if change is not None:
+        change(table, entries)
+    kb = "librarian_agent/kb"
+    for eid, e in entries.items():
+        write(repo, f"{kb}/entries/{eid}.json", e)
+    write(repo, f"{kb}/staging/devices.v0.json", table)
+    commit(repo, "device rows labelled from the entries that hold the labels", kb, seat="librarian")
+    return f"{start}..HEAD"
+
+
+def _z_drive(table: dict) -> dict:
+    return table["channels"][2]["elements"][0]
+
+
+def fixture_96_device_labels_copied_from_their_entries(repo: Path) -> str:
+    return _device_label_store(repo)
+
+
+def fixture_96_a_label_cites_no_entry(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: _z_drive(t).update(
+        mm_label={"label": "ZDrive", "entry_ref": "mm_label_zdrive_nowhere"}))
+
+
+def fixture_96_a_label_its_entry_does_not_hold(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: _z_drive(t).update(
+        mm_label={"label": "ZDrive", "entry_ref": "label_aura_is_the_aura_iii"}))
+
+
+def fixture_96_a_label_from_a_refuted_entry(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: e["label_aura_is_the_aura_iii"].update(
+        refuted_by=["aura_answers_under_another_label"]))
+
+
+def fixture_96_a_label_from_a_superseded_entry(repo: Path) -> str:
+    def change(t: dict, e: dict) -> None:
+        e["label_aura_read_here"] = {"entry_id": "label_aura_read_here", "source": "measured:run-20261026-002",
+                                     "grade": "E1", "supersedes": "label_aura_is_the_aura_iii", "refuted_by": [],
+                                     "identifiers": {"mm_label": "Aura"}}
+    return _device_label_store(repo, change)
+
+
+def fixture_96_one_label_on_two_rows(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: _z_drive(t).update(
+        mm_label={"label": "Aura", "entry_ref": "label_aura_is_the_aura_iii"}))
+
+
+def fixture_96_a_widefield_source_labelled(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: t["channels"][1].update(
+        mm_label={"label": "LightEngine", "entry_ref": "label_lightengine_is_the_spectra_iii"}))
+
+
+def fixture_96_a_digest_that_is_not_hex(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: t["channels"][0]["mm_label"].update(config_sha256="A" * 64))
+
+
+def fixture_96_a_digest_its_entry_does_not_record(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: t["channels"][0]["mm_label"].update(config_sha256="b" * 64))
+
+
+def fixture_96_a_digest_from_no_run(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: e["label_aura_is_the_aura_iii"]["identifiers"].update(
+        mm_config_sha256="c" * 64))
+
+
+def fixture_96_a_label_with_a_grade_of_its_own(repo: Path) -> str:
+    return _device_label_store(repo, lambda t, e: t["light_engines"]["installed"][0]["mm_label"].update(
+        grade="E1"))
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1671,6 +1775,29 @@ FIXTURES = [
      fixture_95_an_answer_on_a_version_the_store_has_moved_past),
     (95, "FAIL", "and no number of that entry at kbv-",
      fixture_95_an_answer_gives_a_number_its_version_does_not_hold),
+    # librarian card 061 (2026-10-26): a device row's label is its cited entry's.
+    (96, "PASS", "device rows carry a Micro-Manager label that their cited",
+     fixture_96_device_labels_copied_from_their_entries),
+    (96, "FAIL", "and no entry by that id",
+     fixture_96_a_label_cites_no_entry),
+    (96, "FAIL", "the row's label is a copy of the entry's",
+     fixture_96_a_label_its_entry_does_not_hold),
+    (96, "FAIL", "a refuted entry backs no label",
+     fixture_96_a_label_from_a_refuted_entry),
+    (96, "FAIL", "supersedes; cite the entry that replaced it",
+     fixture_96_a_label_from_a_superseded_entry),
+    (96, "FAIL", "sits on 2 rows",
+     fixture_96_one_label_on_two_rows),
+    (96, "FAIL", "lapp_branch_assignment",
+     fixture_96_a_widefield_source_labelled),
+    (96, "FAIL", "is not 64 lowercase hex",
+     fixture_96_a_digest_that_is_not_hex),
+    (96, "FAIL", "the row's digest is a copy of the entry's",
+     fixture_96_a_digest_its_entry_does_not_record),
+    (96, "FAIL", "not a measured: run",
+     fixture_96_a_digest_from_no_run),
+    (96, "FAIL", "the field has no grade or source",
+     fixture_96_a_label_with_a_grade_of_its_own),
 ]
 
 

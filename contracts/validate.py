@@ -10213,6 +10213,132 @@ def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Findi
     return out
 
 
+def check_96_a_device_label_is_its_cited_entrys(b: Bundle) -> list[Finding]:
+    """A device row's Micro-Manager label is the one its cited entry holds (librarian card 061).
+
+    The runtime's software-motion check reaches Micro-Manager by device label,
+    and a plan names the store's rows, so `mm_label` on a row in
+    kb/staging/devices.v0.json is the one place a plan's name becomes a device
+    a command can reach. The field carries no grade or source of its own: it
+    is a copy of what an entry says, so the row can never claim more than the
+    entry does. This reads the copy against its original:
+
+      a. `mm_label` is {label, entry_ref[, config_sha256]} and `entry_ref`
+         names an entry in kb/entries/;
+      b. that entry's `identifiers` carry the same label, character for
+         character, under `mm_label` or `mm_device` -- the store has used both
+         keys for one meaning;
+      c. the entry is neither refuted nor superseded;
+      d. no label sits on two rows: a label names one device, and a shared
+         one would let a command meant for one reach the other;
+      e. `widefield_source_a` and `_b` carry none: which channel is which
+         light engine is the open question `lapp_branch_assignment`, and a
+         label on either row would settle it in passing;
+      f. a `config_sha256`, when present, is 64 lowercase hex and equals the
+         entry's `identifiers.mm_config_sha256`;
+      g. an entry carrying `mm_config_sha256` has a `measured:` source --
+         which configuration was loaded is a run's fact, not a file's.
+
+    Every dict in the table that carries `mm_label` is a row, named by its
+    `id` or, for an engine under `light_engines`, its `model`. Whether a
+    label may command anything is the runtime's ruling, on the entry's grade
+    and digest; this check only keeps the copy honest.
+    """
+    staged = KB_DIR / "staging" / "devices.v0.json"
+    rel = _rel(staged)
+    entries_dir = KB_DIR / "entries"
+    store: dict[str, dict] = {}
+    for p in sorted(entries_dir.glob("*.json")) if entries_dir.is_dir() else []:
+        try:
+            e = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(e, dict) and isinstance(e.get("entry_id"), str):
+            store[e["entry_id"]] = e
+
+    out: list[Finding] = []
+    for eid, e in sorted(store.items()):
+        ids = e.get("identifiers")
+        if isinstance(ids, dict) and "mm_config_sha256" in ids and not str(e.get("source", "")).startswith("measured:"):
+            out.append(Finding(96, FAIL, f"entry {eid} carries mm_config_sha256 and its source is "
+                                         f"{e.get('source')!r}, not a measured: run; which configuration a label "
+                                         "was read under is the run's record, not a file's (librarian card 061)",
+                               _rel(entries_dir / f"{eid}.json")))
+
+    try:
+        table = json.loads(staged.read_text(encoding="utf-8")) if staged.exists() else None
+    except (OSError, ValueError) as exc:
+        return out + [Finding(96, FAIL, f"the device table cannot be read ({type(exc).__name__}), so no row's "
+                                        "label can be compared with its entry", rel)]
+    rows: list[tuple[str, dict]] = []
+
+    def walk(o: object, where: str) -> None:
+        if isinstance(o, dict):
+            if "mm_label" in o:
+                rows.append((str(o.get("id") or o.get("model") or where), o))
+            for k, v in o.items():
+                walk(v, f"{where}/{k}")
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                walk(v, f"{where}[{i}]")
+    walk(table, "")
+    if not rows:
+        return out or [Finding(96, NA, "no device row carries mm_label yet")]
+
+    superseded = {e.get("supersedes"): eid for eid, e in store.items() if isinstance(e.get("supersedes"), str)}
+    held: dict[str, list[str]] = {}
+    for name, row in rows:
+        m = row["mm_label"]
+        if (not isinstance(m, dict) or not isinstance(m.get("label"), str) or not m["label"]
+                or not isinstance(m.get("entry_ref"), str) or set(m) - {"label", "entry_ref", "config_sha256"}):
+            out.append(Finding(96, FAIL, f"row {name}: mm_label is {json.dumps(m)[:120]}, not "
+                                         "{label, entry_ref[, config_sha256]}; the field has no grade or source "
+                                         "of its own (librarian card 061)", rel))
+            continue
+        label, ref = m["label"], m["entry_ref"]
+        held.setdefault(label, []).append(name)
+        if name in ("widefield_source_a", "widefield_source_b"):
+            out.append(Finding(96, FAIL, f"row {name} carries label {label!r}; which channel is which light "
+                                         "engine is the open question lapp_branch_assignment, and a label here "
+                                         "would settle it in passing. The engine labels go on the designations "
+                                         "under light_engines (librarian card 061)", rel))
+        e = store.get(ref)
+        if e is None:
+            out.append(Finding(96, FAIL, f"row {name} cites {ref} for label {label!r}, and no entry by that id "
+                                         "is in kb/entries/ (librarian card 061)", rel))
+            continue
+        ids = e.get("identifiers") if isinstance(e.get("identifiers"), dict) else {}
+        if label not in (ids.get("mm_label"), ids.get("mm_device")):
+            out.append(Finding(96, FAIL, f"row {name} carries label {label!r} and its entry {ref} says "
+                                         f"mm_label {ids.get('mm_label')!r}, mm_device {ids.get('mm_device')!r}; "
+                                         "the row's label is a copy of the entry's, character for character "
+                                         "(librarian card 061)", rel))
+        if e.get("refuted_by"):
+            out.append(Finding(96, FAIL, f"row {name} cites {ref}, which {', '.join(map(str, e['refuted_by']))} "
+                                         "refutes; a refuted entry backs no label (librarian card 061)", rel))
+        if ref in superseded:
+            out.append(Finding(96, FAIL, f"row {name} cites {ref}, which {superseded[ref]} supersedes; cite the "
+                                         "entry that replaced it (librarian card 061)", rel))
+        if "config_sha256" in m:
+            sha, theirs = m["config_sha256"], ids.get("mm_config_sha256")
+            if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha):
+                out.append(Finding(96, FAIL, f"row {name}: config_sha256 {sha!r} is not 64 lowercase hex "
+                                             "(librarian card 061)", rel))
+            elif sha != theirs:
+                out.append(Finding(96, FAIL, f"row {name}: config_sha256 {sha[:12]}... and its entry {ref} "
+                                             f"records {str(theirs)[:12] + '...' if theirs else 'no digest'}; "
+                                             "the row's digest is a copy of the entry's (librarian card 061)", rel))
+    for label, names in sorted(held.items()):
+        if len(names) > 1:
+            out.append(Finding(96, FAIL, f"label {label!r} sits on {len(names)} rows ({', '.join(names)}); a "
+                                         "label names one device, and a shared one would let a command meant "
+                                         "for one reach the other (librarian card 061)", rel))
+    if not any(f.status == FAIL for f in out):
+        out.append(Finding(96, PASS, f"{len(rows)} device rows carry a Micro-Manager label that their cited "
+                                     "entry holds, on no other row"))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -10257,6 +10383,7 @@ CHECKS = [
     check_93_an_agent_cannot_write_its_console_inbox,
     check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
     check_95_a_store_answer_stands_on_a_published_store,
+    check_96_a_device_label_is_its_cited_entrys,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
