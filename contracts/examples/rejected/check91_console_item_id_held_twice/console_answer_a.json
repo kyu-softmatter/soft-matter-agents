@@ -1,6 +1,7 @@
 {
   "artifact": "console_answer",
   "schema_version": "0.1",
+  "answer_id": "ca-20261026-120004-ex04",
   "item_id": "ci-20261026-120000-dup1",
   "question_id": "mic-20261026-c101",
   "outcome": "refused",

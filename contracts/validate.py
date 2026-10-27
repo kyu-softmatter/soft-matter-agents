@@ -9495,6 +9495,15 @@ def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: 
                                          f"answers {prior.data.get('item_id')}; an answer follows one to the same "
                                          "request (7.1.1 rule 6)", a.rel))
 
+    # An answer in an agent's answers/ is named by its own id, for both kinds,
+    # so a citation by file name and one by answer_id name the same answer.
+    for a in answers + store_answers:
+        m = re.search(r"(?:^|/)answers/(ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4})\.json$", a.rel)
+        if m and a.data.get("answer_id") != m.group(1):
+            out.append(Finding(91, FAIL, f"the answer's file is {m.group(1)}.json and its answer_id is "
+                                         f"{a.data.get('answer_id')!r}; an answer under answers/ is named by "
+                                         "its own id (7.1.1 rule 6)", a.rel))
+
     # One item id, one item, across every agent's inbox and both kinds. The
     # joins above keep the first and would read a second as already answered,
     # so a duplicate is refused here rather than resolved by load order.

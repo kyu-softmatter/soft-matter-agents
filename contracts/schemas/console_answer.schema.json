@@ -11,6 +11,11 @@
     "schema_version": {
       "const": "0.1"
     },
+    "answer_id": {
+      "type": "string",
+      "pattern": "^ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$",
+      "description": "ca-<UTC date>-<UTC time>-<four random characters>; also the answer's file name under answers/, as a store answer's is, so an answer is cited the same way in all three agents"
+    },
     "item_id": {
       "type": "string",
       "pattern": "^ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}$"
@@ -47,6 +52,7 @@
   "required": [
     "artifact",
     "schema_version",
+    "answer_id",
     "item_id",
     "question_id",
     "outcome",

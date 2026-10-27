@@ -122,7 +122,9 @@ folders, and both sit beside `inbox/`:
   there (`console_answer.schema.json`): `taken_up`, naming the goal card that
   carries the item's question id, or `refused`, with the reason. Never
   silence: check 91 fails an item with no answer. It is append-only too, so a
-  second answer is a new file.
+  second answer is a new file. Each file is named
+  `ca-<UTC date>-<UTC time>-<four random characters>.json`, and its
+  `answer_id` is that name without `.json`; check 91 fails one that differs.
 
 **Taking an item is S2, and a task card assigns it**, the same as a bridge
 round. Do not start one because you saw it; report it up and

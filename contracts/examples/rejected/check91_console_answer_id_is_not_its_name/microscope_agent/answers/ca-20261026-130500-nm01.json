@@ -1,0 +1,11 @@
+{
+  "artifact": "console_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-130500-nm02",
+  "item_id": "ci-20261026-130000-nm01",
+  "question_id": "mic-20261026-c102",
+  "outcome": "refused",
+  "reason": "EXAMPLE, rejected: the file is named for another answer id. the microscope agent cannot plan this yet and says why, rather than silently.",
+  "answered_at": "2026-10-24T23:20:00Z",
+  "answered_by": "microscope-office-20261015-1"
+}
