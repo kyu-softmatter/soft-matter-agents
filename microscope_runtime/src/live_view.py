@@ -15,6 +15,11 @@ start one from the console, and it can do nothing else:
   already approved;
 - it replies {"live_on": "started", "run_id": ...} once that run's
   `run_started` is written, or {"live_on": "refused", "reason": ...};
+- it also answers {"check_now": "<sha256>"} (card 085) and {"run": "<sha256>"} (card 090), each
+  the same way: the sha256 of a file the person approved, and no other key. A run request
+  names a plan_approval; the plan it names is started through operator.run, under the approval
+  reader and the run lock, and on any backend but the mock only after the person types the
+  bench hand-over on THIS host's own terminal at the microscope;
 - it cannot stop, set, read or move anything. "Live off" is the run's own
   stop channel, announced in its run_started like every run's.
 
@@ -36,6 +41,8 @@ import hashlib
 import importlib.util
 import json
 import os
+import queue
+import re
 import socket
 import sys
 import threading
@@ -62,6 +69,72 @@ run_lock = op.run_lock
 MAX_REQUEST_BYTES = 256
 #: How long the host waits for a started run to write run_started.
 START_TIMEOUT_S = 15.0
+#: How long a run request on the instrument waits for the hand-over typed at the microscope. The
+#: person has to walk to the microscope computer, look at the instrument and type, so a minute
+#: is too short; the wait holds the run lock, which keeps every other run and live view out, so
+#: an hour would leave a forgotten request blocking the bench. Ten minutes covers the walk and
+#: lapses before anyone mistakes a stale request for a live one (card 090).
+BENCH_LAPSE_S = 600.0
+#: What a run request's `run` must be: the sha256 of an approval file's bytes, lowercase hex.
+_SHA256 = re.compile(r"[0-9a-f]{64}")
+
+
+class TerminalBench:
+    """The hand-over, read from the host's own terminal and from nowhere else (card 090).
+
+    One reader thread feeds every line typed on `stream` into a queue. A request drains the queue
+    first, so words typed before the request was shown can never stand in for the hand-over, then
+    prints its prompt and waits up to `lapse_s` for one line. Returns the words, "" for a blank
+    line (the person declining), or None when the wait lapsed, the host stopped or the terminal
+    closed. Nothing on the socket reaches this object.
+    """
+
+    def __init__(self, stream=None, out=None) -> None:
+        self._stream = stream if stream is not None else sys.stdin
+        self._out = out if out is not None else sys.stdout
+        self._lines: queue.Queue = queue.Queue()
+        self._reader = None
+        self._mutex = threading.Lock()
+
+    def _read(self) -> None:
+        try:
+            for line in iter(self._stream.readline, ""):
+                self._lines.put(line)
+        except (OSError, ValueError):
+            pass
+        self._lines.put(None)                                   # the terminal closed
+
+    def begin(self) -> None:
+        """Start reading. The host calls this when it starts listening, so a line typed long before a
+        request arrives is already in the queue when the request drains it."""
+        with self._mutex:
+            self._begin()
+
+    def _begin(self) -> None:
+        if self._reader is None:
+            self._reader = threading.Thread(target=self._read, name="bench-terminal", daemon=True)
+            self._reader.start()
+
+    def __call__(self, prompt: str, lapse_s: float, cancel: threading.Event) -> str | None:
+        with self._mutex:
+            self._begin()
+            while True:
+                try:
+                    self._lines.get_nowait()
+                except queue.Empty:
+                    break
+            print(prompt, file=self._out, flush=True)
+            deadline = time.monotonic() + lapse_s
+            while not cancel.is_set():
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    return None
+                try:
+                    line = self._lines.get(timeout=min(0.2, left))
+                except queue.Empty:
+                    continue
+                return None if line is None else line.rstrip("\r\n").strip()
+            return None
 
 
 def app_dir() -> Path:
@@ -99,8 +172,17 @@ class LiveHost:
                  log_path: Path | None = None, backend: str = "mock",
                  run_lock_path: Path | None = None, on_orchestrator=None,
                  mm_config: Path | None = None, config_loader=None,
-                 status_dir: Path | None = None) -> None:
+                 status_dir: Path | None = None, questions_dir: Path | None = None,
+                 ask_bench=None, bench_lapse_s: float = BENCH_LAPSE_S) -> None:
         self.approvals_dir = Path(approvals_dir)
+        #: Where the plan an approval names is looked for (card 090). Never named by a request.
+        self.questions_dir = (Path(questions_dir) if questions_dir
+                              else AGENT.parent / "microscope_agent" / "questions")
+        #: Reads the hand-over: (prompt, lapse_s, cancel) -> words | "" | None. The host's own
+        #: terminal by default (made when the host starts, on an instrument backend); a test hands
+        #: one in. It is never fed from the socket.
+        self.ask_bench = ask_bench
+        self.bench_lapse_s = float(bench_lapse_s)
         self.status_dir = Path(status_dir) if status_dir else None
         self.runs_root = Path(runs_root)
         self.address_file = Path(address_file) if address_file else app_dir() / "live_host.json"
@@ -161,6 +243,10 @@ class LiveHost:
         tmp.write_text(json.dumps(info), encoding="utf-8")
         os.replace(tmp, self.address_file)
         self._closed.clear()
+        if self.ask_bench is None and self.backend != "mock":
+            self.ask_bench = TerminalBench()
+        if hasattr(self.ask_bench, "begin"):
+            self.ask_bench.begin()
         self._thread = threading.Thread(target=self._serve, name="live-view-host", daemon=True)
         self._thread.start()
         self.record(event="host_started", **info, approvals=str(self.approvals_dir),
@@ -246,10 +332,12 @@ class LiveHost:
             return self._refuse("not JSON", raw)
         if isinstance(message, dict) and "check_now" in message:
             return self._handle_check_now(message, raw)
+        if isinstance(message, dict) and "run" in message:
+            return self._handle_run(message, raw)
         if not isinstance(message, dict) or set(message) != {"live_on"} \
                 or not isinstance(message["live_on"], str):
-            return self._refuse('not a request this host answers: {"live_on": "<sha256>"} or '
-                                '{"check_now": "<sha256>"}', raw)
+            return self._refuse('not a request this host answers: {"live_on": "<sha256>"}, '
+                                '{"check_now": "<sha256>"} or {"run": "<sha256>"}', raw)
         sha = message["live_on"].lower()
         found = self._find(sha)
         if found is None:
@@ -366,6 +454,171 @@ class LiveHost:
             return self._refuse_check_now(f"the run did not start: {box['error']}", raw)
         self.record(event="check_now_started", run_id=run_id, list=path.name, sha256=sha)
         return {"check_now": "started", "run_id": run_id}
+
+    # -- run (card 090) ------------------------------------------------------ #
+
+    def _find_plan(self, plan_id, revision, plan_hash):
+        """The one plan file under questions/ with this id and revision, as (path, plan, why_not).
+
+        Several files may carry the same id and revision (a copy kept beside a rewrite); the
+        approval's plan_hash then picks, and a pick that is still not one file is refused
+        rather than guessed at.
+        """
+        found = []
+        if self.questions_dir.is_dir() and isinstance(plan_id, str):
+            for path in sorted(self.questions_dir.glob("*/*.json")):
+                try:
+                    text = path.read_text(encoding="utf-8-sig")
+                    if f'"{plan_id}"' not in text:
+                        continue
+                    plan = json.loads(text)
+                except (OSError, ValueError):
+                    continue
+                if isinstance(plan, dict) and plan.get("card") == "plan" and plan.get("id") == plan_id \
+                        and plan.get("revision") == revision:
+                    found.append((path, plan))
+        if len(found) > 1:
+            validate = op._contracts_validate()
+            found = [f for f in found if validate.plan_hash(f[1]) == plan_hash] or found
+        if not found:
+            return None, None, (f"no plan {plan_id!r} at revision {revision} is under "
+                                f"{self.questions_dir}. The approval names a plan that cannot be found")
+        if len(found) > 1:
+            return None, None, (f"{len(found)} plan files carry {plan_id!r} at revision {revision} "
+                                f"({', '.join(f[0].name for f in found)}) and none is singled out by the "
+                                "approval's plan_hash, so no one of them is the approved plan")
+        return found[0][0], found[0][1], None
+
+    def _handle_run(self, message: dict, raw: bytes) -> dict:
+        """{"run": "<sha256>"} and nothing else: start the plan a plan_approval names, as a command would.
+
+        The hash is of the approval file's raw bytes. Everything the run needs comes from files
+        the person put in place: the approval, the plan it names, the safety policy. Nothing in
+        the request can add to them, and on the instrument nothing in it can stand in for the
+        bench hand-over, which is typed on this host's terminal.
+        """
+        def refuse(reason, **seen):
+            self.record(event="run_refused", reason=reason, bytes=len(raw), **seen)
+            return {"run": "refused", "reason": reason}
+
+        if set(message) != {"run"}:
+            return refuse('not the one run request this host answers, {"run": "<sha256>"}. It takes no '
+                          "other key: no plan, path, value, backend or bench hand-over can ride with it, "
+                          f"and this one carries {sorted(set(message) - {'run'})}")
+        sha = message["run"]
+        if not isinstance(sha, str) or not _SHA256.fullmatch(sha):
+            return refuse("`run` is not the sha256 of an approval file's bytes (64 lowercase hex digits). "
+                          "A path or a name is never accepted in its place")
+        self.record(event="run_requested", sha256=sha)
+        try:
+            op.approvals_source(self.approvals_dir, self.backend)
+        except op.Refusal as exc:
+            return refuse(str(exc), sha256=sha)
+        found = self._find(sha)
+        if found is None:
+            return refuse("no approval in the approvals folder has that sha256", sha256=sha)
+        approval_path, data = found
+        try:
+            approval = json.loads(data.decode("utf-8-sig"))
+        except ValueError:
+            approval = None
+        if not isinstance(approval, dict) or approval.get("card") != "plan_approval":
+            return refuse(f"{approval_path.name} is not a plan_approval. A run starts only from the "
+                          "approval of one plan revision", sha256=sha)
+        plan_id, revision = approval.get("plan_id"), approval.get("plan_revision")
+        plan_path, plan, why_not = self._find_plan(plan_id, revision, approval.get("plan_hash"))
+        if why_not:
+            return refuse(why_not, sha256=sha, approval=approval_path.name)
+        # The gate is judged here, before a run id is taken or the lock is held, with the same
+        # reader operator.run applies again when it starts: a plan the approval does not cover
+        # is refused with the reason and nothing has opened.
+        try:
+            approvals = op.approvals_on_disk(None, self.approvals_dir)
+            decision = op.authorise(plan, approvals)
+            if decision.permitted:
+                op.console_gate(plan, decision)
+        except op.Refusal as exc:
+            return refuse(str(exc), sha256=sha, approval=approval_path.name, plan_id=plan_id)
+        if not decision.permitted:
+            return refuse(f"{approval_path.name} does not cover plan {plan_id} revision {revision}: "
+                          + "; ".join(decision.reasons), sha256=sha, plan_id=plan_id)
+        covering = (decision.approval_file or {}).get("sha256")
+        if covering != sha:
+            return refuse(f"plan {plan_id} revision {revision} is covered first by another approval file "
+                          f"({(decision.approval_file or {}).get('path')}), not by the one named. Two "
+                          "approvals for one revision leave a request unable to say which signed it",
+                          sha256=sha, plan_id=plan_id)
+        try:
+            run_id = self._next_run_id()
+        except RuntimeError as exc:
+            return refuse(str(exc), sha256=sha)
+        lock = run_lock.RunLock(self.run_lock_path if self.run_lock_path is not None
+                                else op.RUN_LOCK_PATH)
+        try:
+            lock.acquire({"kind": "plan", "plan_id": plan_id, "run_id": run_id})
+        except run_lock.RunLockHeld as exc:
+            return refuse(self._held_reason(exc), sha256=sha, plan_id=plan_id)
+        seen = {"sha256": sha, "approval": approval_path.name, "plan_id": plan_id, "revision": revision,
+                "plan_path": op.plan_path_of(plan_path)}
+        mock = self.backend == "mock"
+        started, box = threading.Event(), {}
+
+        def go():
+            try:
+                if mock:
+                    handover = {"bench": None, "no_bench_because": "the backend is the mock, so there is no "
+                                "instrument to hand over", "stated_by": "the live-view host, for a run request"}
+                else:
+                    words = self._await_bench(plan, approval_path.name, run_id)
+                    if not words:
+                        self.record(event="run_not_started", run_id=run_id, **seen,
+                                    why=("the person declined: a blank line was typed" if words == ""
+                                         else f"no hand-over was typed on this terminal within "
+                                              f"{self.bench_lapse_s:g} s, or the host stopped, "
+                                              "so the request lapsed"))
+                        return
+                    handover = {"bench": words, "stated_by": "the person, typed on the live-view host's own "
+                                "terminal at the microscope", "typed_at": datetime.now(timezone.utc)
+                                .isoformat(timespec="seconds")}
+                    self.record(event="run_bench_handed_over", run_id=run_id, bench=words,
+                                typed_at=handover["typed_at"], **seen)
+                record = op.run(plan_path, run_id, backend=self.backend, runs_root=self.runs_root,
+                                handover=handover, approvals_dir=self.approvals_dir, lock=lock,
+                                started=started, on_orchestrator=self.on_orchestrator,
+                                status_dir=self.status_dir)
+                self.record(event="run_ended", run_id=run_id, ended=record.get("ended"), **seen)
+            except Exception as exc:                            # noqa: BLE001 - reported below
+                box["error"] = str(exc) if isinstance(exc, op.Refusal) else f"{type(exc).__name__}: {exc}"
+                if not mock or started.is_set():
+                    self.record(event="run_failed" if started.is_set() else "run_not_started",
+                                run_id=run_id, reason=box["error"], **seen)
+            finally:
+                started.set()
+                if lock.held:
+                    lock.release()
+        thread = threading.Thread(target=go, name=f"run:{run_id}", daemon=True)
+        self._runs.append(thread)
+        thread.start()
+        if not mock:
+            self.record(event="run_waiting_for_bench", run_id=run_id, **seen)
+            return {"run": "waiting_for_bench", "run_id": run_id}
+        if not started.wait(START_TIMEOUT_S):
+            return refuse(f"the run did not start within {START_TIMEOUT_S:g} s", run_id=run_id, **seen)
+        if "error" in box:
+            return refuse(f"the run did not start: {box['error']}", run_id=run_id, **seen)
+        self.record(event="run_started", run_id=run_id, **seen)
+        return {"run": "started", "run_id": run_id}
+
+    def _await_bench(self, plan: dict, approval_name: str, run_id: str):
+        """Ask for the hand-over on this host's own terminal: the words, "" if declined, None if lapsed."""
+        prompt = (f"\nA run was asked for from the console: plan {plan.get('id')} revision "
+                  f"{plan.get('revision')}, approved in {approval_name}, as {run_id}, on the {self.backend} "
+                  "instrument. It starts only when you hand the bench over here, at the microscope. Type the "
+                  "words that hand it over and press Enter; a blank line declines. "
+                  f"This request lapses in {self.bench_lapse_s:g} s.")
+        if self.ask_bench is None:
+            self.ask_bench = TerminalBench()
+        return self.ask_bench(prompt, self.bench_lapse_s, self._closed)
 
 
 def parse_shape(text: str) -> tuple[int, int]:

@@ -1444,11 +1444,16 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         root: Path | None = None, mm_config: Path | None = None,
         config_loader=None, watcher_backend=None, judgement_backend=None,
         approvals_dir: Path | None = None, status_dir: Path | None = None,
-        on_orchestrator=None) -> dict:
+        on_orchestrator=None, lock=None, started=None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
 
     `on_orchestrator(o)` is called once, right after the orchestrator exists and before anything
     runs, as run_live_view's is: a test sets the mock's connection states there (card 086).
+
+    `lock` is a held run lock the live-view host took before starting this run (card 090), as
+    run_live_view takes one; without it this takes its own, after the gate. `started` is a
+    threading.Event set once the run folder and its `run_started` line exist, so the host can
+    tell the console the run began; a refusal before that leaves it for the caller to set.
 
     Returns the run record. Writes nothing until the gate has been passed,
     because a run directory that exists without an approval is itself the thing
@@ -1558,7 +1563,7 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     # ONE RUN AT A TIME (card 062): taken after the gate, so a refused plan
     # holds nothing, and before the orchestrator exists, so no run starts
     # beside another. Released however the run ends.
-    lock = _take_run_lock({"kind": "plan", "plan_id": plan.get("id"), "run_id": run_id})
+    lock = lock or _take_run_lock({"kind": "plan", "plan_id": plan.get("id"), "run_id": run_id})
     try:
         o = orch.Orchestrator(backend=backend)
         if on_orchestrator is not None:
@@ -1578,6 +1583,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
                         revision=plan.get("revision"), tap_cameras=derive_tap_cameras(plan),
                         watcher=watcher, watcher_event=watcher_event,
                         judgements=judgements, judgements_event=judgements_event)
+            if started is not None:
+                started.set()
         elif plan.get("watcher") is not None:
             o.record(event="watcher_off", watcher={"why": "did_not_start", "detail": (
                 "no run folder (no --write): the watcher keeps each state whole in the run folder, so "
