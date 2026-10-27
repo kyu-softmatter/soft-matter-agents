@@ -1,0 +1,18 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-150907-f95h",
+  "item_id": "ci-20261026-140907-f95h",
+  "request_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "answered_by": "seat:librarian-20261007-1",
+  "answered_at": "2026-10-26T15:09:07Z",
+  "outcome": "in_conflict",
+  "reason": "two sources disagree and nothing settles them",
+  "kb_version": "kbv-37b1958fb73d",
+  "entries_marked": [
+    "piezo_calibrated_range"
+  ],
+  "other_side": [
+    "objective_mrd77400"
+  ]
+}

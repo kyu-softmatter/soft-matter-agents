@@ -1,0 +1,18 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-150906-f95g",
+  "item_id": "ci-20261026-140906-f95g",
+  "request_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "answered_by": "seat:librarian-20261007-1",
+  "answered_at": "2026-10-26T15:09:06Z",
+  "outcome": "superseded",
+  "reason": "a newer entry replaces it",
+  "kb_version": "kbv-37b1958fb73d",
+  "entries_marked": [
+    "objective_mrd70040"
+  ],
+  "other_side": [
+    "objective_mrd77400"
+  ]
+}

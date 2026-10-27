@@ -1,0 +1,27 @@
+{
+  "artifact": "store_answer",
+  "schema_version": "0.1",
+  "answer_id": "ca-20261026-150904-f95e",
+  "item_id": "ci-20261026-140904-f95e",
+  "request_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "answered_by": "seat:librarian-20261007-1",
+  "answered_at": "2026-10-26T15:09:04Z",
+  "outcome": "answered",
+  "reason": "the store holds the maker's figure",
+  "kb_version": "kbv-37b1958fb73d",
+  "answer": "1.25, as the maker states it.",
+  "entries_cited": [
+    "objective_mrd70040"
+  ],
+  "numbers": [
+    {
+      "name": "na",
+      "value": 1.25,
+      "unit": "1",
+      "entry_id": "objective_mrd77400",
+      "grade": "E3",
+      "source": "spec:MRD77400",
+      "covers_conditions": "not_stated"
+    }
+  ]
+}

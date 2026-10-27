@@ -9928,6 +9928,147 @@ def check_94_a_console_item_carries_no_plan_approval_safety_value_or_command(b: 
     return out
 
 
+def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Finding]:
+    """A store answer names a store version anyone can read back, and what it reports is in it (7.1.1 rule 6).
+
+    The librarian writes an answer only after the store change it reports is
+    published, so the console can show it as fact. The schema can say that
+    `kb_version` has the shape of a version; it cannot say the version exists
+    or holds what the answer names. So, for every store answer that names one:
+
+      a. `kb_version` is carried by some commit's kb/index.json, or by the
+         judged tree's own -- an answer and the entries it made may land in
+         one commit. This is the server's own test (`version_history`): a
+         version nobody committed is one nobody can read back.
+      b. every entry it names is in that version: entries_made,
+         entries_marked, other_side, entries_cited and numbers[].entry_id.
+      c. each number it gives is one of that entry's numbers in value, unit,
+         grade and source, and the entry is among entries_cited, so a number
+         shown to the person carries the provenance the store records and no
+         other.
+      d. the mark it reports is in that version: a refuted entry's
+         `refuted_by` names one of other_side, a superseded entry is the
+         `supersedes` of one of other_side, an entry in conflict names one of
+         other_side in `conflict_with`.
+
+    kb_version hashes the entries, so every commit carrying one version holds
+    the same entries and the first one found is read. Git that cannot be read
+    is PENDING for that answer, not a failure. An answer with no kb_version
+    where one is required is check 1's.
+    """
+    import subprocess
+    answers = [c for c in b.of_artifact("store_answer") if "__unreadable__" not in c.data]
+    if not answers:
+        return [Finding(95, NA, "no store answers in this tree")]
+    index_rel, entries_rel = "librarian_agent/kb/index.json", "librarian_agent/kb/entries"
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, text=True,
+                              encoding="utf-8", check=True).stdout
+
+    try:
+        judged = json.loads((REPO / index_rel).read_text(encoding="utf-8")).get("kb_version")
+    except (OSError, ValueError, AttributeError):
+        judged = None
+    where: dict[str, str | None] = {}   # version -> "" for the judged tree, a commit, or None for nowhere
+
+    def locate(kbv: str) -> str | None:
+        if kbv not in where:
+            found = "" if kbv == judged else None
+            if found is None:
+                for sha in git("log", f"-S{kbv}", "--format=%H", "--", index_rel).split():
+                    try:
+                        if json.loads(git("show", f"{sha}:{index_rel}")).get("kb_version") == kbv:
+                            found = sha
+                            break
+                    except (subprocess.CalledProcessError, ValueError, AttributeError):
+                        continue
+            where[kbv] = found
+        return where[kbv]
+
+    read: dict[tuple[str, str], dict | None] = {}
+
+    def entry(at: str, eid: str) -> dict | None:
+        if (at, eid) not in read:
+            try:
+                e = json.loads((REPO / entries_rel / f"{eid}.json").read_text(encoding="utf-8") if at == ""
+                               else git("show", f"{at}:{entries_rel}/{eid}.json"))
+            except (OSError, ValueError, subprocess.CalledProcessError):
+                e = None
+            read[(at, eid)] = e if isinstance(e, dict) and e.get("entry_id") == eid else None
+        return read[(at, eid)]
+
+    def ids(v: object) -> list[str]:
+        return [x for x in v if isinstance(x, str)] if isinstance(v, list) else []
+
+    out: list[Finding] = []
+    judged_n = pending = 0
+    for c in answers:
+        d = c.data
+        kbv = d.get("kb_version")
+        if not isinstance(kbv, str):
+            continue
+        try:
+            at = locate(kbv)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            pending += 1
+            out.append(Finding(95, PENDING, f"git could not be read ({type(exc).__name__}), so whether {kbv} "
+                                            "was ever published is unjudged", c.rel))
+            continue
+        if at is None:
+            out.append(Finding(95, FAIL, f"names kb_version {kbv}, which no commit's kb/index.json carries and "
+                                         "the judged tree's does not either; an answer is written after the "
+                                         "change it reports is published, at a version anyone can read back "
+                                         "(7.1.1 rule 6)", c.rel))
+            continue
+        judged_n += 1
+        here = "the judged tree" if at == "" else f"commit {at[:12]}"
+        named = {k: ids(d.get(k)) for k in ("entries_made", "entries_marked", "other_side", "entries_cited")}
+        nums = [n for n in (d.get("numbers") or []) if isinstance(n, dict) and isinstance(n.get("entry_id"), str)]
+        missing = sorted(eid for eid in {x for v in named.values() for x in v} | {n["entry_id"] for n in nums}
+                         if entry(at, eid) is None)
+        if missing:
+            out.append(Finding(95, FAIL, f"names {', '.join(missing)}, absent from {kbv} as {here} holds it; "
+                                         "every entry an answer reports is in the version it names "
+                                         "(7.1.1 rule 6)", c.rel))
+            continue
+        for n in nums:
+            eid = n["entry_id"]
+            theirs = [m for m in (entry(at, eid).get("numbers") or []) if isinstance(m, dict)]
+            if not any(all(m.get(k) == n.get(k) for k in ("value", "unit", "grade", "source")) for m in theirs):
+                out.append(Finding(95, FAIL, f"gives {n.get('name')!r} = {n.get('value')} {n.get('unit')} "
+                                             f"({n.get('grade')}, {n.get('source')}) from {eid}, and no number of "
+                                             f"that entry at {kbv} has that value, unit, grade and source; a "
+                                             "number shown to the person is the store's, with the store's "
+                                             "provenance (7.1.1 rule 6)", c.rel))
+            if eid not in named["entries_cited"]:
+                out.append(Finding(95, FAIL, f"gives a number from {eid} and does not list it in entries_cited; "
+                                             "an answer names the entries it rests on (7.1.1 rule 6)", c.rel))
+        outcome, other = d.get("outcome"), set(named["other_side"])
+        for m in named["entries_marked"]:
+            em = entry(at, m)
+            if outcome == "refuted":
+                ok, said = bool(set(ids(em.get("refuted_by"))) & other), f"{m}'s refuted_by names none of them"
+            elif outcome == "superseded":
+                ok = any((entry(at, o) or {}).get("supersedes") == m for o in other)
+                said = f"none of them supersedes {m}"
+            elif outcome == "in_conflict":
+                ok, said = bool(set(ids(em.get("conflict_with"))) & other), f"{m}'s conflict_with names none of them"
+            else:
+                continue
+            if not ok:
+                out.append(Finding(95, FAIL, f"reports {m} {outcome} against {', '.join(sorted(other)) or 'nothing'}, "
+                                             f"and at {kbv} {said}; the mark an answer reports is in the version "
+                                             "it names (7.1.1 rule 6)", c.rel))
+    if not any(f.status == FAIL for f in out):
+        if judged_n:
+            out.append(Finding(95, PASS, f"{judged_n} store answers name a published store version that holds "
+                                         "every entry, number and mark they report"))
+        elif not pending:
+            out.append(Finding(95, NA, "no store answer names a store version"))
+    return out
+
+
 CHECKS = [
     check_01_schema, check_02_units, check_03_source_and_grade, check_04_assumptions_explained,
     check_05_envelope, check_06_criteria, check_07_state_and_approval, check_08_bridge,
@@ -9970,6 +10111,7 @@ CHECKS = [
     check_92_a_console_item_holds_the_files_it_names,
     check_93_an_agent_cannot_write_its_console_inbox,
     check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
+    check_95_a_store_answer_stands_on_a_published_store,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,

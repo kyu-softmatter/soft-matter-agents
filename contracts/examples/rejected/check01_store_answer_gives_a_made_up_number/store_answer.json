@@ -8,17 +8,17 @@
   "answered_at": "2026-10-26T10:10:00Z",
   "outcome": "answered",
   "reason": "entered from the maker's sheet, graded as a maker's document",
-  "kb_version": "kbv-0123456789ab",
+  "kb_version": "kbv-37b1958fb73d",
   "answer": "It is 1.15.",
   "entries_cited": [
-    "cfi_apo_40xc_wi_numerical_aperture"
+    "objective_mrd77400"
   ],
   "numbers": [
     {
       "name": "numerical_aperture",
       "value": 1.15,
       "unit": "1",
-      "entry_id": "cfi_apo_40xc_wi_numerical_aperture",
+      "entry_id": "objective_mrd77400",
       "grade": "E6",
       "source": "assumed:model",
       "covers_conditions": "not_stated"

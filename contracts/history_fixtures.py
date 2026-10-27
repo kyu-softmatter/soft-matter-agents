@@ -47,6 +47,7 @@ harness had somewhere to put them.
 
 from __future__ import annotations
 
+import copy
 import json
 import hashlib
 import os
@@ -1477,6 +1478,56 @@ def fixture_91_a_console_answer_removed(repo: Path) -> str:
     return _console_inbox(repo, delete=True)
 
 
+def _store_answer_history(repo: Path, *, newer_number: bool = False) -> str:
+    """7.1.1 rule 6 (2026-10-26): an answer names a published store version, and is read at that version.
+
+    The store is published at the version contracts/examples/store_answer.json
+    names, holding the entry it reports, and then moves on with that entry's
+    number changed. The example answer must still stand, read at the commit
+    that carried its version and not at the tree's own. With `newer_number`, a
+    second answer names the old version and gives the number only the newer
+    store holds, which must fail: a number is the store's at the version the
+    answer names.
+    """
+    start = base(repo)
+    example = json.loads((repo / "contracts/examples/store_answer.json").read_text(encoding="utf-8"))
+    kbv, eid = example["kb_version"], example["entries_made"][0]
+    entry = json.loads((REPO / f"librarian_agent/kb/entries/{eid}.json").read_text(encoding="utf-8"))
+    kb = "librarian_agent/kb"
+    write(repo, f"{kb}/entries/{eid}.json", entry)
+    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": kbv, "entry_count": 1,
+                                     "entries": {eid: {"file": f"entries/{eid}.json"}}, "handles": {}})
+    commit(repo, "the store is published with the entry the example answer reports", kb, seat="librarian")
+    old = copy.deepcopy(entry["numbers"][0])
+    entry["numbers"][0]["value"] = old["value"] + 0.05
+    write(repo, f"{kb}/entries/{eid}.json", entry)
+    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": "kbv-bbbbbbbbbbbb", "entry_count": 1,
+                                     "entries": {eid: {"file": f"entries/{eid}.json"}}, "handles": {}})
+    commit(repo, "the store moves on and the entry's number changes", kb, seat="librarian")
+    if newer_number:
+        answer = dict(example, answer_id="ca-20261026-160000-h95b", outcome="answered",
+                      reason="the store holds the maker's figure", answer="as the maker states it",
+                      entries_cited=[eid],
+                      numbers=[dict(entry["numbers"][0], entry_id=eid, covers_conditions="not_stated")])
+        for k in ("entries_made", "precision", "note"):
+            answer.pop(k, None)
+        for n in answer["numbers"]:
+            n.pop("precision", None)
+            n.pop("note", None)
+        arel = f"librarian_agent/answers/{answer['answer_id']}.json"
+        write(repo, arel, answer)
+        commit(repo, "an answer at the old version gives the newer number", arel, seat="librarian")
+    return f"{start}..HEAD"
+
+
+def fixture_95_an_answer_on_a_version_the_store_has_moved_past(repo: Path) -> str:
+    return _store_answer_history(repo)
+
+
+def fixture_95_an_answer_gives_a_number_its_version_does_not_hold(repo: Path) -> str:
+    return _store_answer_history(repo, newer_number=True)
+
+
 FIXTURES = [
     (35, "FAIL", "a session writes inside one agent", fixture_35_one_commit_two_boundaries),
     (41, "FAIL", "this path is bridge's", fixture_41_seat_writes_outside_its_own),
@@ -1603,6 +1654,11 @@ FIXTURES = [
     (89, "PASS", "hold together", fixture_89_a_console_word_survives_a_later_login_change),
     (89, "FAIL", "holds no readable microscope_runtime/envelope/console_login.json",
      fixture_89_a_console_word_whose_login_was_never_committed),
+    # 7.1.1 rule 6 (2026-10-26): a store answer is read at the version it names.
+    (95, "PASS", "name a published store version that holds",
+     fixture_95_an_answer_on_a_version_the_store_has_moved_past),
+    (95, "FAIL", "and no number of that entry at kbv-",
+     fixture_95_an_answer_gives_a_number_its_version_does_not_hold),
 ]
 
 

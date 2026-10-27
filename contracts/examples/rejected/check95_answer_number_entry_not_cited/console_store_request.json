@@ -1,0 +1,26 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261026-140904-f95e",
+  "words": "What is the numerical aperture of the 40x water objective?",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": false,
+      "agents": [
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-26T14:09:04Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [],
+  "request": {
+    "kind": "ask",
+    "question": "What is the numerical aperture of the 40x water objective?"
+  }
+}

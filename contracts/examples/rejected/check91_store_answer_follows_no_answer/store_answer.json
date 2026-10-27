@@ -9,8 +9,8 @@
   "outcome": "entered",
   "reason": "entered from the maker's sheet, graded as a maker's document",
   "entries_made": [
-    "cfi_apo_40xc_wi_numerical_aperture"
+    "objective_mrd77400"
   ],
-  "kb_version": "kbv-0123456789ab",
+  "kb_version": "kbv-37b1958fb73d",
   "follows": "librarian_agent/answers/ca-20261026-100000-gone.json"
 }

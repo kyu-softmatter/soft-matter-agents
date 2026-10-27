@@ -8,7 +8,7 @@
   "answered_at": "2026-10-26T10:10:00Z",
   "outcome": "not_in_the_store",
   "reason": "entered from the maker's sheet, graded as a maker's document",
-  "kb_version": "kbv-0123456789ab",
+  "kb_version": "kbv-37b1958fb73d",
   "gaps": [
     {
       "asked_for": "trap stiffness",
@@ -16,6 +16,6 @@
     }
   ],
   "entries_marked": [
-    "a_b"
+    "objective_mrd77400"
   ]
 }

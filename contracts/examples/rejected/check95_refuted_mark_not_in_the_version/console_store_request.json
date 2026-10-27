@@ -1,0 +1,35 @@
+{
+  "artifact": "console_store_request",
+  "schema_version": "0.1",
+  "item_id": "ci-20261026-140905-f95f",
+  "words": "The tracer's emission peak is wrong; my reading disagrees.",
+  "asked_by": {
+    "login": "member-1",
+    "console_role": {
+      "may_ask": true,
+      "may_draft": false,
+      "agents": [
+        "librarian"
+      ],
+      "may_ask_model_run": false
+    }
+  },
+  "asked_at": "2026-10-26T14:09:05Z",
+  "asker_mark": {
+    "kind": "other_login"
+  },
+  "attachments": [],
+  "request": {
+    "kind": "withdraw_value",
+    "entry_id": "tracer_emission_peak",
+    "reason": "The tracer's emission peak is wrong; my reading disagrees.",
+    "evidence": {
+      "kind": "reading",
+      "read_by": "member-1",
+      "value": {
+        "value": 1.25,
+        "unit": "1"
+      }
+    }
+  }
+}
