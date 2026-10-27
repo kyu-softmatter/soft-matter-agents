@@ -7,6 +7,25 @@ for the planning side in `microscope_agent/src/`. It can run alongside card
 095, which is the runtime's side of the same rule. If you are not that seat,
 take nothing from this card and report up.
 
+## Held (2026-10-27)
+
+**Do not start.** Microscope 3 stopped before any code and reported that
+both stop conditions hold, and a third thing is missing:
+
+1. **The planner reads no allow-list.** The only list is the runtime's
+   `SOFTWARE_MAY_COMMAND`, keyed by Micro-Manager label. The snapshot has
+   no permission field and no labels yet (item 9's registry rows).
+   `automatable` is a capability and not a permission, so it may not stand
+   in for the list.
+2. **No plan field holds a bench step the person performs.**
+   `preconditions` requires an axis, and `open_risks` is prose.
+3. **This card cannot grant `src/` or `tests/`.** Card 064 says neither
+   dino seat writes them. After the move to `microscope_runtime/`, who
+   writes `microscope_agent/src/` is the person's call. Until it is
+   committed through the intake seat, no seat takes this card.
+
+This seat lifts the hold here, in writing, once all three are answered.
+
 ## Why
 
 Read **plan.md 15.1 item 10** (`efbd679a`), the bullets under "A selector is

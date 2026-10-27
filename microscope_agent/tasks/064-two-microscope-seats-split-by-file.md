@@ -148,6 +148,15 @@ were never written under it, and they are not Microscope 3's. After card 080
 lands, the runtime's code is written only by `microscope-office-20261017-1`,
 in `microscope_runtime/`.
 
+**Card 097 grants nothing (added 2026-10-27).** It named
+`microscope-office-20261015-1` for `microscope_agent/src/plan_card.py`, its
+tests and a new plan revision. That was this seat's error: the line above
+still holds, so neither dino seat writes `src/`, `tests/` or `questions/`.
+Microscope 3 stopped before writing anything. Who writes
+`microscope_agent/src/` after the move is the person's call, asked through
+the intake seat. This section is rewritten to match when the answer is
+committed.
+
 ## The envelope snapshot (added 2026-10-12)
 
 **Microscope 2, or whichever registered Office microscope seat is running
