@@ -138,8 +138,10 @@ beside (rule 4), so it is written into the same folder.
      - when it carries `follows`, the answer it names is there and answers
        the same `item_id`.
 
-     No validator check yet compares `request_sha256` with the item's bytes,
-     so the console's own comparison is the only one.
+     Check 95 branch e (`19d1a07e`) compares `request_sha256` with the
+     item's bytes at commit. The console compares again when it reads,
+     because the working copy it reads can hold an answer no commit has
+     judged yet.
    - An answer failing any of these is shown as "an answer is on disk and
      cannot be read", with the reason in words. Examples: "it names a request
      that is not in the inbox", "it does not match the request it names", or
