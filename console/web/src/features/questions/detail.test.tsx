@@ -519,7 +519,7 @@ describe("the sign dialog", () => {
 
 describe("the numbers in the plan that nothing sets (card 021)", () => {
   const HEADING = "Numbers in this plan that nothing sets";
-  const unused = (numbers: Array<{ name: string; value?: unknown; unit?: string | null; from: string }>) => ({
+  const unused = (numbers: Array<{ name: unknown; value?: unknown; unit?: unknown; from: string }>) => ({
     worked_out: true,
     numbers,
     reason: null,
@@ -584,6 +584,24 @@ describe("the numbers in the plan that nothing sets (card 021)", () => {
       "spare: 1 (computed)",
       "ratio: 3 (measured)",
       "count: 5 count (guessed)",
+    ]);
+  });
+
+  it("shows a name or a unit that is not a string as the card holds it", async () => {
+    show({
+      detail: detailOf({
+        unused_numbers: unused([
+          { name: 5, value: 4, unit: "s", from: "numbers[0]" },
+          { name: "bleach_window", value: 4, unit: 7, from: "numbers[1]" },
+          { name: { a: 1 }, value: 4, unit: { y: 2 }, from: "numbers[2]" },
+        ]),
+      }),
+    });
+    const d = await openDialog();
+    expect(within(section(d)).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "5: 4 s (computed)",
+      "bleach_window: 4 7 (measured)",
+      '{"a":1}: 4 {"y":2} (guessed)',
     ]);
   });
 

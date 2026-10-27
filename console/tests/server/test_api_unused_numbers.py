@@ -69,6 +69,23 @@ def test_a_plan_the_rule_cannot_read_answers_200_with_the_reason(engine, make_cl
     assert d["unused_numbers"]["reason"]
 
 
+@pytest.mark.parametrize("entry", [
+    {"name": 5, "value": 4, "unit": "s"},
+    {"name": "bleach_window", "value": 4, "unit": 7},
+    {"name": "w", "value": {"x": 1}, "unit": {"y": 2}},
+])
+def test_a_number_whose_name_or_unit_is_not_a_string_goes_out_as_the_rule_gave_it(engine, make_client, root, entry):
+    """The rule completes on such a plan, so the copy gives its list exactly and the route does not raise."""
+    plan = json.loads(_plan_path(root).read_text("utf-8"))
+    plan["numbers"].append({**entry, "source": "assumed:x", "grade": "E5"})
+    _plan_path(root).write_text(json.dumps(plan), encoding="utf-8")
+    r = make_client(engine, agent_store=SmaFiles(root)).get(f"/api/console/questions/{QID}")
+    assert r.status_code == 200
+    u = r.json()["unused_numbers"]
+    assert u["worked_out"] is True and u["reason"] is None
+    assert u["numbers"][1] == {**entry, "from": "numbers[1]"}
+
+
 def test_the_list_and_the_fingerprint_are_of_one_read(engine, make_client, root):
     plan = json.loads(_plan_path(root).read_text("utf-8"))
     plan["numbers"].append({"name": "bleach_window", "value": 4, "unit": "s", "source": "assumed:x", "grade": "E5"})

@@ -106,15 +106,15 @@ export const EVERY_NUMBER_USED =
  * (`numbers[i]`); a unit of null or "1" prints nothing after the value.
  */
 export function unusedLine(
-  n: { name: string; value?: unknown; unit?: string | null; from: string },
+  n: { name?: unknown; value?: unknown; unit?: unknown; from: string },
   plan: Card | null,
 ): string {
   const data = plan !== null && isRecord(plan.data) ? plan.data : {};
   const at = /^numbers\[(\d+)\]$/.exec(n.from);
   const entry = at === null ? undefined : asArray(data.numbers)[Number(at[1])];
   const source = isRecord(entry) ? entry.source : undefined;
-  const unit = n.unit == null || n.unit === "1" ? "" : ` ${n.unit}`;
-  return `${n.name}: ${show(n.value)}${unit} (${provenanceWord(source)})`;
+  const unit = n.unit == null || n.unit === "1" ? "" : ` ${show(n.unit)}`;
+  return `${show(n.name)}: ${show(n.value)}${unit} (${provenanceWord(source)})`;
 }
 
 export function SignDialog({

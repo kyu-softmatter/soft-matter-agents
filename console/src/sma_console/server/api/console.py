@@ -124,9 +124,10 @@ class ApprovalOut(BaseModel):
 
 class UnusedNumberOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    name: str
+    # the rule completes on a plan whose name or unit is not a string, so the list goes out as it gave it
+    name: Any = None
     value: Any = None
-    unit: str | None = None
+    unit: Any = None
     from_: str = Field(alias="from", description="the number's place in the plan card, `numbers[i]`")
 
 

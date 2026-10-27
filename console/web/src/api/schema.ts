@@ -3534,11 +3534,11 @@ export interface components {
         /** UnusedNumberOut */
         UnusedNumberOut: {
             /** Name */
-            name: string;
+            name?: unknown;
             /** Value */
             value?: unknown;
             /** Unit */
-            unit?: string | null;
+            unit?: unknown;
             /**
              * From
              * @description the number's place in the plan card, `numbers[i]`
