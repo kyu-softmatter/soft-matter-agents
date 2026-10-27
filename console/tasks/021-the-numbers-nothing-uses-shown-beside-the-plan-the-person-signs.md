@@ -7,7 +7,8 @@ you are not that seat, take nothing from this card and report up.
 
 **Held until the rule lands.** The list this card shows is computed by one
 rule in `contracts/`, which manager-microscope writes with its fixtures
-(plan.md 15.1 item 10, `574499c9`). It is not there yet. This seat releases
+(plan.md 15.1 item 10, `574499c9`; what counts as using a number is
+worded field by field at `9e9c480b`). It is not there yet. This seat releases
 the card with one added line that names the rule's path, its fixtures' path
 and the commit it landed in. Build to that commit. Start nothing here before
 that line exists.
@@ -72,8 +73,10 @@ exists yet.
    - One line per number: `name: value unit (provenance)`. Use
      `provenanceWord` for the provenance, as `devicesTouched` does, so a
      guess still reads "guessed".
-   - With an empty list, say: "Every number in this plan is used by an
-     action, a selector or a limit."
+   - With an empty list, say: "Every number in this plan is one the run
+     sets, hands to a step, sizes itself by, or checks against." It puts
+     item 10's meaning of "used" (`9e9c480b`) in plain words, and a
+     condition on a selector's device is not in it.
    - When it could not be worked out, say: "The numbers nothing sets could
      not be worked out from this plan: " followed by the reason. Mark it as
      an alert.
