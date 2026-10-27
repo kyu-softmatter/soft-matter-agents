@@ -55,6 +55,7 @@ from .store import (
     InboxThread,
     NotFoundError,
     QuestionDetail,
+    UnusedNumbers,
     QuestionSummary,
     RunsFolderNotFoundError,
     RunDetail,
@@ -151,6 +152,61 @@ def plan_hash(card: dict[str, Any]) -> str:
     return "sha256:" + hashlib.sha256(blob.encode()).hexdigest()
 
 
+def unused_numbers(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    """The numbers in a plan that nothing at run time uses (plan.md 15.1 item 10): a copy of
+    `unused_numbers` in soft-matter-agents `contracts/validate.py`, copied at f5699603, which this
+    console follows as data and never imports. `contracts/examples/unused_numbers_case_*.json` hold the
+    rule to its cases and the console's tests hold this copy to the same cases.
+
+    Each number comes out as `{name, value, unit, from}` in `numbers[]` order, `from` being
+    `"numbers[i]"`; no `source` is carried, so a screen takes it from the card's own entry at `from`.
+    A number is used when an action names it as a parameter, or a stop or success criterion, a camera
+    ceiling, a depth of field or the smoke fraction names it. Declaring one in a condition, an arm or a
+    sweep level is not a use, nor is cost, the envelope check, a precondition's basis or being an input
+    to a computed number; a condition on a selector's element is not a use either.
+
+    Like the rule it raises on a plan whose parts are not shaped as the rule reads them (an action, a
+    criterion or a number that is not an object); `unused_numbers_state` is what a screen calls.
+    """
+    used: set[str] = set()
+    for a in plan.get("actions") or []:
+        used.update(n for n in (a.get("parameters") or []) if isinstance(n, str))
+    for key in ("stop_criteria", "success_criteria"):
+        for c in plan.get(key) or []:
+            used.add(c.get("number"))
+    fs = plan.get("focus_search") or {}
+    used.add((fs.get("camera_ceiling") or {}).get("number"))
+    used.add(((fs.get("success") or {}).get("depth_of_field") or {}).get("number"))
+    stats = ((plan.get("watcher") or {}).get("image") or {}).get("frame_stats") or {}
+    used.add((stats.get("camera_ceiling") or {}).get("number"))
+    used.add((plan.get("smoke") or {}).get("record_fraction"))
+    return [{"name": n["name"], "value": n.get("value"), "unit": n.get("unit"),
+             "from": f"numbers[{i}]"}
+            for i, n in enumerate(plan.get("numbers") or [])
+            if n.get("name") not in used]
+
+
+def _why_not(plan: Any, exc: Exception) -> str:
+    if not isinstance(plan, dict):
+        return "The plan card is not an object, so none of its fields can be read."
+    if isinstance(exc, AttributeError):
+        return ("An action, a criterion, a number or a section of this plan is written as something other "
+                "than an object with fields, so the rule cannot read it.")
+    if isinstance(exc, (TypeError, KeyError)):
+        return ("A number's name, a criterion's number or an action's parameters is written as a list, an "
+                "object or a single value where a name, or a list of names, was expected.")
+    return "The rule stopped on this plan and did not say why."
+
+
+def unused_numbers_state(plan: Any) -> UnusedNumbers:
+    """`unused_numbers` as a screen needs it: the rule's list as it stands, or, wherever the rule would
+    raise on this card, the state "could not be worked out" with the reason in words. No exception leaves."""
+    try:
+        return UnusedNumbers(worked_out=True, numbers=unused_numbers(plan))
+    except Exception as exc:  # the rule raises on a malformed plan; whatever it raised, the screen says so
+        return UnusedNumbers(worked_out=False, numbers=[], reason=_why_not(plan, exc))
+
+
 def _int_or_none(v: Any) -> int | None:
     return v if isinstance(v, int) and not isinstance(v, bool) else None
 
@@ -216,8 +272,10 @@ class SmaFiles:
         detail = _detail(summary, v, *self._read_version(paths[v], v))
         plan = detail.plan.data if detail.plan and isinstance(detail.plan.data, dict) else None
         approvals = [a for a in self.list_approvals(summary.agent) if a.qid == qid]
+        # the hash and the list are of the one dict read here, so they are always of one card
         return replace(detail, plan_hash=plan_hash(plan) if plan is not None else None,
-                       approvals=approvals)
+                       approvals=approvals,
+                       unused_numbers=unused_numbers_state(plan) if plan is not None else None)
 
     def _summary(self, d: Path, paths: dict[int, list[Path]]) -> QuestionSummary:
         """Opens the first and the latest version only, so a list stays quick: created_at is

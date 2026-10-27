@@ -122,6 +122,20 @@ class ApprovalOut(BaseModel):
     data: Any = Field(default=None, description="the approval card's content, untouched")
 
 
+class UnusedNumberOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    name: str
+    value: Any = None
+    unit: str | None = None
+    from_: str = Field(alias="from", description="the number's place in the plan card, `numbers[i]`")
+
+
+class UnusedNumbersOut(BaseModel):
+    worked_out: bool = Field(description="False: the rule could not be applied to this plan; `reason` says why")
+    numbers: list[UnusedNumberOut] = Field(default_factory=list)
+    reason: str | None = None
+
+
 class QuestionDetailOut(BaseModel):
     summary: QuestionSummaryOut
     version: int
@@ -138,6 +152,9 @@ class QuestionDetailOut(BaseModel):
         default=None, description="sha256 of this version's plan card with status removed")
     approvals: list[ApprovalOut] = Field(default_factory=list,
                                          description="every plan_approval naming this qid")
+    unused_numbers: UnusedNumbersOut | None = Field(
+        default=None, description="the numbers of plan_hash's card that nothing at run time uses; "
+                                  "None: no plan card")
 
 
 class RunSummaryOut(BaseModel):

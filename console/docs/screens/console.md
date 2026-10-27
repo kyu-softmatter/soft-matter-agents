@@ -154,6 +154,20 @@ card tabs and the two-version diff are gone; the version picker stays when a que
   plan_approval's `plan_hash` (a test runs that function's own source against the contracts' example plan
   and its approval's `plan_hash`). A password field is typed again and never pre-filled, and is cleared
   after every try.
+- **Numbers in this plan that nothing sets** (card 021). After the devices the dialog lists each number the
+  plan card carries that nothing at run time uses: one line `name: value unit (provenance)`, the provenance
+  in words from the card's own `numbers[i]` entry at the list's `from` (the list carries no source), a unit
+  of null or "1" printing nothing. The list is `QuestionDetail.unused_numbers`, worked out in
+  `get_question` from **the same plan dict the fingerprint hashes**, so the two are always of one card.
+  It is `sma_files.unused_numbers`, a copy of `unused_numbers(plan)` in `contracts/validate.py` at
+  `f5699603` (follows the rule as data, imports nothing from `contracts/`); `tests/agents/test_unused_numbers.py`
+  holds the copy to `contracts/examples/unused_numbers_case_*.json` and to the three rejected cases. Three
+  states: no plan card, no list and no section; a list, possibly empty ("Every number in this plan is one
+  the run sets, hands to a step, sizes itself by, or checks against."); and **could not be worked out**,
+  with a reason in words, wherever the rule would raise (an action, criterion or number that is not an
+  object), shown as an alert. **It decides nothing**: no control is disabled by it, `POST /sign-check` and
+  `signing/` do not read it. Read-only: no run log, derivation or snapshot is read, and nothing is written
+  into a plan card.
 - **Sign writes one approval, or refuses and writes nothing** (card 013). The route keeps the name
   `sign-check`. The order is: the person's login; the store is real; the plan is the question's current
   one by fingerprint (409 `plan_changed`, "The plan changed; review it again."); the approvals folder;

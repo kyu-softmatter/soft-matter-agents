@@ -2697,6 +2697,8 @@ export interface components {
              * @description every plan_approval naming this qid
              */
             approvals?: components["schemas"]["ApprovalOut"][];
+            /** @description the numbers of plan_hash's card that nothing at run time uses; None: no plan card */
+            unused_numbers?: components["schemas"]["UnusedNumbersOut"] | null;
         };
         /** QuestionProgressOut */
         QuestionProgressOut: {
@@ -3528,6 +3530,32 @@ export interface components {
         UnlockIn: {
             /** Password */
             password: string;
+        };
+        /** UnusedNumberOut */
+        UnusedNumberOut: {
+            /** Name */
+            name: string;
+            /** Value */
+            value?: unknown;
+            /** Unit */
+            unit?: string | null;
+            /**
+             * From
+             * @description the number's place in the plan card, `numbers[i]`
+             */
+            from: string;
+        };
+        /** UnusedNumbersOut */
+        UnusedNumbersOut: {
+            /**
+             * Worked Out
+             * @description False: the rule could not be applied to this plan; `reason` says why
+             */
+            worked_out: boolean;
+            /** Numbers */
+            numbers?: components["schemas"]["UnusedNumberOut"][];
+            /** Reason */
+            reason?: string | null;
         };
         /** ValidationError */
         ValidationError: {

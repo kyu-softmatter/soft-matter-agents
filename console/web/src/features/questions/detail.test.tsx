@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { Client, ClientProvider } from "../../app/client";
@@ -514,5 +514,152 @@ describe("the sign dialog", () => {
     fireEvent.click(within(d).getByRole("button", { name: "Close" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Sign the plan" })).toBeNull());
     expect(t.posts()).toHaveLength(0);
+  });
+});
+
+describe("the numbers in the plan that nothing sets (card 021)", () => {
+  const HEADING = "Numbers in this plan that nothing sets";
+  const unused = (numbers: Array<{ name: string; value?: unknown; unit?: string | null; from: string }>) => ({
+    worked_out: true,
+    numbers,
+    reason: null,
+  });
+  const section = (d: HTMLElement) => within(d).getByRole("group", { name: HEADING });
+  const signEnabled = async (d: HTMLElement) => {
+    fireEvent.change(within(d).getByLabelText("Your password, again"), { target: { value: "my-password-1" } });
+    return !(within(d).getByRole("button", { name: "Sign" }) as HTMLButtonElement).disabled;
+  };
+
+  it("lists each number as name, value, unit and how it was got, after the devices and before what cannot be undone", async () => {
+    show({
+      detail: detailOf({
+        unused_numbers: unused([
+          { name: "exposure_time", value: 0.007, unit: "s", from: "numbers[0]" },
+          { name: "illumination_power", value: 12, unit: "mW", from: "numbers[1]" },
+          { name: "guess_temp", value: 22, unit: "C", from: "numbers[2]" },
+        ]),
+      }),
+    });
+    const d = await openDialog();
+    const items = within(section(d)).getAllByRole("listitem").map((li) => li.textContent);
+    expect(items).toEqual([
+      "exposure_time: 0.007 s (computed)",
+      "illumination_power: 12 mW (measured)",
+      "guess_temp: 22 C (guessed)",
+    ]);
+    expect(section(d).querySelector("legend")?.textContent).toBe(HEADING); // the heading the person reads
+    const groups = within(d).getAllByRole("group").map((g) => g.getAttribute("aria-label"));
+    expect(groups.indexOf(HEADING)).toBe(groups.indexOf("Devices this plan touches") + 1);
+    expect(groups.indexOf("What cannot be undone")).toBe(groups.indexOf(HEADING) + 1);
+  });
+
+  it("takes how a number was got from the card's own entry at from, and not from the list", async () => {
+    show({
+      detail: detailOf({
+        unused_numbers: unused([
+          { name: "illumination_power", value: 12, unit: "mW", from: "numbers[2]" }, // the list says numbers[2]: a guess
+          { name: "nothing_there", value: 1, unit: "s", from: "numbers[9]" }, // no such entry
+        ]),
+      }),
+    });
+    const d = await openDialog();
+    expect(within(section(d)).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "illumination_power: 12 mW (guessed)",
+      "nothing_there: 1 s (no source given)",
+    ]);
+  });
+
+  it("prints nothing after the value when the unit is null or 1", async () => {
+    show({
+      detail: detailOf({
+        unused_numbers: unused([
+          { name: "spare", value: 1, unit: "1", from: "numbers[0]" },
+          { name: "ratio", value: 3, unit: null, from: "numbers[1]" },
+          { name: "count", value: 5, unit: "count", from: "numbers[2]" },
+        ]),
+      }),
+    });
+    const d = await openDialog();
+    expect(within(section(d)).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "spare: 1 (computed)",
+      "ratio: 3 (measured)",
+      "count: 5 count (guessed)",
+    ]);
+  });
+
+  it("says that every number is used when the list is empty", async () => {
+    show({ detail: detailOf({ unused_numbers: unused([]) }) });
+    const d = await openDialog();
+    expect(section(d).textContent).toContain(
+      "Every number in this plan is one the run sets, hands to a step, sizes itself by, or checks against.",
+    );
+    expect(within(section(d)).queryAllByRole("listitem")).toHaveLength(0);
+  });
+
+  it("says in an alert, with the reason, when the numbers could not be worked out", async () => {
+    show({
+      detail: detailOf({
+        unused_numbers: { worked_out: false, numbers: [], reason: "An action of this plan is written as a bare value." },
+      }),
+    });
+    const d = await openDialog();
+    const alert = within(section(d)).getByRole("alert");
+    expect(alert.textContent).toBe(
+      "The numbers nothing sets could not be worked out from this plan: An action of this plan is written as a bare value.",
+    );
+    expect(within(section(d)).queryAllByRole("listitem")).toHaveLength(0);
+    expect(section(d).textContent).not.toContain("Every number in this plan");
+  });
+
+  it("shows no section when there is no list at all", async () => {
+    show({ detail: detailOf({ unused_numbers: null }) });
+    const d = await openDialog();
+    expect(within(d).queryByRole("group", { name: HEADING })).toBeNull();
+  });
+
+  it("shows no section when the field is absent altogether, as from a server from before this card", async () => {
+    show({ detail: detailOf() });
+    const d = await openDialog();
+    expect(within(d).queryByRole("group", { name: HEADING })).toBeNull();
+  });
+
+  it("changes nothing about signing: Sign is enabled the same, in every state, and sends the same", async () => {
+    const states = [
+      undefined,
+      unused([{ name: "guess_temp", value: 22, unit: "C", from: "numbers[2]" }]),
+      unused([]),
+      { worked_out: false, numbers: [], reason: "An action of this plan is written as a bare value." },
+    ];
+    for (const u of states) {
+      const t = show({ detail: detailOf({ unused_numbers: u }) });
+      const d = await openDialog();
+      expect((within(d).getByRole("button", { name: "Sign" }) as HTMLButtonElement).disabled).toBe(true); // no password
+      expect(await signEnabled(d)).toBe(true);
+      fireEvent.click(within(d).getByRole("button", { name: "Sign" }));
+      await within(d).findByRole("status");
+      expect(t.posts().map((p) => p.path)).toEqual([CHECK]);
+      expect(JSON.parse(String(t.posts()[0].init?.body))).toEqual({ qid: QID, plan_hash: HASH, password: "my-password-1" });
+      cleanup();
+      window.location.hash = "";
+    }
+  });
+
+  it("shows the mock's shipped microscope plan's list, as the server gave it", async () => {
+    // the entry as the shipped plan mic-20260925-002 holds it; the server test reads the file itself
+    const shipped = card("plan_microscope_mic-20260925-002.json", "plan", {
+      card: "plan", status: "PROPOSED", revision: 2, purpose: "screen",
+      actions: [{ id: "a1", device: "stand_ti2e", action: "read_objective", reversible: true }],
+      numbers: [{ name: "nosepiece_position", value: 5, unit: "count", source: "operator_read:kyuhwan_20260925", grade: "E3" }],
+    });
+    show({
+      detail: detailOf({
+        plan: shipped,
+        unused_numbers: unused([{ name: "nosepiece_position", value: 5, unit: "count", from: "numbers[0]" }]),
+      }),
+    });
+    const d = await openDialog();
+    expect(within(section(d)).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "nosepiece_position: 5 count (source: operator_read:kyuhwan_20260925)",
+    ]);
   });
 });

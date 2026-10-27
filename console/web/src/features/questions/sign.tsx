@@ -95,6 +95,28 @@ export function devicesTouched(plan: Card | null): DeviceTouched[] {
   return order.map((device) => ({ device, lines: lines.get(device) ?? [] }));
 }
 
+/** The reason line when the numbers nothing sets could not be worked out (console card 021). */
+export const NOT_WORKED_OUT = "The numbers nothing sets could not be worked out from this plan: ";
+export const EVERY_NUMBER_USED =
+  "Every number in this plan is one the run sets, hands to a step, sizes itself by, or checks against.";
+
+/**
+ * One line of "Numbers in this plan that nothing sets": `name: value unit (how it was got)`. The server's
+ * list carries no source, so how it was got is read from the plan card's own entry at `from`
+ * (`numbers[i]`); a unit of null or "1" prints nothing after the value.
+ */
+export function unusedLine(
+  n: { name: string; value?: unknown; unit?: string | null; from: string },
+  plan: Card | null,
+): string {
+  const data = plan !== null && isRecord(plan.data) ? plan.data : {};
+  const at = /^numbers\[(\d+)\]$/.exec(n.from);
+  const entry = at === null ? undefined : asArray(data.numbers)[Number(at[1])];
+  const source = isRecord(entry) ? entry.source : undefined;
+  const unit = n.unit == null || n.unit === "1" ? "" : ` ${n.unit}`;
+  return `${n.name}: ${show(n.value)}${unit} (${provenanceWord(source)})`;
+}
+
 export function SignDialog({
   detail,
   state,
@@ -182,6 +204,25 @@ export function SignDialog({
           </ul>
         )}
       </fieldset>
+      {detail.unused_numbers != null && (
+        <fieldset aria-label="Numbers in this plan that nothing sets">
+          <legend>Numbers in this plan that nothing sets</legend>
+          {!detail.unused_numbers.worked_out ? (
+            <p role="alert" className="console-error">
+              {NOT_WORKED_OUT}
+              {detail.unused_numbers.reason}
+            </p>
+          ) : (detail.unused_numbers.numbers ?? []).length === 0 ? (
+            <p>{EVERY_NUMBER_USED}</p>
+          ) : (
+            <ul>
+              {(detail.unused_numbers.numbers ?? []).map((n) => (
+                <li key={n.from}>{unusedLine(n, plan)}</li>
+              ))}
+            </ul>
+          )}
+        </fieldset>
+      )}
       <fieldset aria-label="What cannot be undone">
         <legend>What cannot be undone</legend>
         {irreversible.length === 0 ? (

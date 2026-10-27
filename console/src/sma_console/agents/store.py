@@ -185,6 +185,30 @@ class Approval:
 
 
 @dataclass(frozen=True)
+class UnusedNumbers:
+    """The numbers a plan card lists that nothing at run time uses (plan.md 15.1 item 10), told in one of
+    two states; a question with no plan has none of either (`QuestionDetail.unused_numbers` is None).
+
+    `worked_out` True: `numbers` is the rule's list, possibly empty, each `{name, value, unit, from}` with
+    `from` the number's place in the card's `numbers[]` (`"numbers[2]"`), in that order, and `reason` is None.
+    `worked_out` False: the rule could not be applied to this card, `numbers` is empty and `reason` says
+    why in words. Neither state decides anything; they are shown beside the plan the person signs.
+    """
+
+    worked_out: bool
+    numbers: list[dict[str, Any]] = field(default_factory=list)
+    reason: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"worked_out": self.worked_out, "numbers": [dict(n) for n in self.numbers], "reason": self.reason}
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> UnusedNumbers:
+        return cls(worked_out=bool(d["worked_out"]), numbers=[dict(n) for n in d.get("numbers") or []],
+                   reason=d.get("reason"))
+
+
+@dataclass(frozen=True)
 class QuestionDetail:
     """The cards of one version of a question.
 
@@ -207,6 +231,7 @@ class QuestionDetail:
     files: list[FileInfo]  # what is not a card or a document (images, jsonl), not opened
     plan_hash: str | None = None  # of this version's plan card, status removed
     approvals: list[Approval] = field(default_factory=list)  # every approval naming the qid
+    unused_numbers: UnusedNumbers | None = None  # of the same plan card the hash is of; None: no plan card
 
     @property
     def refusal(self) -> Card | None:
@@ -227,6 +252,7 @@ class QuestionDetail:
             "files": [x.to_dict() for x in self.files],
             "plan_hash": self.plan_hash,
             "approvals": [a.to_dict() for a in self.approvals],
+            "unused_numbers": None if self.unused_numbers is None else self.unused_numbers.to_dict(),
         }
 
     @classmethod
@@ -248,6 +274,7 @@ class QuestionDetail:
             files=[FileInfo.from_dict(x) for x in d["files"]],
             plan_hash=d.get("plan_hash"),
             approvals=[Approval.from_dict(x) for x in d.get("approvals", [])],
+            unused_numbers=None if d.get("unused_numbers") is None else UnusedNumbers.from_dict(d["unused_numbers"]),
         )
 
 
