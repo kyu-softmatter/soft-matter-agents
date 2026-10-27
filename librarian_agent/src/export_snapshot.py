@@ -517,6 +517,8 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
 
     def walk(node):
         if isinstance(node, dict):
+            if isinstance(node.get("id"), str):
+                table_ids.add(node["id"])
             if "mm_bindings" in node or "mm_states" in node:
                 rows.append(node)
             for v in node.values():
@@ -526,10 +528,14 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
                 walk(v)
 
     rows: list[dict] = []
+    table_ids: set[str] = set()
     walk(table)
     for row in rows:
         name = row.get("id") or row.get("model")
         label = (row.get("mm_label") or {}).get("label")
+        slots = row.get("slot_contents")
+        reaches = {s["content"]: s.get("reaches") for s in slots
+                   if isinstance(s, dict) and isinstance(s.get("content"), str)} if isinstance(slots, list) else {}
         if label is None:
             problems.append(f"{name}: carries bindings or states and no mm_label; they sit on a labelled row")
         held: dict[str, set] = {"quantity": set(), "property": set(), "word": set(), "state_label": set()}
@@ -569,12 +575,21 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
             word, sl = s.get("word"), s.get("state_label")
             once("word", word)
             once("state_label", sl)
-            e, _ = entry_for(s, {"mm_label": label, "path_word": word, "mm_state_label": sl})
+            e, ids = entry_for(s, {"mm_label": label, "path_word": word, "mm_state_label": sl})
             if e is not None and (name in SEEN_BY_LIGHT or row.get("verify_by") == "acquisition"):
                 src = str(e.get("source", ""))
+                lit = ids.get("lit_detectors")
                 if not (src.startswith("measured:") and acquired(src[len("measured:"):])):
                     problems.append(f"{name}: word {word!r} rests on {s.get('entry_ref')} from {src!r}; on this "
                                     "row a word resolves only from a run that acquired in that state")
+                elif (not isinstance(lit, list) or not lit
+                      or not all(isinstance(d, str) and d in table_ids for d in lit)):
+                    problems.append(f"{name}: word {word!r} rests on {s.get('entry_ref')}, whose lit_detectors "
+                                    f"{lit!r} is not a list of the table's rows that got light")
+                elif isinstance(reaches.get(word), list) and sorted(lit) != sorted(reaches[word]):
+                    problems.append(f"{name}: word {word!r}'s run lit {sorted(lit)} and the slot reaches "
+                                    f"{sorted(reaches[word])}; one of the two is wrong, and the run is reported, "
+                                    "not resolved")
     return problems
 
 
@@ -706,7 +721,11 @@ def _self_test() -> int:
                                         "quantity": "exposure_time", "unit": "ms",
                                         "mm_config_sha256": "a" * 64}, "source": "measured:run-acq"},
              "e_word": {"identifiers": {"mm_label": "Port", "path_word": "empty",
-                                        "mm_state_label": "Slot-1"}, "source": "measured:run-acq"},
+                                        "mm_state_label": "Slot-1", "lit_detectors": ["camera_red"]},
+                        "source": "measured:run-acq"},
+             "e_both": {"identifiers": {"mm_label": "Port", "path_word": "561 dichroic", "mm_state_label": "Slot-2",
+                                        "lit_detectors": ["camera_red", "camera_blue"]},
+                        "source": "measured:run-acq"},
              "e_read": {"identifiers": {"mm_label": "Port", "path_word": "empty",
                                         "mm_state_label": "Slot-1"}, "source": "measured:run-read"},
              "e_man": {"identifiers": {"mm_label": "Port", "path_word": "empty",
@@ -779,6 +798,34 @@ def _self_test() -> int:
     if mm_binding_problems({"channels": [brow("other_selector", "Port", states=[word(ref="e_man")])]},
                            store, qids, usyms, acquired=acq):
         bad("a word on a row the path table does not warn about was held to the acquisition rule")
+    # Which detectors got light, named as table rows; on a slotted row, exactly what the slot reaches.
+    slots = [{"content": "empty", "reaches": ["camera_red"]},
+             {"content": "561 dichroic", "reaches": ["camera_blue", "camera_red"]}]
+    cams = [brow("camera_red", None), brow("camera_blue", None)]
+    found = mm_binding_problems({"channels": cams + [brow("csuw1_port", "Port", slot_contents=slots,
+                                                          states=[word(), word("561 dichroic", "Slot-2", "e_both")])]},
+                                store, qids, usyms, acquired=acq)
+    if found:
+        bad(f"words whose runs lit exactly what their slots reach were refused: {found}")
+    lit_store = dict(store)
+    for key, lit in (("e_nolit", None), ("e_emptylit", []), ("e_strlit", "camera_red"),
+                     ("e_otherlit", ["camera_green"]), ("e_numlit", [1]), ("e_nestlit", [["camera_red"]]),
+                     ("e_bluelit", ["camera_blue"])):
+        ids = {"mm_label": "Port", "path_word": "empty", "mm_state_label": "Slot-1"}
+        if lit is not None:
+            ids["lit_detectors"] = lit
+        lit_store[key] = {"identifiers": ids, "source": "measured:run-acq"}
+    for key, why in (("e_nolit", "no lit_detectors"), ("e_emptylit", "an empty lit_detectors"),
+                     ("e_strlit", "lit_detectors as one string"), ("e_otherlit", "a detector the table lacks"),
+                     ("e_numlit", "a detector named by a number"), ("e_nestlit", "a detector named by a list")):
+        for row_name, extra in (("lapp_branch", {}), ("some_selector", {"verify_by": "acquisition"})):
+            bcase(cams + [brow(row_name, "Port", states=[word(ref=key)], **extra)], lit_store,
+                  "not a list of the table's rows that got light", f"{why} on {row_name}")
+    bcase(cams + [brow("csuw1_port", "Port", slot_contents=slots, states=[word(ref="e_bluelit")])], lit_store,
+          "one of the two is wrong", "a run that lit another camera than the slot reaches")
+    if mm_binding_problems({"channels": cams + [brow("lapp_branch", "Port", states=[word(ref="e_bluelit")])]},
+                           lit_store, qids, usyms, acquired=acq):
+        bad("a row without slot_contents was held to a slot's reaches")
     if not run_acquired("run-20260924-002") or run_acquired("run-20260924-008"):
         bad("run_acquired misreads the logs: run 002 acquired frames and run 008 only read devices back")
 
