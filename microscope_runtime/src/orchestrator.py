@@ -2625,6 +2625,24 @@ class Orchestrator:
         self.record(event="element_set_by_hand", channel=channel_id, element=element_id, value=value,
                     note="set by a hand on the mock, not by a command; nothing was dispatched")
 
+    def set_mock_connection(self, channel_id: str, state: str) -> None:
+        """Mock only, for a test: make one registry channel answer, be absent, or be busy (card 086).
+
+        Not a command and not reachable from the console: the host answers a fixed set of messages
+        and none of them names this. It goes through no check and no `apply`, and the event says so,
+        so a run log shows the states a test set and a run is never read as a real one. The id has
+        to be one the registry holds -- a channel it does not hold is not made up.
+        """
+        if self.backend != "mock":
+            raise InterlockError(
+                f"refusing to set a connection state on {channel_id!r}: this is not the mock "
+                "backend, and nothing here may make an instrument appear absent or busy")
+        if channel_id not in self.channels:
+            raise GapError(f"{channel_id!r} is not a channel in the registry; the mock does not invent one")
+        self.module_for(channel_id).set_connection(channel_id, state)
+        self.record(event="mock_connection_set", channel=channel_id, state=state,
+                    note="set by a test on the mock, not by a command; nothing was dispatched")
+
     def snapshot(self, label: str) -> dict:
         """read() from every channel, gathered into the log around each step."""
         states = {}

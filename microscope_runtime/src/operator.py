@@ -1443,8 +1443,12 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
         tweezers_link: dict | None = None, runs_root: Path | None = None,
         root: Path | None = None, mm_config: Path | None = None,
         config_loader=None, watcher_backend=None, judgement_backend=None,
-        approvals_dir: Path | None = None, status_dir: Path | None = None) -> dict:
+        approvals_dir: Path | None = None, status_dir: Path | None = None,
+        on_orchestrator=None) -> dict:
     """O1 preflight -> O2 dispatch -> O3 watch -> O4 record.
+
+    `on_orchestrator(o)` is called once, right after the orchestrator exists and before anything
+    runs, as run_live_view's is: a test sets the mock's connection states there (card 086).
 
     Returns the run record. Writes nothing until the gate has been passed,
     because a run directory that exists without an approval is itself the thing
@@ -1557,6 +1561,8 @@ def run(plan_path: Path, run_id: str, backend: str = "mock", observe=None,
     lock = _take_run_lock({"kind": "plan", "plan_id": plan.get("id"), "run_id": run_id})
     try:
         o = orch.Orchestrator(backend=backend)
+        if on_orchestrator is not None:
+            on_orchestrator(o)
         o.pre_stop_length_s = pre_stop_length
         _install_status(o, status_dir, run_id, "plan")
         folder = None

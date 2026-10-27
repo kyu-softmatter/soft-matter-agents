@@ -31,8 +31,21 @@ def preflight(channel: dict | None = None) -> dict:
     time on the instrument.
     """
     channel = channel or {}
+    cid = channel.get("id", "mock")
+    if CONNECTION.get(str(cid)) == "absent":
+        # Answers as a backend with no link does (python_tcp: ready False and a reason), so a
+        # screen on the mock meets the same shape it will meet on the instrument.
+        return {
+            "channel": cid,
+            "ready": False,
+            "absent": True,
+            "reason": "mock: this channel was set absent by a test; nothing answers",
+            "read_back": channel.get("read_back", True),
+            "automatable": channel.get("automatable", "full"),
+            "backend": "mock",
+        }
     return {
-        "channel": channel.get("id", "mock"),
+        "channel": cid,
         "ready": True,
         "read_back": channel.get("read_back", True),
         "automatable": channel.get("automatable", "full"),
@@ -175,6 +188,7 @@ def snap():
 
 def snap_for(channel_id: str):
     """snap(), for a channel that is a camera: its frames carry its own name and stripe phase (card 084)."""
+    _check_connection(channel_id)
     return _snap(channel_id)
 
 
@@ -216,6 +230,7 @@ def sequence(n: int, sink, timeout_s: float | None = None) -> dict:
 
 def sequence_for(channel_id: str, n: int, sink, timeout_s: float | None = None) -> dict:
     """sequence(), for a channel that is a camera: its frames carry its own name and stripe phase (card 084)."""
+    _check_connection(channel_id)
     return _sequence(channel_id, n, sink)
 
 
@@ -431,6 +446,7 @@ def apply_for(channel_id: str, params: dict) -> dict:
     kind, and an echo that carried `verified` would give a screen a read-back the instrument
     cannot give.
     """
+    _check_connection(channel_id)
     if channel_id == "piezo_stage" and isinstance(params.get("trajectory"), dict):
         return _piezo_trajectory(params)
     if channel_id == "optical_tweezers":
@@ -450,6 +466,7 @@ def read_for(channel_id: str, wait: bool = True, elements=()) -> dict:
     without waiting even during a move, and the tweezers' read is empty on purpose -- no
     `state`, no `position_um`, so what was sent is never offered back as what is there.
     """
+    _check_connection(channel_id, reading=True)
     if channel_id == "piezo_stage":
         return _piezo_read()
     if channel_id == "optical_tweezers":
@@ -471,6 +488,48 @@ def read_for(channel_id: str, wait: bool = True, elements=()) -> dict:
 
 _OPEN: set[str] = set()
 
+# --- connection states (card 086 item 7) -------------------------------------- #
+#
+# Each channel can be made to answer, to be absent, or to be busy, so the connection-state page can
+# be exercised on the mock with every state it will show. A TEST sets them, through
+# Orchestrator.set_mock_connection; nothing the console sends reaches here, and reset() clears them.
+#
+# What this does NOT imply: how a real device looks unplugged or in use. "Absent" is the shape a
+# backend with no link answers (python_tcp: ready False and a reason) and "busy" is a read that is
+# refused because something else holds the device. The mock has no timing to model, so a busy read
+# raises ReadWouldWait whether it was asked to wait or not -- a real one would block until the other
+# holder let go, and a mock that blocked forever would hang a test, not teach it anything. No state
+# here refuses a command by policy: the mock holds none.
+
+STATES = ("answering", "absent", "busy")
+CONNECTION: dict[str, str] = {}
+
+
+class DeviceAbsent(RuntimeError):
+    """The channel was set absent: nothing answers it, so it cannot be opened, read or commanded."""
+
+
+def set_connection(channel_id: str, state: str) -> None:
+    if not isinstance(state, str) or state not in STATES:
+        raise ValueError(f"mock connection state {state!r} is not one of {STATES}")
+    if state == "answering":
+        CONNECTION.pop(str(channel_id), None)
+    else:
+        CONNECTION[str(channel_id)] = state
+
+
+def connection_of(channel_id: str) -> str:
+    return CONNECTION.get(str(channel_id), "answering")
+
+
+def _check_connection(channel_id: str, reading: bool = False) -> None:
+    state = connection_of(channel_id)
+    if state == "absent":
+        raise DeviceAbsent(f"mock: channel {channel_id!r} was set absent by a test; nothing answers")
+    if state == "busy" and reading:
+        raise ReadWouldWait(f"mock: channel {channel_id!r} was set busy by a test; its device is held "
+                            "by something else and this read does not take it")
+
 
 def open_for(channel_id: str) -> dict:
     """Open a channel's interface to read it (card 085). It sends nothing and takes no device lock.
@@ -479,6 +538,7 @@ def open_for(channel_id: str) -> dict:
     person's check-now list says so for; the mock keeps which are open so a test can tell that a
     channel that was opened was closed.
     """
+    _check_connection(channel_id)
     _OPEN.add(str(channel_id))
     return {"opened": True, "backend": "mock"}
 
@@ -513,6 +573,7 @@ def reset() -> None:
         _PROPS.clear()
         _HAND.clear()
         _OPEN.clear()
+        CONNECTION.clear()
         _SNAPS[0] = 0
     with _PIEZO_LOCK:
         _PIEZO.clear()
