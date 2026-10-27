@@ -1985,7 +1985,7 @@ def fixture_98_a_binding_digest_its_entry_does_not_record(repo: Path) -> str:
 
 
 def _line_store(repo: Path, change=None) -> str:
-    """Librarian card 063 (2026-10-27): a binding's line and step, and a calibration's conversion.
+    """Librarian card 064 (2026-10-27): a binding's line and step, and a calibration's conversion.
 
     `_binding_store` plus a light engine bound one line at a time: GREEN
     with a step read off the device and a calibration that converts watts
@@ -2411,7 +2411,7 @@ FIXTURES = [
      fixture_98_a_binding_digest_that_is_not_hex),
     (98, "FAIL", "the digest is a copy of the entry's",
      fixture_98_a_binding_digest_its_entry_does_not_record),
-    # librarian card 063 (2026-10-27): a binding's line and step, and a calibration's conversion form.
+    # librarian card 064 (2026-10-27): a binding's line and step, and a calibration's conversion form.
     (98, "PASS", "7 bindings and state words on 6 device rows are copies of their cited entries, and 1 conversion follows",
      fixture_98_lines_steps_and_a_conversion_copied),
     (98, "FAIL", "a conversion serves a binding",
