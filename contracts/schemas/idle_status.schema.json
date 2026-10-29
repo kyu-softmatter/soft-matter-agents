@@ -37,8 +37,10 @@
                 "plan",
                 "live_view",
                 "check_now",
-                "preparatory"
-              ]
+                "preparatory",
+                "lights_off"
+              ],
+              "description": "lights_off: the host's run of its own kind for a lights-off request outside a run (run_interface.schema.json lights_off_request); a lights-off during a run is that run's stop and leaves the run's own kind"
             },
             "ended_at": {
               "type": "string",

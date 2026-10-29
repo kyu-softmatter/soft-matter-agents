@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "run_interface.schema.json",
   "title": "run_interface -- what the microscope runtime writes and answers, and what the console reads and sends (plan.md 15)",
-  "description": "The interface between the run (the orchestrator and the live-view host, in the microscope boundary) and whatever follows a run from outside it (the console, its own boundary from plan.md 15). It is pinned here, in contracts/, because writer and reader now sit in two folders held by two seats, and plan.md 14's rule that a change to the run_started keys updates the console and its tests in the same commit could only be kept by one seat holding both. A change is now two commits that meet here: this file first, then each side's code and tests. BOTH SIDES' TESTS READ THIS FILE. Every $defs entry carries `examples`, which a conforming writer may produce and a conforming reader must accept, and `x_refused`, instances the receiving side must refuse; `x_max_bytes` is the longest message, newline included, the receiver reads. Taken from what the code does at 1957cb6d, not designed anew: microscope_agent/src/orchestrator.py (begin_run, end_run, _StopChannel and _stop_request, _FrameTap) and microscope_agent/src/live_view.py, read against the console's reader, microscope_agent/autofocus/src/dino_autofocus/agents/sma_run.py and sma_live.py. Written by manager-microscope-20261003-1 on 2026-10-17. NOT A WIDENING: every socket is loopback only, the stop channel can only stop, the frame tap only hands over the latest frame the run already acquired, and the live-view host only starts a list the person already approved, named by its sha256. Nothing here sets, moves or reads a device.",
+  "description": "The interface between the run (the orchestrator and the live-view host, in the microscope boundary) and whatever follows a run from outside it (the console, its own boundary from plan.md 15). It is pinned here, in contracts/, because writer and reader now sit in two folders held by two seats, and plan.md 14's rule that a change to the run_started keys updates the console and its tests in the same commit could only be kept by one seat holding both. A change is now two commits that meet here: this file first, then each side's code and tests. BOTH SIDES' TESTS READ THIS FILE. Every $defs entry carries `examples`, which a conforming writer may produce and a conforming reader must accept, and `x_refused`, instances the receiving side must refuse; `x_max_bytes` is the longest message, newline included, the receiver reads. Taken from what the code does at 1957cb6d, not designed anew: microscope_agent/src/orchestrator.py (begin_run, end_run, _StopChannel and _stop_request, _FrameTap) and microscope_agent/src/live_view.py, read against the console's reader, microscope_agent/autofocus/src/dino_autofocus/agents/sma_run.py and sma_live.py. Written by manager-microscope-20261003-1 on 2026-10-17. NOT A WIDENING: every socket is loopback only, the stop channel can only stop, the frame tap only hands over the latest frame the run already acquired, and the live-view host only starts a list the person already approved, named by its sha256. Nothing here sets, moves or reads a device, with one exception added on 2026-10-29: lights_off_request asks the host to write the abort's power-down, which can only turn light off, through the one execution path, the run lock and the ownership check (plan.md 15.1 item 11, 27139a5a).",
   "$defs": {
     "address": {
       "type": "object",
@@ -800,6 +800,360 @@
           "run": "started",
           "run_id": "run-20261026-907",
           "bench": "x"
+        }
+      ]
+    },
+    "lights_off_request": {
+      "type": "object",
+      "description": "the fourth message the live-view host accepts (plan.md 15.1 item 11, the [Lights off] button; the person, 27139a5a): exactly this one key, set to true. It names no source, no value and no run, so it can only ask for less light. Outside a run the host starts a run of its own kind that takes the run lock without waiting, passes the ownership check, opens only the channels of the software-commandable light sources and writes the abort's power-down rows. During a run it is that run's stop: the host sends stop_request on the run's own stop channel, and the run's abort turns the lights off in the abort's order. It needs no approval and no bench hand-over, because it only reduces light, and it still goes through the one execution path. Anything else on this line, an extra key included, is refused",
+      "properties": {
+        "lights_off": {
+          "const": true
+        }
+      },
+      "required": [
+        "lights_off"
+      ],
+      "additionalProperties": false,
+      "x_max_bytes": 256,
+      "examples": [
+        {
+          "lights_off": true
+        }
+      ],
+      "x_refused": [
+        {
+          "lights_off": false
+        },
+        {
+          "lights_off": "true"
+        },
+        {
+          "lights_off": true,
+          "source": "widefield_source_a"
+        },
+        {
+          "lights_off": true,
+          "run_id": "run-20261029-901"
+        },
+        {
+          "lights_off": true,
+          "value": 0
+        },
+        {
+          "lights_on": true
+        }
+      ]
+    },
+    "light_source_row": {
+      "type": "object",
+      "description": "one light source as the power-down left it, one row per entry of the runtime's declared light-source table, derived from that run's power-down rows in events.jsonl and from nothing else. off: the off value was written and the device read it back equal. sent: written, and the device gave no read-back, so it is sent and NOT shown as off. not_turned_off: not written (not software-commandable, not opened, refused, raised) or read back different; the reason says which, and the page tells the person to use the switch on the device. Never off on what was sent alone (item 8)",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the source's name as the runtime's table gives it"
+        },
+        "channel": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "the registry channel the write routes through"
+        },
+        "result": {
+          "enum": [
+            "off",
+            "sent",
+            "not_turned_off"
+          ]
+        },
+        "read_back": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "what the device read back, as a string; null when nothing was read back"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "channel",
+        "result",
+        "read_back"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "off"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "read_back": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "sent"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "read_back": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "not_turned_off"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      ]
+    },
+    "lights_off_reply": {
+      "description": "sent once the lights-off is finished, so the reader waits long for it. done: the power-down ran, in a run of its own (as own_run) or as the abort of the run that was running (as run_stop), and run_id names whichever run's events.jsonl holds the rows; `sources` is one row per declared source, in the table's order. stop_sent: during a run the stop was sent and accepted, but that run's power-down rows were not read within the host's limit, so no source is claimed; the page points at that run. refused: nothing was sent to any device: the request was not exactly {\"lights_off\": true}, the lock was held by a run this host cannot name and stop, or the ownership check refused. The reason says which, as the host refuses its other requests, and the page says nothing was turned off by software",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "lights_off": {
+              "const": "done"
+            },
+            "as": {
+              "enum": [
+                "own_run",
+                "run_stop"
+              ]
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            },
+            "sources": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/light_source_row"
+              }
+            }
+          },
+          "required": [
+            "lights_off",
+            "as",
+            "run_id",
+            "sources"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "lights_off": {
+              "const": "stop_sent"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^run-[0-9]{8}-[0-9]{3}$"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "lights_off",
+            "run_id",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "lights_off": {
+              "const": "refused"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "lights_off",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "Aura III",
+              "channel": "widefield_source_a",
+              "result": "off",
+              "read_back": "0"
+            },
+            {
+              "source": "DiaLamp",
+              "channel": "stand_ti2e",
+              "result": "sent",
+              "read_back": null
+            },
+            {
+              "source": "optical tweezers",
+              "channel": "optical_tweezers",
+              "result": "not_turned_off",
+              "read_back": null,
+              "reason": "not software-controllable: the laser's power dial is the person's"
+            }
+          ]
+        },
+        {
+          "lights_off": "done",
+          "as": "run_stop",
+          "run_id": "run-20261029-902",
+          "sources": [
+            {
+              "source": "Aura III",
+              "channel": "widefield_source_a",
+              "result": "not_turned_off",
+              "read_back": "1",
+              "reason": "read back 1 after 0 was written"
+            }
+          ]
+        },
+        {
+          "lights_off": "stop_sent",
+          "run_id": "run-20261029-903",
+          "reason": "the run accepted the stop; its power-down rows were not in its log within the limit"
+        },
+        {
+          "lights_off": "refused",
+          "reason": "the run lock is held by a process this host cannot stop"
+        },
+        {
+          "lights_off": "refused",
+          "reason": "not the one lights-off request this host answers, {\"lights_off\": true}"
+        }
+      ],
+      "x_refused": [
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "DiaLamp",
+              "channel": "stand_ti2e",
+              "result": "off",
+              "read_back": null
+            }
+          ]
+        },
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "DiaLamp",
+              "channel": "stand_ti2e",
+              "result": "sent",
+              "read_back": "0"
+            }
+          ]
+        },
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "optical tweezers",
+              "channel": "optical_tweezers",
+              "result": "not_turned_off",
+              "read_back": null
+            }
+          ]
+        },
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": []
+        },
+        {
+          "lights_off": "done",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "Aura III",
+              "channel": "widefield_source_a",
+              "result": "off",
+              "read_back": "0"
+            }
+          ]
+        },
+        {
+          "lights_off": "done",
+          "as": "own_run",
+          "run_id": "run-20261029-901",
+          "sources": [
+            {
+              "source": "Aura III",
+              "channel": "widefield_source_a",
+              "result": "off",
+              "read_back": "0",
+              "power": 0
+            }
+          ]
+        },
+        {
+          "lights_off": "stop_sent",
+          "run_id": "run-20261029-903"
+        },
+        {
+          "lights_off": "refused"
+        },
+        {
+          "lights_off": "done"
         }
       ]
     }
