@@ -3805,6 +3805,12 @@ def check_38_one_table(b: Bundle) -> list[Finding]:
         known_names = {c["id"] for c in devices.get("channels", [])}
         known_names |= {e["id"] for c in devices.get("channels", [])
                         for e in (c.get("elements") or [])}
+        # A light engine is named by its model, exactly, and only once it carries
+        # a Micro-Manager label: its bindings sit under light_engines and not on
+        # widefield_source_a/b, because which source is which engine is an open
+        # gap (microscope card 102). Its label is not a plan word.
+        known_names |= {i["model"] for i in ((devices.get("light_engines") or {}).get("installed") or [])
+                        if isinstance(i, dict) and isinstance(i.get("model"), str) and i.get("mm_label")}
         approved_hashes = {a.data.get("plan_hash"): a.data.get("approved_by")
                            for a in b.of_kind("plan_approval")}
         for card in b.of_kind("plan"):
