@@ -252,6 +252,10 @@
         "sha256"
       ],
       "additionalProperties": false
+    },
+    "light_path_order": {
+      "$ref": "#/$defs/light_path_order",
+      "description": "optional until the runtime writes it (card 104); then written by every run"
     }
   },
   "required": [
@@ -349,6 +353,1102 @@
           }
         }
       ]
+    },
+    "light_path_order": {
+      "description": "the order of the stand's elements along each branch of the light path (plan.md 15.1 item 11), as the runtime read it from its envelope snapshot, written beside the elements here and as `light_path_order` in every `snapshot` event of events.jsonl in this same shape. The page reads it from those two places only. It commands nothing. not_in_snapshot: the snapshot holds no order, so the page draws no order and says why. read: the order, with the grade and the source the store gives it, as the store spells them; the page says the grade in words and, for a source that is a description, \"from a description, not checked on this microscope\". Both carry hand_set, the elements moved by hand with their slots by the registry's names, which comes from the registry and not from the order",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "not_in_snapshot"
+            },
+            "snapshot": {
+              "$ref": "#/$defs/file_ref"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hand_set": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "element": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$"
+                  },
+                  "channel": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_]+$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "the registry channel the element is reached through; null for an element with none (the polarizer, the eyepieces), which the page draws as \"no channel\""
+                  },
+                  "slots": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "description": "one position of an element moved by hand. name is the slot's word as the registry the run read gives it, null when the registry gives none. resolves is true only when the registry gives the slot a name and an entry for it, so a required-state selector naming it can be checked; otherwise false, with why, and the page shows the slot as one a plan cannot name and refuses it by that name",
+                      "properties": {
+                        "slot": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "resolves": {
+                          "type": "boolean"
+                        },
+                        "entry_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "why": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "slot",
+                        "name",
+                        "resolves"
+                      ],
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "resolves": {
+                                "const": true
+                              }
+                            },
+                            "required": [
+                              "resolves"
+                            ]
+                          },
+                          "then": {
+                            "required": [
+                              "entry_ref"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "else": {
+                            "required": [
+                              "why"
+                            ],
+                            "not": {
+                              "required": [
+                                "entry_ref"
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "element",
+                  "channel",
+                  "slots"
+                ],
+                "additionalProperties": false
+              },
+              "description": "the elements moved by hand, each with its slots by the registry's names; read from the registry the run read and not from the order, so it is written whether or not the snapshot holds an order"
+            }
+          },
+          "required": [
+            "status",
+            "snapshot",
+            "reason",
+            "hand_set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "read"
+            },
+            "snapshot": {
+              "$ref": "#/$defs/file_ref"
+            },
+            "entry_ref": {
+              "type": "string",
+              "minLength": 1,
+              "description": "the store entry that holds the order"
+            },
+            "grade": {
+              "enum": [
+                "E1",
+                "E2",
+                "E3",
+                "E4",
+                "E5"
+              ]
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "description": "the entry's source, as the store holds it"
+            },
+            "source_kind": {
+              "type": "string",
+              "pattern": "^[a-z_]+$",
+              "description": "the part of source before its first colon, as the store spells it; the page maps a kind to its words and shows a kind it does not know as unknown, never as observed"
+            },
+            "branches": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "description": "one branch of the light path. elements is in the order light meets them, as the order in the snapshot gives it, and the array's order is the only position there is. place_not_recorded lists the elements the order names for this branch without a place; they carry no position and the page never draws them into one",
+                "properties": {
+                  "branch": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$"
+                  },
+                  "elements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9_]+$"
+                        },
+                        "channel": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-z0-9_]+$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "the registry channel the element is reached through; null for an element with none (the polarizer, the eyepieces), which the page draws as \"no channel\""
+                        },
+                        "entry_ref": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": "the store entries this element's place cites, as the snapshot gives them"
+                        }
+                      },
+                      "required": [
+                        "element",
+                        "channel",
+                        "entry_ref"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "place_not_recorded": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "element": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9_]+$"
+                        },
+                        "channel": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-z0-9_]+$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "the registry channel the element is reached through; null for an element with none (the polarizer, the eyepieces), which the page draws as \"no channel\""
+                        },
+                        "entry_ref": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": "the store entries this element's place cites, as the snapshot gives them"
+                        }
+                      },
+                      "required": [
+                        "element",
+                        "channel",
+                        "entry_ref"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "branch",
+                  "elements",
+                  "place_not_recorded"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "hand_set": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "element": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$"
+                  },
+                  "channel": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_]+$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "the registry channel the element is reached through; null for an element with none (the polarizer, the eyepieces), which the page draws as \"no channel\""
+                  },
+                  "slots": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "description": "one position of an element moved by hand. name is the slot's word as the registry the run read gives it, null when the registry gives none. resolves is true only when the registry gives the slot a name and an entry for it, so a required-state selector naming it can be checked; otherwise false, with why, and the page shows the slot as one a plan cannot name and refuses it by that name",
+                      "properties": {
+                        "slot": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "resolves": {
+                          "type": "boolean"
+                        },
+                        "entry_ref": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "why": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "slot",
+                        "name",
+                        "resolves"
+                      ],
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "if": {
+                            "properties": {
+                              "resolves": {
+                                "const": true
+                              }
+                            },
+                            "required": [
+                              "resolves"
+                            ]
+                          },
+                          "then": {
+                            "required": [
+                              "entry_ref"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "else": {
+                            "required": [
+                              "why"
+                            ],
+                            "not": {
+                              "required": [
+                                "entry_ref"
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "element",
+                  "channel",
+                  "slots"
+                ],
+                "additionalProperties": false
+              },
+              "description": "the elements moved by hand, each with its slots by the registry's names; read from the registry the run read and not from the order, so it is written whether or not the snapshot holds an order"
+            }
+          },
+          "required": [
+            "status",
+            "snapshot",
+            "entry_ref",
+            "grade",
+            "source",
+            "source_kind",
+            "branches",
+            "hand_set"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "examples": [
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "not_in_snapshot",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "reason": "the snapshot holds no light-path order entry",
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "x_refused": [
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "position": 3
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e"
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": []
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E6",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name",
+                  "entry_ref": "filter_turret_1_slot_5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ]
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "not_in_snapshot",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        },
+        {
+          "status": "not_in_snapshot",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "reason": "the snapshot holds no light-path order entry"
+        }
+      ]
+    },
+    "file_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
     }
   }
 }
