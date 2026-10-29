@@ -52,7 +52,8 @@
 }
 
 .inst-part-draft,
-.inst-allowed {
+.inst-allowed,
+.inst-opened {
   border: 1px solid var(--line);
   padding: 8px;
 }
@@ -105,4 +106,25 @@
 .inst-banner {
   border-left: 3px solid var(--accent);
   padding-left: 8px;
+}
+
+.inst-opened {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.inst-opened ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.inst-current {
+  font-weight: bold;
+}
+
+.inst-changes ul {
+  margin: 0;
+  padding-left: 18px;
 }

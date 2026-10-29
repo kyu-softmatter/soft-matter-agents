@@ -3,82 +3,38 @@
  * parts software may command. A draft is an ordinary plan card, checked against the schema and saved nowhere.
  */
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
-import { type DraftIn, type LatestRun } from "./api";
-import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
-import { PathPanel, RunRefuses } from "./path";
+import { type LatestRun } from "./api";
+import { ChangesList, ChangesProvider } from "./changes";
+import { PartDraft, REFUSED_UNTIL_LIMIT } from "./partdraft";
 import { type DraftKind, MOVED_BY_HAND } from "./parts";
+import { PathPanel } from "./path";
+import { orderViewOf } from "./order";
 
-export const REFUSED_UNTIL_LIMIT = "Refused until you write a limit: your safety file has none for this part yet.";
+export { PartDraft, REFUSED_UNTIL_LIMIT };
 
-const DRAFT_LABEL: Record<DraftKind, string> = {
-  aura: "Aura III LED",
-  dialamp: "Transmitted lamp",
-  camera_exposure: "Camera red arm exposure",
-};
-
-/** The draft form of one part software may command. Every field is the person's; nothing is sent to an instrument. */
-export function PartDraft({ kind, label }: { kind: DraftKind; label: string }) {
-  const { draft, error, busy, make } = useDraft();
-  const [color, setColor] = useState("");
-  const [power, setPower] = useState("");
-  const [state, setState] = useState<"on" | "off">("on");
-  const [intensity, setIntensity] = useState("");
-  const [exposure, setExposure] = useState("");
-  const body = (): DraftIn => {
-    if (kind === "aura") return { kind, color, power_mw: num(power) };
-    if (kind === "dialamp") return { kind, state, intensity_percent: num(intensity) };
-    return { kind, exposure_ms: num(exposure) };
-  };
-  return (
-    <div role="group" aria-label={label} className="inst-part-draft">
-      <strong>{label}</strong>
-      <p className="console-muted">{REFUSED_UNTIL_LIMIT}</p>
-      <p className="console-muted"><RunRefuses aura={kind === "aura"} /></p>
-      <div className="inst-form">
-        {kind === "aura" && (
-          <>
-            <label className="inst-field">Colour<input type="text" value={color} onChange={(e) => setColor(e.target.value)} /></label>
-            <NumberField label="Power (mW)" value={power} onChange={setPower} />
-          </>
-        )}
-        {kind === "dialamp" && (
-          <>
-            <label className="inst-field">
-              State
-              <select value={state} onChange={(e) => setState(e.target.value === "off" ? "off" : "on")}>
-                <option value="on">on</option>
-                <option value="off">off</option>
-              </select>
-            </label>
-            <NumberField label="Intensity (%)" value={intensity} onChange={setIntensity} />
-          </>
-        )}
-        {kind === "camera_exposure" && <NumberField label="Exposure (ms)" value={exposure} onChange={setExposure} />}
-        <button type="button" disabled={busy} onClick={() => void make(body())}>{`Draft ${DRAFT_LABEL[kind]}`}</button>
-      </div>
-      <DraftError error={error} />
-      {draft !== undefined && <DraftView draft={draft} />}
-    </div>
-  );
-}
-
-/** Until a click opens an element's draft in place (card 023, part 3), the three drafts stay reachable here, below the drawing. */
+/** Until a source gives an order to click, the drafts stay reachable below the list, as card 017 left them. */
 const TRANSIENT: readonly { kind: DraftKind; label: string }[] = [
   { kind: "aura", label: "Aura III LED" },
   { kind: "dialamp", label: "Transmitted lamp" },
 ];
 
-export function Optics({ run }: { run: LatestRun }) {
+export function Optics({ run, onTab }: { run: LatestRun; onTab?: (tab: string) => void }) {
   const drafts = useRef<HTMLDivElement>(null);
+  const drawn = orderViewOf(run).state === "read";
   return (
-    <section aria-label="Optics and control" className="inst-optics">
-      <PathPanel run={run} onDraft={() => drafts.current?.focus()} />
-      <p className="console-muted">{MOVED_BY_HAND}</p>
-      <div ref={drafts} tabIndex={-1} role="group" aria-label="Drafts" className="inst-panel">
-        {TRANSIENT.map((t) => <PartDraft key={t.kind} kind={t.kind} label={t.label} />)}
-      </div>
-    </section>
+    <ChangesProvider onTab={onTab}>
+      <section aria-label="Optics and control" className="inst-optics">
+        <PathPanel run={run} onDraft={() => drafts.current?.focus()} />
+        <ChangesList />
+        <p className="console-muted">{MOVED_BY_HAND}</p>
+        {!drawn && (
+          <div ref={drafts} tabIndex={-1} role="group" aria-label="Drafts" className="inst-panel">
+            {TRANSIENT.map((t) => <PartDraft key={t.kind} kind={t.kind} label={t.label} />)}
+          </div>
+        )}
+      </section>
+    </ChangesProvider>
   );
 }

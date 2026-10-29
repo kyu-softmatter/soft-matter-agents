@@ -12,45 +12,30 @@
  * was not opened), "no channel" (it has none) or "not read", with the reason, and **never a value**.
  */
 
+import { useState } from "react";
+
 import type { LatestRun } from "./api";
+import { ClickPanel } from "./click";
+import { type Control, controlOf, handSetOf, lookup } from "./join";
 import {
   type HandSet, type KindTable, type OrderBranch, type OrderElement, type ReadOrder, bannerOf,
 } from "./order";
-import { BY_HAND_LABEL, type Element, Reading, RunRefuses, STATE_LABEL } from "./readout";
+import { BY_HAND_LABEL, Reading, RunRefuses, STATE_LABEL } from "./readout";
 
 export const NO_CONTROL = "control not given";
-
-type Found =
-  | { kind: "row"; row: Element }
-  | { kind: "none"; state: "no_channel" | "not_open" | "not_read"; reason: string };
 
 const NONE_LABEL: Record<"no_channel" | "not_open" | "not_read", string> = {
   no_channel: "no channel", not_open: "not open", not_read: "not read",
 };
 
-function lookup(el: OrderElement, run: LatestRun): Found {
-  const row = run.path.elements.find((r) => r.name === el.element && r.channel === el.channel);
-  if (row !== undefined) return { kind: "row", row };
-  if (el.channel === null) return { kind: "none", state: "no_channel", reason: "this element has no channel, so there is nothing to ask of it" };
-  const opened = run.channels?.rows.find((c) => c.channel === el.channel);
-  if (opened !== undefined && !opened.opened) {
-    return { kind: "none", state: "not_open", reason: opened.detail ?? `the run did not open the channel ${el.channel}` };
-  }
-  return { kind: "none", state: "not_read", reason: `the read-back names no element called ${el.element} on channel ${el.channel}` };
-}
-
-const isHand = (el: OrderElement, hand: HandSet[]) => hand.some((h) => h.element === el.element && h.channel === el.channel);
-
-function Control({ el, found, hand }: { el: OrderElement; found: Found; hand: HandSet[] }) {
-  if (isHand(el, hand) || (found.kind === "row" && found.row.control === "hand")) {
-    return <span className="inst-control" data-control="hand">{BY_HAND_LABEL}</span>;
-  }
-  if (found.kind === "row" && found.row.control === "draft") {
+function ControlLabel({ control }: { control: Control }) {
+  if (control.kind === "hand") return <span className="inst-control" data-control="hand">{BY_HAND_LABEL}</span>;
+  if (control.kind === "draft") {
     return (
       <>
         <span className="inst-control" data-control="draft">drafted</span>
         {" "}
-        <RunRefuses aura={found.row.draft === "aura"} />
+        <RunRefuses aura={control.part === "aura"} />
       </>
     );
   }
@@ -59,6 +44,8 @@ function Control({ el, found, hand }: { el: OrderElement; found: Found; hand: Ha
 
 function Item({ el, run, hand, join, hole }: { el: OrderElement; run: LatestRun; hand: HandSet[]; join: boolean; hole: string | null }) {
   const found = lookup(el, run);
+  const control = controlOf(el, found, hand);
+  const [opened, setOpened] = useState(false);
   return (
     <li data-drawn={el.element} data-hole={hole ?? undefined}>
       <span className="inst-name">{el.element}</span>
@@ -77,13 +64,16 @@ function Item({ el, run, hand, join, hole }: { el: OrderElement; run: LatestRun;
         </>
       )}
       {" · "}
-      <Control el={el} found={found} hand={hand} />
+      <ControlLabel control={control} />
       {hole !== null && <> · <span className="inst-hole">place not recorded</span></>}
       {" · "}
       <span className="inst-entry">
         entry{" "}
         {el.entry_ref.map((id, i) => <span key={id}>{i > 0 && ", "}<span className="inst-entry-id">{id}</span></span>)}
       </span>
+      {" "}
+      <button type="button" aria-label={`Open ${el.element}`} aria-expanded={opened} onClick={() => setOpened(!opened)}>{opened ? "close" : "open"}</button>
+      {opened && <ClickPanel el={el} found={found} control={control} hand={handSetOf(el, hand)} run={run} />}
       {join && <span className="inst-join" data-join="next" aria-hidden="true" />}
     </li>
   );

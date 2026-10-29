@@ -80,7 +80,7 @@ export default function InstrumentsScreen() {
           const view = d.status.state === "present" && d.status.data ? idleView(d.status.data) : null;
           switch (tab) {
             case "optics":
-              return <Optics run={d.run} />;
+              return <Optics run={d.run} onTab={setRest} />;
             case "cameras":
               return <Cameras run={d.run} isPerson={d.isPerson} />;
             case "tweezers":

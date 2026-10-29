@@ -57,6 +57,22 @@ part 1; its README says where it came from and gives both hashes). It is data: a
 replicated and not copied whole, carrying no fact or number into a card or the drawing. Nothing serves, builds or
 imports it, and no source file names the folder.
 
+**A click opens an element and offers only what the rules already allow** (card 023, part 3):
+
+- **A drafted element** (the Aura LED, the transmitted lamp, the red camera's exposure) opens its draft fields in place,
+  with the refusal notice, and no link to another tab. The red camera is found by its channel; the lamp and the Aura keep
+  the draft the read-back's row names.
+- **A part moved by hand** opens the slot list the order gives, by the store's names, with the slot the read-back shows
+  marked as read. Choosing a slot adds a **required state**, not a command: it is shown at the bench hand-over and set
+  by hand, and software never writes it. A slot a plan cannot name is refused, naming the word and why. With no slots
+  given, the click says the slot list is not given and offers nothing.
+- **The laser combiner and the trap** open to say why they have no control, with what was last sent in the run's events.
+- **No click offers** a laser line, a power, a level beyond the three drafts, or a software move of a hand-moved part.
+- **An element with a section tab** links to it. The page's table is keyed by channel and by exact match, and changes only
+  what a click on an order-named element offers; a channel the table does not hold gets no link and the plain words.
+- **Changes collect in one list**, "These changes will be made:", in the order added, each removable, kept only on this
+  screen. Nothing is requested while the page renders, an element is opened or a slot is chosen.
+
 A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
 transmitted lamp (state and intensity) and the red camera's exposure. Each says **refused until you write a
 limit**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close

@@ -7,6 +7,7 @@ import { fakeTransport } from "../../test/fakes";
 import { PATHS as QPATHS } from "../questions/api";
 import schema from "../../../../../contracts/schemas/idle_status.schema.json";
 import { PATHS } from "./api";
+import { ChangesProvider } from "./changes";
 import type { LatestRun } from "./api";
 import InstrumentsScreen from "./index";
 import { type KindTable, DESCRIPTION_WORDS } from "./order";
@@ -84,7 +85,7 @@ function panelOf(run: LatestRun, kinds?: KindTable) {
   clients.push(client);
   const ui = (r: LatestRun) => (
     <ClientProvider client={client}>
-      <PathPanel run={r} onDraft={() => undefined} kinds={kinds} />
+      <ChangesProvider><PathPanel run={r} onDraft={() => undefined} kinds={kinds} /></ChangesProvider>
     </ClientProvider>
   );
   const out = render(ui(run));
@@ -278,7 +279,7 @@ describe("the banner", () => {
     seen.entry_ref = "light_path_order_observed_20261101";
     seen.source = "an observation at the stand";
     seen.branches = [{ branch: "observed_branch", elements: [{ element: "only_observed", channel: null, entry_ref: ["an_entry"] }], place_not_recorded: [] }];
-    view.rerender(<ClientProvider client={clients[0]}><PathPanel run={readRun(seen)} onDraft={() => undefined} kinds={KNOWN_OBSERVED} /></ClientProvider>);
+    view.rerender(<ClientProvider client={clients[0]}><ChangesProvider><PathPanel run={readRun(seen)} onDraft={() => undefined} kinds={KNOWN_OBSERVED} /></ChangesProvider></ClientProvider>);
     expect(screen.queryByText(DESCRIPTION_WORDS)).toBeNull();
     const banner = document.querySelector("[data-banner]") as HTMLElement;
     expect(banner.getAttribute("data-banner")).toBe("observed");
