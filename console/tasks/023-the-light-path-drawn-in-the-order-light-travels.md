@@ -147,6 +147,16 @@ markup or text taken from the file.
   - "no channel" for an element with none, such as the polarizer or the
     eyepieces.
   - No value is invented for either.
+- **An element is found in the read-back by exact match** of the order's
+  element and channel against the read-back row's name and channel. The
+  page never translates one name into another, and holds no table of
+  names. Where the runtime keys a channel's read-back by a device's own
+  label (the lamp and the Aura, as `DiaLamp` and `Aura` on
+  `widefield_source_b`), no order id can match it, because the shape's
+  ids are lower case. Such an element reads "not read" until the runtime
+  writes, beside each order element, the name and channel its read-back
+  uses. That is the runtime's to write, from the registry it read, and
+  the page waits for it.
 - **Lines show order, never light.** A line joins two neighbours in the
   order. No line is drawn lit, coloured by whether a source is on, or
   ending in a detector as if light arrives there. Which camera a splitter
@@ -198,6 +208,25 @@ it.
   says so.
 - **An element with a section tab** (the cameras, the tweezers, the
   confocal unit, the piezo) also shows a link to that tab.
+- **What a click offers may come from one table in the console's code,
+  keyed by channel and never by element.** It names the channels whose
+  click opens a draft form (the red camera, for its exposure), the
+  channels with no control (the laser combiner and the trap), and the
+  channels with a section tab.
+  - A key is matched exactly. Nothing in the table is keyed by an
+    element, a branch, a place or a slot.
+  - It changes only what a click on an element the order already names
+    offers. It draws nothing, and adds no element, line or position.
+  - Each key is a device id in `contracts/capabilities/microscope.json`.
+    A key that file does not hold (the piezo stage) is named in the test,
+    with why it is there.
+  - A draft form it names is one the server's draft list holds, and the
+    test reads that list from the server's models or the generated
+    types, never from a copy.
+  - The Aura and the lamp keep the draft the server's row gives them.
+  - An element with no channel, or on a channel the table does not hold,
+    gets no tab link and the plain words for its control.
+  - The words for "no control" and "moved by hand" are 017's, unchanged.
 
 ## Part 4 — the changes list and [Apply] (the list with part 3; signing waits)
 
