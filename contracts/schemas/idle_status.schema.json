@@ -462,12 +462,39 @@
                         }
                       ]
                     }
+                  },
+                  "read_back": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "channel": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "channel",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "where this element's read-back row is in a snapshot: the channel whose snapshot carries it and the key it carries it under, exactly as the snapshot spells it (a registry id such as nosepiece, or a Micro-Manager label such as DiaLamp). Written by the runtime from the registry and the backend it read, never derived by the page. The page joins an element to a row on this pair and nothing else; null means the element has no read-back row, and the page shows it as not read back rather than matching on the element id"
                   }
                 },
                 "required": [
                   "element",
                   "channel",
-                  "slots"
+                  "slots",
+                  "read_back"
                 ],
                 "additionalProperties": false
               },
@@ -555,12 +582,39 @@
                             "minLength": 1
                           },
                           "description": "the store entries this element's place cites, as the snapshot gives them"
+                        },
+                        "read_back": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "channel": {
+                                  "type": "string",
+                                  "pattern": "^[a-z0-9_]+$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "channel",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "where this element's read-back row is in a snapshot: the channel whose snapshot carries it and the key it carries it under, exactly as the snapshot spells it (a registry id such as nosepiece, or a Micro-Manager label such as DiaLamp). Written by the runtime from the registry and the backend it read, never derived by the page. The page joins an element to a row on this pair and nothing else; null means the element has no read-back row, and the page shows it as not read back rather than matching on the element id"
                         }
                       },
                       "required": [
                         "element",
                         "channel",
-                        "entry_ref"
+                        "entry_ref",
+                        "read_back"
                       ],
                       "additionalProperties": false
                     }
@@ -594,12 +648,39 @@
                             "minLength": 1
                           },
                           "description": "the store entries this element's place cites, as the snapshot gives them"
+                        },
+                        "read_back": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "channel": {
+                                  "type": "string",
+                                  "pattern": "^[a-z0-9_]+$"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "channel",
+                                "name"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "where this element's read-back row is in a snapshot: the channel whose snapshot carries it and the key it carries it under, exactly as the snapshot spells it (a registry id such as nosepiece, or a Micro-Manager label such as DiaLamp). Written by the runtime from the registry and the backend it read, never derived by the page. The page joins an element to a row on this pair and nothing else; null means the element has no read-back row, and the page shows it as not read back rather than matching on the element id"
                         }
                       },
                       "required": [
                         "element",
                         "channel",
-                        "entry_ref"
+                        "entry_ref",
+                        "read_back"
                       ],
                       "additionalProperties": false
                     }
@@ -705,12 +786,39 @@
                         }
                       ]
                     }
+                  },
+                  "read_back": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "channel": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "channel",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "where this element's read-back row is in a snapshot: the channel whose snapshot carries it and the key it carries it under, exactly as the snapshot spells it (a registry id such as nosepiece, or a Micro-Manager label such as DiaLamp). Written by the runtime from the registry and the backend it read, never derived by the page. The page joins an element to a row on this pair and nothing else; null means the element has no read-back row, and the page shows it as not read back rather than matching on the element id"
                   }
                 },
                 "required": [
                   "element",
                   "channel",
-                  "slots"
+                  "slots",
+                  "read_back"
                 ],
                 "additionalProperties": false
               },
@@ -750,14 +858,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -766,7 +879,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -788,7 +902,11 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -816,7 +934,11 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         }
@@ -841,14 +963,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -858,7 +985,8 @@
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
                   ],
-                  "position": 3
+                  "position": 3,
+                  "read_back": null
                 }
               ]
             }
@@ -879,66 +1007,12 @@
                   "name": null,
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "status": "read",
-          "snapshot": {
-            "path": "microscope_agent/envelope/snapshot.json",
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-          },
-          "entry_ref": "light_path_order_from_description_20261016",
-          "grade": "E4",
-          "source": "operator_statement: the person's description at the stand, 2026-10-16",
-          "source_kind": "operator_statement",
-          "branches": [
-            {
-              "branch": "transmitted",
-              "elements": [
-                {
-                  "element": "dia_lamp",
-                  "channel": "stand_ti2e"
-                },
-                {
-                  "element": "polarizer",
-                  "channel": null,
-                  "entry_ref": [
-                    "light_path_order_from_description_20261016"
-                  ]
                 }
               ],
-              "place_not_recorded": [
-                {
-                  "element": "intermediate_magnification",
-                  "channel": "stand_ti2e",
-                  "entry_ref": [
-                    "light_path_order_from_description_20261016"
-                  ]
-                }
-              ]
-            }
-          ],
-          "hand_set": [
-            {
-              "element": "filter_turret_1",
-              "channel": "stand_ti2e",
-              "slots": [
-                {
-                  "slot": 0,
-                  "name": "five_band",
-                  "resolves": true,
-                  "entry_ref": "filter_turret_1_slot_0"
-                },
-                {
-                  "slot": 5,
-                  "name": null,
-                  "resolves": false,
-                  "why": "the registry gives slot 5 no name"
-                }
-              ]
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -959,14 +1033,18 @@
                 {
                   "element": "dia_lamp",
                   "channel": "stand_ti2e",
-                  "entry_ref": []
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -975,7 +1053,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -997,7 +1076,80 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
               ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1020,14 +1172,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -1036,7 +1193,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1058,7 +1216,11 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1080,14 +1242,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -1096,7 +1263,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1118,7 +1286,11 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1141,14 +1313,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -1157,7 +1334,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1178,7 +1356,11 @@
                   "name": null,
                   "resolves": false
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1201,14 +1383,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -1217,7 +1404,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1238,7 +1426,11 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1261,14 +1453,19 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
                 },
                 {
                   "element": "polarizer",
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ],
               "place_not_recorded": [
@@ -1277,7 +1474,8 @@
                   "channel": "stand_ti2e",
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1300,7 +1498,11 @@
                   "why": "the registry gives slot 5 no name",
                   "entry_ref": "filter_turret_1_slot_5"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
         },
@@ -1332,9 +1534,120 @@
                   "resolves": false,
                   "why": "the registry gives slot 5 no name"
                 }
-              ]
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
             }
           ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "not_in_snapshot",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        },
+        {
+          "status": "not_in_snapshot",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "reason": "the snapshot holds no light-path order entry"
         },
         {
           "status": "read",
@@ -1362,7 +1675,230 @@
                   "channel": null,
                   "entry_ref": [
                     "light_path_order_from_description_20261016"
-                  ]
+                  ],
+                  "read_back": null
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": {
+                    "name": "DiaLamp"
+                  }
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": ""
+                  }
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ]
+            }
+          ],
+          "hand_set": [
+            {
+              "element": "filter_turret_1",
+              "channel": "stand_ti2e",
+              "slots": [
+                {
+                  "slot": 0,
+                  "name": "five_band",
+                  "resolves": true,
+                  "entry_ref": "filter_turret_1_slot_0"
+                },
+                {
+                  "slot": 5,
+                  "name": null,
+                  "resolves": false,
+                  "why": "the registry gives slot 5 no name"
+                }
+              ],
+              "read_back": {
+                "channel": "stand_ti2e",
+                "name": "filter_turret_1"
+              }
+            }
+          ]
+        },
+        {
+          "status": "read",
+          "snapshot": {
+            "path": "microscope_agent/envelope/snapshot.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "entry_ref": "light_path_order_from_description_20261016",
+          "grade": "E4",
+          "source": "operator_statement: the person's description at the stand, 2026-10-16",
+          "source_kind": "operator_statement",
+          "branches": [
+            {
+              "branch": "transmitted",
+              "elements": [
+                {
+                  "element": "dia_lamp",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": {
+                    "channel": "stand_ti2e",
+                    "name": "DiaLamp"
+                  }
+                },
+                {
+                  "element": "polarizer",
+                  "channel": null,
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
+                }
+              ],
+              "place_not_recorded": [
+                {
+                  "element": "intermediate_magnification",
+                  "channel": "stand_ti2e",
+                  "entry_ref": [
+                    "light_path_order_from_description_20261016"
+                  ],
+                  "read_back": null
                 }
               ]
             }
@@ -1387,48 +1923,6 @@
               ]
             }
           ]
-        },
-        {
-          "status": "not_in_snapshot",
-          "snapshot": {
-            "path": "microscope_agent/envelope/snapshot.json",
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-          },
-          "hand_set": [
-            {
-              "element": "filter_turret_1",
-              "channel": "stand_ti2e",
-              "slots": [
-                {
-                  "slot": 0,
-                  "name": "five_band",
-                  "resolves": true,
-                  "entry_ref": "filter_turret_1_slot_0"
-                },
-                {
-                  "slot": 5,
-                  "name": null,
-                  "resolves": false,
-                  "why": "the registry gives slot 5 no name"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "status": "read",
-          "snapshot": {
-            "path": "microscope_agent/envelope/snapshot.json",
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-          }
-        },
-        {
-          "status": "not_in_snapshot",
-          "snapshot": {
-            "path": "microscope_agent/envelope/snapshot.json",
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-          },
-          "reason": "the snapshot holds no light-path order entry"
         }
       ]
     },

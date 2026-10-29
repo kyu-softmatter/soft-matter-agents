@@ -61,7 +61,19 @@ In `microscope_runtime/src/`:
    taken from the entry as the store spells them; `source_kind` is the part
    of `source` before its first colon. No code path outside the tests can
    produce `read` until the reader lands.
-5. **Nothing else changes.** No device is opened, read or written for this,
+5. **Every element and every `hand_set` entry carries `read_back`** (added
+   after the first issue of this card, when manager-console found the page
+   could not join the lamp or the Aura to their rows). It is
+   `{channel, name}`: the channel whose `snapshot` event carries the
+   element's read-back row, and the key that row is under, spelled exactly
+   as the snapshot spells it. For a stand element this is its registry id
+   (`nosepiece`). For a device that the Micro-Manager backend reports by
+   label, it is that label (`DiaLamp`, `Aura`), taken from the registry's
+   `mm_label`. It is `null` when no snapshot row exists for the element. The
+   page joins on this pair and nothing else, so it must hold on the backend
+   the run actually used. Do not assume that `channel` and `read_back.channel`
+   are the same: write whatever the snapshot code does.
+6. **Nothing else changes.** No device is opened, read or written for this,
    and no limit is added. An element absent from the registry is still
    written by its id, with channel null if it has none.
 
@@ -76,7 +88,13 @@ In `microscope_runtime/src/`:
    no entry gives `resolves` false.
 4. The `read` assembly on a test order with a hole: the hole's element is in
    `place_not_recorded` and in no branch's `elements`. The output validates.
-5. The existing suite is unchanged. Name any test you change and say why.
+5. On a mock run, every order element and every `hand_set` entry whose
+   `read_back` is not null names a key of its `read_back.channel`'s snapshot
+   `elements` or `state`, in that run's own `snapshot` events, under exactly
+   `read_back.name`. Test it for the lamp, the Aura and one stand element
+   (the nosepiece), on the test order from test 4. A `read_back` that points
+   at a row the snapshot does not have fails the test.
+6. The existing suite is unchanged. Name any test you change and say why.
 
 ## Boundaries
 
@@ -88,5 +106,6 @@ In `microscope_runtime/src/`:
 ## What comes back
 
 To this seat, 4 lines at most: the commit; each test, watched failing, then
-passing; the suite's counts; and each hand-set element whose slots the
-registry could not name, by id.
+passing; the suite's counts; each hand-set element whose slots the
+registry could not name, by id; and, for the lamp and the Aura, the
+`read_back` pair your code wrote.
