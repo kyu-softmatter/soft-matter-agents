@@ -69,7 +69,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) | a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity illumination_power](../wiki/quantity_illumination_power.md) |
 | [trap_laser_power_at_sample_1064nm_4x_80pct](../entries/trap_laser_power_at_sample_1064nm_4x_80pct.json) | a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity illumination_power](../wiki/quantity_illumination_power.md) |
 
-## From a document, a reading off the instrument, or another project's record (E3): 238 entries
+## From a document, a reading off the instrument, or another project's record (E3): 251 entries
 
 | entry | source kind | grade and source as recorded | status | subject pages |
 |---|---|---|---|---|
@@ -220,6 +220,11 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [tweez_ventilation_must_not_be_blocked](../entries/tweez_ventilation_must_not_be_blocked.json) | manufacturer's specification | E3 · spec:Tweez300GeneralHardwareAndSafetyManual_v3_0_2022 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md) |
 | [tweez_warning_sign_carries_a_remote_interlock](../entries/tweez_warning_sign_carries_a_remote_interlock.json) | manufacturer's specification | E3 · spec:Tweez300LaserSafetyManual_v3_0_2022 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md) |
 | [abvigen_published_data_is_unreliable](../entries/abvigen_published_data_is_unreliable.json) | another project's record | E3 · prior_run:agentic-microscope@abvigen-verification-2026-09-06 | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [aura_cyan_intensity_binds_illumination_power](../entries/aura_cyan_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [aura_green_intensity_binds_illumination_power](../entries/aura_green_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [aura_nir_intensity_binds_illumination_power](../entries/aura_nir_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [aura_red_intensity_binds_illumination_power](../entries/aura_red_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [aura_uv_intensity_binds_illumination_power](../entries/aura_uv_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [bottle_label_states_no_product](../entries/bottle_label_states_no_product.json) | the person read it off the instrument | E3 · operator_read:kyuhwan_20260919_bottle | current | [sample particle_suspension_a](../wiki/sample_particle_suspension_a.md) |
 | [branch_selector_is_pinned_by_integer_not_label](../entries/branch_selector_is_pinned_by_integer_not_label.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [camera_bodies_are_told_apart_by_serial](../entries/camera_bodies_are_told_apart_by_serial.json) | another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | current | [device camera_blue](../wiki/device_camera_blue.md), [device camera_red](../wiki/device_camera_red.md) |
@@ -269,6 +274,14 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [laser_shutter_on_the_combiner](../entries/laser_shutter_on_the_combiner.json) | the person read it off the instrument | E3 · operator_read:kyuhwan_20260917 | current | [device laser_combiner](../wiki/device_laser_combiner.md), [device laser_shutter](../wiki/device_laser_shutter.md) |
 | [light_engine_line_intensity_is_per_mille](../entries/light_engine_line_intensity_is_per_mille.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [light_engine_master_state_gates_every_line](../entries/light_engine_master_state_gates_every_line.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_blue_intensity_binds_illumination_power](../entries/lightengine_blue_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_cyan_intensity_binds_illumination_power](../entries/lightengine_cyan_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_green_intensity_binds_illumination_power](../entries/lightengine_green_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_nir_intensity_binds_illumination_power](../entries/lightengine_nir_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_red_intensity_binds_illumination_power](../entries/lightengine_red_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_teal_intensity_binds_illumination_power](../entries/lightengine_teal_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_violet_intensity_binds_illumination_power](../entries/lightengine_violet_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
+| [lightengine_yellow_intensity_binds_illumination_power](../entries/lightengine_yellow_intensity_binds_illumination_power.json) | another project's record | E3 · prior_run:agentic-microscope@34a432c | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [live_view_degrades_timing](../entries/live_view_degrades_timing.json) | another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [lunf_analog_outputs_are_not_cabled_to_the_combiner](../entries/lunf_analog_outputs_are_not_cabled_to_the_combiner.json) | another project's record | E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light | current | [device laser_combiner](../wiki/device_laser_combiner.md), [device line_power](../wiki/device_line_power.md) |
 | [lunf_blanking_port_is_held_by_one_program](../entries/lunf_blanking_port_is_held_by_one_program.json) | another project's record | E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light | current | [device laser_combiner](../wiki/device_laser_combiner.md), [device line_select](../wiki/device_line_select.md) |
@@ -370,4 +383,4 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ---
 
-Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.

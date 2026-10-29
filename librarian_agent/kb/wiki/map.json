@@ -2937,8 +2937,8 @@
    "type": "supports"
   }
  ],
- "footer": "Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.",
- "kb_version": "kbv-058ce14eea72",
+ "footer": "Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.",
+ "kb_version": "kbv-d027f44dadc0",
  "nodes": [
   {
    "grade": "E3",
@@ -2990,6 +2990,20 @@
    "status": "current"
   },
   {
+   "grade": "E3",
+   "id": "entry:aura_cyan_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:aura_green_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
    "grade": "E1",
    "id": "entry:aura_green_intensity_runs_to_1000",
    "kind": "entry",
@@ -3004,10 +3018,31 @@
    "status": "current"
   },
   {
+   "grade": "E3",
+   "id": "entry:aura_nir_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:aura_red_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
    "grade": "E1",
    "id": "entry:aura_reports_five_named_lines",
    "kind": "entry",
    "source": "measured:run-20260924-002",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:aura_uv_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
    "status": "current"
   },
   {
@@ -3881,6 +3916,62 @@
   {
    "grade": "E3",
    "id": "entry:light_engine_master_state_gates_every_line",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_blue_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_cyan_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_green_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_nir_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_red_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_teal_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_violet_intensity_binds_illumination_power",
+   "kind": "entry",
+   "source": "prior_run:agentic-microscope@34a432c",
+   "status": "current"
+  },
+  {
+   "grade": "E3",
+   "id": "entry:lightengine_yellow_intensity_binds_illumination_power",
    "kind": "entry",
    "source": "prior_run:agentic-microscope@34a432c",
    "status": "current"

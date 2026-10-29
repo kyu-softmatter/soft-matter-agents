@@ -6,14 +6,14 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ## The store
 
-- version: kbv-058ce14eea72
-- entries: 339
+- version: kbv-d027f44dadc0
+- entries: 352
 - device pages: 28
 - quantity pages: 37
 - observable pages: 17
 - sample pages: 2
 - configuration pages: 1
-- entries with no subject: 55
+- entries with no subject: 68
 
 ## Other views
 
@@ -154,8 +154,8 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ## Unfiled
 
-- [unfiled entries](../wiki/unfiled.md) (55 entries)
+- [unfiled entries](../wiki/unfiled.md) (68 entries)
 
 ---
 
-Generated from the knowledge store at kbv-058ce14eea72. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.
