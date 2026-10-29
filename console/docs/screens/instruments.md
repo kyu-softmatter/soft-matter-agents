@@ -38,6 +38,12 @@ A picture of the stand in three rows, each part showing the reading of its chann
 channels is the LED and which the lamp is not recorded, so neither part takes either. Double-clicking a part
 opens the tab it belongs to (Light source, Filters, Magnification, Camera).
 
+**The look the drawing will follow** is the person's file, kept as a reference in `docs/light-path/` (card 023,
+part 1; its README says where it came from and gives both hashes). It is data: a reference mockup that is
+replicated and not copied whole, carrying no fact or number into a card or the drawing. Nothing serves, builds or
+imports it, and no source file names the folder. Where an element sits will come from the order the runtime
+writes, never from the copy. The stand picture above stays until the drawing replaces it (part 2).
+
 A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
 transmitted lamp (state and intensity) and the red camera's exposure. Each says **refused until you write a
 limit**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close

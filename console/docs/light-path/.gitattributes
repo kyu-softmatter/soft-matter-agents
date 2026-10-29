@@ -1,0 +1,5 @@
+# The person's light-path file (console card 023, part 1). Kept byte for byte: no
+# end-of-line conversion on checkout or commit, so the hash on disk equals the hash of
+# the committed blob on every computer (this one has core.autocrlf true; the export is LF).
+Main.dc.html -text
+canvas.json -text

@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Microscope light path</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F2F3EF;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#15181C}
+a{color:#1D64C8}a:hover{color:#134A96}
+button:focus-visible,input:focus-visible{outline:3px solid #1D64C8;outline-offset:2px}
+input[type=range]{accent-color:#15181C}
+</style>
+</helmet>
+<div style="box-sizing: border-box; width: 100%; max-width: 1760px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #15181C; background: #F2F3EF">
+
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5A6068">Nikon Ti2-E · inverted</div>
+<h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600">Microscope light path</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #C9CEC7; border-radius: 999px; background: #FFFFFF; font-size: 13px">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #9AA0A6"></span>
+<span>Live link: <b>offline</b></span>
+</div>
+<div style="font-size: 13px; color: #5A6068">Drawing only — nothing here moves the microscope.</div>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<span style="font-size: 13px; color: #5A6068">Presets</span>
+<div role="group" aria-label="Presets" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; background: #E3E6E0; border-radius: 12px">
+<sc-for list="{{presets}}" as="m" hint-placeholder-count="6">
+<button type="button" onClick="{{m.pick}}" style="min-height: 44px; padding: 0 14px; border: 0; border-radius: 9px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; background: transparent; color: #2A2F36">{{m.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-size: 13px; color: #3B4047">
+<span>Beam colour = wavelength · thickness and brightness = relative intensity</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 22px; height: 0; border-top: 3px dashed #B5267A"></span>1064 nm, invisible</span>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+<section aria-label="Light path diagram" style="flex: 999 1 760px; min-width: 0; overflow-x: auto; background: #FFFFFF; border: 1px solid #D5D9D2; border-radius: 16px">
+<div style="position: relative; width: 1472px; height: 1434px">
+
+<div style="position: absolute; left: 464px; top: 12px; width: 272px; height: 272px; box-sizing: border-box; border-radius: 14px; background: #F1F3EE; border: 1px solid #E2E5DF"></div>
+<div style="position: absolute; left: 472px; top: 500px; width: 264px; height: 616px; box-sizing: border-box; border-radius: 14px; background: #F1F3EE; border: 1px solid #E2E5DF"></div>
+<div style="position: absolute; left: 756px; top: 596px; width: 704px; height: 444px; box-sizing: border-box; border-radius: 14px; background: #F1F3EE; border: 1px solid #E2E5DF"></div>
+<div style="position: absolute; left: 40px; top: 772px; width: 426px; height: 650px; box-sizing: border-box; border-radius: 14px; background: #F1F3EE; border: 1px solid #E2E5DF"></div>
+<div style="position: absolute; left: 484px; top: 1136px; width: 292px; height: 226px; box-sizing: border-box; border-radius: 14px; background: #F1F3EE; border: 1px solid #E2E5DF"></div>
+<div style="position: absolute; left: 292px; top: 22px; width: 160px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6A7078">Transmitted light</div>
+<div style="position: absolute; left: 292px; top: 510px; width: 168px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6A7078">Microscope stand</div>
+<div style="position: absolute; left: 768px; top: 574px; width: 200px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6A7078">Epi illumination</div>
+<div style="position: absolute; left: 78px; top: 750px; width: 240px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6A7078">Confocal and cameras</div>
+<div style="position: absolute; left: 492px; top: 1370px; width: 200px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6A7078">Eyepiece output</div>
+
+<button type="button" onClick="{{pick.xy}}" style="position: absolute; left: 360px; top: 316px; width: 480px; height: 152px; box-sizing: border-box; padding: 4px 10px; display: flex; align-items: flex-start; justify-content: flex-start; text-align: left; border-radius: 12px; border: 2px solid {{k.xy.b}}; background: {{k.xy.f}}; color: {{k.xy.t}}; font-family: inherit; font-size: 13px; line-height: 18px; cursor: pointer"><span><b>XY motor stage</b> · coarse</span></button>
+<button type="button" onClick="{{pick.piezo}}" style="position: absolute; left: 400px; top: 352px; width: 400px; height: 108px; box-sizing: border-box; padding: 4px 10px; display: flex; align-items: flex-start; justify-content: flex-start; text-align: left; border-radius: 10px; border: 2px solid {{k.piezo.b}}; background: {{k.piezo.f}}; color: {{k.piezo.t}}; font-family: inherit; font-size: 13px; line-height: 18px; cursor: pointer"><span><b>Piezo stage</b> · 3-axis</span></button>
+
+<sc-for list="{{rails}}" as="b" hint-placeholder-count="0">
+<svg width="{{b.w}}" height="{{b.h}}" viewBox="{{b.vb}}" aria-hidden="true" style="position: absolute; left: {{b.x}}px; top: {{b.y}}px; width: {{b.w}}px; height: {{b.h}}px; overflow: visible; pointer-events: none; fill: none; stroke: #DADDD7; stroke-width: 2; stroke-linecap: round"><path d="{{b.p}}"></path></svg>
+</sc-for>
+<sc-for list="{{beams}}" as="b" hint-placeholder-count="0">
+<svg width="{{b.w}}" height="{{b.h}}" viewBox="{{b.vb}}" aria-hidden="true" style="position: absolute; left: {{b.x}}px; top: {{b.y}}px; width: {{b.w}}px; height: {{b.h}}px; overflow: visible; pointer-events: none; fill: none; stroke: {{b.c}}; stroke-width: {{b.sw}}; stroke-opacity: {{b.op}}; stroke-dasharray: {{b.d}}; stroke-linecap: round"><defs><marker id="{{b.mid}}" markerUnits="userSpaceOnUse" orient="auto" markerWidth="12" markerHeight="12" refX="2" refY="5" overflow="visible"><path d="M0 0 L10 5 L0 10 Z" style="fill: {{b.c}}; fill-opacity: {{b.op}}; stroke: none"></path></marker></defs><path d="{{b.p}}" marker-end="{{b.murl}}"></path></svg>
+</sc-for>
+
+<button type="button" onClick="{{pick.lamp}}" style="position: absolute; left: 480px; top: 24px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.lamp.b}}; background: {{k.lamp.f}}; color: {{k.lamp.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Transmitted lamp</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.lamp}}</span></span></button>
+<button type="button" onClick="{{pick.pol}}" style="position: absolute; left: 500px; top: 124px; width: 200px; height: 48px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.pol.b}}; background: {{k.pol.f}}; color: {{k.pol.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Polarizer</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.pol}}</span></span></button>
+<button type="button" onClick="{{pick.cond}}" style="position: absolute; left: 480px; top: 216px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.cond.b}}; background: {{k.cond.f}}; color: {{k.cond.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Condenser turret</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.cond}}</span></span></button>
+<button type="button" onClick="{{pick.sample}}" style="position: absolute; left: 500px; top: 388px; width: 200px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.sample.b}}; background: {{k.sample.f}}; color: {{k.sample.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Sample</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.sample}}</span></span></button>
+<button type="button" onClick="{{pick.obj}}" style="position: absolute; left: 480px; top: 512px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.obj.b}}; background: {{k.obj.f}}; color: {{k.obj.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Objective</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.obj}}</span></span></button>
+<button type="button" onClick="{{pick.t2}}" style="position: absolute; left: 480px; top: 612px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.t2.b}}; background: {{k.t2.f}}; color: {{k.t2.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Filter turret 2 · dichroic</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.t2}}</span></span></button>
+<button type="button" onClick="{{pick.em2}}" style="position: absolute; left: 600px; top: 704px; width: 120px; height: 44px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.em2.b}}; background: {{k.em2.f}}; color: {{k.em2.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Emission filter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.em2}}</span></span></button>
+<button type="button" onClick="{{pick.t1}}" style="position: absolute; left: 480px; top: 788px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.t1.b}}; background: {{k.t1.f}}; color: {{k.t1.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Filter turret 1 · dichroic</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.t1}}</span></span></button>
+<button type="button" onClick="{{pick.em1}}" style="position: absolute; left: 600px; top: 880px; width: 120px; height: 44px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.em1.b}}; background: {{k.em1.f}}; color: {{k.em1.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Emission filter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.em1}}</span></span></button>
+<button type="button" onClick="{{pick.ana}}" style="position: absolute; left: 500px; top: 964px; width: 200px; height: 44px; box-sizing: border-box; padding: 2px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.ana.b}}; background: {{k.ana.f}}; color: {{k.ana.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Analyzer</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.ana}}</span></span></button>
+<button type="button" onClick="{{pick.prism}}" style="position: absolute; left: 480px; top: 1048px; width: 240px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.prism.b}}; background: {{k.prism.f}}; color: {{k.prism.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Light path selector</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.prism}}</span></span></button>
+<button type="button" onClick="{{pick.rport}}" style="position: absolute; left: 780px; top: 1048px; width: 140px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.rport.b}}; background: {{k.rport.f}}; color: {{k.rport.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Right side port</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.rport}}</span></span></button>
+<button type="button" onClick="{{pick.knob}}" style="position: absolute; left: 500px; top: 1160px; width: 200px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.knob.b}}; background: {{k.knob.f}}; color: {{k.knob.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Eyepiece knob</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.knob}}</span></span></button>
+<button type="button" onClick="{{pick.eyes}}" style="position: absolute; left: 496px; top: 1290px; width: 120px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.eyes.b}}; background: {{k.eyes.f}}; color: {{k.eyes.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Eyepieces</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.eyes}}</span></span></button>
+<button type="button" onClick="{{pick.scam}}" style="position: absolute; left: 640px; top: 1290px; width: 120px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.scam.b}}; background: {{k.scam.f}}; color: {{k.scam.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Side camera</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.scam}}</span></span></button>
+
+<button type="button" onClick="{{pick.ex2}}" style="position: absolute; left: 770px; top: 616px; width: 130px; height: 48px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.ex2.b}}; background: {{k.ex2.f}}; color: {{k.ex2.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Excitation filter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.ex2}}</span></span></button>
+<button type="button" onClick="{{pick.sh2}}" style="position: absolute; left: 940px; top: 616px; width: 80px; height: 48px; box-sizing: border-box; padding: 2px 4px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.sh2.b}}; background: {{k.sh2.f}}; color: {{k.sh2.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Shutter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.sh2}}</span></span></button>
+<button type="button" onClick="{{pick.tweez}}" style="position: absolute; left: 1064px; top: 612px; width: 180px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.tweez.b}}; background: {{k.tweez.f}}; color: {{k.tweez.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Tweez 300 trap</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.tweez}}</span></span></button>
+<button type="button" onClick="{{pick.ex1}}" style="position: absolute; left: 770px; top: 792px; width: 130px; height: 48px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.ex1.b}}; background: {{k.ex1.f}}; color: {{k.ex1.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Excitation filter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.ex1}}</span></span></button>
+<button type="button" onClick="{{pick.sh1}}" style="position: absolute; left: 940px; top: 792px; width: 80px; height: 48px; box-sizing: border-box; padding: 2px 4px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.sh1.b}}; background: {{k.sh1.f}}; color: {{k.sh1.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Shutter</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.sh1}}</span></span></button>
+<button type="button" onClick="{{pick.lapp}}" style="position: absolute; left: 1064px; top: 788px; width: 160px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.lapp.b}}; background: {{k.lapp.f}}; color: {{k.lapp.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Lapp mirror</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.lapp}}</span></span></button>
+<button type="button" onClick="{{pick.aura}}" style="position: absolute; left: 1268px; top: 788px; width: 180px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.aura.b}}; background: {{k.aura.f}}; color: {{k.aura.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Aura III LED</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.aura}}</span></span></button>
+<button type="button" onClick="{{pick.dmd}}" style="position: absolute; left: 1084px; top: 888px; width: 120px; height: 48px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.dmd.b}}; background: {{k.dmd.f}}; color: {{k.dmd.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>DMD</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.dmd}}</span></span></button>
+<button type="button" onClick="{{pick.spectra}}" style="position: absolute; left: 1064px; top: 972px; width: 160px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.spectra.b}}; background: {{k.spectra.f}}; color: {{k.spectra.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Spectra III</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.spectra}}</span></span></button>
+
+<button type="button" onClick="{{pick.lunf}}" style="position: absolute; left: 76px; top: 788px; width: 200px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.lunf.b}}; background: {{k.lunf.f}}; color: {{k.lunf.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Laser combiner</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.lunf}}</span></span></button>
+<button type="button" onClick="{{pick.dport}}" style="position: absolute; left: 306px; top: 1052px; width: 120px; height: 48px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.dport.b}}; background: {{k.dport.f}}; color: {{k.dport.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Dichroic port</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.dport}}</span></span></button>
+<button type="button" onClick="{{pick.csu}}" style="position: absolute; left: 96px; top: 1048px; width: 160px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.csu.b}}; background: {{k.csu.f}}; color: {{k.csu.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Spinning disk</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.csu}}</span></span></button>
+<button type="button" onClick="{{pick.split}}" style="position: absolute; left: 76px; top: 1160px; width: 200px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.split.b}}; background: {{k.split.f}}; color: {{k.split.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Camera splitter</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.split}}</span></span></button>
+<button type="button" onClick="{{pick.w1}}" style="position: absolute; left: 56px; top: 1290px; width: 160px; height: 44px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.w1.b}}; background: {{k.w1.f}}; color: {{k.w1.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Emission wheel 1</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.w1}}</span></span></button>
+<button type="button" onClick="{{pick.w2}}" style="position: absolute; left: 298px; top: 1290px; width: 160px; height: 44px; box-sizing: border-box; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 8px; border: 2px solid {{k.w2.b}}; background: {{k.w2.f}}; color: {{k.w2.t}}; font-family: inherit; font-size: 13px; line-height: 16px; cursor: pointer"><span><b>Emission wheel 2</b><br><span style="font-size: 11px; opacity: 0.75">{{sub.w2}}</span></span></button>
+<button type="button" onClick="{{pick.cr}}" style="position: absolute; left: 56px; top: 1354px; width: 160px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.cr.b}}; background: {{k.cr.f}}; color: {{k.cr.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Camera · red arm</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.cr}}</span></span></button>
+<button type="button" onClick="{{pick.cb}}" style="position: absolute; left: 298px; top: 1354px; width: 160px; height: 56px; box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; border: 2px solid {{k.cb.b}}; background: {{k.cb.f}}; color: {{k.cb.t}}; font-family: inherit; font-size: 14px; line-height: 17px; cursor: pointer"><span><b>Camera · blue arm</b><br><span style="font-size: 12px; opacity: 0.75">{{sub.cb}}</span></span></button>
+
+<div style="position: absolute; left: 188px; top: 938px; width: 96px; font-size: 13px; line-height: 16px; color: #5A6068">optical fibre</div>
+<div style="position: absolute; left: 820px; top: 1160px; width: 560px; font-size: 13px; line-height: 18px; color: #5A6068">Click any part to see what is known about it and to change its settings. Arrows show the direction light travels; parallel arrows are separate lines shining together.</div>
+</div>
+</section>
+
+<aside style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-label="Selected component" style="background: #FFFFFF; border: 1px solid #D5D9D2; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5A6068">{{c.group}}</div>
+<h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">{{c.name}}</h2>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #3B4047">{{c.model}}</div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #2A2F36">{{c.role}}</p>
+<sc-if value="{{c.hasWarn}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 10px 12px; border-radius: 10px; background: #FBEDEF; color: #8A1C3A; font-size: 13px; line-height: 19px"><b>Safety · </b>{{c.warn}}</div>
+</sc-if>
+
+<sc-if value="{{c.hasCtl}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 12px; background: #F4F6F2">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #3B4047">Settings</div>
+<span style="font-size: 12px; color: #5A6068">changes the drawing only</span>
+</div>
+<sc-for list="{{c.srcs}}" as="sr" hint-placeholder-count="0">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{sr.lines}}" as="ln" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<button type="button" onClick="{{ln.pick}}" aria-pressed="{{ln.on}}" style="min-height: 44px; min-width: 96px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border-radius: 8px; border: 1px solid {{ln.bd}}; background: {{ln.bg}}; color: {{ln.fg}}; font-family: inherit; font-size: 13px; cursor: pointer"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{ln.c}}"></span>{{ln.label}}</button>
+<input type="range" min="0" max="100" step="5" value="{{ln.I}}" onChange="{{ln.set}}" aria-label="{{ln.aria}}" style="flex: 1 1 120px; min-width: 100px; opacity: {{ln.op}}">
+<span style="width: 44px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #3B4047">{{ln.I}}%</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<sc-for list="{{c.groups}}" as="g" hint-placeholder-count="1">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 13px; color: #3B4047">{{g.title}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{g.opts}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid {{p.bd}}; background: {{p.bg}}; color: {{p.fg}}; font-family: inherit; font-size: 13px; cursor: pointer">{{p.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6068">What is known</div>
+<sc-for list="{{c.facts}}" as="f" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid #ECEEE9">
+<div style="font-size: 14px; line-height: 20px; color: #15181C">{{f.v}}</div>
+<div style="font-size: 12px; color: #6A7078">{{f.src}}</div>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{c.hasStatus}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6068">Live status</div>
+<span style="font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #ECEEE9; color: #5A6068">not connected</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{c.status}}" as="st" hint-placeholder-count="2">
+<div style="padding: 8px 10px; border: 1px dashed #C9CEC7; border-radius: 8px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 12px; color: #5A6068">{{st.n}}</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #9AA0A6">—</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</section>
+
+<sc-if value="{{hasChecks}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Check this path" style="background: #FFF8EC; border: 1px solid #EBD3A6; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #6B4A0E">Check this path</h2>
+<sc-for list="{{checks}}" as="ch" hint-placeholder-count="2">
+<div style="font-size: 13px; line-height: 19px; color: #4A3A1A; padding-top: 8px; border-top: 1px solid #F0DFC0">{{ch.t}}</div>
+</sc-for>
+</section>
+</sc-if>
+
+</aside>
+</div>
+
+<section aria-label="All settings" style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 600">All settings</h2>
+<span style="font-size: 13px; color: #5A6068">In the order the light travels. Preview only — changes the drawing, not the microscope.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start">
+
+<section aria-label="Sample" style="background: #FFFFFF; border: 1px solid #D5D9D2; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600">Sample</h3>
+<div style="font-size: 13px; color: #5A6068">Fluorescent dyes and their peak wavelengths. They set the colour and strength of the emission arrows.</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5A6068">Sample name<input type="text" value="{{sampleName}}" onChange="{{setSampleName}}" placeholder="[sample name]" style="min-height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9CEC7; border-radius: 8px; font-family: inherit; font-size: 14px; color: #15181C"></label>
+<sc-for list="{{dyes}}" as="dy" hint-placeholder-count="1">
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid #ECEEE9">
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5A6068">Dye<input type="text" value="{{dy.name}}" onChange="{{dy.setName}}" style="min-height: 40px; min-width: 0; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9CEC7; border-radius: 8px; font-family: inherit; font-size: 14px; color: #15181C"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5A6068">Excitation nm<input type="number" value="{{dy.ex}}" onChange="{{dy.setEx}}" style="min-height: 40px; min-width: 0; box-sizing: border-box; padding: 0 8px; border: 1px solid #C9CEC7; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #15181C"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5A6068">Emission nm<input type="number" value="{{dy.em}}" onChange="{{dy.setEm}}" style="min-height: 40px; min-width: 0; box-sizing: border-box; padding: 0 8px; border: 1px solid #C9CEC7; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #15181C"></label>
+<button type="button" onClick="{{dy.remove}}" aria-label="{{dy.removeLabel}}" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9CEC7; border-radius: 8px; background: #FFFFFF; color: #3B4047; cursor: pointer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"><path d="M3 3 L13 13 M13 3 L3 13"></path></svg></button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: #5A6068">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: {{dy.exC}}"></span><span>excitation</span>
+<span style="width: 10px; height: 10px; border-radius: 50%; background: {{dy.emC}}"></span><span>emission</span>
+<span>· {{dy.note}}</span>
+</div>
+<div style="font-size: 12px; color: #6A7078">{{dy.src}}</div>
+</div>
+</sc-for>
+<button type="button" onClick="{{addDye}}" style="min-height: 44px; align-self: flex-start; padding: 0 14px; border: 1px dashed #9AA0A6; border-radius: 8px; background: #FFFFFF; font-family: inherit; font-size: 13px; color: #15181C; cursor: pointer">Add dye</button>
+</section>
+
+<section aria-label="Light sources" style="background: #FFFFFF; border: 1px solid #D5D9D2; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600">Light sources</h3>
+<div style="font-size: 13px; color: #5A6068">Each line on or off, with its own power. Relative, not measured.</div>
+</div>
+<sc-for list="{{sources}}" as="sr" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #ECEEE9">
+<div style="font-size: 14px; font-weight: 600">{{sr.name}}</div>
+<sc-for list="{{sr.lines}}" as="ln" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<button type="button" onClick="{{ln.pick}}" aria-pressed="{{ln.on}}" style="min-height: 44px; min-width: 96px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border-radius: 8px; border: 1px solid {{ln.bd}}; background: {{ln.bg}}; color: {{ln.fg}}; font-family: inherit; font-size: 13px; cursor: pointer"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{ln.c}}"></span>{{ln.label}}</button>
+<input type="range" min="0" max="100" step="5" value="{{ln.I}}" onChange="{{ln.set}}" aria-label="{{ln.aria}}" style="flex: 1 1 120px; min-width: 100px; opacity: {{ln.op}}">
+<span style="width: 44px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #3B4047">{{ln.I}}%</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</section>
+
+<sc-for list="{{deck}}" as="dk" hint-placeholder-count="3">
+<section aria-label="{{dk.title}}" style="background: #FFFFFF; border: 1px solid #D5D9D2; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600">{{dk.title}}</h3>
+<div style="font-size: 13px; color: #5A6068">{{dk.note}}</div>
+</div>
+<sc-for list="{{dk.groups}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 13px; color: #3B4047">{{g.title}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{g.opts}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid {{p.bd}}; background: {{p.bg}}; color: {{p.fg}}; font-family: inherit; font-size: 13px; cursor: pointer">{{p.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</section>
+</sc-for>
+
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":2600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({
+      sel: 'sample', obj: 2, sampleName: '',
+      dyes: [{ name: 'Flash Red (Bangs)', ex: '660', em: '690', src: "Supplier's published peaks" }]
+    }, this.preset('epi'));
+  }
+
+  preset(id) {
+    const base = {
+      lamp: { on: false, I: 60 }, trap: { on: false, I: 40 }, ln: {},
+      pol: false, ana: false, lapp: 'in', t1: 0, t2: 0, sh1: true, sh2: false, shComb: true, shCsu: true,
+      port: 'left', knob: 'eye', disk: 'out', split: 'red', wheel1: 4, wheel2: 6
+    };
+    const P = {
+      bf: { lamp: { on: true, I: 60 }, t1: 1, sh1: false, wheel1: 0 },
+      epi: { ln: { 'aura:RED': { on: true, I: 70 } } },
+      dmd: { ln: { 'spec:R': { on: true, I: 70 } }, lapp: 'out' },
+      both: { ln: { 'aura:RED': { on: true, I: 70 }, 'spec:R': { on: true, I: 70 } }, lapp: 'in' },
+      conf: { ln: { 'lun:640': { on: true, I: 60 } }, t1: 1, sh1: false, disk: 'in' },
+      trap: { lamp: { on: true, I: 50 }, trap: { on: true, I: 40 }, t1: 1, t2: 0, sh1: false, sh2: true, wheel1: 0 },
+      off: { sh1: false }
+    };
+    return Object.assign({}, base, P[id] || {});
+  }
+
+  renderVals() {
+    const st = this.state;
+    const SRC = {
+      inst: 'Confirmed at the microscope', dev: 'Read from the device', spec: "Maker's specification",
+      person: "The person's statement", memory: 'Recalled from memory, not yet checked', inferred: 'Inferred, not checked',
+      earlier: 'Seen on an earlier setup of this microscope', measured: 'Measured here', drawn: 'Drawn this way as an assumption'
+    };
+
+    const wlColor = (w) => {
+      if (w >= 900) return '#B5267A';
+      const S = [[380, 110, 40, 170], [420, 92, 52, 206], [455, 44, 92, 214], [485, 22, 150, 196], [515, 36, 150, 72], [550, 110, 160, 24],
+        [575, 184, 150, 14], [600, 214, 118, 20], [630, 214, 70, 34], [665, 190, 34, 34], [700, 140, 28, 32], [800, 92, 24, 30]];
+      if (!(w > S[0][0])) return 'rgb(110,40,170)';
+      for (let i = 1; i < S.length; i++) {
+        if (w <= S[i][0]) {
+          const a = S[i - 1], b = S[i], t = (w - a[0]) / (b[0] - a[0]);
+          return 'rgb(' + [1, 2, 3].map((j) => Math.round(a[j] + (b[j] - a[j]) * t)).join(',') + ')';
+        }
+      }
+      return 'rgb(92,24,30)';
+    };
+    const WHITE = '#8C7B4F';
+
+    const OBJ = [
+      { label: '4x', name: 'CFI Plan Apo λD 4X', na: '0.20', imm: 'dry', wd: '20 mm' },
+      { label: '10x', name: 'CFI Plan Apo λD 10X', na: '0.45', imm: 'dry', wd: '4 mm' },
+      { label: '20x', name: 'CFI Plan Apo λD 20X', na: '0.80', imm: 'dry', wd: '0.8 mm' },
+      { label: '40x W', name: 'CFI Apo λS 40XC WI', na: '1.25', imm: 'water, correction collar', wd: '0.16–0.2 mm' },
+      { label: '60x oil', name: 'CFI Plan Apo λD 60X Oil', na: '1.42', imm: 'oil', wd: '0.15 mm' },
+      { label: '100x oil', name: 'CFI Plan Apo λD 100X Oil', na: '1.45', imm: 'oil', wd: '0.13 mm' }
+    ];
+    const o = OBJ[st.obj];
+
+    const T1S = [
+      { kind: 'five', name: 'MXR00724 five-band' }, { kind: 'empty', name: 'empty' }, { kind: 'empty', name: 'empty' },
+      { kind: 'empty', name: 'empty' }, { kind: 'unknown', name: 'not recorded' }, { kind: 'unknown', name: 'not recorded' }
+    ];
+    const T2S = [
+      { kind: 'tweez', name: 'tweezers cube, IR blocking' }, { kind: 'unknown', name: 'not recorded' }, { kind: 'unknown', name: 'not recorded' },
+      { kind: 'unknown', name: 'not recorded' }, { kind: 'unknown', name: 'not recorded' }, { kind: 'unknown', name: 'not recorded' }
+    ];
+    const c1 = T1S[st.t1], c2 = T2S[st.t2];
+
+    const LINES = {
+      aura: [{ id: 'UV', wl: 385 }, { id: 'CYAN', wl: 475 }, { id: 'GREEN', wl: 550 }, { id: 'RED', wl: 635 }, { id: 'NIR', wl: 750 }],
+      spec: [{ id: 'V', wl: 395 }, { id: 'B', wl: 440 }, { id: 'C', wl: 470 }, { id: 'T', wl: 510 }, { id: 'G', wl: 555 }, { id: 'Y', wl: 575 }, { id: 'R', wl: 637 }, { id: 'NIR', wl: 748 }],
+      lun: [{ id: '405', wl: 405 }, { id: '488', wl: 488 }, { id: '561', wl: 561 }, { id: '640', wl: 640 }]
+    };
+    const L = (src, id) => st.ln[src + ':' + id] || { on: false, I: 60 };
+    const TRAP = { c: '#B5267A', d: '7 6', o: 1064 };
+
+    const SEG = {
+      L1: [640, 80, 640, 124, 1, 'lamp', 'pol'], L2: [640, 172, 640, 216, 1, 'pol', 'cond'], L3: [640, 272, 640, 388, 1, 'cond', 'sample'],
+      DN1: [640, 444, 640, 512, 1, 'sample', 'obj'], DN2: [640, 568, 640, 612, 1, 'obj', 't2'], DN3: [640, 668, 640, 704, 1, 't2', 'em2'],
+      DN4: [640, 748, 640, 788, 1, 'em2', 't1'], DN5: [640, 844, 640, 880, 1, 't1', 'em1'], DN6: [640, 924, 640, 964, 1, 'em1', 'ana'],
+      DN7: [640, 1008, 640, 1048, 1, 'ana', 'prism'],
+      UP1: [560, 512, 560, 444, 1, 'obj', 'sample'], UP2: [560, 612, 560, 568, 1, 't2', 'obj'], UP3: [560, 788, 560, 668, 1, 't1', 't2'],
+      UP4: [560, 964, 560, 844, 1, 'ana', 't1'], UP5: [560, 1048, 560, 1008, 1, 'prism', 'ana'],
+      TW1: [1064, 640, 1020, 640, 1, 'tweez', 'sh2'], TW2: [940, 640, 900, 640, 1, 'sh2', 'ex2'], TW3: [770, 640, 720, 640, 1, 'ex2', 't2'],
+      LA1: [1064, 816, 1020, 816, 1, 'lapp', 'sh1'], LA2: [940, 816, 900, 816, 1, 'sh1', 'ex1'], LA3: [770, 816, 720, 816, 1, 'ex1', 't1'],
+      AU: [1268, 816, 1224, 816, 1, 'aura', 'lapp'], SP1: [1144, 972, 1144, 936, 1, 'spectra', 'dmd'], SP2: [1144, 888, 1144, 844, 1, 'dmd', 'lapp'],
+      LUN: [176, 844, 176, 1048, 1, 'lunf', 'csu'],
+      CE1: [256, 1066, 306, 1066, 1, 'csu', 'dport'], CE2: [426, 1066, 480, 1066, 1, 'dport', 'prism'],
+      PE1: [480, 1086, 426, 1086, 1, 'prism', 'dport'], PE2: [306, 1086, 256, 1086, 1, 'dport', 'csu'],
+      RP: [720, 1076, 780, 1076, 1, 'prism', 'rport'], CS: [176, 1104, 176, 1160, 1, 'csu', 'split'],
+      SJ: [176, 1216, 176, 1250, 0, 'split', ''], SL: [176, 1250, 136, 1250, 0, '', ''], SR: [176, 1250, 378, 1250, 0, '', ''],
+      W1I: [136, 1250, 136, 1290, 1, '', 'w1'], W2I: [378, 1250, 378, 1290, 1, '', 'w2'],
+      C1: [136, 1334, 136, 1354, 1, 'w1', 'cr'], C2: [378, 1334, 378, 1354, 1, 'w2', 'cb'],
+      EY: [600, 1104, 600, 1160, 1, 'prism', 'knob'], KJ: [600, 1216, 600, 1250, 0, 'knob', ''], KL: [600, 1250, 556, 1250, 0, '', ''],
+      KR: [600, 1250, 700, 1250, 0, '', ''], E1: [556, 1250, 556, 1290, 1, '', 'eyes'], E2: [700, 1250, 700, 1290, 1, '', 'scam']
+    };
+    const SPREAD = { CE1: 16, CE2: 16, PE1: 16, PE2: 16, C1: 40, C2: 40 };
+
+    const B = {};
+    const add = (seg, bm, I) => {
+      if (!(I > 0.005)) return;
+      (B[seg] = B[seg] || []).push({ c: bm.c, d: bm.d || 'none', o: bm.o, I: Math.min(1, I) });
+    };
+
+    // ---------- excitation ----------
+    const atSample = [];
+    let wI = 0;
+    if (st.lamp.on) {
+      const lb = { c: WHITE, o: 0 };
+      let I = st.lamp.I / 100;
+      add('L1', lb, I);
+      if (st.pol) I *= 0.4;
+      add('L2', lb, I); add('L3', lb, I);
+      wI = I * 0.8;
+    }
+    const upFromT1 = (bm, I, wl) => {
+      add('UP3', bm, I);
+      I *= c2.kind === 'tweez' ? 0.9 : 1;
+      add('UP2', bm, I);
+      I *= 0.9;
+      add('UP1', bm, I);
+      if (I > 0.005) atSample.push({ wl: wl, I: I });
+    };
+
+    // Mirror in is the 50/50 mirror: half of each source. Out: the DMD path only.
+    const lappAura = st.lapp === 'in' ? 0.5 : 0;
+    const lappDmd = st.lapp === 'in' ? 0.5 : 1;
+    // Dichroic port between the light path selector and the spinning disk: slot 1 multi-band, 2 and 3 empty.
+    const DPORT = ['multi-band', 'empty', 'empty'];
+    const dpf = (st.dport || 0) === 0 ? 0.85 : 1;
+    const epi = [];
+    LINES.aura.forEach((l) => { const s = L('aura', l.id); if (s.on) { const I = s.I / 100; const bm = { c: wlColor(l.wl), o: l.wl }; add('AU', bm, I); epi.push({ bm: bm, wl: l.wl, I: I * lappAura }); } });
+    LINES.spec.forEach((l) => { const s = L('spec', l.id); if (s.on) { const I = s.I / 100; const bm = { c: wlColor(l.wl), o: l.wl + 0.5 }; add('SP1', bm, I); add('SP2', bm, I * 0.6); epi.push({ bm: bm, wl: l.wl, I: I * 0.6 * lappDmd }); } });
+    epi.forEach((e) => {
+      let I = e.I;
+      add('LA1', e.bm, I);
+      if (!st.sh1) return;
+      add('LA2', e.bm, I);
+      if (c1.kind === 'five') I *= 0.8;
+      add('LA3', e.bm, I);
+      if (c1.kind !== 'five') return;
+      upFromT1(e.bm, I * 0.9, e.wl);
+    });
+
+    if (st.trap.on) {
+      let I = st.trap.I / 100;
+      add('TW1', TRAP, I);
+      if (st.sh2) {
+        add('TW2', TRAP, I); add('TW3', TRAP, I);
+        if (c2.kind === 'tweez') { I *= 0.9; add('UP2', TRAP, I); add('UP1', TRAP, I * 0.9); }
+      }
+    }
+
+    LINES.lun.forEach((l) => {
+      const s = L('lun', l.id);
+      if (!s.on || !st.shComb) return;
+      const bm = { c: wlColor(l.wl), o: l.wl + 0.2 };
+      let I = s.I / 100;
+      add('LUN', bm, I);
+      if (!st.shCsu) return;
+      I *= st.disk === 'in' ? 0.5 : 1;
+      add('CE1', bm, I);
+      I *= dpf;
+      add('CE2', bm, I);
+      I *= st.port === 'left' ? 1 : st.port === 'split' ? 0.8 : 0;
+      add('UP5', bm, I);
+      if (st.ana) I *= 0.4;
+      add('UP4', bm, I);
+      if (c1.kind === 'five') I = 0;
+      upFromT1(bm, I, l.wl);
+    });
+
+    // ---------- emission: one arrow per dye, plus transmitted light ----------
+    const passBands = (wl, bands) => bands.reduce((m, b) => Math.max(m, 0.9 * Math.max(0, Math.min(1, 1 - Math.max(0, Math.abs(wl - b[0]) - b[1]) / 25))), 0);
+    const FIVE = [[440, 20], [520.5, 20], [606, 20], [694, 20], [808.5, 20]];
+    const WHEEL = [
+      { label: 'Quad', bands: [[432, 18], [515, 15], [595, 15.5], [680, 21]], w: 0.5 }, { label: '432/36', bands: [[432, 18]], w: 0.2 },
+      { label: '515/30', bands: [[515, 15]], w: 0.2 }, { label: '595/31', bands: [[595, 15.5]], w: 0.2 }, { label: '680/42', bands: [[680, 21]], w: 0.2 },
+      { label: 'Blocked', bands: [], w: 0 }, { label: 'Open', bands: null, w: 1 }
+    ];
+    const wsel = WHEEL[st.wheel1] || WHEEL[0];
+    const wsel2 = WHEEL[st.wheel2] || WHEEL[6];
+    const wheelPass = (ws, wl) => ws.bands === null ? 1 : wl == null ? ws.w : passBands(wl, ws.bands);
+    const tdown = (kind) => (kind === 'five' || kind === 'tweez') ? 0.9 : 1;
+    const emf = (kind, wl) => {
+      if (kind === 'five') return wl == null ? 0.4 : passBands(wl, FIVE);
+      if (kind === 'tweez') return 0.9;
+      return 1;
+    };
+
+    const downs = [];
+    if (wI > 0.005) downs.push({ key: 'w', c: WHITE, wl: null, I: wI, o: 0 });
+    const dyeEx = [];
+    st.dyes.forEach((d, di) => {
+      const ex = Number(d.ex), em = Number(d.em);
+      let e = 0;
+      if (ex > 0) atSample.forEach((a) => { e += a.I * Math.exp(-Math.pow((a.wl - ex) / 40, 2)); });
+      dyeEx[di] = e;
+      const I = e * 0.35;
+      if (em > 0 && I > 0.005) downs.push({ key: 'd' + di, c: wlColor(em), wl: em, I: Math.min(1, I), o: em });
+    });
+
+    const camR = {}, camB = {}, seen = { eyes: 0, scam: 0 };
+    downs.forEach((dn) => {
+      let I = dn.I;
+      const bm = { c: dn.c, o: dn.o };
+      add('DN1', bm, I); add('DN2', bm, I);
+      I *= tdown(c2.kind); add('DN3', bm, I);
+      I *= emf(c2.kind, dn.wl); add('DN4', bm, I);
+      I *= tdown(c1.kind); add('DN5', bm, I);
+      I *= emf(c1.kind, dn.wl); add('DN6', bm, I);
+      if (st.ana) I *= 0.4;
+      add('DN7', bm, I);
+      const toEye = st.port === 'eye' ? I : st.port === 'split' ? I * 0.2 : 0;
+      const toLeft = st.port === 'left' ? I : st.port === 'split' ? I * 0.8 : 0;
+      if (st.port === 'right') add('RP', bm, I);
+      if (toEye > 0.005) {
+        add('EY', bm, toEye); add('KJ', bm, toEye);
+        if (st.knob === 'eye') { add('KL', bm, toEye); add('E1', bm, toEye); seen.eyes += toEye; }
+        else { add('KR', bm, toEye); add('E2', bm, toEye); seen.scam += toEye; }
+      }
+      if (toLeft > 0.005) {
+        add('PE1', bm, toLeft);
+        const J0 = toLeft * dpf;
+        add('PE2', bm, J0);
+        const J = J0 * (st.disk === 'in' ? 0.5 : 1);
+        add('CS', bm, J); add('SJ', bm, J);
+        let jl = 0, jr = 0;
+        if (st.split === 'red') jl = J;
+        else if (st.split === 'blue') jr = J;
+        else if (dn.wl == null) { jl = J / 2; jr = J / 2; }
+        else if (dn.wl < 561) jr = J;
+        else jl = J;
+        if (jl > 0.005) {
+          add('SL', bm, jl); add('W1I', bm, jl);
+          const p = wheelPass(wsel, dn.wl) * jl;
+          add('C1', bm, p); if (p > 0.005) camR[dn.key] = p;
+        }
+        if (jr > 0.005) {
+          add('SR', bm, jr); add('W2I', bm, jr);
+          const q = wheelPass(wsel2, dn.wl) * jr;
+          add('C2', bm, q); if (q > 0.005) camB[dn.key] = q;
+        }
+      }
+    });
+
+    // ---------- geometry ----------
+    const geom = (sid, off, head) => {
+      const g = SEG[sid];
+      let x1 = g[0], y1 = g[1], x2 = g[2], y2 = g[3];
+      const vert = x1 === x2;
+      if (vert) { x1 += off; x2 += off; } else { y1 += off; y2 += off; }
+      let ex = x2, ey = y2;
+      if (head) { if (vert) ey = y2 - Math.sign(y2 - y1) * 9; else ex = x2 - Math.sign(x2 - x1) * 9; }
+      const Lx = Math.min(x1, x2) - 10, T = Math.min(y1, y2) - 10;
+      const W = Math.abs(x2 - x1) + 20, H = Math.abs(y2 - y1) + 20;
+      return { x: Lx, y: T, w: W, h: H, vb: '0 0 ' + W + ' ' + H, p: 'M ' + (x1 - Lx) + ' ' + (y1 - T) + ' L ' + (ex - Lx) + ' ' + (ey - T) };
+    };
+    const rails = Object.keys(SEG).map((sid) => geom(sid, 0, false));
+    const beams = [];
+    const activeCards = {};
+    let n = 0;
+    Object.keys(B).forEach((sid) => {
+      const list = B[sid].sort((a, b) => a.o - b.o);
+      const cnt = list.length;
+      const sp = cnt > 1 ? Math.min(7, (SPREAD[sid] || 60) / (cnt - 1)) : 0;
+      const head = SEG[sid][4] === 1;
+      if (SEG[sid][5]) activeCards[SEG[sid][5]] = true;
+      if (SEG[sid][6]) activeCards[SEG[sid][6]] = true;
+      list.forEach((bm, i) => {
+        n += 1;
+        const g = geom(sid, (i - (cnt - 1) / 2) * sp, head);
+        g.c = bm.c; g.d = bm.d;
+        g.sw = (1.5 + 5 * bm.I).toFixed(2);
+        g.op = (0.3 + 0.7 * Math.min(1, bm.I * 1.3)).toFixed(2);
+        g.mid = 'beam-head-' + n;
+        g.murl = head ? 'url(#beam-head-' + n + ')' : 'none';
+        beams.push(g);
+      });
+    });
+    if (atSample.length || wI > 0 || (B.UP1 || []).length) { activeCards.sample = true; activeCards.piezo = true; activeCards.xy = true; }
+
+    // ---------- components ----------
+    const PORTS = { eye: 'eyepieces', right: 'right port', split: '80% left · 20% eyes', left: 'left port, 100%' };
+    const SPLITS = { red: 'empty slot · red only', both: '561 dichroic · both', blue: 'mirror · blue only' };
+    const camTxt = (m) => { const ks = Object.keys(m); if (!ks.length) return 'no light'; return 'receiving · ' + Math.round(Math.max.apply(null, ks.map((x) => m[x])) * 100) + '%'; };
+    const linesOn = (src) => LINES[src].filter((l) => L(src, l.id).on).map((l) => l.id).join(' ');
+    const dyeNames = st.dyes.map((d) => d.name).filter((x) => x).join(', ');
+
+    const sub = {
+      lamp: st.lamp.on ? 'on · ' + st.lamp.I + '%' : 'off',
+      pol: st.pol ? 'in' : 'out',
+      cond: 'ND position',
+      sample: dyeNames || 'no dye listed',
+      obj: o.label + ' · NA ' + o.na,
+      t2: 'slot ' + (st.t2 + 1) + ' of 6 · ' + c2.name,
+      t1: 'slot ' + (st.t1 + 1) + ' of 6 · ' + c1.name,
+      em2: c2.kind === 'tweez' ? 'IR blocking' : c2.kind === 'empty' ? 'none' : '?',
+      em1: c1.kind === 'five' ? '5-band' : c1.kind === 'empty' ? 'none' : '?',
+      ex2: c2.kind === 'tweez' ? 'tweezers cube' : c2.kind === 'empty' ? 'none (empty slot)' : 'not recorded',
+      ex1: c1.kind === 'five' ? '5-band cube' : c1.kind === 'empty' ? 'none (empty slot)' : 'not recorded',
+      sh2: st.sh2 ? 'open' : 'closed',
+      sh1: st.sh1 ? 'open' : 'closed',
+      ana: st.ana ? 'in' : 'out',
+      prism: PORTS[st.port],
+      rport: 'nothing recorded',
+      knob: st.knob === 'eye' ? 'to eyepieces' : 'to side camera',
+      eyes: seen.eyes > 0.005 ? 'light' : 'dark',
+      scam: seen.scam > 0.005 ? 'light' : 'dark',
+      tweez: st.trap.on ? '1064 nm · ' + st.trap.I + '%' : '1064 nm · off',
+      lapp: st.lapp === 'in' ? 'in · 50/50' : 'out · DMD only',
+      aura: linesOn('aura') || 'off',
+      dmd: 'patterning',
+      spectra: linesOn('spec') || 'off',
+      lunf: linesOn('lun') ? linesOn('lun') + ' nm' : 'off',
+      csu: 'CSU-W1 · disk ' + st.disk,
+      dport: 'slot ' + ((st.dport || 0) + 1) + ' · ' + DPORT[st.dport || 0],
+      split: SPLITS[st.split],
+      w1: wsel.label,
+      w2: wsel2.label,
+      cr: camTxt(camR),
+      cb: camTxt(camB)
+    };
+
+    const COMP = {
+      lamp: { group: 'Transmitted light', name: 'Transmitted lamp', model: 'Nikon Ti2-E diascopic lamp',
+        role: 'Lights the sample from above for brightfield imaging.',
+        facts: [{ v: 'Reports on/off state and intensity.', s: 'dev' }, { v: 'With nothing set, it read off, intensity 2100 (24 Sep).', s: 'dev' }],
+        status: ['On / off', 'Intensity'], srcs: ['lamp'] },
+      pol: { group: 'Transmitted light', name: 'Polarizer', model: 'Not recorded',
+        role: 'Polarises the transmitted light. Used with the analyzer for polarisation or DIC contrast.',
+        facts: [{ v: 'Sits between the lamp and the condenser turret.', s: 'person' }], status: ['In / out'], ctl: ['pol'] },
+      cond: { group: 'Transmitted light', name: 'Condenser turret', model: 'Nikon Ti2-E condenser',
+        role: 'Shapes the transmitted light onto the sample.',
+        facts: [{ v: 'Sat at its first position, labelled ND, on 24 Sep.', s: 'dev' }], status: ['Position'] },
+      xy: { group: 'Stage', name: 'XY motor stage', model: 'Nikon Ti2-E motorised stage',
+        role: 'Coarse X and Y travel. The piezo stage, and the sample on it, ride on this stage.',
+        facts: [{ v: 'Mounted on the microscope body; the piezo stage is mounted on it.', s: 'person' }], status: ['X', 'Y'] },
+      piezo: { group: 'Stage', name: 'Piezo stage', model: 'SP-XYZ-600 · serial 107866',
+        role: 'Fine three-axis moves and focus. Rides on the XY motor stage; the sample is mounted on it.',
+        warn: 'Wrong piezo loop settings can damage the stage mechanically. They are never changed from here.',
+        facts: [{ v: 'One three-axis stage on controller NPC-6330.', s: 'dev' }], status: ['X', 'Y', 'Z'] },
+      sample: { group: 'Stage', name: 'Sample', model: st.sampleName || '[sample name]',
+        role: 'Mounted on the piezo stage. Enter its dyes in the Sample panel under All settings; they set the emission arrows.',
+        facts: st.dyes.map((d) => ({ v: (d.name || 'Unnamed dye') + ': excitation ' + (d.ex || '?') + ' nm, emission ' + (d.em || '?') + ' nm.', s: d.src ? null : 'person', raw: d.src || null }))
+          .concat([{ v: 'Sample temperature is not controlled; it follows the room.', s: 'person' }]), status: [] },
+      obj: { group: 'Nosepiece', name: 'Objective: ' + o.label, model: 'Nikon ' + o.name,
+        role: 'Six-position nosepiece. The objective delivers excitation to the sample and collects its light.',
+        facts: [
+          { v: 'NA ' + o.na + ', ' + o.imm + ', working distance ' + o.wd + '.', s: 'spec' },
+          { v: 'Positions: 4x, 10x, 20x, 40x water, 60x oil, 100x oil.', s: 'inst' },
+          { v: 'Changing objective invalidates the trap calibration.', s: 'person' }
+        ], status: ['Position', 'Pixel size'], ctl: ['obj'] },
+      t2: { group: 'Epi path · upper turret', name: 'Filter turret 2', model: 'Six cube slots',
+        role: 'Upper turret. The dichroic mirror of the cube in the path reflects the tweezers laser up to the objective.',
+        facts: [
+          { v: 'Slot 1 holds the tweezers cube with the IR-blocking emission filter.', s: 'person' },
+          { v: 'The stand labelled slot 1 "Empty" on 24 Sep, so the device’s slot names do not describe the cubes.', s: 'dev' },
+          { v: 'Slots 2–6 are not recorded.', s: 'inferred' },
+          { v: 'Six slots; the page counts them from 1, the device from 0.', s: 'person' }
+        ], status: ['Slot'], ctl: ['t2'] },
+      t1: { group: 'Epi path · lower turret', name: 'Filter turret 1', model: 'Six cube slots',
+        role: 'Lower turret, fed by the Lapp mirror. The dichroic mirror of the cube in the path reflects excitation up and passes emission down.',
+        facts: [
+          { v: 'Slot 1 holds the Nikon MXR00724 five-band cube (LED-DA/FI/TR/Cy5/Cy7-A).', s: 'person' },
+          { v: 'Slots 2–4 empty; slots 5–6 not recorded.', s: 'earlier' },
+          { v: 'The five-band cube blocks the confocal path; confocal needs an empty slot.', s: 'earlier' }
+        ], status: ['Slot'], ctl: ['t1'] },
+      ex1: { group: 'Epi path · lower turret', name: 'Excitation filter, turret 1', model: c1.name,
+        role: 'Cleans up the excitation light before the dichroic. Part of the cube in the selected slot.',
+        facts: [{ v: 'The five-band cube’s excitation bands are not recorded here.', s: 'inferred' }], status: [], ctl: ['t1'] },
+      em1: { group: 'Epi path · lower turret', name: 'Emission filter, turret 1', model: c1.name,
+        role: 'Below the dichroic. Passes the emission and blocks reflected excitation.',
+        facts: [{ v: 'The five-band cube passes bands near 440, 520, 606, 694 and 808 nm.', s: 'spec' }], status: [], ctl: ['t1'] },
+      ex2: { group: 'Epi path · upper turret', name: 'Excitation filter, turret 2', model: c2.name,
+        role: 'Filter in front of the upper turret, part of the cube in the selected slot.',
+        facts: [{ v: 'For the tweezers, the cube is supplied by the tweezers maker.', s: 'spec' }], status: [], ctl: ['t2'] },
+      em2: { group: 'Epi path · upper turret', name: 'Emission filter, turret 2', model: c2.name,
+        role: 'Below the dichroic of the upper turret.',
+        facts: [{ v: 'The tweezers cube’s blocking filters cut infrared toward the eyepieces to well below the safe limit.', s: 'spec' }], status: [], ctl: ['t2'] },
+      sh1: { group: 'Epi path · lower turret', name: 'Shutter, turret 1', model: 'Physical shutter',
+        role: 'Between the Lapp mirror and turret 1. Controlled on its own.',
+        facts: [{ v: 'Closed when set to 0.', s: 'person' }], status: ['Open / closed'], ctl: ['sh1'] },
+      sh2: { group: 'Epi path · upper turret', name: 'Shutter, turret 2', model: 'Physical shutter',
+        role: 'Between the tweezers and turret 2. Controlled on its own.',
+        facts: [{ v: 'Closed when set to 0.', s: 'person' }, { v: 'The turret shutter blocks the trap laser from the objective and eyepieces.', s: 'spec' }],
+        status: ['Open / closed'], ctl: ['sh2'] },
+      ana: { group: 'Output', name: 'Analyzer', model: 'Not recorded',
+        role: 'Second polariser, paired with the polarizer above the condenser.',
+        facts: [{ v: 'Sits below the filter turrets, above the light path selector.', s: 'person' }], status: ['In / out'], ctl: ['ana'] },
+      prism: { group: 'Output', name: 'Light path selector', model: 'Ti2-E optical path prism',
+        role: 'Sends the image to the eyepieces, a side port, or splits it.',
+        facts: [
+          { v: '1 eyepieces · 2 right port · 3 80% left / 20% eyepieces · 4 left port 100%.', s: 'spec' },
+          { v: 'Was on the left port, 100%, on 24 Sep.', s: 'dev' }
+        ], status: ['Position'], ctl: ['port'] },
+      knob: { group: 'Output', name: 'Eyepiece knob', model: 'Manual',
+        role: 'Sends the eyepiece light either to the eyepieces or to a small side camera.',
+        facts: [{ v: 'A knob on the eyepiece unit chooses eyepieces or side port.', s: 'person' }], status: ['Position'], ctl: ['knob'] },
+      eyes: { group: 'Output', name: 'Eyepieces', model: 'Ti2-E observation port', role: 'Direct viewing.',
+        warn: 'A hardware interlock blocks the trap laser at the eyepieces. Wear laser safety glasses whenever the trap is on.',
+        facts: [{ v: 'Reached through selector positions 1 or 3, then the knob.', s: 'spec' }], status: [], ctl: ['port', 'knob'] },
+      scam: { group: 'Output', name: 'Side camera', model: 'Not recorded',
+        role: 'Small additional camera on the eyepiece side port.',
+        facts: [{ v: 'Reached through the eyepiece knob.', s: 'person' }], status: ['Acquiring'], ctl: ['port', 'knob'] },
+      rport: { group: 'Output', name: 'Right side port', model: '—', role: 'No device is recorded on this port.',
+        facts: [{ v: 'Nothing recorded as attached.', s: 'inferred' }], status: [], ctl: ['port'] },
+      lapp: { group: 'Epi illumination', name: 'Lapp mirror', model: 'Nikon Lapp main branch',
+        role: 'Mirror in is a 50/50 mirror: half the Aura III light and half the DMD light go on to turret 1. Mirror out: only the DMD path.',
+        facts: [
+          { v: 'Mirror in means the 50/50 mirror is in the path.', s: 'person' },
+          { v: 'With the mirror in, the Aura III light reaches the sample.', s: 'person' },
+          { v: 'With the mirror out, the DMD path passes straight through.', s: 'drawn' },
+          { v: 'Select it by number, not by name: the names were found swapped once.', s: 'earlier' }
+        ], status: ['Position'], ctl: ['lapp'] },
+      aura: { group: 'Light source', name: 'Aura III LED engine', model: 'Lumencor Aura III · serial 30859',
+        role: 'Widefield fluorescence excitation, five LED lines, each with its own intensity.',
+        facts: [
+          { v: 'Lines UV, CYAN, GREEN, RED, NIR, each with on/off and intensity.', s: 'dev' },
+          { v: 'Intensity runs 0 to 1000.', s: 'dev' },
+          { v: 'Line wavelengths used in the drawing (385, 475, 550, 635, 750 nm) are nominal; this unit’s are not recorded.', s: 'drawn' },
+          { v: 'With the master switch off, a line set on stays dark.', s: 'measured' }
+        ], status: ['Master', 'UV', 'CYAN', 'GREEN', 'RED', 'NIR'], srcs: ['aura'], ctl: ['lapp'] },
+      spectra: { group: 'Light source', name: 'Spectra III light engine', model: 'Lumencor Spectra III',
+        role: 'Second excitation source, patterned by the DMD before the Lapp mirror.',
+        facts: [
+          { v: 'Feeds the DMD, which feeds the Lapp mirror.', s: 'person' },
+          { v: 'Its line set is not recorded here; the eight lines shown are a placeholder.', s: 'drawn' }
+        ], status: ['Lines', 'Intensity'], srcs: ['spec'], ctl: ['lapp'] },
+      dmd: { group: 'Epi illumination', name: 'DMD', model: 'Digital micromirror device',
+        role: 'Projects a pattern of the Spectra III light onto the sample.',
+        facts: [{ v: 'Sits between the Spectra III and the Lapp mirror.', s: 'person' }, { v: 'The configuration used so far is named "noDMD", so software has not driven it yet.', s: 'inferred' }],
+        status: ['Pattern'], ctl: ['lapp'] },
+      tweez: { group: 'Light source', name: 'Tweez 300 optical trap', model: 'Aresis Tweez 300 · 1064 nm fibre laser',
+        role: 'Holographic optical tweezers, up to 5 W at the generator.',
+        warn: 'Class 4 invisible infrared laser. Glasses on and the sample shield in place before emission. Hardware interlocks and three independent stops; power has no software path here.',
+        facts: [
+          { v: 'Works with the 40x, 60x and 100x objectives.', s: 'person' },
+          { v: 'Its software takes over the red-arm camera when it starts.', s: 'person' }
+        ], status: ['Emission', 'Power', 'Interlocks', 'Traps'], srcs: ['trap'], ctl: ['sh2', 't2'] },
+      lunf: { group: 'Light source', name: 'Laser combiner', model: 'Nikon LUN-F · 405 / 488 / 561 / 640 nm',
+        role: 'Confocal excitation lasers, delivered to the spinning disk by fibre. Each line has its own power.',
+        facts: [
+          { v: 'Each laser’s power can be set on its own.', s: 'person' },
+          { v: 'Each line is switched by its own digital output line.', s: 'dev' },
+          { v: 'The combiner’s analog inputs were found not cabled, so power has not yet been set from software here.', s: 'dev' },
+          { v: '488 nm lights the red camera about as strongly as 561 nm; alternate the lines to tell dyes apart.', s: 'earlier' }
+        ], status: ['405', '488', '561', '640', 'Shutter'], srcs: ['lun'], ctl: ['shComb'] },
+      csu: { group: 'Confocal unit', name: 'CSU-W1 spinning disk', model: 'Yokogawa CSU-W1',
+        role: 'Spinning-disk confocal on the left side port. With the disk out, it passes a widefield image to the cameras.',
+        facts: [
+          { v: 'The disk can be moved in or out of the path.', s: 'person' },
+          { v: 'Its internal shutter must be open for laser light to reach the sample.', s: 'person' },
+          { v: 'Mounted on the left side port.', s: 'inferred' }
+        ], status: ['Disk in / out', 'Shutter'], ctl: ['disk', 'shCsu'] },
+      dport: { group: 'Confocal unit', name: 'Dichroic port', model: 'CSU-W1 dichroic turret · 3 slots',
+        role: 'Between the light path selector and the spinning disk. Its dichroic separates the laser going up from the emission coming back.',
+        facts: [
+          { v: 'Slot 1 holds a multi-band dichroic; slots 2 and 3 are empty.', s: 'person' },
+          { v: 'The multi-band dichroic’s part number and bands are not recorded.', s: 'inferred' },
+          { v: 'An earlier record said the fitted dichroic stays in the path whatever the disk does.', s: 'person' }
+        ], status: ['Slot'], ctl: ['dport'] },
+      split: { group: 'Confocal unit', name: 'Camera splitter', model: 'CSU-W1 output port',
+        role: 'Sends light to one camera or splits it by colour between both.',
+        facts: [
+          { v: 'Empty slot: red camera only. 561 nm dichroic: both, split by colour. Mirror: blue camera only.', s: 'person' },
+          { v: 'Which slot sits at which position number is not known.', s: 'inferred' }
+        ], status: ['Position'], ctl: ['split'] },
+      w1: { group: 'Detection', name: 'Emission wheel 1', model: 'Filter wheel, right in front of the red camera',
+        role: 'Picks the emission band reaching the red camera.',
+        facts: [
+          { v: 'Quad-band · 432/36 · 515/30 · 595/31 (the "605 path") · 680/42 · blocked positions · last slot open.', s: 'person' },
+          { v: 'The last slot, next to the blocked ones, is empty (open). An earlier record listed all of positions 5–8 as blocked.', s: 'person' },
+          { v: 'That it serves the red camera was recalled as "probably".', s: 'memory' }
+        ], status: ['Position'], ctl: ['wheel1'] },
+      w2: { group: 'Detection', name: 'Emission wheel 2', model: 'Filter wheel, right in front of the blue camera',
+        role: 'Picks the emission band reaching the blue camera. Same layout as emission wheel 1.',
+        facts: [
+          { v: 'Same structure as emission wheel 1: quad-band, four single bands, blocked positions, last slot open.', s: 'person' },
+          { v: 'That it serves the blue camera was recalled as "probably".', s: 'memory' }
+        ], status: ['Position'], ctl: ['wheel2'] },
+      cr: { group: 'Detection', name: 'Camera, red arm', model: 'Teledyne Kinetix 22 · A24M723015',
+        role: 'Scientific CMOS camera. Same model as the blue arm; neither is the better one.',
+        facts: [{ v: 'Exposure and binning read back exactly as set.', s: 'measured' }, { v: 'The tweezers software takes this camera when it starts.', s: 'person' }],
+        status: ['Exposure', 'Binning', 'Acquiring'], ctl: ['split', 'wheel1'] },
+      cb: { group: 'Detection', name: 'Camera, blue arm', model: 'Teledyne Kinetix 22',
+        role: 'Scientific CMOS camera, second arm of the splitter.',
+        facts: [{ v: 'Same pixel size, sensitivity and noise as the red arm.', s: 'spec' }], status: ['Exposure', 'Binning', 'Acquiring'], ctl: ['split', 'wheel2'] }
+    };
+
+    const k = {};
+    const pick = {};
+    Object.keys(COMP).forEach((id) => {
+      const selected = st.sel === id;
+      const active = !!activeCards[id];
+      k[id] = selected ? { b: '#1D64C8', f: '#EEF4FD', t: '#15181C' }
+        : active ? { b: '#2A2F36', f: '#FFFFFF', t: '#15181C' }
+        : { b: '#CDD2CB', f: '#F7F8F5', t: '#7A8088' };
+      pick[id] = () => this.setState({ sel: id });
+    });
+    k.xy.f = st.sel === 'xy' ? '#EEF4FD' : '#F7F8F5';
+    k.piezo.f = st.sel === 'piezo' ? '#EEF4FD' : '#FCFCFA';
+
+    // ---------- controls ----------
+    const chip = (on) => on ? { bd: '#15181C', bg: '#15181C', fg: '#FFFFFF' } : { bd: '#C9CEC7', bg: '#FFFFFF', fg: '#15181C' };
+    const opt = (label, on, fn) => Object.assign({ label: label, on: on, pick: fn }, chip(on));
+    const set = (patch) => () => this.setState(patch);
+
+    const G = {
+      obj: { title: 'Objective', opts: OBJ.map((ob, i) => opt(ob.label, st.obj === i, set({ obj: i }))) },
+      pol: { title: 'Polarizer', opts: [opt('In', st.pol, set({ pol: true })), opt('Out', !st.pol, set({ pol: false }))] },
+      lapp: { title: 'Lapp mirror', opts: [opt('In · 50/50', st.lapp === 'in', set({ lapp: 'in' })), opt('Out', st.lapp === 'out', set({ lapp: 'out' }))] },
+      sh1: { title: 'Turret 1 shutter', opts: [opt('Open', st.sh1, set({ sh1: true })), opt('Closed', !st.sh1, set({ sh1: false }))] },
+      sh2: { title: 'Turret 2 shutter', opts: [opt('Open', st.sh2, set({ sh2: true })), opt('Closed', !st.sh2, set({ sh2: false }))] },
+      shComb: { title: 'Combiner shutter', opts: [opt('Open', st.shComb, set({ shComb: true })), opt('Closed', !st.shComb, set({ shComb: false }))] },
+      shCsu: { title: 'CSU-W1 shutter', opts: [opt('Open', st.shCsu, set({ shCsu: true })), opt('Closed', !st.shCsu, set({ shCsu: false }))] },
+      t2: { title: 'Turret 2 slot (upper) · ' + c2.name, opts: T2S.map((x, i) => opt(String(i + 1), st.t2 === i, set({ t2: i }))) },
+      t1: { title: 'Turret 1 slot (lower) · ' + c1.name, opts: T1S.map((x, i) => opt(String(i + 1), st.t1 === i, set({ t1: i }))) },
+      ana: { title: 'Analyzer', opts: [opt('In', st.ana, set({ ana: true })), opt('Out', !st.ana, set({ ana: false }))] },
+      port: { title: 'Light path selector', opts: [opt('Eyepieces', st.port === 'eye', set({ port: 'eye' })), opt('Right port', st.port === 'right', set({ port: 'right' })),
+        opt('80/20', st.port === 'split', set({ port: 'split' })), opt('Left 100%', st.port === 'left', set({ port: 'left' }))] },
+      knob: { title: 'Eyepiece knob', opts: [opt('Eyepieces', st.knob === 'eye', set({ knob: 'eye' })), opt('Side camera', st.knob === 'cam', set({ knob: 'cam' }))] },
+      dport: { title: 'Dichroic port', opts: DPORT.map((x, i) => opt((i + 1) + ' · ' + x, (st.dport || 0) === i, set({ dport: i }))) },
+      disk: { title: 'CSU-W1 disk', opts: [opt('In', st.disk === 'in', set({ disk: 'in' })), opt('Out', st.disk === 'out', set({ disk: 'out' }))] },
+      split: { title: 'Camera splitter', opts: [opt('Red only', st.split === 'red', set({ split: 'red' })), opt('Both (561)', st.split === 'both', set({ split: 'both' })), opt('Blue only', st.split === 'blue', set({ split: 'blue' }))] },
+      wheel1: { title: 'Emission wheel 1 (red camera)', opts: WHEEL.map((w, i) => opt(w.label, st.wheel1 === i, set({ wheel1: i }))) },
+      wheel2: { title: 'Emission wheel 2 (blue camera)', opts: WHEEL.map((w, i) => opt(w.label, st.wheel2 === i, set({ wheel2: i }))) }
+    };
+
+    const setLine = (key, patch) => {
+      const cur = this.state.ln[key] || { on: false, I: 60 };
+      const ln = Object.assign({}, this.state.ln);
+      ln[key] = Object.assign({}, cur, patch);
+      this.setState({ ln: ln });
+    };
+    const val = (e) => Number(e && e.target ? e.target.value : e);
+    const lineRow = (label, c, s, onPick, onSet, aria) => Object.assign({ label: label, c: c, on: s.on, I: s.I, op: s.on ? 1 : 0.35, pick: onPick, set: onSet, aria: aria }, chip(s.on));
+    const SOURCES = {
+      lamp: { name: 'Transmitted lamp', lines: [lineRow(st.lamp.on ? 'On' : 'Off', WHITE, st.lamp,
+        () => this.setState({ lamp: Object.assign({}, this.state.lamp, { on: !this.state.lamp.on }) }),
+        (e) => this.setState({ lamp: Object.assign({}, this.state.lamp, { I: val(e) }) }), 'Lamp intensity')] },
+      aura: { name: 'Aura III LED', lines: LINES.aura.map((l) => { const key = 'aura:' + l.id, s = L('aura', l.id);
+        return lineRow(l.id, wlColor(l.wl), s, () => setLine(key, { on: !s.on }), (e) => setLine(key, { I: val(e) }), 'Aura ' + l.id + ' intensity'); }) },
+      spec: { name: 'Spectra III (via DMD)', lines: LINES.spec.map((l) => { const key = 'spec:' + l.id, s = L('spec', l.id);
+        return lineRow(l.id, wlColor(l.wl), s, () => setLine(key, { on: !s.on }), (e) => setLine(key, { I: val(e) }), 'Spectra ' + l.id + ' intensity'); }) },
+      lun: { name: 'Laser combiner', lines: LINES.lun.map((l) => { const key = 'lun:' + l.id, s = L('lun', l.id);
+        return lineRow(l.id + ' nm', wlColor(l.wl), s, () => setLine(key, { on: !s.on }), (e) => setLine(key, { I: val(e) }), l.id + ' nm laser power'); }) },
+      trap: { name: 'Tweez 300 trap', lines: [lineRow(st.trap.on ? 'On' : 'Off', TRAP.c, st.trap,
+        () => this.setState({ trap: Object.assign({}, this.state.trap, { on: !this.state.trap.on }) }),
+        (e) => this.setState({ trap: Object.assign({}, this.state.trap, { I: val(e) }) }), 'Trap power')] }
+    };
+    const sources = ['lamp', 'aura', 'spec', 'lun', 'trap'].map((id) => SOURCES[id]);
+
+    const cr = COMP[st.sel];
+    const srcs = (cr.srcs || []).map((id) => SOURCES[id]);
+    const groups = (cr.ctl || []).map((id) => G[id]);
+    const c = {
+      group: cr.group, name: cr.name, model: cr.model, role: cr.role,
+      hasWarn: !!cr.warn, warn: cr.warn || '',
+      facts: cr.facts.map((f) => ({ v: f.v, src: f.raw || SRC[f.s] })),
+      hasStatus: cr.status.length > 0, status: cr.status.map((x) => ({ n: x })),
+      hasCtl: srcs.length + groups.length > 0, srcs: srcs, groups: groups
+    };
+
+    const deck = [
+      { title: 'Illumination path', note: 'From the sources to the turrets.', groups: [G.pol, G.lapp, G.sh1, G.sh2, G.t2, G.t1] },
+      { title: 'Imaging path', note: 'From the objective to the light path selector and eyepieces.', groups: [G.obj, G.ana, G.port, G.knob] },
+      { title: 'Confocal and cameras', note: 'Spinning disk, splitter and the filter wheel in front of each camera.', groups: [G.shComb, G.shCsu, G.dport, G.disk, G.split, G.wheel1, G.wheel2] }
+    ];
+
+    // ---------- sample ----------
+    const setDye = (i, patch) => {
+      const dyes = this.state.dyes.slice();
+      dyes[i] = Object.assign({}, dyes[i], patch);
+      this.setState({ dyes: dyes });
+    };
+    const txt = (e) => (e && e.target ? e.target.value : e);
+    const dyes = st.dyes.map((d, i) => {
+      const exN = Number(d.ex), emN = Number(d.em);
+      const e = dyeEx[i] || 0;
+      const r = camR['d' + i] || 0, b = camB['d' + i] || 0;
+      const note = !(exN > 0 && emN > 0) ? 'enter both wavelengths'
+        : e < 0.01 ? 'not excited by the lines on now'
+        : 'excited ' + Math.round(Math.min(1, e) * 100) + '% · red camera ' + Math.round(r * 100) + '% · blue camera ' + Math.round(b * 100) + '%';
+      return {
+        name: d.name, ex: d.ex, em: d.em, note: note, src: d.src || "Entered here — the person's values",
+        exC: exN > 0 ? wlColor(exN) : '#DADDD7', emC: emN > 0 ? wlColor(emN) : '#DADDD7',
+        setName: (ev) => setDye(i, { name: txt(ev), src: '' }),
+        setEx: (ev) => setDye(i, { ex: txt(ev), src: '' }),
+        setEm: (ev) => setDye(i, { em: txt(ev), src: '' }),
+        remove: () => this.setState({ dyes: this.state.dyes.filter((x, j) => j !== i) }),
+        removeLabel: 'Remove ' + (d.name || 'dye')
+      };
+    });
+
+    const PRESETS = [['bf', 'Brightfield'], ['epi', 'Aura widefield'], ['dmd', 'Spectra III via DMD'], ['both', 'Aura + Spectra'], ['conf', 'Confocal 640'], ['trap', 'Trap + brightfield'], ['off', 'All off']];
+    const presets = PRESETS.map(([id, label]) => ({ label: label, pick: () => this.setState(this.preset(id)) }));
+
+    // ---------- checks ----------
+    const checks = [];
+    const anyOn = (src) => LINES[src].some((l) => L(src, l.id).on);
+    const auraOn = anyOn('aura'), specOn = anyOn('spec'), lunOn = anyOn('lun');
+    if (auraOn && st.lapp === 'out') checks.push('The Aura III is on but the Lapp mirror is out, so its light stops at the mirror.');
+    if ((auraOn || specOn) && !st.sh1) checks.push('Turret 1 shutter is closed: no LED light reaches the turret.');
+    if ((auraOn || specOn) && st.sh1 && c1.kind !== 'five') checks.push('Turret 1 slot ' + (st.t1 + 1) + ' has no cube, so no dichroic reflects the LED light up to the sample.');
+    if (lunOn && c1.kind === 'five') checks.push('The five-band cube in turret 1 blocks the laser light: choose an empty slot for confocal.');
+    if (lunOn && (!st.shComb || !st.shCsu)) checks.push('A laser shutter is closed: both the combiner shutter and the spinning-disk shutter must be open.');
+    if (lunOn && (st.dport || 0) !== 0) checks.push('The dichroic port is on an empty slot: nothing separates the laser light reflected from the sample from the emission.');
+    if (lunOn && st.port !== 'left' && st.port !== 'split') checks.push('Laser light enters through the left port; the selector is not on it.');
+    if (st.trap.on) {
+      checks.push('Invisible class 4 laser: safety glasses on, sample shield in place before emission.');
+      if (st.obj < 3) checks.push('The trap is stated to work with the 40x, 60x and 100x only; ' + o.label + ' is selected.');
+      if (c2.kind !== 'tweez') checks.push('Turret 2 has no tweezers cube in the path, so the trap light goes nowhere.');
+      checks.push('Recalibrate the trap after any objective change.');
+    }
+    if (atSample.length && st.dyes.length && dyeEx.every((e) => !(e > 0.01))) checks.push('Light reaches the sample, but no listed dye is excited by the lines that are on.');
+    if (st.wheel1 === 5 && st.split !== 'blue') checks.push('Emission wheel 1 is on a blocked position: the red camera gets nothing.');
+    if (st.wheel2 === 5 && st.split !== 'red') checks.push('Emission wheel 2 is on a blocked position: the blue camera gets nothing.');
+    if (st.disk === 'in' && !lunOn && (auraOn || specOn || st.lamp.on)) checks.push('The spinning disk is in: widefield light reaching the cameras is much dimmer.');
+
+    return {
+      rails: rails, beams: beams, k: k, pick: pick, sub: sub, c: c,
+      presets: presets, sources: sources, deck: deck, dyes: dyes,
+      sampleName: st.sampleName, setSampleName: (ev) => this.setState({ sampleName: txt(ev) }),
+      addDye: () => this.setState({ dyes: this.state.dyes.concat([{ name: '', ex: '', em: '', src: '' }]) }),
+      checks: checks.map((t) => ({ t: t })), hasChecks: checks.length > 0
+    };
+  }
+}
+</script>
+</body>
+</html>
