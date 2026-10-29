@@ -1,0 +1,129 @@
+{
+  "artifact": "harness_retro",
+  "schema_version": "0.1",
+  "seat": "harness-office-20261016-1",
+  "on": "2026-10-29",
+  "trigger": "daily",
+  "tree": "0ebf8bd3 plus 16 uncommitted paths [dirty 3c04bfff], which is nobody's commit -- the run before this pass's record was written; its one failure is check 25 on 13 new librarian KB entries another seat has not yet committed, with the KB index not yet rebuilt",
+  "verdict": "verdict: 231 passed, 1 failed, 11 undecided, 111 pending, 12 lost, 7 not applicable",
+  "observed": [
+    {
+      "source": "this computer's commit tool record",
+      "path": ".git/sma-seat-commit.jsonl (outside every tree)",
+      "window": "2026-10-24T17:00Z to 2026-10-29T16:42Z, 775 lines",
+      "found": "277 commit attempts: 270 committed, 6 refused, 1 left at committed-unverified. HEAD moves per attempt: 0: 136, 1: 66, 2: 44, 3: 15, 4: 12, 5: 3, 6: 1. Gate runs per commit: 1: 131, 2: 65, 3: 44, 4: 15, 5: 12, 6: 3. The six refusals: three digest races on a whole-path confirm (manager-console-office-20261017-1 at 2026-10-25T05:11:30Z and 05:16:29Z, architecture-office-20261017-2 at 2026-10-27T09:36:07Z); one gate refusal (manager-console-office-20261017-1, 2026-10-26T04:10:25Z, the same path shown again and committed at ddba9bdf 3.5 minutes later); one patch that no longer applied after HEAD moved (architecture-20261007-1, 2026-10-26T23:58:57Z); and one at the rebuild limit (INC-20261029-02). The committed-unverified row is aa6c83b9 (architecture-office-20261017-2, 2026-10-27T04:47:37Z): the commit is on main and the row records its shared-index reset, which runs after verification, so the run stopped before its last line; why is not in the record. 232 push lines: 122 pushed, 109 refused, 1 already published. Refusals: 94 for listing other seats' commits not yet named, 10 for being behind origin, 5 where git refused the push itself (all on 2026-10-27, INC-20261029-03), 1 other. No hold or release. Counted by tools/count_window.py."
+    },
+    {
+      "source": "commits this computer's log cannot see",
+      "path": null,
+      "window": "git log --first-parent origin/main, 2026-10-24T17:00Z to 2026-10-29T16:42Z, 279 commits",
+      "found": "267 are in this computer's commit rows. The other 12 are merges of origin/main made by hand on this computer, because the commit tool does not merge: 11 by architecture-office-20261017-2 (10 of them on 2026-10-27, the last at 3b7b7dca on the person's word to pull first) and 1 by manager-librarian-20261007-1 (0e0904ae). Each reached origin through the pre-push gate. The microscope computer's own commits arrive as those merges' second parents."
+    },
+    {
+      "source": "commits touching contracts/harness/ by any other seat",
+      "path": "contracts/harness/",
+      "window": "origin/main, all history",
+      "found": "0 of 32. The second harness seat (harness-scope-20261019-1) has not committed."
+    },
+    {
+      "source": "failures.jsonl in each agent, and the librarian's query log",
+      "path": null,
+      "window": "2026-10-24T17:00Z to 2026-10-29T16:42Z",
+      "found": "No commit touched any failures.jsonl or librarian_agent/queries/log.jsonl, which stays at 1478 lines."
+    },
+    {
+      "source": "check 41 on clean merges",
+      "path": "contracts/validate.py",
+      "window": "2026-10-27T16:18Z to 18:29Z",
+      "found": "Check 41 refused clean merges at pre-push and was fixed by its holder at 93c4dbf5 within two hours (INC-20261029-03). Outside the harness loop; recorded here."
+    },
+    {
+      "source": "whether the console word can be used yet",
+      "path": "microscope_runtime/",
+      "window": "at 0ebf8bd3",
+      "found": "microscope_runtime/approvals/harness/ does not exist and no harness_permission file is committed. microscope_runtime/envelope/console_login.json is not committed and not on this computer's disk. Card 087 landed at 549867d2 (the operator reads a console-signed plan approval) and card 088 at 78574ee7: the three approval readers read only approvals/*.json, each test watched failing against a recursing variant built inside the test, src/ unchanged. So the guarantee HP-016 rested on now has a test. Console card 013's writer now writes plan approvals into microscope_runtime/approvals/ (051e3e5b). No console card yet writes a harness_permission; only console card 007 names the folder."
+    },
+    {
+      "source": "what started this pass",
+      "path": "docs/ideas/20261029-office.md",
+      "window": "d15f0cb4",
+      "found": "The intake seat relayed the person's word to every session to wrap up (I-20261029-office-01). Nothing woke this seat between 2026-10-24T17:13Z and that message (INC-20261029-01)."
+    },
+    {
+      "source": "the harness2 trial",
+      "path": null,
+      "window": "-",
+      "found": "No word on the account or the model. Nothing was built further and nothing has run."
+    }
+  ],
+  "new_incidents": [
+    "INC-20261029-01",
+    "INC-20261029-02",
+    "INC-20261029-03"
+  ],
+  "measured": [
+    {
+      "class": "limit-refuses-correct-work",
+      "since": "51feb21b",
+      "recurrences": 1,
+      "method": "refusals at the rebuild limit in this computer's tool log in the window: 1 of 277 attempts (INC-20261029-02), its same paths committed on the next run"
+    },
+    {
+      "class": "confirmation-pre-supplied",
+      "since": "a65d262e",
+      "recurrences": 0,
+      "method": "pushes that published another seat's commit: 73, each naming every one in --push-includes-others; 94 refusals asked for the names"
+    },
+    {
+      "class": "boundary-narrows-one-side-only",
+      "since": "0cfd1d85",
+      "recurrences": 0,
+      "method": "commits touching contracts/harness/ by a seat other than a harness seat, on origin/main"
+    },
+    {
+      "class": "two-writers-one-keyspace",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "duplicate incident ids or two harness seats on one retro file; the second seat has not written, so untested by use"
+    },
+    {
+      "class": "class-fixed-not-swept",
+      "since": "6e74dbdc",
+      "recurrences": 0,
+      "method": "check 89's INCIDENT_ID and $defs/incident_id agree on the same 12 sample ids, re-run this pass"
+    },
+    {
+      "class": "rule-reaches-less-than-written",
+      "since": "7ca41a48",
+      "recurrences": 0,
+      "method": "the scratch probe, a four-field retro and no card, still gives ten check 1 FAILs; covers only HP-015's member of the class"
+    },
+    {
+      "class": "platform-assumption-breaks-on-another-machine",
+      "since": "c94debd4",
+      "recurrences": 0,
+      "method": "console words judged against a login read from the working copy: none, because no console word exists yet; untested by use"
+    },
+    {
+      "class": "loop-runs-only-when-woken",
+      "since": "91d7671f",
+      "recurrences": 1,
+      "method": "daily retro files between retro/20261024.json and this one: none, four days (INC-20261029-01); no answer has landed, so this counts the cost of waiting, not a failed fix"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "HP-012",
+      "this_pass": "Still open: the check and the bridge twin."
+    }
+  ],
+  "landed_today": [],
+  "next": [
+    "The scheduling question still waits for the person's answer in this seat's own window (INC-20261022-02, INC-20261029-01).",
+    "The rebuild-limit distribution goes to the person through the intake seat (INC-20261029-02); the count stays five unless the person says otherwise.",
+    "When a console card writes a harness_permission, check it against the schema's nine fields, its folder, and its refusal while console_login.json is uncommitted.",
+    "When the first permission file is committed, read check 89's verdict on it and its ledger line before anything else lands on it.",
+    "When the second harness seat first commits, check its ids carry 'scope'.",
+    "harness2 trial: wait for the account and the model. HP-012: still open. HP-001 to HP-004 files: still unwritten."
+  ]
+}
