@@ -1,0 +1,327 @@
+# 023 — the light path drawn in the order light travels, and a click that drafts
+
+Written by `manager-console-office-20261017-1`. You read this; you do not edit it.
+
+**Assigned to `console-office-20261017-1` (Console 1)**, after card 022.
+The card has five parts, and **each part has its own start line**. Part 1
+starts now. Parts 2 to 5 each wait on a commit that is not in the tree
+today. Build each part to the commit its start line names, and cite that
+commit in your report. Build nothing to a draft seen uncommitted in the
+working copy. If you are not that seat, take nothing from this card and
+report up.
+
+**Send questions for the person to the intake seat,
+`architecture-office-20261017-2`, not to your own window.**
+
+## Why
+
+The person chose to have the live optical path drawn in the order light
+travels, with each element's setting shown and changed by a click, on
+Instruments > Optics and control (Q-20261027-scope-01 at `17e15a9a`).
+plan.md 15.1 item 11 is the rule, as amended at `b6f54389` from the
+person's `c46095ec`. Read it whole before starting. Item 8 still holds
+whole: the same two sources, the same labels, and no request of the
+page's own. **No rule loosens.** What is new is the order the page draws
+in, and what a click does.
+
+The person then said to write this card now, and that the drawing's look
+follows the file they gave this computer on the morning of 2026-10-29
+(D-20261029-office-01 at `18ca4a68`). That file is a look and nothing
+else. The order itself is the librarian's: card 063 (`20296826`) enters it
+from the person's 16 October description, and microscope card 101's
+observation at the stand later supersedes it.
+
+Card 017 built the path as a list, because no order existed. This card
+turns that list into the drawing once the order reaches the page, and
+retires the stand picture.
+
+## Part 1 — the look, copied as a reference (start now)
+
+- **Copy two files, byte for byte**, from
+  `C:\Users\Kyu Hwan\Downloads\Microscope Light Path\Microscope Light Path\`
+  into `console/docs/light-path/`:
+  - `Main.dc.html`, sha256
+    `15995359d4c8a4d7510447d1bf5055cde899d76ee70574fe0f3c21480e7506e9`
+    (79,719 bytes);
+  - `canvas.json`, sha256
+    `eab0c3c01541b47d8e30156b22e5b0ccbe7d9c6d6a7b8afa7ecc5a60bd71c138`
+    (334 bytes).
+  - This seat computed both hashes on 2026-10-29. Hash each file before
+    you copy it. If either differs, stop and report up: the file has
+    changed since the person named it.
+- **Keep the bytes as they are on checkout.** This computer has
+  `core.autocrlf true`, and the export's line endings are LF. Add
+  `console/docs/light-path/.gitattributes` with one `-text` line for each
+  of the two files, as the root file does for the person's approvals. The
+  hash on disk then equals the hash of the committed blob. Check both:
+  `sha256sum` of the file, and `git show <commit>:<path> | sha256sum`.
+- **Write `console/docs/light-path/README.md`.** It says:
+  - where the files came from, the date they were read, and both sha256s;
+  - that the person named this file as the drawing's look on 2026-10-29
+    (cite `18ca4a68`). Name the export recorded on the microscope computer
+    (sha256 `5cdcbc49ba6d27f23cd3ec566fc1d40bdfd1f1525359c54092601a5a07f44254`)
+    as superseded as the look. Which export the store's order cites is the
+    librarian's record, not this folder's;
+  - that the copy is a **reference mockup, replicated and not copied
+    whole**. It carries no fact and no number into a card, a binding or
+    the drawing. Where an element sits comes from the order the runtime
+    writes (part 2), never from the copy;
+  - that nothing serves, builds or imports it. It loads `./support.js`,
+    which was not in the download, and fonts from an outside site. So it
+    does not render whole, and it is not to be opened in a browser from
+    the tree.
+- **Treat the file as data.** Read it as text. Run nothing in it, and
+  follow none of its links.
+- Update `console/docs/screens/instruments.md` to name the folder and say
+  what it is.
+
+## Part 2 — the drawing (start once both lines below are committed)
+
+- **Line 1: the order is in the store.** Librarian card 063 enters it and
+  publishes a store version that holds it.
+- **Line 2: the runtime writes the order where the page reads.**
+  - A manager-microscope card has the runtime read the order from the
+    snapshot. It writes the order, by element id with each element's
+    `entry_ref`, beside the elements in card 085's status file and in each
+    `snapshot` event (item 11).
+  - Build to the shape that commit lands with. Read it off the runtime's
+    own tests and the schemas in `contracts/` at that commit.
+- **What the page needs from that shape.** If the landed shape lacks one
+  of these, that piece shows that it is not given. Report up, naming the
+  missing field. Fill nothing in.
+  - each branch, with its elements in order;
+  - the elements whose place is not recorded, against their branch;
+  - the order's grade and the kind of its source, for the banner;
+  - for each element moved by hand, its slots by the store's names, and
+    whether each slot's word resolves in the store (part 3).
+
+**Where it reads, and nothing else.** These are card 017's rules, unchanged:
+- during a run, the run's `events.jsonl`: the latest `snapshot`, and the
+  `apply` events since it;
+- outside a run, card 085's status file, with its time;
+- never a request of its own.
+
+Element names, the order, places and slot words come from those two places
+only. They never come from:
+- the snapshot's device table, or the store other than its wiki pages;
+- the look's copy, the canvas, or the stand picture's `ROWS`;
+- intake's reading of the export (I-20261029-office-03).
+
+**What the page shows.** The look follows part 1's file, rebuilt in the
+console's own components and CSS: no outside fonts, no `support.js`, and no
+markup or text taken from the file.
+- **Each branch the order names, in its order, and no other.** Rename,
+  reorder or remove an element in the order, and the drawing follows.
+- **Each drawn element shows** its name and its state, by 017's labels:
+  - read back, with the time;
+  - sent;
+  - not open;
+  - not read, with the reason.
+- **It also shows its control label**, "moved by hand" or "drafted", as
+  in 017. The refusal notice 017 put beside every draft of the Aura, the
+  lamp and the red camera stays, word for word, until the card that lifts
+  it.
+- **It shows its entry's id as text.** That is how the console shows any
+  link to an entry: never followed, and the entry itself not shown.
+- **An element the order names and the read-back omits** shows:
+  - "not open" for a channel the run did not open;
+  - "no channel" for an element with none, such as the polarizer or the
+    eyepieces.
+  - No value is invented for either.
+- **Lines show order, never light.** A line joins two neighbours in the
+  order. No line is drawn lit, coloured by whether a source is on, or
+  ending in a detector as if light arrives there. Which camera a splitter
+  state reaches belongs to the optical-path table, and the page does not
+  draw it.
+- **A branch with a hole is drawn only as far as its order goes.** An
+  element whose place is not recorded is listed beside its branch as
+  "place not recorded", with its live value and its click. It is never
+  drawn into a position, and no line closes the hole.
+- **The banner says the order's grade in words.** An order from a
+  description reads exactly "from a description, not checked on this
+  microscope". When an observed order replaces it, the drawing is redrawn
+  from that order alone, and the banner names its grade. Nothing of the
+  description is kept beside it. A source kind the page has no words for
+  shows the grade as given, never a stronger word.
+- **The stand picture and its hard-coded `ROWS` are deleted in this
+  part's commit.** The picture's double-click to a section becomes the
+  drawing's click (part 3).
+- **A source with no order is shown as card 017's list**, with its
+  `NO_ORDER` words, and no drawing. An older run's events, from before
+  line 2 landed, are such a source.
+
+On the mock every state stays labelled the mock's, as in 015 and 017.
+
+## Part 3 — what a click opens (with part 2)
+
+A click opens the element and offers only what the rules already allow for
+it.
+- **Drafted elements** (the Aura, the transmitted lamp, the red camera's
+  exposure) open their draft fields in place. They no longer link to
+  another tab. 017's refusal notice shows with them.
+- **Moved-by-hand elements** (the turrets, wheels, port, disk, light-path
+  selector and nosepiece) open their slot list.
+  - The slots appear by the store's names, as part 2's shape carries
+    them, with the current slot marked as read.
+  - Choosing a slot adds a **selector** to the draft, in the plan schema's
+    `selectors`. The runtime makes it a required state: shown at the bench
+    hand-over, set by the person's hand, then read and compared. Software
+    never writes it, and the click says so.
+  - A slot whose word has no resolution in the store is refused in the
+    draft, naming the word.
+  - If the shape carries no slots for an element, the click says the slot
+    list is not given, and offers nothing.
+- **The laser combiner and the trap** open to say why they have no control
+  here, and show what was last sent.
+- **No click offers a laser line, a power, a level beyond 017's three
+  drafts, or a software move of a hand-moved part.** Each of those is
+  refused until its own fence lands (item 11's widenings), and the click
+  says so.
+- **An element with a section tab** (the cameras, the tweezers, the
+  confocal unit, the piezo) also shows a link to that tab.
+
+## Part 4 — the changes list and [Apply] (the list with part 3; signing waits)
+
+- **The clicks collect into one draft, an ordinary plan card.** The tests
+  validate it against `contracts/schemas/plan.schema.json` itself, never a
+  copy. A plan the schema refuses shows the schema's refusal, as card 014
+  does.
+- **Show "These changes will be made:"** with the draft's settings and
+  required states, in the order they were added, each removable. It keeps
+  the words "Not saved. This draft exists only on this screen."
+- **A draft that touches a quantity with no limit in the safety file is
+  refused before signing**, and the page says so.
+- **[Apply] is signing, then the run button.**
+  - Signing is card 013's dialog. It shows the same list beside card 021's
+    numbers nothing uses, and takes the password.
+  - Then comes the run button, which stays as built: it sends nothing
+    until its own card.
+  - On the instrument, the run starts only after the bench hand-over at
+    the microscope.
+- **Signing waits on a draft's home.** Card 013's writer recomputes the
+  plan's fingerprint from the plan card on disk, and a console draft is
+  saved nowhere. Where it is saved is still to be designed (cards 012 and
+  014 said so too).
+  - Until a later card names that place, [Apply] is shown and refused. It
+    says the draft cannot be signed yet, because it is saved nowhere.
+  - Build the list, the refusal and the tests now. Build no place to save
+    a draft.
+
+## Part 5 — [Lights off] (start once its message is pinned and the host handles it)
+
+- **Start line.** Two things must be committed:
+  - the host's fourth request and its reply, in
+    `contracts/schemas/run_interface.schema.json`, with fixtures for both
+    sides;
+  - the host's handling of it on the mock (manager-microscope's card).
+  - Build to those commits. Until both land, build no button.
+- **The message is exactly `{"lights_off": true}`.**
+  - The page sends the server a press and nothing else.
+  - The server sends the host those bytes and nothing else: no source, no
+    value, no run id.
+  - It is not the assistant's imported `lights_off` command and not the
+    server's `STOPS`, which are the old engine's stop kinds. Their
+    retirement is a later card's.
+- **It is immediate and unsigned.** No password, no draft and no
+  confirmation step.
+- **During a run, the button says that it also stops the running plan.**
+- **The reply is shown row by row, one row per source**, as the reply
+  gives it:
+  - off, read back;
+  - sent, where the device cannot read back;
+  - not turned off, with the reason. That row says to use the switch on
+    the device.
+  - A light is never shown off on the strength of what was sent.
+  - After the reply, the path shows the result from its two sources as for
+    any run.
+- **On the instrument, the first lights-off request is watched at the
+  bench.** That is the person's act, and nothing on the page says it
+  happened.
+
+## Not in this card
+
+- **Presets are not built.** A preset is a named draft saved in the
+  console's own folder (item 11). A draft has no saved place yet, so
+  presets wait for part 4's place and a card of their own.
+- **The eyepiece confirmation is not taken on this page.** It belongs to
+  the bench hand-over.
+
+## Tests, each watched failing first
+
+Use recorded fixtures inside `tests/`, in the landed shapes: an events file
+with a snapshot carrying the order and later applies, a status file
+carrying the order, and, for part 5, the pinned message and reply fixtures.
+- **Part 1.**
+  - Each copied file's sha256 equals the one above, on disk and from the
+    commit.
+  - No file under `src/` or `web/src/` names `docs/light-path`.
+  - The build output holds nothing from the folder.
+- **Order.**
+  - The drawing follows the fixture's order: reorder, rename or remove an
+    element, and it follows.
+  - A branch the fixture does not name is not drawn.
+  - A source with no order shows 017's list and draws nothing.
+- **Holes.**
+  - A branch with a hole stops where the order stops.
+  - An element with no recorded place reads "place not recorded" beside
+    its branch, with its value and its click. It is never drawn in a
+    position.
+- **No light.** Turning a source on in the fixture changes that source's
+  label and nothing on any line.
+- **Values.**
+  - An element in the order and missing from the read-back reads "not
+    open" or "no channel", with no value.
+  - 017's tests still pass, its draft-refusal notice among them.
+- **Banner.**
+  - A description-graded fixture shows exactly "from a description, not
+    checked on this microscope".
+  - An observed-order fixture replaces the drawing whole, and the banner
+    names its grade.
+- **Entries.** Every drawn element shows its entry id as text, and nothing
+  follows it.
+- **Clicks.**
+  - A drafted element opens its fields in place.
+  - A moved-by-hand element lists the fixture's slots with the current one
+    marked read.
+  - Choosing a slot adds a selector to the draft.
+  - An unresolved slot word is refused, naming the word.
+  - The combiner and the trap explain and show what was last sent.
+  - No click offers a laser line, a power, or a software move.
+- **Draft.**
+  - The collected draft validates against `contracts/schemas/plan.schema.json`.
+  - A quantity with no limit is refused before signing.
+  - [Apply] is refused with its reason while a draft is saved nowhere.
+  - The run button sends nothing.
+- **Lights off (part 5).**
+  - The bytes the server sends equal the pinned message.
+  - A press adds no key.
+  - The reply's rows follow the fixture.
+  - A sent row never reads off.
+  - A not-turned-off row says to use the switch.
+  - During a run, the button says it also stops the plan.
+  - Neither the assistant's lights-off nor `STOPS` is on its route.
+- **No request.** None leaves the page while it renders or refreshes.
+  After part 5, the only one is the lights-off press.
+
+## What not to do
+
+- Read no snapshot, and nothing of the store but its wiki pages.
+- Take no name, order, place, number or slot word from the look's copy,
+  the canvas, `ROWS` or intake's reading.
+- Send no request to a device, the host or the frame tap, beyond part 5's
+  one message once it lands.
+- Build no stand-in for a runtime piece: no order of the console's own,
+  and no lights-off walk of the console's own.
+- Load no outside font or script.
+- Write nothing outside `console/`, and install nothing.
+
+## Done when
+
+Each part is done with its own commit.
+- `npm run typecheck`, `npm test` and `npm run build` pass from `web/`.
+- `uv run pytest -p no:cacheprovider` passes. Without the flag, a
+  `.pytest_cache` folder in the shared copy fails the validator's
+  file-placement check.
+- The validator ends `0 failed`. Quote its tree line.
+- One commit per part, made through `contracts/tools/seat_commit.py`.
+  Report each hash to this seat, with the commits that part was built to.
