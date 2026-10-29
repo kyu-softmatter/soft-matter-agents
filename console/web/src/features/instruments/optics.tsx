@@ -1,27 +1,16 @@
 /**
- * Optics and control (canvas `POptics`, console card 012): a picture of the stand, each part's state from the
- * idle status file by channel id (or "unknown"), and a draft for the three parts software may command. A
- * draft is an ordinary plan card, checked against the schema and saved nowhere.
+ * Optics and control (console cards 012 and 023): the light path drawn in the order its source gives, and a draft for the
+ * parts software may command. A draft is an ordinary plan card, checked against the schema and saved nowhere.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { type DraftIn, HOW_WORDS, type LatestRun, type Reading, valueText } from "./api";
+import { type DraftIn, type LatestRun } from "./api";
 import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
 import { PathPanel, RunRefuses } from "./path";
-import {
-  ALL_PARTS, BY_HAND, COMBINER, COMBINER_SENTENCE, type DraftKind, MOVED_BY_HAND, type Part, PIEZO_PART, PIEZO_SENTENCE, ROWS, SECTIONS, type Section,
-} from "./parts";
+import { type DraftKind, MOVED_BY_HAND } from "./parts";
 
 export const REFUSED_UNTIL_LIMIT = "Refused until you write a limit: your safety file has none for this part yet.";
-
-/** What a part shows for its state: the channel's reading as read, or "unknown". */
-export function stateOf(part: Part, readings: Reading[]): string {
-  if (part.channel === null) return "unknown";
-  const r = readings.find((x) => x.channel === part.channel);
-  if (r === undefined || r.how === "not_read" || r.value === null || r.value === undefined) return "unknown";
-  return `${valueText(r.value)} (${HOW_WORDS[r.how] ?? r.how})`;
-}
 
 const DRAFT_LABEL: Record<DraftKind, string> = {
   aura: "Aura III LED",
@@ -75,45 +64,20 @@ export function PartDraft({ kind, label }: { kind: DraftKind; label: string }) {
   );
 }
 
-function PartRow({ part }: { part: Part }) {
-  if (part.draft !== undefined) return <PartDraft kind={part.draft} label={part.label} />;
-  return (
-    <div role="group" aria-label={part.label} className="inst-part-draft">
-      <strong>{part.label}</strong>
-      <p className="console-muted">{part.label === COMBINER ? COMBINER_SENTENCE : part.label === PIEZO_PART ? PIEZO_SENTENCE : BY_HAND}</p>
-      {part.label === COMBINER && <p className="console-muted">{BY_HAND}</p>}
-    </div>
-  );
-}
+/** Until a click opens an element's draft in place (card 023, part 3), the three drafts stay reachable here, below the drawing. */
+const TRANSIENT: readonly { kind: DraftKind; label: string }[] = [
+  { kind: "aura", label: "Aura III LED" },
+  { kind: "dialamp", label: "Transmitted lamp" },
+];
 
-export function Optics({ readings, run }: { readings: Reading[]; run: LatestRun }) {
-  const [section, setSection] = useState<Section>("Light source");
+export function Optics({ run }: { run: LatestRun }) {
+  const drafts = useRef<HTMLDivElement>(null);
   return (
     <section aria-label="Optics and control" className="inst-optics">
-      <figure aria-label="Picture of the stand" className="inst-picture">
-        <figcaption className="console-muted">
-          A picture of the stand, not a measurement. Double-click a part to open the tab it belongs to.
-        </figcaption>
-        {ROWS.map((row) => (
-          <div key={row.label} role="group" aria-label={row.label} className="inst-row">
-            <span className="inst-row-label">{row.label}</span>
-            {row.parts.map((p) => (
-              <button key={p.label} type="button" className="inst-part" onDoubleClick={() => setSection(p.section)}>
-                <span>{p.label}</span> <span className="console-muted">{stateOf(p, readings)}</span>
-              </button>
-            ))}
-          </div>
-        ))}
-      </figure>
-      <PathPanel run={run} onDraft={() => setSection("Light source")} />
+      <PathPanel run={run} onDraft={() => drafts.current?.focus()} />
       <p className="console-muted">{MOVED_BY_HAND}</p>
-      <nav role="tablist" aria-label="Optics sections" className="console-tabs">
-        {SECTIONS.map((s) => (
-          <button key={s} type="button" role="tab" aria-selected={section === s} onClick={() => setSection(s)}>{s}</button>
-        ))}
-      </nav>
-      <div role="tabpanel" aria-label={section} className="inst-panel">
-        {ALL_PARTS.filter((p) => p.section === section).map((p) => <PartRow key={p.label} part={p} />)}
+      <div ref={drafts} tabIndex={-1} role="group" aria-label="Drafts" className="inst-panel">
+        {TRANSIENT.map((t) => <PartDraft key={t.kind} kind={t.kind} label={t.label} />)}
       </div>
     </section>
   );

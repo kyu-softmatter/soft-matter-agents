@@ -2037,6 +2037,10 @@ export interface components {
             channels?: components["schemas"]["ChannelsOut"] | null;
             /**
              * @default {
+             *       "order": {
+             *         "problems": [],
+             *         "state": "none"
+             *       },
              *       "source": "none",
              *       "elements": []
              *     }
@@ -2338,6 +2342,29 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** OrderOut */
+        OrderOut: {
+            /**
+             * State
+             * @description the source has no order, an order, the file's reason for having none, or an order the shape refuses (never drawn in part)
+             * @default none
+             * @enum {string}
+             */
+            state: "none" | "read" | "not_in_snapshot" | "not_understood";
+            /**
+             * Data
+             * @description the order exactly as the source wrote it and `light_path_order` in the idle status schema accepted it; None unless `read` or `not_in_snapshot`
+             */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Problems
+             * @description why it is not understood, from the schema's own refusals
+             * @default []
+             */
+            problems: string[];
+        };
         /** PageOut */
         PageOut: {
             /** Example */
@@ -2426,6 +2453,14 @@ export interface components {
         };
         /** PathOut */
         PathOut: {
+            /**
+             * @description the order light travels, from the same source as the elements: the latest snapshot event, or the status file outside a run
+             * @default {
+             *       "state": "none",
+             *       "problems": []
+             *     }
+             */
+            order: components["schemas"]["OrderOut"];
             /**
              * Source
              * @description where the elements were read: the run's events, the runtime's status file, or the last run's last snapshot

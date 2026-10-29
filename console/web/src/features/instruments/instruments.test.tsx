@@ -185,82 +185,42 @@ describe("Status", () => {
 describe("Optics and control", () => {
   const open = async (opts: Opts = {}) => {
     const t = show({ hash: "#/instruments/optics", ...opts });
-    await screen.findByRole("figure", { name: "Picture of the stand" });
+    await screen.findByRole("region", { name: "Optics and control" });
     return t;
   };
+  const drafts = () => screen.getByRole("group", { name: "Drafts" });
 
-  it("draws three rows of parts, labelled as a picture of the stand", async () => {
+  it("no longer draws a picture of the stand or lists parts the order does not name", async () => {
     await open();
-    const picture = screen.getByRole("figure", { name: "Picture of the stand" });
-    const rows = within(picture).getAllByRole("group");
-    expect(rows.map((r) => r.getAttribute("aria-label"))).toEqual(["Transmitted light", "Light from above", "To the cameras"]);
-    expect(within(picture).getByRole("button", { name: /Transmitted lamp/ })).toBeTruthy();
-    expect(within(picture).getByRole("button", { name: /Objective/ })).toBeTruthy();
-    expect(within(picture).getByRole("button", { name: /Camera red arm/ })).toBeTruthy();
-    expect(screen.getByText(/picture of the stand, not a measurement/)).toBeTruthy();
+    expect(screen.queryByRole("figure", { name: "Picture of the stand" })).toBeNull();
+    expect(screen.queryByRole("tablist", { name: "Optics sections" })).toBeNull();
+    expect(screen.queryByText(/picture of the stand/)).toBeNull();
+    for (const gone of ["Condenser turret", "Spectra III via DMD", "Camera splitter", "Emission wheel 1"]) expect(screen.queryByText(gone)).toBeNull();
   });
 
-  it("shows a part's state from the status file by channel id, and 'unknown' for a part with none", async () => {
+  it("with no run it shows the light path section and says nothing is drawn", async () => {
     await open();
-    const picture = screen.getByRole("figure", { name: "Picture of the stand" });
-    expect(within(picture).getByRole("button", { name: /Spectra III via DMD/ }).textContent).toContain("mirrors parked");
-    expect(within(picture).getByRole("button", { name: /Polarizer/ }).textContent).toContain("unknown");
-    // which of the two widefield channels is the LED and which the lamp is not recorded, so neither part takes it
-    expect(within(picture).getByRole("button", { name: /Aura III LED/ }).textContent).toContain("unknown");
-    expect(within(picture).getByRole("button", { name: /Transmitted lamp/ }).textContent).toContain("unknown");
+    expect(screen.getByRole("region", { name: "Live optical path" })).toBeTruthy();
+    expect(screen.queryByRole("group", { name: "Light path drawing" })).toBeNull();
   });
 
-  it("a channel that was not read is unknown, never its last value", async () => {
+  it("says what is moved by hand, and offers a draft for exactly the two lights", async () => {
     await open();
-    const picture = screen.getByRole("figure", { name: "Picture of the stand" });
-    expect(within(picture).getByRole("button", { name: /Piezo stage/ }).textContent).toContain("unknown");
-  });
-
-  it("double-clicking a part opens the tab it belongs to", async () => {
-    await open();
-    const sections = screen.getByRole("tablist", { name: "Optics sections" });
-    expect(within(sections).getAllByRole("tab").map((t) => t.textContent)).toEqual(["Light source", "Filters", "Magnification", "Camera"]);
-    fireEvent.doubleClick(screen.getByRole("button", { name: /Objective/ }));
-    expect(within(sections).getByRole("tab", { name: "Magnification" }).getAttribute("aria-selected")).toBe("true");
-    fireEvent.doubleClick(screen.getByRole("button", { name: /Camera red arm/ }));
-    expect(within(sections).getByRole("tab", { name: "Camera" }).getAttribute("aria-selected")).toBe("true");
-  });
-
-  it("offers a draft for exactly three parts and says 'set by hand; software may not move it' for every other", async () => {
-    await open();
-    const sections = screen.getByRole("tablist", { name: "Optics sections" });
-    const drafts: string[] = [];
-    let byHand = 0;
-    for (const name of ["Light source", "Filters", "Magnification", "Camera"]) {
-      fireEvent.click(within(sections).getByRole("tab", { name }));
-      const panel = screen.getByRole("tabpanel");
-      drafts.push(...within(panel).queryAllByRole("button", { name: /^Draft / }).map((b) => b.textContent ?? ""));
-      byHand += within(panel).queryAllByText("set by hand; software may not move it").length;
-    }
-    expect(drafts.sort()).toEqual(["Draft Aura III LED", "Draft Camera red arm exposure", "Draft Transmitted lamp"]);
-    expect(byHand).toBeGreaterThanOrEqual(10);
+    expect(screen.getByText(/^Moved by hand:/)).toBeTruthy();
+    expect(within(drafts()).getAllByRole("button", { name: /^Draft / }).map((b) => b.textContent).sort()).toEqual(["Draft Aura III LED", "Draft Transmitted lamp"]);
   });
 
   it("each draft carries 'refused until you write a limit'", async () => {
     await open();
-    const sections = screen.getByRole("tablist", { name: "Optics sections" });
-    for (const [tabName, part] of [["Light source", "Aura III LED"], ["Light source", "Transmitted lamp"], ["Camera", "Camera red arm"]]) {
-      fireEvent.click(within(sections).getByRole("tab", { name: tabName }));
-      const box = within(screen.getByRole("tabpanel")).getByRole("group", { name: part });
+    for (const part of ["Aura III LED", "Transmitted lamp"]) {
+      const box = within(drafts()).getByRole("group", { name: part });
       expect(within(box).getByText(/refused until you write a limit/i)).toBeTruthy();
     }
   });
 
-  it("the laser combiner reads: close was sent; assumed open until a shutter that reads back shows it blocked", async () => {
-    await open();
-    fireEvent.click(within(screen.getByRole("tablist", { name: "Optics sections" })).getByRole("tab", { name: "Light source" }));
-    expect(screen.getByText("close was sent; assumed open until a shutter that reads back shows it blocked")).toBeTruthy();
-  });
-
   it("a draft is requested from the server, shown in full, and saved nowhere", async () => {
     const t = await open();
-    fireEvent.click(within(screen.getByRole("tablist", { name: "Optics sections" })).getByRole("tab", { name: "Light source" }));
-    const box = within(screen.getByRole("tabpanel")).getByRole("group", { name: "Aura III LED" });
+    const box = within(drafts()).getByRole("group", { name: "Aura III LED" });
     fireEvent.change(within(box).getByLabelText("Colour"), { target: { value: "Blue" } });
     fireEvent.change(within(box).getByLabelText("Power (mW)"), { target: { value: "5" } });
     fireEvent.click(within(box).getByRole("button", { name: "Draft Aura III LED" }));
@@ -273,8 +233,7 @@ describe("Optics and control", () => {
 
   it("a draft the schema refuses is shown with the refusal and not offered for signing", async () => {
     await open({ draft: () => ({ status: 200, body: DRAFT_OUT("dialamp", false) }) });
-    fireEvent.click(within(screen.getByRole("tablist", { name: "Optics sections" })).getByRole("tab", { name: "Light source" }));
-    const box = within(screen.getByRole("tabpanel")).getByRole("group", { name: "Transmitted lamp" });
+    const box = within(drafts()).getByRole("group", { name: "Transmitted lamp" });
     fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "30" } });
     fireEvent.click(within(box).getByRole("button", { name: "Draft Transmitted lamp" }));
     const view = await screen.findByRole("region", { name: "Plan draft" });
@@ -286,10 +245,9 @@ describe("Optics and control", () => {
     await open({
       draft: () => ({ status: 403, body: { detail: { code: "role", message: "This login can only look: it cannot make a plan draft." } } }),
     });
-    fireEvent.click(within(screen.getByRole("tablist", { name: "Optics sections" })).getByRole("tab", { name: "Camera" }));
-    const box = within(screen.getByRole("tabpanel")).getByRole("group", { name: "Camera red arm" });
-    fireEvent.change(within(box).getByLabelText("Exposure (ms)"), { target: { value: "20" } });
-    fireEvent.click(within(box).getByRole("button", { name: "Draft Camera red arm exposure" }));
+    const box = within(drafts()).getByRole("group", { name: "Transmitted lamp" });
+    fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "20" } });
+    fireEvent.click(within(box).getByRole("button", { name: "Draft Transmitted lamp" }));
     expect((await screen.findByRole("alert")).textContent).toContain("This login can only look");
   });
 });

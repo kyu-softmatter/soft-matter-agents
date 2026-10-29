@@ -13,21 +13,20 @@
 
 import { shortTime } from "../questions/ui";
 import type { LatestRun } from "./api";
+import { Drawing } from "./drawing";
 import { RunBanner } from "./follow";
-import { AURA_REFUSED_LONGER, RUN_REFUSES } from "./parts";
+import { type KindTable, orderViewOf } from "./order";
 import { NOT_BUILT } from "./pieces";
+import { BY_HAND_LABEL, Reading, RunRefuses, STATE_LABEL } from "./readout";
+
+export { BY_HAND_LABEL, RunRefuses, STATE_LABEL };
 
 type Path = LatestRun["path"];
-type Element = Path["elements"][number];
 
 export const NO_ORDER = "No order is given for these elements, so this is a list, not a drawing of the path.";
 export const DRAFT_LINK = "Draft on the Light source tab";
-export const BY_HAND_LABEL = "moved by hand";
 export const NO_SNAPSHOT = "This run has taken no snapshot yet, so no element has been read.";
 export const NO_SOURCE = `No snapshot and no status file have been written yet, so there is nothing to show: ${NOT_BUILT}.`;
-export const STATE_LABEL: Record<Element["state"], string> = {
-  read_back: "read back", sent: "sent", not_open: "not open", not_read: "not read",
-};
 
 /** Where this list was read from, in words, with the time each source carries. */
 export function SourceLine({ path }: { path: Path }) {
@@ -46,40 +45,10 @@ export function SourceLine({ path }: { path: Path }) {
   return <p className="console-muted">as of {shortTime(path.t_wall ?? path.ended_at)}, from {path.run_id}</p>;
 }
 
-/** What the person is told beside every draft link for the Aura, the lamp and the red camera. */
-export function RunRefuses({ aura = false }: { aura?: boolean }) {
+/** Seventeen's list, for a source that gives no order or one the page does not understand: nothing is drawn. */
+function ElementList({ path, onDraft }: { path: Path; onDraft: () => void }) {
   return (
-    <span className="inst-refuses">
-      {RUN_REFUSES}
-      {aura && <> {AURA_REFUSED_LONGER}</>}
-    </span>
-  );
-}
-
-function Reading({ e }: { e: Element }) {
-  const mock = e.backend === "mock" ? <> · <span className="inst-backend">the mock&apos;s state</span></> : null;
-  if (e.state === "read_back") return <>{e.value} · read {shortTime(e.t_wall)}{mock}</>;
-  if (e.state === "sent") {
-    return (
-      <>
-        {e.value !== null && e.value !== undefined && <>{e.value}{e.t_wall ? ` (read ${shortTime(e.t_wall)})` : ""} · </>}
-        {e.sent ? `sent ${e.sent}${e.sent_at ? ` at ${shortTime(e.sent_at)}` : ""}` : "nothing sent in this run's events"}
-        {e.reason && <> · {e.reason}</>}
-        {mock}
-      </>
-    );
-  }
-  return <>{e.reason}{mock}</>;
-}
-
-export function PathPanel({ run, onDraft }: { run: LatestRun; onDraft: () => void }) {
-  const path = run.path;
-  return (
-    <section aria-label="Live optical path" className="inst-panel">
-      <h3>The light path, now</h3>
-      <RunBanner run={run} />
-      <SourceLine path={path} />
-      <p className="console-muted">{NO_ORDER}</p>
+    <>
       <ul aria-label="Path elements">
         {path.elements.map((e) => (
           <li key={e.key} data-element={e.key}>
@@ -100,6 +69,33 @@ export function PathPanel({ run, onDraft }: { run: LatestRun; onDraft: () => voi
           </li>
         ))}
       </ul>
+    </>
+  );
+}
+
+/** The light path now: the drawing when the source gave an order this page understands, 017's list otherwise. `kinds` is for tests; the page's own table starts empty. */
+export function PathPanel({ run, onDraft, kinds }: { run: LatestRun; onDraft: () => void; kinds?: KindTable }) {
+  const view = orderViewOf(run);
+  return (
+    <section aria-label="Live optical path" className="inst-panel">
+      <h3>The light path, now</h3>
+      <RunBanner run={run} />
+      <SourceLine path={run.path} />
+      {view.state === "read" ? (
+        <Drawing order={view.order} run={run} kinds={kinds} />
+      ) : (
+        <>
+          <p className="console-muted">{NO_ORDER}</p>
+          {view.state === "not_in_snapshot" && <p className="console-muted">Why: {view.reason}</p>}
+          {view.state === "not_understood" && (
+            <>
+              <p className="console-muted">The order this source gave is not understood, so nothing is drawn from it.</p>
+              <ul aria-label="Why the order is not understood">{view.problems.map((p) => <li key={p}>{p}</li>)}</ul>
+            </>
+          )}
+          <ElementList path={run.path} onDraft={onDraft} />
+        </>
+      )}
       <p className="console-muted">Known trap: the turret label that names the wrong position.</p>
       <p className="console-muted">Known trap: splitter states that send no light to one camera.</p>
       <p className="console-muted">A position read back is the stand&apos;s report of that element, and not proof of which element is in the beam.</p>

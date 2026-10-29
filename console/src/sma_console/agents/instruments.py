@@ -27,6 +27,8 @@ from .schema_lite import SchemaError, Schemas
 
 IDLE_PARTS = ("microscope_runtime", ".runtime_status", "idle_status.json")
 SAFETY_PARTS = ("microscope_runtime", "envelope", "safety.json")
+ORDER_KEY = "light_path_order"
+ORDER_REF = "#/$defs/light_path_order"
 OBJECTIVES = ("40x", "60x", "100x")
 AXES = ("x", "y", "z")
 
@@ -59,6 +61,15 @@ def read_idle_status(root: Path | None) -> IdleRead:
     except SchemaError as e:
         return IdleRead("invalid", problems=[f"it cannot be checked against its schema: {e}"])
     if problems:
+        # an order the shape refuses does not make the rest of the file unreadable: the readings are still
+        # the file's, and the order is shown as not understood (card 023). Anything else wrong is the file's.
+        if isinstance(data, dict) and ORDER_KEY in data:
+            rest = {k: v for k, v in data.items() if k != ORDER_KEY}
+            try:
+                if not Schemas(root / "contracts" / "schemas").validate(rest, "idle_status.schema.json"):
+                    return IdleRead("present", data=data)
+            except SchemaError:
+                pass
         return IdleRead("invalid", problems=problems[:8])
     return IdleRead("present", data=data)
 
@@ -232,7 +243,8 @@ def latest_run_readings(store: Any) -> dict[str, Any]:
     tw = tweezers_sent(events)
     from_status = None if running else _status_path(store)  # outside a run the runtime's own status file is read first
     path = from_status or {"source": "run" if running else "last_snapshot", "run_id": latest.run_id, "ended_at": ended_at,
-                           "ended_how": None if running else how, **path_from_events(events, t0)}
+                           "ended_how": None if running else how, **path_from_events(events, t0),
+                           "order": _order_in_events(store, events)}
     return {"state": "ok", "run_id": latest.run_id, "started_at": latest.created_at or t0, "traps": tw["traps"],
             "trap_series": tw["series"], "strength_last_sent": tw["strength_last_sent"],
             "piezo": piezo_snapshots(events, t0), "running": running, "ended_how": how, "ended_at": ended_at,
@@ -285,7 +297,30 @@ LASER_REASON = ("It reports nothing back, so it is shown at the most dangerous s
                 "until something readable shows the beam blocked. What was sent never shows it off.")
 NO_POSITION = "the read returned no position for it"
 NO_STATUS_SNAPSHOT = "That run took no snapshot (a live view takes none), so no element was read."
-NONE_PATH: dict[str, Any] = {"source": "none", "elements": []}
+NO_ORDER: dict[str, Any] = {"state": "none", "data": None, "problems": []}
+NONE_PATH: dict[str, Any] = {"source": "none", "elements": [], "order": NO_ORDER}
+
+
+def order_state(store: Any, present: bool, raw: Any) -> dict[str, Any]:
+    """The light-path order a source gave, judged by the schema's own definition of it (`light_path_order` in
+    idle_status.schema.json): `{state, data, problems}` with state `none` (the source has no such key),
+    `read`, `not_in_snapshot` (the file says why it has none), or `not_understood` (the shape refuses it, and
+    nothing of it is given). A source that is not understood is never drawn in part."""
+    if not present:
+        return {"state": "none", "data": None, "problems": []}
+    fn = getattr(store, "runtime_root", None)
+    root = fn() if fn is not None else None
+    if root is None:
+        from .sma_files import repository_root  # local: the mock store reads the repository's own schemas
+
+        root = repository_root()
+    try:
+        problems = Schemas(Path(root) / "contracts" / "schemas").validate_def(raw, "idle_status.schema.json", ORDER_REF)
+    except (SchemaError, OSError, ValueError) as e:
+        return {"state": "not_understood", "data": None, "problems": [f"it cannot be checked against its schema: {e}"]}
+    if problems:
+        return {"state": "not_understood", "data": None, "problems": problems[:8]}
+    return {"state": raw["status"], "data": raw, "problems": []}
 
 
 def _text(v: Any) -> str | None:
@@ -432,9 +467,20 @@ def path_from_status(data: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _order_in_events(store: Any, events: list[dict[str, Any]]) -> dict[str, Any]:
+    """The order of the latest snapshot only. An older snapshot's order is never carried forward: it was true of
+    its own moment and the page says nothing it was not told."""
+    snaps = [e for e in events if e.get("event") == "snapshot" and isinstance(e.get("states"), dict)]
+    if not snaps:
+        return order_state(store, False, None)
+    return order_state(store, ORDER_KEY in snaps[-1], snaps[-1].get(ORDER_KEY))
+
+
 def _status_path(store: Any) -> dict[str, Any] | None:
     fn = getattr(store, "runtime_root", None)
     read = read_idle_status(fn() if fn is not None else None)
     if read.state == "present" and read.data is not None and isinstance(read.data.get("last_run"), dict):
-        return path_from_status(read.data)
+        path = path_from_status(read.data)
+        path["order"] = order_state(store, ORDER_KEY in read.data, read.data.get(ORDER_KEY))
+        return path
     return None

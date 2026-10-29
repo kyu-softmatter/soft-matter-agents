@@ -83,6 +83,12 @@ class Schemas:
         errors, _ = self._eval(instance, self._doc(name), name, "$")
         return errors
 
+    def validate_def(self, instance: Any, name: str, pointer: str) -> list[str]:
+        """The same, against one definition inside the schema file `name` (`#/$defs/<x>`), so a part of a
+        document can be judged by the schema's own words without the rest of it."""
+        errors, _ = self._eval(instance, {"$ref": pointer}, name, "$")
+        return errors
+
     def conforms(self, instance: Any, name: str) -> bool:
         return not self.validate(instance, name)
 

@@ -475,11 +475,11 @@ describe("the live optical path on Optics and control", () => {
     expect(within(item("laser_combiner")).queryAllByRole("button")).toEqual([]);
   });
 
-  it("the lamp and the LED carry the draft link, which opens the Light source tab", async () => {
+  it("the lamp and the LED carry the draft link, which moves focus to the drafts", async () => {
     const t = await open(PATH_RUN);
     for (const n of ["DiaLamp", "Aura"]) expect(within(t.item(n)).getAllByRole("button").map((b) => b.textContent)).toEqual([DRAFT_LINK]);
     fireEvent.click(within(t.item("DiaLamp")).getByRole("button"));
-    expect(screen.getByRole("tab", { name: "Light source" }).getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(screen.getByRole("group", { name: "Drafts" }));
   });
 
   it("beside the draft links it says the run will refuse the draft, and the Aura for longer", async () => {

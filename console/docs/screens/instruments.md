@@ -33,16 +33,29 @@ instead of passing over it; its tests run it against every example and every rej
 
 ## Optics and control
 
-A picture of the stand in three rows, each part showing the reading of its channel in the status file, or
-"unknown". Four parts take no channel: the stand's parts share one channel, and which of the two widefield
-channels is the LED and which the lamp is not recorded, so neither part takes either. Double-clicking a part
-opens the tab it belongs to (Light source, Filters, Magnification, Camera).
+The light path is **drawn in the order light travels** (card 023, part 2), from the order the run's source gives and
+from nothing else: each branch the order names, each element in its sequence, and no part, branch or position that
+the order does not name. No picture of the stand and no list of parts is kept on the page.
 
-**The look the drawing will follow** is the person's file, kept as a reference in `docs/light-path/` (card 023,
+- **Each drawn element** shows its name, its state in the four words below, how it was read, whether it is "moved by
+  hand" or "drafted" (or "control not given"), and the order's entry ids **as text, never followed**.
+- **The state is joined by exact match** of the order's element and channel to the read-back's name and channel; no
+  normalisation and no table of names live on the page. An element the read-back omits reads "not open" (its channel
+  was not opened), "no channel" (it has none) or "not read", with the reason, and **never a value**.
+- **Lines show order only.** One fixed style joins neighbours; no source being on or off changes a line, none ends in a
+  detector, and none says which camera a state reaches.
+- **A branch with a hole is drawn only as far as its order goes.** Elements with no recorded place are listed beside
+  it with their live value, never drawn into a position.
+- **The banner**: an order taken from a description reads exactly "from a description, not checked on this
+  microscope"; an observed order replaces that with "observed at this microscope" and its grade; a kind of source the
+  page does not know shows the grade as given, never as observed (the page's table of kind words starts empty).
+- **No order, or an order not in the snapshot, is the list of card 017** with its words and the file's reason and no
+  drawing; an order that fails the schema reads "not understood" with the problems, and is the list too.
+
+**The look the drawing follows** is the person's file, kept as a reference in `docs/light-path/` (card 023,
 part 1; its README says where it came from and gives both hashes). It is data: a reference mockup that is
 replicated and not copied whole, carrying no fact or number into a card or the drawing. Nothing serves, builds or
-imports it, and no source file names the folder. Where an element sits will come from the order the runtime
-writes, never from the copy. The stand picture above stays until the drawing replaces it (part 2).
+imports it, and no source file names the folder.
 
 A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
 transmitted lamp (state and intensity) and the red camera's exposure. Each says **refused until you write a
@@ -119,10 +132,11 @@ channel and the frame tap's `get`, and only from the screens that already did th
     draft can be made and signed and the run will refuse it, because the runtime cannot yet match the element to
     what software may command. The Aura stays refused longer, until which light engine feeds which channel is
     settled. The piezo's draft is not affected.
-  - The registry gives no order, so it is a list. The two known traps (the turret label that names the wrong
-    position, splitter states that send no light to one camera) and "a position read back is the stand's
-    report, not proof of which element is in the beam" stay beside it. "Not built yet" shows only where there
-    is neither a snapshot nor a status file.
+  - **Where the source gives an order, it is a drawing** (card 023); where it gives none, the list stays, with the
+    words "No order is given for these elements, so this is a list, not a drawing of the path." The two known traps
+    (the turret label that names the wrong position, splitter states that send no light to one camera) and "a
+    position read back is the stand's report, not proof of which element is in the beam" stay beside either.
+    "Not built yet" shows only where there is neither a snapshot nor a status file.
 - **Cameras**: the frame is asked for and shown to the person's login only, and only while a run is running.
 - **Piezo stage**: x, y and z as three plots of the run's snapshots ("read back"), and **a piezo move as an
   `operation` plan draft** (a step with its return, or a host-timed sine behind its approach step; the

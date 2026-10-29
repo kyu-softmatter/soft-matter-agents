@@ -2,36 +2,47 @@
   font-weight: 600;
 }
 
-.inst-picture {
+.inst-drawing,
+.inst-branch {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 0;
-}
-
-.inst-row {
-  display: flex;
-  flex-wrap: wrap;
   gap: 6px;
-  align-items: stretch;
 }
 
-.inst-row-label {
-  flex: 0 0 140px;
-  color: var(--muted);
-  align-self: center;
+.inst-branch {
+  border: 1px solid var(--line);
+  padding: 8px;
 }
 
-.inst-part {
+.inst-branch ol,
+.inst-holes ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  text-align: left;
-  border: 1px solid var(--line);
-  padding: 4px 8px;
-  max-width: 190px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.inst-branch li {
+  padding: 4px 0;
+}
+
+/* A join shows order only: one fixed style, whatever any element reads. */
+.inst-join {
+  display: block;
+  width: 2px;
+  height: 12px;
+  margin: 4px 0 0 8px;
+  background: var(--line);
+}
+
+.inst-holes {
+  border-top: 1px dashed var(--line);
+  padding-top: 6px;
+}
+
+.inst-entry-id {
+  font-family: monospace;
 }
 
 .inst-panel {

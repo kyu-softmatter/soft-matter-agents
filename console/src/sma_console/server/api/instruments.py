@@ -98,7 +98,15 @@ class PathElementOut(BaseModel):
     draft: Literal["aura", "dialamp"] | None = Field(default=None, description="the draft kind, where control is `draft`")
 
 
+class OrderOut(BaseModel):
+    state: Literal["none", "read", "not_in_snapshot", "not_understood"] = Field(
+        default="none", description="the source has no order, an order, the file's reason for having none, or an order the shape refuses (never drawn in part)")
+    data: dict[str, Any] | None = Field(default=None, description="the order exactly as the source wrote it and `light_path_order` in the idle status schema accepted it; None unless `read` or `not_in_snapshot`")
+    problems: list[str] = Field(default=[], description="why it is not understood, from the schema's own refusals")
+
+
 class PathOut(BaseModel):
+    order: OrderOut = Field(default=OrderOut(), description="the order light travels, from the same source as the elements: the latest snapshot event, or the status file outside a run")
     source: Literal["run", "status_file", "last_snapshot", "none"] = Field(
         default="none", description="where the elements were read: the run's events, the runtime's status file, or the last run's last snapshot")
     run_id: str | None = None
