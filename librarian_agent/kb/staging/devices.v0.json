@@ -35,6 +35,16 @@
       {
         "model": "Spectra III 8-NII-XS",
         "mm_label": {"label": "LightEngine", "entry_ref": "mm_label_lightengine_is_the_spectra_iii"},
+        "mm_bindings": [
+          {"quantity": "illumination_power", "property": "VIOLET_Intensity", "unit": "permille", "entry_ref": "lightengine_violet_intensity_binds_illumination_power", "line": "VIOLET"},
+          {"quantity": "illumination_power", "property": "BLUE_Intensity", "unit": "permille", "entry_ref": "lightengine_blue_intensity_binds_illumination_power", "line": "BLUE"},
+          {"quantity": "illumination_power", "property": "CYAN_Intensity", "unit": "permille", "entry_ref": "lightengine_cyan_intensity_binds_illumination_power", "line": "CYAN"},
+          {"quantity": "illumination_power", "property": "TEAL_Intensity", "unit": "permille", "entry_ref": "lightengine_teal_intensity_binds_illumination_power", "line": "TEAL"},
+          {"quantity": "illumination_power", "property": "GREEN_Intensity", "unit": "permille", "entry_ref": "lightengine_green_intensity_binds_illumination_power", "line": "GREEN"},
+          {"quantity": "illumination_power", "property": "YELLOW_Intensity", "unit": "permille", "entry_ref": "lightengine_yellow_intensity_binds_illumination_power", "line": "YELLOW"},
+          {"quantity": "illumination_power", "property": "RED_Intensity", "unit": "permille", "entry_ref": "lightengine_red_intensity_binds_illumination_power", "line": "RED"},
+          {"quantity": "illumination_power", "property": "NIR_Intensity", "unit": "permille", "entry_ref": "lightengine_nir_intensity_binds_illumination_power", "line": "NIR"}
+        ],
         "channels": 8,
         "channels_from": "the vendor designation itself: 8-NII-XS. Read off the loaded device list, not counted from icons.",
         "firmware": "3.5.4",
@@ -43,6 +53,13 @@
       {
         "model": "Aura III 5-NII-WA",
         "mm_label": {"label": "Aura", "entry_ref": "mm_label_aura_is_the_aura_iii"},
+        "mm_bindings": [
+          {"quantity": "illumination_power", "property": "UV_Intensity", "unit": "permille", "entry_ref": "aura_uv_intensity_binds_illumination_power", "line": "UV"},
+          {"quantity": "illumination_power", "property": "CYAN_Intensity", "unit": "permille", "entry_ref": "aura_cyan_intensity_binds_illumination_power", "line": "CYAN"},
+          {"quantity": "illumination_power", "property": "GREEN_Intensity", "unit": "permille", "entry_ref": "aura_green_intensity_binds_illumination_power", "line": "GREEN"},
+          {"quantity": "illumination_power", "property": "RED_Intensity", "unit": "permille", "entry_ref": "aura_red_intensity_binds_illumination_power", "line": "RED"},
+          {"quantity": "illumination_power", "property": "NIR_Intensity", "unit": "permille", "entry_ref": "aura_nir_intensity_binds_illumination_power", "line": "NIR"}
+        ],
         "channels": 5,
         "channels_from": "the vendor designation itself: 5-NII-WA"
       }

@@ -1,0 +1,22 @@
+{
+  "schema_version": "0.1",
+  "kind": "claim",
+  "grade": "E3",
+  "source": "prior_run:agentic-microscope@34a432c",
+  "source_ref": "src_prior_mm_device_reported_20260903",
+  "date": "2026-10-29",
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-20261007-1",
+  "entry_id": "aura_green_intensity_binds_illumination_power",
+  "claim": "On the prior project's configuration the Lumencor Aura III 5-NII-WA, MMCore label `Aura`, sets the intensity of its line GREEN through the property `GREEN_Intensity`, on the per-mille scale that `light_engine_line_intensity_is_per_mille` records. So a plan's illumination_power on line GREEN of this engine is written to `GREEN_Intensity` in permille, and only through a calibration that converts watts into it.",
+  "validity_conditions": "ONE LINE OF ONE ENGINE, ONE CLAIM (librarian card 064). The line name `GREEN` is the string the device reports, copied from `light_engine_line_intensity_is_per_mille`, which lists the lines each engine reports; the property name is that line name and the suffix the same entry records. That entry stays as it is and this one rests on it. E3, FROM THE PRIOR PROJECT ONLY: the source is its record of the devices as read live over MMCore on 2026-09-03, not a reading on this stand. It is knowledge for planning and commands nothing; whether a binding may command is the runtime's ruling on the entry's grade. NO CALIBRATION EXISTS for this line, so nothing in the store turns watts into a setting of `GREEN_Intensity`, and the runtime refuses that conversion until a bench run measures power against setting on this line. That refusal is intended. THE STEP IS UNREAD, and this entry carries no property_step: a gap of kind absent, searched in `light_engine_line_intensity_is_per_mille` and in the source record `src_prior_mm_device_reported_20260903`, neither of which says whether the property takes integers, floats or a coarser step. A RANGE IS NOT A STEP: 0 to 1000 is equally consistent with a float property or a step of 10, so none is inferred, and with no step the runtime writes nothing through this binding. A RANGE IS NOT A LIMIT either: what may be commanded is envelope/safety.json's and a person's. WHAT WOULD RAISE IT: the device-reading run on this stand recording `GREEN_Intensity`'s getPropertyType, hasPropertyLimits and limits, entered as measured:<run_id> at E1 with the step; or the step as stated in the maker's documentation or the adapter's property definition, at E3. Slot: a KB entry and the device registry's control-channel columns. Rule passed: 10.3 rule 1.",
+  "identifiers": {
+    "mm_label": "Aura",
+    "mm_property": "GREEN_Intensity",
+    "quantity": "illumination_power",
+    "unit": "permille",
+    "line": "GREEN",
+    "model": "Aura III 5-NII-WA"
+  }
+}

@@ -512,8 +512,16 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
     take a fraction of full scale: nothing in a row or an entry says which
     properties those are, and `1` cannot tell 10 from 1 per cent. A pure-number
     property that ever needs binding goes to manager-librarian first.
+
+    Card 064 adds three things. A binding may name the `line` it drives, and
+    is then one per quantity and line; a quantity is never bound both on a
+    line and without one. A row's `step` is a copy of its entry's one
+    `property_step`, present exactly when that is, and a step nobody read is
+    left off. And a calibration that serves a binding carries `conversion`, in
+    card 064's form. `quantities` maps each registered id to its unit.
     """
     problems: list[str] = []
+    served: dict[tuple, list[tuple]] = {}
 
     def walk(node):
         if isinstance(node, dict):
@@ -540,10 +548,12 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
             problems.append(f"{name}: carries bindings or states and no mm_label; they sit on a labelled row")
         held: dict[str, set] = {"quantity": set(), "property": set(), "word": set(), "state_label": set()}
 
-        def once(key, v):
-            if v in held[key]:
-                problems.append(f"{name}: {key} {v!r} appears twice; one of the two is wrong")
-            held[key].add(v)
+        lined: dict[str, set[bool]] = {}
+
+        def once(key, v, on=""):
+            if (v, on) in held[key]:
+                problems.append(f"{name}: {key} {v!r}{on} appears twice; one of the two is wrong")
+            held[key].add((v, on))
 
         def entry_for(m, want):
             ref = m.get("entry_ref")
@@ -559,9 +569,14 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
             return e, ids
 
         for b in row.get("mm_bindings") or []:
-            q, prop, unit = b.get("quantity"), b.get("property"), b.get("unit")
-            once("quantity", q)
+            q, prop, unit, line = b.get("quantity"), b.get("property"), b.get("unit"), b.get("line")
+            if "line" in b and not (isinstance(line, str) and line):
+                problems.append(f"{name}: binds {prop!r} on line {line!r}; a line is the name the device reports")
+            once("quantity", q, f" on line {line!r}" if "line" in b else "")
             once("property", prop)
+            lined.setdefault(q, set()).add("line" in b)
+            if label is not None:
+                served.setdefault((label, prop, q), []).append((name, b))
             if q not in quantities:
                 problems.append(f"{name}: quantity {q!r} is not registered in contracts/quantities.json")
             if q in VERB_ARGUMENTS:
@@ -570,7 +585,30 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
                 problems.append(f"{name}: unit {unit!r} is not in contracts/units.json")
             if unit == "1":
                 problems.append(f"{name}: binds {prop!r} in unit '1', which cannot tell 10 from 1 per cent")
-            entry_for(b, {"mm_label": label, "mm_property": prop, "quantity": q, "unit": unit})
+            e, _ = entry_for(b, {"mm_label": label, "mm_property": prop, "quantity": q, "unit": unit, "line": line})
+            step = b.get("step")
+            if step is not None and not (_amount(step) and step["value"] > 0):
+                problems.append(f"{name}: {prop!r}'s step {step!r} is not a positive {{value, unit}}")
+                continue
+            ps = [n for n in (e or {}).get("numbers") or [] if isinstance(n, dict) and n.get("name") == "property_step"]
+            if len(ps) > 1:
+                problems.append(f"{name}: {b.get('entry_ref')} holds {len(ps)} property_step numbers; a property "
+                                "takes one step")
+            elif ps and ps[0].get("unit") != unit:
+                problems.append(f"{name}: {b.get('entry_ref')}'s property_step is in {ps[0].get('unit')!r} and "
+                                f"{prop!r} is written in {unit!r}")
+            elif ps and step is None:
+                problems.append(f"{name}: {b.get('entry_ref')} holds a property_step and the row carries no step")
+            elif step is not None and not ps:
+                problems.append(f"{name}: {prop!r} carries a step and {b.get('entry_ref')} holds no property_step; "
+                                "a step nobody read is left off, never filled in")
+            elif step is not None and (step["value"], step["unit"]) != (ps[0].get("value"), ps[0].get("unit")):
+                problems.append(f"{name}: {prop!r}'s step {step['value']} {step['unit']} is not "
+                                f"{b.get('entry_ref')}'s property_step {ps[0].get('value')} {ps[0].get('unit')}")
+        for q, kinds in sorted(lined.items(), key=lambda kv: str(kv[0])):
+            if kinds == {True, False}:
+                problems.append(f"{name}: quantity {q!r} is bound both on a line and without one; a plan naming "
+                                "no line would have a binding to fall back on, and none is meant")
         for s in row.get("mm_states") or []:
             word, sl = s.get("word"), s.get("state_label")
             once("word", word)
@@ -590,7 +628,85 @@ def mm_binding_problems(table: dict, entries: dict[str, dict], quantities: set[s
                     problems.append(f"{name}: word {word!r}'s run lit {sorted(lit)} and the slot reaches "
                                     f"{sorted(reaches[word])}; one of the two is wrong, and the run is reported, "
                                     "not resolved")
+    for eid in sorted(entries):
+        problems.extend(_conversion_problems(eid, entries[eid], served, quantities))
     return problems
+
+
+def _amount(x) -> bool:
+    return (isinstance(x, dict) and set(x) == {"value", "unit"} and isinstance(x["unit"], str) and bool(x["unit"])
+            and isinstance(x["value"], (int, float)) and not isinstance(x["value"], bool))
+
+
+CONVERSION_KEYS = {"direction", "rule", "physical", "control", "points"}
+
+
+def _conversion_problems(eid: str, e: dict, served: dict, quantities) -> list[str]:
+    """Card 064's form for a calibration's `conversion`, and that one exists where a binding needs it.
+
+    Only points, physical to control, linear between adjacent points and
+    refused outside them. The span is validity's, the physical side is in the
+    quantity's registered unit, and every point was measured here.
+    """
+    ids = e.get("identifiers") if isinstance(e.get("identifiers"), dict) else {}
+    serves = served.get((ids.get("mm_label"), ids.get("mm_property"), ids.get("quantity")), [])
+    conv = e.get("conversion")
+    if conv is None:
+        if e.get("kind") == "calibration" and serves:
+            return [f"calibration {eid} serves {ids.get('mm_property')!r} on {serves[0][0]} and carries no "
+                    "conversion; nothing turns a physical value into a setting without one"]
+        return []
+    if e.get("kind") != "calibration":
+        return [f"{eid} carries a conversion and is of kind {e.get('kind')!r}; only a calibration converts"]
+    pts = conv.get("points") if isinstance(conv, dict) else None
+    if (not isinstance(conv, dict) or set(conv) != CONVERSION_KEYS
+            or conv["direction"] != "physical_to_control" or conv["rule"] != "piecewise_linear_within_points"
+            or not isinstance(conv["physical"], dict) or set(conv["physical"]) != {"quantity", "unit"}
+            or not all(isinstance(v, str) and v for v in conv["physical"].values())
+            or not isinstance(conv["control"], dict) or set(conv["control"]) != {"unit"}
+            or not (isinstance(conv["control"]["unit"], str) and conv["control"]["unit"])
+            or not isinstance(pts, list)
+            or not all(isinstance(p, dict) and set(p) == {"physical", "control", "source"} and _amount(p["physical"])
+                       and _amount(p["control"]) and isinstance(p["source"], str) for p in pts)):
+        return [f"calibration {eid}: its conversion is not card 064's form "
+                "{direction: physical_to_control, rule: piecewise_linear_within_points, physical: {quantity, unit}, "
+                "control: {unit}, points: [{physical, control, source}]}"]
+    out: list[str] = []
+    q, pu, cu = conv["physical"]["quantity"], conv["physical"]["unit"], conv["control"]["unit"]
+    if q != ids.get("quantity"):
+        out.append(f"calibration {eid} converts {q!r} and its identifiers name {ids.get('quantity')!r}")
+    if q in quantities and pu != quantities[q]:
+        out.append(f"calibration {eid} gives {q} in {pu!r}; it is registered in {quantities[q]!r}")
+    mixed = sorted({p["physical"]["unit"] for p in pts} - {pu} | {p["control"]["unit"] for p in pts} - {cu})
+    if mixed:
+        out.append(f"calibration {eid}: a point is in {mixed}, and the form's units are {pu!r} and {cu!r}")
+    xs, ys = [p["physical"]["value"] for p in pts], [p["control"]["value"] for p in pts]
+    if len(pts) < 2:
+        out.append(f"calibration {eid} has {len(pts)} point; a rule between points needs two")
+    elif not all(a < b for a, b in zip(xs, xs[1:])):
+        out.append(f"calibration {eid}: physical values {xs} are not strictly increasing; a plateau is left "
+                   "outside the calibration and named in its conditions")
+    elif not (all(a < b for a, b in zip(ys, ys[1:])) or all(a > b for a, b in zip(ys, ys[1:]))):
+        out.append(f"calibration {eid}: control values {ys} are not strictly monotone")
+    v = e.get("validity", {}).get(q) if isinstance(e.get("validity"), dict) else None
+    if not isinstance(v, dict) or v.get("unit") != pu or "min" not in v or "max" not in v:
+        out.append(f"calibration {eid}: validity for {q} is {v!r}, not a min and a max in {pu!r}")
+    elif pts and (xs[0], xs[-1]) != (v["min"], v["max"]):
+        out.append(f"calibration {eid}: its points span {xs[0]} to {xs[-1]} {pu} and validity "
+                   f"{v['min']} to {v['max']}; the two are one range, exactly")
+    for p in pts:
+        kind, _, run = p["source"].partition(":")
+        if kind != "measured" or not run:
+            out.append(f"calibration {eid}: a point from {p['source']!r} is not E1; every point is measured here")
+    if not serves:
+        out.append(f"calibration {eid} converts into {ids.get('mm_label')!r}'s {ids.get('mm_property')!r} and no "
+                   f"row binds it for {ids.get('quantity')!r}; a conversion serves a binding")
+    for rname, b in serves:
+        if b.get("unit") != cu:
+            out.append(f"calibration {eid}: control unit {cu!r} against {b.get('unit')!r} on {rname}")
+        if "line" in ids and ids["line"] != b.get("line"):
+            out.append(f"calibration {eid}: line {ids['line']!r} against the binding's {b.get('line')!r} on {rname}")
+    return out
 
 
 def _self_test() -> int:
@@ -709,8 +825,8 @@ def _self_test() -> int:
 
     # Card 062: bindings and state words, the store's own first, then each
     # rule against a table that breaks exactly it.
-    qids = {q["id"] for q in json.loads((REPO / "contracts" / "quantities.json")
-                                        .read_text(encoding="utf-8"))["quantities"]}
+    qids = {q["id"]: q.get("unit") for q in json.loads((REPO / "contracts" / "quantities.json")
+                                                       .read_text(encoding="utf-8"))["quantities"]}
     usyms = set(json.loads((REPO / "contracts" / "units.json").read_text(encoding="utf-8"))["units"])
     for p in mm_binding_problems(devices, live, qids, usyms):
         bad(f"the store's own bindings and states: {p}")
@@ -826,6 +942,143 @@ def _self_test() -> int:
     if mm_binding_problems({"channels": cams + [brow("lapp_branch", "Port", states=[word(ref="e_bluelit")])]},
                            lit_store, qids, usyms, acquired=acq):
         bad("a row without slot_contents was held to a slot's reaches")
+
+    # Card 064: a line per binding, a step copied from its entry, and a
+    # calibration's conversion in one form. The live table must carry lined
+    # bindings, or the line rules pass by looking at nothing.
+    live_lines = [b.get("line") for r in devices["light_engines"]["installed"] for b in r.get("mm_bindings") or []]
+    if len(live_lines) != 13 or None in live_lines:
+        bad(f"the engines carry lined bindings {live_lines}, not card 064's thirteen")
+    if qids.get("illumination_power") != "W" or "permille" not in usyms:
+        bad("the cases below lean on illumination_power in W and the unit permille")
+
+    def lent(line, step=None, label="Eng"):
+        e = {"identifiers": {"mm_label": label, "mm_property": f"{line}_Intensity",
+                             "quantity": "illumination_power", "unit": "permille", "line": line},
+             "source": "prior_run:p@1"}
+        if step is not None:
+            e["numbers"] = [{"name": "property_step", "value": step, "unit": "permille"}]
+        return e
+
+    lstore = {"e_g": lent("GREEN"), "e_n": lent("NIR"), "e_gs": lent("GREEN", 1)}
+    lstore["e_nol"] = {"identifiers": {k: v for k, v in lent("GREEN")["identifiers"].items() if k != "line"},
+                       "source": "prior_run:p@1"}
+    lstore["e_gss"] = lent("GREEN")
+    lstore["e_gss"]["numbers"] = [{"name": "property_step", "value": 1, "unit": "permille"},
+                                  {"name": "property_step", "value": 10, "unit": "permille"}]
+    lstore["e_gmw"] = lent("GREEN")
+    lstore["e_gmw"]["numbers"] = [{"name": "property_step", "value": 1, "unit": "W"}]
+
+    def lb(line="GREEN", ref="e_g", step=None, prop=None):
+        b = {"quantity": "illumination_power", "property": prop or f"{line}_Intensity", "unit": "permille",
+             "entry_ref": ref}
+        if line is not None:
+            b["line"] = line
+        if step is not None:
+            b["step"] = step
+        return b
+
+    def eng(*bs):
+        return [brow("engine", "Eng", list(bs))]
+
+    found = mm_binding_problems({"channels": eng(lb(), lb("NIR", "e_n"))}, lstore, qids, usyms, acquired=acq)
+    if found:
+        bad(f"two lines of one quantity on one row were refused: {found}")
+    found = mm_binding_problems({"channels": eng(lb(ref="e_gs", step={"value": 1, "unit": "permille"}))},
+                                lstore, qids, usyms, acquired=acq)
+    if found:
+        bad(f"a step copied from its entry was refused: {found}")
+    bcase(eng(lb(), lb(prop="GREEN2_Intensity")), lstore, "on line 'GREEN' appears twice",
+          "one quantity on one line into two properties")
+    bcase(eng(lb(), lb(None, "e_nol", prop="X_Intensity")), lstore, "both on a line and without one",
+          "a quantity bound on a line and without one")
+    bcase(eng(lb(ref="e_n")), lstore, "line 'NIR', the row 'GREEN'", "a line its entry does not hold")
+    bcase(eng(lb(None, "e_g")), lstore, "line 'GREEN', the row None", "a lineless binding citing a lined entry")
+    bcase(eng(lb(ref="e_nol")), lstore, "line None, the row 'GREEN'", "a lined binding citing a lineless entry")
+    bcase(eng(lb(line="")), {"e_g": lent("")}, "a line is the name the device reports", "an empty line")
+    bcase(eng(lb(ref="e_gs")), lstore, "carries no step", "a row dropping its entry's step")
+    bcase(eng(lb(step={"value": 1, "unit": "permille"})), lstore, "a step nobody read",
+          "a step on a row whose entry holds none")
+    bcase(eng(lb(ref="e_gs", step={"value": 10, "unit": "permille"})), lstore, "is not e_gs's property_step",
+          "a step that is not the entry's")
+    bcase(eng(lb(ref="e_gs", step={"value": 1, "unit": "W"})), lstore, "is not e_gs's property_step",
+          "a step in another unit than the entry's")
+    bcase(eng(lb(ref="e_gss", step={"value": 1, "unit": "permille"})), lstore, "holds 2 property_step",
+          "an entry with two steps")
+    bcase(eng(lb(ref="e_gmw", step={"value": 1, "unit": "W"})), lstore, "property_step is in 'W'",
+          "an entry whose step is not in the binding's unit")
+    for s in ({"value": 0, "unit": "permille"}, {"value": -1, "unit": "permille"}, {"value": 1},
+              {"value": True, "unit": "permille"}, 1):
+        bcase(eng(lb(ref="e_gs", step=s)), lstore, "not a positive {value, unit}", f"step {s!r}")
+
+    def pt(w, c, src="measured:run-cal"):
+        return {"physical": {"value": w, "unit": "W"}, "control": {"value": c, "unit": "permille"}, "source": src}
+
+    def cal(points, lo=None, hi=None, kind="calibration", line="GREEN", **over):
+        conv = {"direction": "physical_to_control", "rule": "piecewise_linear_within_points",
+                "physical": {"quantity": "illumination_power", "unit": "W"}, "control": {"unit": "permille"},
+                "points": points}
+        conv.update(over)
+        xs = [p["physical"]["value"] for p in points if isinstance(p.get("physical"), dict)] or [0]
+        ids = {"mm_label": "Eng", "mm_property": "GREEN_Intensity", "quantity": "illumination_power"}
+        if line is not None:
+            ids["line"] = line
+        return {"kind": kind, "identifiers": ids, "source": "calibration:run-cal", "conversion": conv,
+                "validity": {"illumination_power": {"min": xs[0] if lo is None else lo,
+                                                    "max": xs[-1] if hi is None else hi, "unit": "W"}}}
+
+    three = [pt(0.0005, 20), pt(0.002, 80), pt(0.005, 200)]
+    found = mm_binding_problems({"channels": eng(lb())}, {**lstore, "c": cal(three)}, qids, usyms, acquired=acq)
+    if found:
+        bad(f"a sound conversion was refused: {found}")
+    found = mm_binding_problems({"channels": eng(lb())},
+                                {**lstore, "c": cal([pt(0.0005, 200), pt(0.002, 80), pt(0.005, 20)])},
+                                qids, usyms, acquired=acq)
+    if found:
+        bad(f"a strictly decreasing control side was refused: {found}")
+
+    def ccase(entry, expect, why, rows=None):
+        bcase(rows or eng(lb()), {**lstore, "c": entry}, expect, why)
+
+    bare = cal(three)
+    bare.pop("conversion")
+    ccase(bare, "carries no conversion", "a calibration serving a binding with no conversion")
+    ccase({**lent("GREEN"), "conversion": cal(three)["conversion"]}, "only a calibration converts",
+          "a conversion on a claim")
+    for k, v in (("direction", "control_to_physical"), ("rule", "linear_fit"), ("physical", {"quantity": "x"}),
+                 ("control", {"unit": "permille", "offset": 0}), ("points", "three"), ("fit", "a + b x")):
+        c = cal(three)
+        c["conversion"][k] = v
+        ccase(c, "not card 064's form", f"a conversion with {k} {v!r}")
+    ccase(cal([{"physical": 0.0005, "control": 20, "source": "measured:r"}, pt(0.005, 200)]),
+          "not card 064's form", "a point given as bare numbers")
+    ccase(cal(three, physical={"quantity": "exposure_time", "unit": "W"}), "its identifiers name",
+          "a conversion of another quantity than its key")
+    ccase(cal([pt(0.5, 20), pt(2, 80)], physical={"quantity": "illumination_power", "unit": "mW"}),
+          "registered in 'W'", "a physical side in mW")
+    ccase(cal([pt(0.0005, 20), {**pt(0.002, 80), "control": {"value": 8, "unit": "percent"}}, pt(0.005, 200)]),
+          "the form's units", "a point in another unit than the form's")
+    ccase(cal([pt(0.0005, 20)]), "needs two", "one point")
+    ccase(cal([pt(0.0005, 20), pt(0.0005, 40), pt(0.005, 200)]), "not strictly increasing", "a plateau inside")
+    ccase(cal([pt(0.005, 200), pt(0.002, 80)]), "not strictly increasing", "physical values descending")
+    ccase(cal([pt(0.0005, 20), pt(0.002, 20), pt(0.005, 200)]), "not strictly monotone",
+          "two powers on one setting")
+    ccase(cal([pt(0.0005, 20), pt(0.002, 200), pt(0.005, 80)]), "not strictly monotone",
+          "a control side that turns back")
+    ccase(cal(three, lo=0.0), "one range, exactly", "a validity wider than the points")
+    ccase(cal(three, hi=0.004), "one range, exactly", "a validity narrower than the points")
+    nov = cal(three)
+    nov["validity"] = {"illumination_power": {"min": 0.0005, "max": 0.005, "unit": "mW"}}
+    ccase(nov, "not a min and a max", "a validity in another unit")
+    nov = cal(three)
+    nov.pop("validity")
+    ccase(nov, "not a min and a max", "no validity")
+    for src in ("calibration:run-x", "prior_run:p@1", "operator_read:bench", "measured:", "measured"):
+        ccase(cal([pt(0.0005, 20), pt(0.002, 80, src), pt(0.005, 200)]), "is not E1", f"a point from {src!r}")
+    ccase(cal(three), "no row binds it", "a conversion no binding uses", rows=eng(lb("NIR", "e_n")))
+    ccase(cal(three, control={"unit": "percent"}), "control unit 'percent'",
+          "a control unit other than the binding's")
+    ccase(cal(three, line="NIR"), "line 'NIR' against", "a calibration of another line")
     if not run_acquired("run-20260924-002") or run_acquired("run-20260924-008"):
         bad("run_acquired misreads the logs: run 002 acquired frames and run 008 only read devices back")
 
