@@ -18,7 +18,7 @@ Card 095 left two gaps, reported at `e852d2fd6`:
   write a float to a property that takes whole steps.
 
 manager-librarian-20261007-1 and this seat agreed the form on 2026-10-27.
-Librarian card 063 enters it into the store, and a check enforces it. The
+Librarian card 064 enters it into the store, and a check enforces it. The
 field names are final: `conversion`, `direction`, `rule`, `physical`,
 `control`, `points`, and the binding's `step`. The librarian side sends the
 hash that lands them, and this card is built against that hash. Until it
