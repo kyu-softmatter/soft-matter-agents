@@ -86,6 +86,25 @@ retires the stand picture.
     `snapshot` event (item 11).
   - Build to the shape that commit lands with. Read it off the runtime's
     own tests and the schemas in `contracts/` at that commit.
+- **The shape is in, so part 2 may be built now** (amended 2026-10-29).
+  - It is `light_path_order` in `contracts/schemas/idle_status.schema.json`
+    at `9ef80036`. It is an optional top-level key of the status file, and
+    the same shape sits in each `snapshot` event. It carries all four
+    needs below. The runtime's writer is runtime card 104, still to land.
+  - Build and test against the schema's own `examples` and `x_refused`,
+    read from the file and not from a copy. Until card 104 and line 1
+    both land, no real source carries a `read` order, so the page shows
+    017's list everywhere. That is the intended state, not a fault.
+  - `not_in_snapshot` shows 017's list, the file's reason, and no drawing.
+    A status file or event with no `light_path_order` key is a source with
+    no order. One that fails the schema is shown as an order not
+    understood, as 017's list, and is never drawn in part.
+  - **The source-kind words wait on line 1.** The page's table of kinds
+    holds only kinds the store has used. Until card 063's entry shows
+    which kind the description took, the table is empty, and a `read`
+    order says its source is of a kind the page does not know, with the
+    grade as given, and never as observed. The examples' `source_kind` is
+    the fixture's, not a word for the table.
 - **What the page needs from that shape.** If the landed shape lacks one
   of these, that piece shows that it is not given. Report up, naming the
   missing field. Fill nothing in.
@@ -215,6 +234,9 @@ it.
     sides;
   - the host's handling of it on the mock (manager-microscope's card).
   - Build to those commits. Until both land, build no button.
+  - The first is in: `lights_off_request`, `light_source_row` and
+    `lights_off_reply` at `99eec48d`. The second is runtime card 103,
+    still to land.
 - **The message is exactly `{"lights_off": true}`.**
   - The page sends the server a press and nothing else.
   - The server sends the host those bytes and nothing else: no source, no
@@ -225,15 +247,30 @@ it.
 - **It is immediate and unsigned.** No password, no draft and no
   confirmation step.
 - **During a run, the button says that it also stops the running plan.**
-- **The reply is shown row by row, one row per source**, as the reply
-  gives it:
-  - off, read back;
-  - sent, where the device cannot read back;
-  - not turned off, with the reason. That row says to use the switch on
-    the device.
-  - A light is never shown off on the strength of what was sent.
-  - After the reply, the path shows the result from its two sources as for
-    any run.
+- **The reply is checked against `lights_off_reply` before anything is
+  shown.** It is one of three cases, and the page shows each as follows:
+  - **Done.** The reply names the run that turned the lights off. During a
+    run that is the run that was stopped, and the page says the plan was
+    stopped. The rows are shown one per source, in the reply's order:
+    - off, with what was read back;
+    - sent, where the device cannot read back;
+    - not turned off, with the reason. That row says to use the switch on
+      the device.
+  - **Stop sent.** The running plan accepted the stop, but its lights were
+    not read back in time. The page shows no source as off and no row,
+    names the run, gives the reason, and says to check each light at its
+    switch. It does not build rows from the run's log itself: the rows are
+    the host's to derive.
+  - **Refused.** Nothing was sent to any light. The page gives the reason
+    and says to use the switches.
+- **Anything else is shown as no answer, and no light is shown off.** That
+  covers a reply that fails the check, a connection that fails, and no
+  reply within the server's wait. The page says that nothing is known
+  about the lights and to use the switches. It never resends on its own;
+  a second press is the person's.
+- A light is never shown off on the strength of what was sent.
+- After the reply, the path shows the result from its two sources as for
+  any run.
 - **On the instrument, the first lights-off request is watched at the
   bench.** That is the person's act, and nothing on the page says it
   happened.
@@ -261,6 +298,11 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
     element, and it follows.
   - A branch the fixture does not name is not drawn.
   - A source with no order shows 017's list and draws nothing.
+  - Each of `light_path_order`'s examples shows as its status says, read
+    from the schema file. Each of its `x_refused` shows 017's list as an
+    order not understood, with nothing drawn.
+  - A `read` order whose source kind is not in the page's table never
+    reads observed.
 - **Holes.**
   - A branch with a hole stops where the order stops.
   - An element with no recorded place reads "place not recorded" beside
@@ -298,6 +340,11 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
   - The reply's rows follow the fixture.
   - A sent row never reads off.
   - A not-turned-off row says to use the switch.
+  - Each of `lights_off_reply`'s examples is shown as its case says, read
+    from the schema file and not from a copy.
+  - Each of its `x_refused`, a failed connection, and no reply within the
+    wait are shown as no answer, with no light off and nothing resent.
+  - Stop sent and refused show no row.
   - During a run, the button says it also stops the plan.
   - Neither the assistant's lights-off nor `STOPS` is on its route.
 - **No request.** None leaves the page while it renders or refreshes.
