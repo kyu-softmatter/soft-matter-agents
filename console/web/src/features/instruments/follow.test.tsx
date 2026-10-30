@@ -395,6 +395,30 @@ describe("the live optical path on Optics and control", () => {
     expect(handOf(item("laser_combiner"))).toEqual([]);
   });
 
+  it("the list says why beside the no-draft label: the row's own words, muted, and none made up for a row that carries none", async () => {
+    const { item } = await open(PATH_RUN);
+    const WORDS: Record<string, string> = {
+      DiaLamp: "No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and no table of its on and off states.",
+      Aura: "No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has nowhere to read that model from yet, so it guesses none.",
+    };
+    for (const n of Object.keys(WORDS)) {
+      const li = item(n);
+      const why = li.querySelector("[data-control-words]");
+      expect(why?.textContent).toBe(WORDS[n]);
+      expect(why?.className).toContain("console-muted");
+      expect(handOf(li)).toEqual([NO_DRAFT_LABEL]);
+    }
+    for (const n of ["FilterTurret1", "LightPath", "laser_combiner"]) expect(item(n).querySelector("[data-control-words]")).toBeNull();
+  });
+
+  it("a no-draft row that carries no words keeps the label alone in the list, and the page makes up none", async () => {
+    const bare = { ...PATH, elements: ELEMENTS.map((e) => (e.name === "Aura" ? { ...e, words: null } : e)) };
+    const { item: item2 } = await open({ ...RUNNING, path: bare });
+    expect(handOf(item2("Aura"))).toEqual([NO_DRAFT_LABEL]);
+    expect(item2("Aura").querySelector("[data-control-words]")).toBeNull();
+    expect(item2("Aura").textContent).not.toContain("No draft is offered");
+  });
+
   it("names follow the fixture: a name nobody coded here appears, and one the read-back omits does not", async () => {
     const odd = { ...PATH, elements: [read("Widget-7", "stand_ti2e", "4"), read("Nosepiece", "stand_ti2e", "3")] };
     const { names, panel } = await open({ ...RUNNING, path: odd });

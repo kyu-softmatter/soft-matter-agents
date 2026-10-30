@@ -59,6 +59,7 @@ function ElementList({ path }: { path: Path }) {
             <Reading e={e} />
             {e.control === "hand" && <> · <span className="inst-control" data-control="hand">{BY_HAND_LABEL}</span></>}
             {e.control === "no_draft" && <> · <span className="inst-control" data-control="no_draft">{NO_DRAFT_LABEL}</span></>}
+            {e.control === "no_draft" && typeof e.words === "string" && e.words !== "" && <> · <span className="console-muted" data-control-words>{e.words}</span></>}
           </li>
         ))}
       </ul>

@@ -112,7 +112,7 @@ No password, no draft, no confirmation: a lights-off that waits is a slower one.
 A draft is offered for the red camera's exposure only: its plan step names `camera_red`, the action `set_exposure` and the
 quantity `exposure_time`, which the run's capabilities list. It is **refused before signing, because no limit has been named
 for it yet**. The Aura and the transmitted lamp are drawn and listed with their state as read, and say that no draft is
-offered yet; their drafts return when a run can take them. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
+offered yet, and where the source gives no order the list shows the server's words for it beside that label; their drafts return when a run can take them. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
 was sent; assumed open until a shutter that reads back shows it blocked".
 
 `plan.schema.json` has no operation that sets an exposure, so this draft is composed,
