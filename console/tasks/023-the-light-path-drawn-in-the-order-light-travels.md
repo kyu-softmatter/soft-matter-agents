@@ -147,16 +147,29 @@ markup or text taken from the file.
   - "no channel" for an element with none, such as the polarizer or the
     eyepieces.
   - No value is invented for either.
-- **An element is found in the read-back by exact match** of the order's
-  element and channel against the read-back row's name and channel. The
-  page never translates one name into another, and holds no table of
-  names. Where the runtime keys a channel's read-back by a device's own
-  label (the lamp and the Aura, as `DiaLamp` and `Aura` on
-  `widefield_source_b`), no order id can match it, because the shape's
-  ids are lower case. Such an element reads "not read" until the runtime
-  writes, beside each order element, the name and channel its read-back
-  uses. That is the runtime's to write, from the registry it read, and
-  the page waits for it.
+- **An element is found in the read-back by its `read_back` pair and
+  nothing else** (amended 2026-10-29; the pair is in the shape since
+  `1974438a`). Beside each element the order places, each one whose place
+  is not recorded, and each `hand_set` entry, the runtime writes two
+  things: the channel whose snapshot carries the element's row, and the
+  row's key exactly as that snapshot spells it (`nosepiece`, `DiaLamp`,
+  `Aura`). The page matches that pair exactly against a row's channel and
+  name.
+  - The pair's channel may differ from the element's own channel, and is
+    used as given. The element's own channel still keys part 3's table and
+    the tab link. The pair only finds the row.
+  - The page never matches on the element id, never translates one name
+    into another, and holds no table of names.
+  - `read_back: null` means the element has no row. It reads "no channel"
+    when the element has no channel, and "not read" otherwise, with the
+    reason that the runtime names no read-back row for it. It is never
+    matched on its id instead.
+  - A pair on a channel the run did not open reads "not open". A pair whose
+    row the read-back does not hold reads "not read", naming the pair.
+  - An order without the field fails the schema, so it reads as an order
+    not understood, with nothing drawn.
+  - The count of read-back rows the order names nowhere counts the rows
+    that no pair names.
 - **Lines show order, never light.** A line joins two neighbours in the
   order. No line is drawn lit, coloured by whether a source is on, or
   ending in a detector as if light arrives there. Which camera a splitter
@@ -342,6 +355,18 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
 - **Values.**
   - An element in the order and missing from the read-back reads "not
     open" or "no channel", with no value.
+  - An element with `read_back: null`, whose id equals a row's name on its
+    own channel, reads "not read" and shows no value. Watch it fail
+    against an id match first.
+  - A pair naming a row on a channel other than the element's own shows
+    that row's value, and the element keeps its own channel's control and
+    tab link.
+  - A pair whose row is missing reads "not read", naming the pair. A pair
+    on a channel the run did not open reads "not open".
+  - Once runtime card 104 reports the pairs it wrote for the lamp and the
+    Aura, a fixture with exactly those pairs shows both rows' values.
+    Until then, any fixture pair for them is the test's choice, and the
+    test says so.
   - 017's tests still pass, its draft-refusal notice among them.
 - **Banner.**
   - A description-graded fixture shows exactly "from a description, not
