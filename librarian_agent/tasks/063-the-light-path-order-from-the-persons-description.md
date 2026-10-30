@@ -40,9 +40,26 @@ rest of `c46095ec` are the rule.
 - The file sits outside the tree, so nobody else can re-read it. Record it as a
   source the way the store records an operator source, with the path, the hash
   and the URL. Copy it under `librarian_agent/kb/sources/` if the store's
-  source rules allow it, so the record can be re-read. The console manager is
-  separately copying the same file into `console/`. That copy is the design's,
-  and yours is the store's.
+  source rules allow it, so the record can be re-read.
+- **The console holds a different export, and it says the same thing.**
+  Amended 2026-10-30, citing `1bcd5f26` (R-20261030-scope-01): this card said
+  the console manager was copying the same file into `console/`, and it was
+  not. The console's copy is a second export the person named on the Office
+  computer on 2026-10-29: `console/docs/light-path/Main.dc.html`, 79,719
+  bytes, sha256
+  `15995359d4c8a4d7510447d1bf5055cde899d76ee70574fe0f3c21480e7506e9`
+  (`1c7f7152`). This seat compared the two on 2026-10-30. They differ in
+  exactly one place: the first loads two script files
+  (`./vendor/react.js`, `./vendor/react-dom.js`) in its header, and the second
+  does not. Every label and every fact is identical. So:
+  - **The order is entered from the first file**, the one the decision named.
+    The second is not entered, neither as well nor instead, because it adds
+    no fact.
+  - **Name the second in the source record** as a copy with identical
+    content, with its path and hash, so a reader holding either one can match
+    it to the entry.
+  - Re-compare before you enter. If the two now differ in anything the person
+    stated, stop and report up: which one counts is the person's to say.
 - The person's 16 October words in the Office computer's intake window are not
   on this computer. The page carries them as per-fact labels, which is why the
   decision names the page as the record.
