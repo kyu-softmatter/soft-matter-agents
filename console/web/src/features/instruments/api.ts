@@ -14,12 +14,14 @@ export type LimitsOut = Schemas["LimitsOut"];
 export type LatestRun = Schemas["LatestRunOut"];
 export type DraftIn = Schemas["DraftIn"];
 export type DraftOut = Schemas["DraftOut"];
+export type ChangesIn = Schemas["ChangesIn"];
 
 export const PATHS = {
   status: "/api/instruments/status",
   limits: "/api/instruments/limits",
   latestRun: "/api/instruments/latest-run",
   draft: "/api/instruments/draft",
+  changes: "/api/instruments/changes",
 };
 
 /** One reading of the idle status file (`idle_status.schema.json`, `$defs/reading`). */
@@ -83,6 +85,13 @@ export function valueText(v: unknown): string {
 /** `POST /api/instruments/draft`: a plan draft, checked against plan.schema.json and saved nowhere. */
 export async function makeDraft(client: Client, body: DraftIn): Promise<DraftOut> {
   const r = await client.post<DraftOut>(PATHS.draft, body);
+  if (r === null) throw new CommandRefused(502, "the server returned no draft");
+  return r;
+}
+
+/** `POST /api/instruments/changes`: the collected clicks as one plan draft, checked and saved nowhere. */
+export async function makeChanges(client: Client, body: ChangesIn): Promise<DraftOut> {
+  const r = await client.post<DraftOut>(PATHS.changes, body);
   if (r === null) throw new CommandRefused(502, "the server returned no draft");
   return r;
 }

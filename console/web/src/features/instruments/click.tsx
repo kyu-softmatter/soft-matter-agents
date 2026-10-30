@@ -11,7 +11,7 @@ import { shortTime } from "../questions/ui";
 import type { LatestRun } from "./api";
 import { useChanges } from "./changes";
 import { type Control, type Found, NO_CONTROL_CHANNELS, tabOf } from "./join";
-import type { HandSet, OrderElement, Slot } from "./order";
+import type { HandSet, OrderElement } from "./order";
 import { COMBINER_SENTENCE } from "./parts";
 import { DRAFT_LABEL, PartDraft } from "./partdraft";
 import { RunRefuses } from "./readout";
@@ -23,36 +23,43 @@ export const HAND_SELECTOR_SAYS =
 export const NO_SLOTS_GIVEN = "The slot list is not given for this element, so no slot can be chosen here.";
 const NO_CONTROL_HERE = "This page is given no control for this element.";
 
-/** The slot the read-back shows, found by the slot's name or its number; undefined when it was not read or matches none. */
-function currentSlot(found: Found, slots: Slot[]): { read: boolean; text: string; slot?: Slot } {
-  if (found.kind !== "row") return { read: false, text: `The current slot was not read: ${found.reason}.` };
-  if (found.row.state !== "read_back") return { read: false, text: `The current slot was not read: ${found.row.reason ?? "the read-back gives no position"}.` };
-  const value = String(found.row.value);
-  const slot = slots.find((s) => s.name === value || String(s.slot) === value);
-  return slot === undefined
-    ? { read: true, text: `The position read back, ${value}, matches none of these slots.` }
-    : { read: true, text: "", slot };
+export const SLOT_NOT_GIVEN = "Which of these slots that is has not been given, so no slot is marked.";
+
+/**
+ * **No slot is marked as the current one.** Nothing gives the page which slot a position read back means, so a value equal to a
+ * slot's number or name marks nothing: the row's own value is shown with where it came from, and the page says it cannot tell
+ * which slot that is.
+ */
+function ReadBackValue({ found }: { found: Found }) {
+  if (found.kind !== "row") return <p className="console-muted" data-testid="read-value">{`No value was read back for this element: ${found.reason}. ${SLOT_NOT_GIVEN}`}</p>;
+  if (found.row.state !== "read_back") {
+    return <p className="console-muted" data-testid="read-value">{`No value was read back for this element: ${found.row.reason ?? "the read-back gives no position"}. ${SLOT_NOT_GIVEN}`}</p>;
+  }
+  return (
+    <p className="console-muted" data-testid="read-value">
+      Read back: <span className="inst-name">{found.row.value}</span> · read {shortTime(found.row.t_wall)}
+      {found.row.backend === "mock" && <> · <span className="inst-backend">the mock&apos;s state</span></>}. {SLOT_NOT_GIVEN}
+    </p>
+  );
 }
 
 function SlotList({ el, found, set }: { el: OrderElement; found: Found; set: HandSet }) {
   const { addSelector } = useChanges();
   const [refused, setRefused] = useState<string | undefined>(undefined);
-  const now = currentSlot(found, set.slots);
   return (
     <>
       <p className="console-muted">{HAND_SELECTOR_SAYS}</p>
       <ul aria-label={`Slots of ${el.element}`}>
         {set.slots.map((s) => (
-          <li key={s.slot} data-slot={s.slot} data-current={now.slot === s ? "true" : undefined}>
+          <li key={s.slot} data-slot={s.slot}>
             <span className="inst-name">{s.name ?? "no name given"}</span> (slot {s.slot})
-            {now.slot === s && <> · <span className="inst-current">current slot, as read</span></>}
             {!s.resolves && <> · <span className="console-muted">a plan cannot name it: {s.why}</span></>}
             {" "}
             <button type="button" onClick={() => setRefused(addSelector(el.element, el.channel, s))}>{`Choose slot ${s.slot}`}</button>
           </li>
         ))}
       </ul>
-      {now.text !== "" && <p className="console-muted">{now.text}</p>}
+      <ReadBackValue found={found} />
       {refused !== undefined && <p role="alert" className="console-error">{refused}</p>}
     </>
   );

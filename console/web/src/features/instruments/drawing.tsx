@@ -7,9 +7,10 @@
  * changes one, none ends in a detector, and none says which camera a state reaches. A branch with a hole is drawn only as far as
  * its order goes; an element with no recorded place is listed beside the branch, with its live value, and never drawn into one.
  *
- * An element's state is the read-back's, found by **exact match** of the order's element id and channel against the read-back's
- * name and channel; no normalisation and no table of names live here. An element the read-back omits reads "not open" (its channel
- * was not opened), "no channel" (it has none) or "not read", with the reason, and **never a value**.
+ * An element's state is the read-back's, found by **exact match of the pair the order gives it** (`read_back`) against a row's
+ * channel and name, never by the element's id; no normalisation and no table of names live here. An element no row answers reads
+ * "not open" (the run did not open the channel), "no channel" (it has none and no pair) or "not read", with the reason, and
+ * **never a value**.
  */
 
 import { useState } from "react";
@@ -97,10 +98,10 @@ function Branch({ b, run, hand }: { b: OrderBranch; run: LatestRun; hand: HandSe
   );
 }
 
-/** How many read-back elements the order names nowhere: counted, never listed, never drawn. */
+/** How many read-back rows no pair of the order names: counted, never listed, never drawn. An element's id names no row. */
 function unnamed(order: ReadOrder, run: LatestRun): number {
   const named = order.branches.flatMap((b) => [...b.elements, ...b.place_not_recorded]);
-  return run.path.elements.filter((r) => !named.some((n) => n.element === r.name && n.channel === r.channel)).length;
+  return run.path.elements.filter((r) => !named.some((n) => n.read_back !== null && n.read_back.name === r.name && n.read_back.channel === r.channel)).length;
 }
 
 export function Drawing({ order, run, kinds }: { order: ReadOrder; run: LatestRun; kinds?: KindTable }) {

@@ -66,7 +66,7 @@ const MAP = (over: Record<string, unknown> = {}) => ({
 const DRAFT_OUT = (kind: string, valid: boolean) => ({
   kind, card: { card: "plan", id: `plan-${kind}`, author: "human" }, valid,
   problems: valid ? [] : ["$.operation: refused by the schema for a light or exposure change"], range_problems: [],
-  refused_today: ["Refused until you write a limit: your safety file has none for this part yet."],
+  refused_today: ["No limit has been named for this quantity yet, so this draft is refused before it can be signed."],
   saved: false, note: "A draft is shown in full and saved nowhere.",
 });
 

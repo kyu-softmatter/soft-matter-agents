@@ -6,7 +6,7 @@ import { fakeTransport } from "../../test/fakes";
 import schema from "../../../../../contracts/schemas/idle_status.schema.json";
 import type { LatestRun } from "./api";
 import { ChangesList, ChangesProvider, NOT_SAVED_WORDS, useChanges } from "./changes";
-import { HAND_SELECTOR_SAYS, NOT_OFFERED, NO_SLOTS_GIVEN } from "./click";
+import { HAND_SELECTOR_SAYS, NOT_OFFERED, NO_SLOTS_GIVEN, SLOT_NOT_GIVEN } from "./click";
 import { CHANNEL_DRAFT, CHANNEL_TAB, NO_CONTROL_CHANNELS } from "./join";
 import { Optics } from "./optics";
 import { PathPanel } from "./path";
@@ -26,7 +26,11 @@ const copy = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 const RUN_ID = "run-20261026-001";
 const T1 = "2026-10-26T09:00:01Z";
 const REF = ["light_path_order_from_description_20261016"];
-const place = (element: string, channel: string | null) => ({ element, channel, entry_ref: REF });
+/** An element of the order. Its read-back pair is the fixture's own choice: the channel and the element's name, or none for an element with no channel. */
+const place = (element: string, channel: string | null, read_back: { channel: string; name: string } | null | undefined = undefined) => ({
+  element, channel, entry_ref: REF, read_back: read_back === undefined ? (channel === null ? null : { channel, name: element }) : read_back,
+});
+const pairOf = (element: string, channel: string) => ({ channel, name: element });
 
 interface Row {
   key: string; name: string; channel: string; state: string; value: string | null; t_wall: string | null; reason: string | null;
@@ -179,7 +183,7 @@ describe("a drafted element opens its fields in place", () => {
 describe("a part moved by hand opens its slot list", () => {
   const hand = (slots: Json[]) => {
     const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots }];
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
     return runWith(ROWS, o);
   };
   const SLOTS = [
@@ -188,17 +192,23 @@ describe("a part moved by hand opens its slot list", () => {
     { slot: 5, name: null, resolves: false, why: "the registry gives slot 5 no name" },
   ];
 
-  it("lists the slots by the fixture's names, and marks the one the read-back shows", () => {
+  it("lists the slots by the fixture's names, shows the row's value with its source, and marks no slot", () => {
     show(hand(SLOTS));
     const box = open("filter_turret_1");
     const slots = within(within(box).getByRole("list", { name: "Slots of filter_turret_1" })).getAllByRole("listitem");
     expect(slots.map((s) => s.getAttribute("data-slot"))).toEqual(["0", "1", "5"]);
     expect(slots[0].textContent).toContain("five_band");
     expect(slots[1].textContent).toContain("dapi");
-    expect(slots.map((s) => within(s).queryByText(/current slot, as read/) !== null)).toEqual([true, false, false]);
+    expect(slots.map((s) => s.getAttribute("data-current"))).toEqual([null, null, null]);
+    expect(within(box).queryByText(/current slot, as read/)).toBeNull();
+    const value = within(box).getByTestId("read-value").textContent ?? "";
+    expect(value).toContain("five_band");
+    expect(value).toMatch(/read /);
+    expect(value).toContain("the mock's state");
+    expect(value).toContain(SLOT_NOT_GIVEN);
   });
 
-  it("follows a renamed slot and marks none when the read-back matches none of them", () => {
+  it("follows a renamed slot", () => {
     const s: Json[] = copy(SLOTS);
     s[1].name = "renamed_slot";
     show(hand(s));
@@ -207,14 +217,17 @@ describe("a part moved by hand opens its slot list", () => {
     expect(within(box).queryByText("dapi")).toBeNull();
   });
 
-  it("marks no slot as current when the element was not read back, and says it was not read", () => {
+  it("marks no slot, and says no value was read, when the element was not read back", () => {
     const rows = ROWS.map((r) => (r.name === "filter_turret_1" ? row("filter_turret_1", "stand_ti2e", "not_read", { reason: "busy at the read" }) : r));
     const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS }];
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
     show(runWith(rows, o));
     const box = open("filter_turret_1");
     expect(within(box).queryByText(/current slot, as read/)).toBeNull();
-    expect(within(box).getByText(/The current slot was not read/)).toBeTruthy();
+    const value = within(box).getByTestId("read-value").textContent ?? "";
+    expect(value).toContain("No value was read back");
+    expect(value).toContain("busy at the read");
+    expect(value).toContain(SLOT_NOT_GIVEN);
   });
 
   it("adds a selector for a chosen slot, and says software never writes it", () => {
@@ -257,32 +270,43 @@ describe("a part moved by hand opens its slot list", () => {
 
   it("opens the slot list of an element the order's hand_set names even when the read-back holds no row for it", () => {
     const o = orderWithElements();
-    o.hand_set = [{ element: "objective_turret", channel: "stand_ti2e", slots: SLOTS }];
+    o.hand_set = [{ element: "objective_turret", channel: "stand_ti2e", slots: SLOTS, read_back: pairOf("objective_turret", "stand_ti2e") }];
     show(runWith(ROWS, o));
     const box = open("objective_turret");
     expect(within(box).getByRole("list", { name: "Slots of objective_turret" })).toBeTruthy();
-    expect(within(box).getByText(/The current slot was not read/)).toBeTruthy();
+    expect(within(box).getByTestId("read-value").textContent).toContain("read-back names no element called objective_turret on channel stand_ti2e");
     const li = document.querySelector('[data-drawn="objective_turret"]') as HTMLElement;
     expect(li.querySelector("[data-control]")?.getAttribute("data-control")).toBe("hand");
   });
 
-  it("marks a slot by its number when the read-back is a number", () => {
+  it("marks no slot when the value read back is a slot's number", () => {
     const rows = ROWS.map((r) => (r.name === "filter_turret_1" ? read("filter_turret_1", "stand_ti2e", "1") : r));
     const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS }];
-    show(runWith(rows, o));
-    const slots = within(within(open("filter_turret_1")).getByRole("list", { name: "Slots of filter_turret_1" })).getAllByRole("listitem");
-    expect(slots.map((s) => within(s).queryByText(/current slot, as read/) !== null)).toEqual([false, true, false]);
-  });
-
-  it("says the position matches no slot when the read-back is none of them", () => {
-    const rows = ROWS.map((r) => (r.name === "filter_turret_1" ? read("filter_turret_1", "stand_ti2e", "mystery") : r));
-    const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS }];
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
     show(runWith(rows, o));
     const box = open("filter_turret_1");
-    expect(within(box).getByText(/mystery, matches none of these slots/)).toBeTruthy();
+    const slots = within(within(box).getByRole("list", { name: "Slots of filter_turret_1" })).getAllByRole("listitem");
+    expect(slots.map((s) => s.getAttribute("data-current"))).toEqual([null, null, null]);
     expect(within(box).queryByText(/current slot, as read/)).toBeNull();
+    expect(within(box).getByTestId("read-value").textContent).toContain("Read back: 1");
+  });
+
+  it("marks no slot when the value read back is a slot's name, and when it is none of them", () => {
+    const rows = ROWS.map((r) => (r.name === "filter_turret_1" ? read("filter_turret_1", "stand_ti2e", "mystery") : r));
+    const o = orderWithElements();
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: SLOTS, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
+    show(runWith(rows, o));
+    const box = open("filter_turret_1");
+    expect(within(box).getByTestId("read-value").textContent).toContain("Read back: mystery");
+    expect(within(box).queryByText(/current slot, as read/)).toBeNull();
+    expect(within(box).queryByText(/matches none of these slots/)).toBeNull();
+  });
+
+  it("joins the slot list to the element by the hand_set's pair, not its id", () => {
+    const o = orderWithElements();
+    o.hand_set = [{ element: "some_other_id", channel: "stand_ti2e", slots: SLOTS, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
+    show(runWith(ROWS, o));
+    expect(within(open("filter_turret_1")).getByRole("list", { name: "Slots of filter_turret_1" })).toBeTruthy();
   });
 
   it("says the slot list is not given, and offers nothing, for a hand element the order gives no slots for", () => {
@@ -399,7 +423,7 @@ describe("an element with a section tab links to it", () => {
 describe("the changes list", () => {
   const withSlots = () => {
     const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: [{ slot: 0, name: "five_band", resolves: true, entry_ref: "e0" }] }];
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots: [{ slot: 0, name: "five_band", resolves: true, entry_ref: "e0" }], read_back: pairOf("filter_turret_1", "stand_ti2e") }];
     return runWith(ROWS, o);
   };
 
@@ -441,7 +465,7 @@ describe("the changes list", () => {
 describe("what the clicks leave out and refuse, said in the click's own words", () => {
   const handWith = (slots: Json[]) => {
     const o = orderWithElements();
-    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots }];
+    o.hand_set = [{ element: "filter_turret_1", channel: "stand_ti2e", slots, read_back: pairOf("filter_turret_1", "stand_ti2e") }];
     return runWith(ROWS, o);
   };
   const slotsOf = () => within(within(open("filter_turret_1")).getByRole("list", { name: "Slots of filter_turret_1" })).getAllByRole("listitem");
@@ -453,9 +477,9 @@ describe("what the clicks leave out and refuse, said in the click's own words", 
     expect(slots[1].textContent).not.toContain("a plan cannot name it");
   });
 
-  it("marks the current slot on the slot itself, and no other", () => {
+  it("marks no slot on any slot, even one whose name is the value read back", () => {
     show(handWith([{ slot: 0, name: "five_band", resolves: true, entry_ref: "e" }, { slot: 1, name: "dapi", resolves: true, entry_ref: "f" }]));
-    expect(slotsOf().map((s) => s.getAttribute("data-current"))).toEqual(["true", null]);
+    expect(slotsOf().map((s) => s.getAttribute("data-current"))).toEqual([null, null]);
   });
 
   it("says the slot list is not given when the order's hand_set names the element with no slots", () => {
@@ -584,7 +608,9 @@ describe("one required state per element, whatever channel the second try names"
         </>
       );
     }
-    render(<ChangesProvider onTab={() => undefined}><Probe /><ChangesList /></ChangesProvider>);
+    const client = new Client(fakeTransport({}).transport, "127.0.0.1");
+    clients.push(client);
+    render(<ClientProvider client={client}><ChangesProvider onTab={() => undefined}><Probe /><ChangesList /></ChangesProvider></ClientProvider>);
     fireEvent.click(screen.getByRole("button", { name: "first" }));
     fireEvent.click(screen.getByRole("button", { name: "second" }));
     expect(result).toMatch(/already/);

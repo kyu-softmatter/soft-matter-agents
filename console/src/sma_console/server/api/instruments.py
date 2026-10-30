@@ -178,6 +178,33 @@ class DraftOut(BaseModel):
     note: str
 
 
+class PartIn(BaseModel):
+    """One of the three parts software may command, as the person filled it in; nothing else is accepted."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["aura", "dialamp", "camera_exposure"]
+    color: str | None = None
+    power_mw: float | None = None
+    state: Literal["on", "off"] | None = None
+    intensity_percent: float | None = None
+    exposure_ms: float | None = None
+
+
+class SelectorIn(BaseModel):
+    """A slot the person chose for a part moved by hand: a required state, which software never writes."""
+
+    model_config = ConfigDict(extra="forbid")
+    element: str
+    value: str
+    note: str | None = None
+
+
+class ChangesIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    parts: list[PartIn] = []
+    selectors: list[SelectorIn] = []
+
+
 def _runtime(store: Any):
     fn = getattr(store, "runtime_root", None)
     return fn() if fn is not None else None
@@ -231,6 +258,40 @@ def _draft_refusal(me: Any) -> Refusal | None:
     return why
 
 
+SELECTOR_REFUSED = ("A required state is shown at the bench hand-over and set by your hand, then read and compared; "
+                    "software never writes it.")
+
+
+@router.post("/changes", response_model=DraftOut)
+def changes(body: ChangesIn, store: AgentStoreDep, me: Login) -> DraftOut:
+    """Collect the person's clicks into **one** plan draft and check it against plan.schema.json. Every part is refused
+    before signing: no limit has been named for its quantity, and the safety file is not read. **It writes nothing: the draft is returned and saved nowhere.**"""
+    if why := _draft_refusal(me):
+        raise why.http()
+    now = datetime.now(UTC)
+    parts = [p.model_dump(exclude_none=True) for p in body.parts]
+    try:
+        card = drafts.changes_card(parts=parts, selectors=[s.model_dump(exclude_none=True) for s in body.selectors], now=now)
+    except drafts.DraftError as e:
+        raise Refusal(422, "invalid", str(e)).http() from e
+    range_problems = drafts.part_refusals(parts)
+    refused: list[str] = []
+    if parts:
+        refused += ["No limit has been named for these quantities yet, so they are refused before signing.", RUN_REFUSES]
+    if any(p["kind"] == "aura" for p in parts):
+        refused.append(AURA_REFUSED_LONGER)
+    if body.selectors:
+        refused.append(SELECTOR_REFUSED)
+    try:
+        problems = _schemas(store).validate(card, "plan.schema.json")
+    except SchemaError as e:
+        problems = [f"the draft cannot be checked against plan.schema.json: {e}"]
+    return DraftOut(
+        kind="changes", card=card, valid=not problems and not range_problems, problems=problems[:12],
+        range_problems=range_problems, refused_today=refused,
+        note="A draft is shown in full and saved nowhere. Where a console draft goes before the person signs it is still to be designed.")
+
+
 @router.post("/draft", response_model=DraftOut)
 def draft(body: DraftIn, store: AgentStoreDep, me: Login) -> DraftOut:
     """Build a plan draft from the person's choice and check it against plan.schema.json. **It writes nothing:
@@ -262,7 +323,7 @@ def draft(body: DraftIn, store: AgentStoreDep, me: Login) -> DraftOut:
             refused = ["The runtime checks every position against your safety file again before anything is sent."]
         else:
             card = drafts.part_card(part=body.kind, fields=body.model_dump(exclude_none=True), now=now)
-            refused = ["Refused until you write a limit: your safety file has none for this part yet.", RUN_REFUSES]
+            refused = ["No limit has been named for this quantity yet, so this draft is refused before it can be signed.", RUN_REFUSES]
             if body.kind == "aura":
                 refused.append(AURA_REFUSED_LONGER)
     except drafts.DraftError as e:

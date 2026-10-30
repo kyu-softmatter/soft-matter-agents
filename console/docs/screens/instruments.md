@@ -39,9 +39,12 @@ the order does not name. No picture of the stand and no list of parts is kept on
 
 - **Each drawn element** shows its name, its state in the four words below, how it was read, whether it is "moved by
   hand" or "drafted" (or "control not given"), and the order's entry ids **as text, never followed**.
-- **The state is joined by exact match** of the order's element and channel to the read-back's name and channel; no
-  normalisation and no table of names live on the page. An element the read-back omits reads "not open" (its channel
-  was not opened), "no channel" (it has none) or "not read", with the reason, and **never a value**.
+- **The state is joined by the pair the order gives the element** (its read-back channel and name), matched exactly
+  against a row's channel and name; never by the element's id, and no normalisation and no table of names live on the
+  page. The pair's channel may differ from the element's own, which still decides its control and its tab. An element
+  with no pair joins no row, whatever a row is called. An element no row answers reads "not open" (its channel was
+  not opened), "no channel" (it has none and no pair) or "not read" (naming the pair, or saying the order names none),
+  with the reason, and **never a value**. A hand-moved part's slot list is joined by the same pair.
 - **Lines show order only.** One fixed style joins neighbours; no source being on or off changes a line, none ends in a
   detector, and none says which camera a state reaches.
 - **A branch with a hole is drawn only as far as its order goes.** Elements with no recorded place are listed beside
@@ -62,8 +65,10 @@ imports it, and no source file names the folder.
 - **A drafted element** (the Aura LED, the transmitted lamp, the red camera's exposure) opens its draft fields in place,
   with the refusal notice, and no link to another tab. The red camera is found by its channel; the lamp and the Aura keep
   the draft the read-back's row names.
-- **A part moved by hand** opens the slot list the order gives, by the store's names, with the slot the read-back shows
-  marked as read. Choosing a slot adds a **required state**, not a command: it is shown at the bench hand-over and set
+- **A part moved by hand** opens the slot list the order gives, by the store's names, with **no slot marked as the
+  current one**: nothing gives the page which slot a position read back means, so beside the list it shows the value the
+  element's row read back, how it was read and when, and says which of the slots that is has not been given. A value
+  equal to a slot's number or name marks nothing. Choosing a slot adds a **required state**, not a command: it is shown at the bench hand-over and set
   by hand, and software never writes it. A slot a plan cannot name is refused, naming the word and why. With no slots
   given, the click says the slot list is not given and offers nothing.
 - **The laser combiner and the trap** open to say why they have no control, with what was last sent in the run's events.
@@ -72,10 +77,18 @@ imports it, and no source file names the folder.
   what a click on an order-named element offers; a channel the table does not hold gets no link and the plain words.
 - **Changes collect in one list**, "These changes will be made:", in the order added, each removable, kept only on this
   screen. Nothing is requested while the page renders, an element is opened or a slot is chosen.
+- **[Check the draft] and [Apply]** each ask the server once, on the press, to collect the list into one ordinary plan card
+  and check it with `plan.schema.json`; the schema's refusal is shown as it words it. **Every part draft** (the Aura's power, the
+  lamp's brightness, the red camera's exposure) is refused before signing, and the page says no limit has been named
+  for that quantity yet; nothing is read from the safety file for these quantities. **[Apply] is shown and refused**: signing is over a plan card on disk and this draft is saved nowhere, so it says
+  "This draft cannot be signed yet, because it is saved nowhere." No password is asked and nothing is written. The run
+  button that follows signing sends nothing; on the instrument a run starts only after the bench hand-over.
+- **No limit is named for these quantities for now** (the person's answer). The page holds no limit name for them, and a
+  safety file that holds every limit its schema lists changes none of these refusals; they end when a limit is named.
 
 A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
-transmitted lamp (state and intensity) and the red camera's exposure. Each says **refused until you write a
-limit**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
+transmitted lamp (state and intensity) and the red camera's exposure. Each is **refused before signing, because no
+limit has been named for it yet**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
 was sent; assumed open until a shutter that reads back shows it blocked".
 
 `plan.schema.json` has no operation that sets a light or an exposure, so these three drafts are composed,

@@ -21,6 +21,7 @@ Limits are not written here. The ranges a trap pattern is held to come from the 
 from __future__ import annotations
 
 import math
+import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -174,7 +175,66 @@ def part_card(*, part: str, fields: dict[str, Any], now: datetime) -> dict[str, 
         "actions": [{"id": f"set_{part}", "device": device, "action": action, "reversible": True,
                      "parameters": params, "tier": 1}],
         "envelope_check": {"checked_against": [], "status": "unavailable",
-                           "note": "Your safety file has no limit for this part yet, so the instrument refuses it until you write one."},
+                           "note": "No limit has been named for this part yet, so the instrument refuses it."},
+        "stop_criteria": [], "success_criteria": [], "open_risks": [],
+    })
+    return card
+
+
+#: What each part's quantity is called when it is refused. **No limit has been named for any of them**: which limit
+#: in the person's safety file would cover the Aura's power, the lamp's intensity or the red camera's exposure is the
+#: runtime's and the safety schema's to say, so nothing here names one, reads one or treats another quantity's limit as
+#: covering it. Until that is said, every part draft is refused before signing.
+PART_WORDS = {
+    "aura": "the Aura LED's power",
+    "dialamp": "the transmitted lamp's intensity",
+    "camera_exposure": "the red camera's exposure",
+}
+SELECTOR_ELEMENT = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def part_refusals(parts: list[dict[str, Any]]) -> list[str]:
+    """Why the parts of a changes draft may not be signed, in words: one line for each quantity touched, in the order
+    added. Nothing is read from the safety file and no value is compared, so no value can pass."""
+    return [f"No limit has been named for {PART_WORDS[p['kind']]} yet, so this draft cannot be signed." for p in parts]
+
+
+def changes_card(*, parts: list[dict[str, Any]], selectors: list[dict[str, Any]], now: datetime) -> dict[str, Any]:
+    """The clicks of the Instruments drawing, collected into **one** ordinary plan card: each part software may
+    command contributes its action and its numbers, each slot chosen by hand becomes a selector under
+    `system_configuration`. The schema decides whether that is a plan; nothing here bends it to pass."""
+    if not parts and not selectors:
+        raise DraftError("nothing has been added to the changes")
+    kinds = [p.get("kind") for p in parts]
+    if len(set(kinds)) != len(kinds):
+        raise DraftError("each part is in the changes once")
+    cards = [part_card(part=p["kind"], fields=p, now=now) for p in parts]
+    seen: set[str] = set()
+    chosen: list[dict[str, Any]] = []
+    for s in selectors:
+        element, value = s.get("element"), s.get("value")
+        if not isinstance(element, str) or not SELECTOR_ELEMENT.match(element):
+            raise DraftError("a required state names its element in lower case letters, digits and underscores")
+        if not isinstance(value, str) or not value.strip():
+            raise DraftError("a required state names the slot it asks for")
+        if element in seen:
+            raise DraftError(f"{element} has two required states in the changes")
+        seen.add(element)
+        one: dict[str, Any] = {"element": element, "value": value}
+        if isinstance(s.get("note"), str) and s["note"].strip():
+            one["note"] = s["note"].strip()
+        chosen.append(one)
+    card = _head(now, "changes")
+    devices = [PARTS[p["kind"]]["device"] for p in parts]
+    config: dict[str, Any] = {"config": "console_draft", "devices": devices}
+    if chosen:
+        config["selectors"] = chosen
+    card.update({
+        "numbers": [n for c in cards for n in c["numbers"]], "purpose": "verify", "intent": "confirm",
+        "actions": [a for c in cards for a in c["actions"]],
+        "system_configuration": config,
+        "envelope_check": {"checked_against": [], "status": "unavailable",
+                           "note": "The console does not check limits. No limit has been named for these quantities yet, so every draft of them is refused before signing."},
         "stop_criteria": [], "success_criteria": [], "open_risks": [],
     })
     return card

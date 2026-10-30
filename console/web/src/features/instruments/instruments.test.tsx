@@ -67,7 +67,7 @@ const RUN = {
 const DRAFT_OUT = (kind: string, valid: boolean) => ({
   kind, card: { card: "plan", id: `plan-${kind}`, author: "human" }, valid,
   problems: valid ? [] : ["$.operation: required property is missing"], range_problems: [],
-  refused_today: ["Refused until you write a limit: your safety file has none for this part yet."],
+  refused_today: ["No limit has been named for this quantity yet, so this draft is refused before it can be signed."],
   saved: false, note: "A draft is shown in full and saved nowhere. Where a console draft goes before the person signs it is still to be designed.",
 });
 
@@ -210,11 +210,11 @@ describe("Optics and control", () => {
     expect(within(drafts()).getAllByRole("button", { name: /^Draft / }).map((b) => b.textContent).sort()).toEqual(["Draft Aura III LED", "Draft Transmitted lamp"]);
   });
 
-  it("each draft carries 'refused until you write a limit'", async () => {
+  it("each draft says no limit has been named for it yet", async () => {
     await open();
     for (const part of ["Aura III LED", "Transmitted lamp"]) {
       const box = within(drafts()).getByRole("group", { name: part });
-      expect(within(box).getByText(/refused until you write a limit/i)).toBeTruthy();
+      expect(within(box).getByText(/no limit has been named for this quantity yet/i)).toBeTruthy();
     }
   });
 

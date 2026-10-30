@@ -27,6 +27,9 @@ const REFUSED: Json[] = DEF.x_refused;
 const READ = EXAMPLES.find((e) => e.status === "read") as Json;
 const NOT_IN = EXAMPLES.find((e) => e.status === "not_in_snapshot") as Json;
 const copy = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+/** An order element as the fixture pushes it: its read-back pair is the fixture's to give, and null says the runtime names none. */
+const place = (element: string, channel: string | null, read_back: { channel: string; name: string } | null) =>
+  ({ element, channel, entry_ref: ["e"], read_back });
 
 const RUN_ID = "run-20261026-001";
 const T1 = "2026-10-26T09:00:01Z";
@@ -44,9 +47,12 @@ const row = (name: string, channel: string, state: string, extra: Partial<Row> =
 const read = (name: string, channel: string, value: string, extra: Partial<Row> = {}) =>
   row(name, channel, "read_back", { value, t_wall: T1, backend: "mock", ...extra });
 
-/** The read-back rows that match the example order by exact name and channel, and two that the order does not name. */
+/**
+ * The read-back rows that the example order's pairs name (the lamp's pair is the schema's own, DiaLamp on stand_ti2e), and two that
+ * it does not. The pairs for the Aura and the lamp are the test's choice until the runtime reports them (runtime card 104).
+ */
 const ROWS: Row[] = [
-  read("dia_lamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
+  read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
   read("Aura", "stand_ti2e", "0", { control: "draft", draft: "aura" }),
   read("Nosepiece", "stand_ti2e", "3"),
 ];
@@ -123,8 +129,23 @@ describe("the drawing follows the order", () => {
   });
 
   it("says nothing of read-back elements when the order names every one of them", () => {
-    panelOf(readRun(READ, ROWS.filter((r) => r.name === "dia_lamp")));
+    panelOf(readRun(READ, ROWS.filter((r) => r.name === "DiaLamp")));
     expect(screen.queryByText(/not named in this order/)).toBeNull();
+  });
+
+  it("counts a row that only shares an order element's id as not named, since only a pair names a row", () => {
+    // polarizer has no channel and the hole has a null pair: a row called by either id is named by no pair.
+    panelOf(readRun(READ, [...ROWS, read("polarizer", "stand_ti2e", "x"), read("intermediate_magnification", "stand_ti2e", "y")]));
+    expect(screen.getByText(/4 read-back elements are not named in this order/)).toBeTruthy();
+  });
+
+  it("counts a row a pair names as named, wherever in the order that pair sits, and a pair on another channel from the element's own", () => {
+    const o = copy(READ);
+    o.branches[0].place_not_recorded[0].read_back = { channel: "stand_ti2e", name: "Aura" };
+    o.branches[0].elements[1] = place("polarizer", null, { channel: "elsewhere", name: "Nosepiece" });
+    panelOf(readRun(o, [...ROWS, read("Nosepiece", "elsewhere", "2")]));
+    // DiaLamp, Aura (the hole's pair) and Nosepiece/elsewhere are named; Nosepiece/stand_ti2e is not.
+    expect(screen.getByText(/1 read-back element is not named in this order/)).toBeTruthy();
   });
 
   it("counts the read-back elements the order does not name, and names none of them", () => {
@@ -234,6 +255,22 @@ describe("a source with no order is 017's list, and nothing is drawn", () => {
     expect(listed()).toHaveLength(ROWS.length);
   });
 
+  it.each([
+    ["an element with no read_back", (o: Json) => { delete o.branches[0].elements[0].read_back; }],
+    ["a hole with no read_back", (o: Json) => { delete o.branches[0].place_not_recorded[0].read_back; }],
+    ["a hand_set entry with no read_back", (o: Json) => { delete o.hand_set[0].read_back; }],
+    ["a pair with no name", (o: Json) => { o.branches[0].elements[0].read_back = { channel: "stand_ti2e" }; }],
+    ["a pair with an empty name", (o: Json) => { o.branches[0].elements[0].read_back = { channel: "stand_ti2e", name: "" }; }],
+    ["a pair whose channel is not a channel name", (o: Json) => { o.branches[0].elements[0].read_back = { channel: "Stand TI", name: "DiaLamp" }; }],
+    ["a pair that is a string", (o: Json) => { o.branches[0].elements[0].read_back = "DiaLamp"; }],
+  ])("%s is not understood, and nothing is drawn in part", (_, spoil) => {
+    const o = copy(READ);
+    spoil(o);
+    const view = panelOf(readRun(o));
+    expect(view.drawing()).toBeNull();
+    expect(within(view.panel()).getByText(/not understood/i)).toBeTruthy();
+  });
+
   it("a read order with no data is not understood", () => {
     const view = panelOf(runWith(order("read", null)));
     expect(view.drawing()).toBeNull();
@@ -278,7 +315,7 @@ describe("the banner", () => {
     seen.grade = "E2";
     seen.entry_ref = "light_path_order_observed_20261101";
     seen.source = "an observation at the stand";
-    seen.branches = [{ branch: "observed_branch", elements: [{ element: "only_observed", channel: null, entry_ref: ["an_entry"] }], place_not_recorded: [] }];
+    seen.branches = [{ branch: "observed_branch", elements: [{ element: "only_observed", channel: null, entry_ref: ["an_entry"], read_back: null }], place_not_recorded: [] }];
     view.rerender(<ClientProvider client={clients[0]}><ChangesProvider><PathPanel run={readRun(seen)} onDraft={() => undefined} kinds={KNOWN_OBSERVED} /></ChangesProvider></ClientProvider>);
     expect(screen.queryByText(DESCRIPTION_WORDS)).toBeNull();
     const banner = document.querySelector("[data-banner]") as HTMLElement;
@@ -318,7 +355,8 @@ describe("holes", () => {
   it("a hole's live value is shown when the read-back has it, and not invented when it has not", () => {
     const o = copy(READ);
     const hole = o.branches[0].place_not_recorded[0];
-    const view = panelOf(readRun(o, [...ROWS, read(hole.element, hole.channel, "4")]));
+    hole.read_back = { channel: "stand_ti2e", name: "IntermediateMagnification" }; // the schema's example gives the hole no pair
+    const view = panelOf(readRun(o, [...ROWS, read("IntermediateMagnification", "stand_ti2e", "4")]));
     const li = item(hole.element);
     expect(li.textContent).toContain("4");
     expect(stateOf(li)).toEqual(["read back"]);
@@ -341,12 +379,22 @@ describe("holes", () => {
 describe("values", () => {
   it("an element the read-back omits, on a channel the run did not open, reads not open with the run's reason and no value", () => {
     const o = copy(READ);
-    o.branches[0].elements.push({ element: "red_arm", channel: "camera_red", entry_ref: ["camera_red_entry"] });
+    o.branches[0].elements.push(place("red_arm", "camera_red", { channel: "camera_red", name: "RedArm" }));
     panelOf(readRun(o));
     const li = item("red_arm");
     expect(stateOf(li)).toEqual(["not open"]);
     expect(li.textContent).toContain("camera_red did not open");
     expect(li.textContent).not.toMatch(/read 2026|=|assumed/);
+  });
+
+  it("a null pair on a channel the run did not open reads not open, and a pair on such a channel does too, whatever the element's own channel", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("red_null", "camera_red", null), place("far_pair", "stand_ti2e", { channel: "camera_red", name: "Far" }));
+    panelOf(readRun(o));
+    expect(stateOf(item("red_null"))).toEqual(["not open"]);
+    expect(item("red_null").textContent).toContain("camera_red did not open");
+    expect(stateOf(item("far_pair"))).toEqual(["not open"]);
+    expect(item("far_pair").textContent).toContain("camera_red did not open");
   });
 
   it("an element with no channel reads 'no channel', with no value and no state it could not have", () => {
@@ -358,32 +406,69 @@ describe("values", () => {
 
   it("an element on an open channel that the read-back does not name reads not read and says the read-back names no such element", () => {
     const o = copy(READ);
-    o.branches[0].elements.push({ element: "unnamed_turret", channel: "stand_ti2e", entry_ref: ["e"] });
+    o.branches[0].elements.push(place("unnamed_turret", "stand_ti2e", { channel: "stand_ti2e", name: "UnnamedTurret" }));
     panelOf(readRun(o));
     const li = item("unnamed_turret");
     expect(stateOf(li)).toEqual(["not read"]);
-    expect(li.textContent).toMatch(/names no element called unnamed_turret/);
+    expect(li.textContent).toMatch(/names no element called UnnamedTurret on channel stand_ti2e/);
+  });
+
+  it("a null pair on an opened channel reads not read, and says no pair is given", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("no_pair", "stand_ti2e", null));
+    panelOf(readRun(o));
+    expect(stateOf(item("no_pair"))).toEqual(["not read"]);
+    expect(item("no_pair").textContent).toMatch(/names no pair/);
   });
 
   it("a channel the page knows nothing of (no channels row) is not claimed open or closed", () => {
     const o = copy(READ);
-    o.branches[0].elements.push({ element: "far_element", channel: "no_such_channel", entry_ref: ["e"] });
+    o.branches[0].elements.push(place("far_element", "no_such_channel", { channel: "no_such_channel", name: "Far" }));
     panelOf(readRun(o));
     expect(stateOf(item("far_element"))).toEqual(["not read"]);
   });
 
-  it("names are matched exactly: the read-back's DiaLamp is not the order's dia_lamp", () => {
-    panelOf(readRun(READ, [read("DiaLamp", "stand_ti2e", "1")]));
+  it("the pair is matched, not the id: a row called by the element's id is not its reading", () => {
+    panelOf(readRun(READ, [read("dia_lamp", "stand_ti2e", "1")]));
+    const li = item("dia_lamp");
+    expect(stateOf(li)).toEqual(["not read"]);
+    expect(li.textContent).toContain("DiaLamp");
+    expect(li.textContent).not.toContain("read 2026");
+  });
+
+  it("names are matched exactly: a pair's name is not matched in another case or on another channel", () => {
+    panelOf(readRun(READ, [read("dialamp", "stand_ti2e", "1"), read("DiaLamp", "another_channel", "1")]));
     const li = item("dia_lamp");
     expect(stateOf(li)).toEqual(["not read"]);
     expect(li.textContent).not.toContain("read 2026");
   });
 
-  it("a read-back row of the same name on another channel is not the order's element", () => {
-    panelOf(readRun(READ, [read("dia_lamp", "another_channel", "1")]));
-    const li = item("dia_lamp");
-    expect(stateOf(li)).toEqual(["not read"]);
-    expect(li.textContent).not.toContain("read 2026");
+  it("a null pair whose id equals a row's name and channel does not join", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("Aura", "stand_ti2e", null), place("Nosepiece", null, null));
+    panelOf(readRun(o));
+    expect(stateOf(item("Aura"))).toEqual(["not read"]);
+    expect(item("Aura").textContent).not.toContain("read 2026");
+    expect(stateOf(item("Nosepiece"))).toEqual(["no channel"]);
+    expect(item("Nosepiece").textContent).not.toContain("read 2026");
+  });
+
+  it("a pair on another channel than the element's own joins, and the element's own channel still decides its control", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("red_arm", "camera_red", { channel: "stand_ti2e", name: "Nosepiece" }));
+    panelOf(readRun(o));
+    const li = item("red_arm");
+    expect(stateOf(li)).toEqual(["read back"]);
+    expect(li.textContent).toContain("read 2026-10-26 09:00:01");
+    expect(controlOf(li)).toEqual(["drafted"]); // the red camera's channel keys the draft, not the row the pair found
+  });
+
+  it("a pair names one row: two elements with the same pair read the same row", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("twin_a", "stand_ti2e", { channel: "stand_ti2e", name: "Nosepiece" }), place("twin_b", null, { channel: "stand_ti2e", name: "Nosepiece" }));
+    panelOf(readRun(o));
+    expect(stateOf(item("twin_a"))).toEqual(["read back"]);
+    expect(stateOf(item("twin_b"))).toEqual(["read back"]);
   });
 
   it("an element matched in the order and the read-back shows 017's state with its time, and the mock's label", () => {
@@ -396,11 +481,12 @@ describe("values", () => {
 
   it("a sent state is shown as sent, with what was sent, and a not-read state with its reason and no value", () => {
     const rows = [
-      row("dia_lamp", "stand_ti2e", "sent", { sent: '{"state": "on"}', sent_at: "2026-10-26T09:00:05Z", control: "draft", draft: "dialamp" }),
-      row("polarizer", "stand_ti2e", "not_read", { reason: "busy at the read" }),
+      row("DiaLamp", "stand_ti2e", "sent", { sent: '{"state": "on"}', sent_at: "2026-10-26T09:00:05Z", control: "draft", draft: "dialamp" }),
+      row("Polarizer", "stand_ti2e", "not_read", { reason: "busy at the read" }),
     ];
     const o = copy(READ);
     o.branches[0].elements[1].channel = "stand_ti2e";
+    o.branches[0].elements[1].read_back = { channel: "stand_ti2e", name: "Polarizer" };
     panelOf(readRun(o, rows));
     expect(stateOf(item("dia_lamp"))).toEqual(["sent"]);
     expect(item("dia_lamp").textContent).toContain('sent {"state": "on"} at 2026-10-26 09:00:05');
@@ -412,7 +498,7 @@ describe("values", () => {
 describe("controls and the notice", () => {
   it("a drafted element says drafted and carries 017's refusal notice word for word, the Aura's longer one included", () => {
     const o = copy(READ);
-    o.branches[0].elements.push({ element: "Aura", channel: "stand_ti2e", entry_ref: ["e"] });
+    o.branches[0].elements.push(place("Aura", "stand_ti2e", { channel: "stand_ti2e", name: "Aura" }));
     panelOf(readRun(o));
     expect(controlOf(item("dia_lamp"))).toEqual(["drafted"]);
     expect(item("dia_lamp").textContent).toContain(RUN_REFUSES);
@@ -425,16 +511,38 @@ describe("controls and the notice", () => {
   it("an element in the order's hand_set reads moved by hand, and so does a matched element the read-back says is by hand", () => {
     const o = copy(READ);
     const hand = o.hand_set[0];
-    o.branches[0].elements.push({ element: hand.element, channel: hand.channel, entry_ref: ["e"] }, { element: "Nosepiece", channel: "stand_ti2e", entry_ref: ["e"] });
+    o.branches[0].elements.push(place(hand.element, hand.channel, hand.read_back), place("Nosepiece", "stand_ti2e", { channel: "stand_ti2e", name: "Nosepiece" }));
     panelOf(readRun(o));
     expect(controlOf(item(hand.element))).toEqual(["moved by hand"]);
     expect(controlOf(item("Nosepiece"))).toEqual(["moved by hand"]);
   });
 
+  it("a hand_set entry is joined by its pair: another id with the same pair is moved by hand, and the same id with another pair is not", () => {
+    const o = copy(READ);
+    const hand = o.hand_set[0];
+    o.branches[0].elements.push(
+      place("turret_by_another_name", hand.channel, hand.read_back),
+      place(hand.element, hand.channel, { channel: hand.read_back.channel, name: `${hand.read_back.name}_other` }),
+      place("filter_turret_1_nopair", hand.channel, null),
+    );
+    panelOf(readRun(o, []));
+    expect(controlOf(item("turret_by_another_name"))).toEqual(["moved by hand"]);
+    expect(controlOf(item(hand.element))).toEqual(["control not given"]);
+    expect(controlOf(item("filter_turret_1_nopair"))).toEqual(["control not given"]);
+  });
+
+  it("an element whose id, channel and null pair match a hand_set entry's id and channel is not moved by hand", () => {
+    const o = copy(READ);
+    const hand = o.hand_set[0];
+    o.branches[0].elements.push(place(hand.element, hand.channel, null));
+    panelOf(readRun(o, []));
+    expect(controlOf(item(hand.element))).toEqual(["control not given"]);
+  });
+
   it("a hand_set entry for the same element on another channel does not make this one moved by hand", () => {
     const o = copy(READ);
     const hand = o.hand_set[0];
-    o.branches[0].elements.push({ element: hand.element, channel: `${hand.channel}_other`, entry_ref: ["e"] });
+    o.branches[0].elements.push(place(hand.element, `${hand.channel}_other`, { channel: `${hand.read_back.channel}_other`, name: hand.read_back.name }));
     panelOf(readRun(o, []));
     expect(controlOf(item(hand.element))).toEqual(["control not given"]);
   });
@@ -469,8 +577,8 @@ describe("controls and the notice", () => {
 
 describe("lines show order, never light", () => {
   it("turning a source on changes that source's label and nothing on any line", () => {
-    const off = [read("dia_lamp", "stand_ti2e", "0", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
-    const on = [read("dia_lamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
+    const off = [read("DiaLamp", "stand_ti2e", "0", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
+    const on = [read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
     const view = panelOf(readRun(READ, off));
     const marks = () => {
       const d = view.drawing() as HTMLElement;

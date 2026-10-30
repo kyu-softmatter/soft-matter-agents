@@ -10,7 +10,7 @@ import { DraftError, DraftView, NumberField, num, useDraft } from "./draft";
 import { type DraftKind } from "./parts";
 import { RunRefuses } from "./readout";
 
-export const REFUSED_UNTIL_LIMIT = "Refused until you write a limit: your safety file has none for this part yet.";
+export const REFUSED_NO_LIMIT = "No limit has been named for this quantity yet, so this draft is refused before it can be signed.";
 
 export const DRAFT_LABEL: Record<DraftKind, string> = {
   aura: "Aura III LED",
@@ -55,7 +55,7 @@ export function PartDraft({
   return (
     <div role="group" aria-label={label} className="inst-part-draft">
       <strong>{label}</strong>
-      <p className="console-muted">{REFUSED_UNTIL_LIMIT}</p>
+      <p className="console-muted">{REFUSED_NO_LIMIT}</p>
       <p className="console-muted"><RunRefuses aura={kind === "aura"} /></p>
       <div className="inst-form">
         {kind === "aura" && (

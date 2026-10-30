@@ -7,12 +7,12 @@ import { useRef } from "react";
 
 import { type LatestRun } from "./api";
 import { ChangesList, ChangesProvider } from "./changes";
-import { PartDraft, REFUSED_UNTIL_LIMIT } from "./partdraft";
+import { PartDraft, REFUSED_NO_LIMIT } from "./partdraft";
 import { type DraftKind, MOVED_BY_HAND } from "./parts";
 import { PathPanel } from "./path";
 import { orderViewOf } from "./order";
 
-export { PartDraft, REFUSED_UNTIL_LIMIT };
+export { PartDraft, REFUSED_NO_LIMIT };
 
 /** Until a source gives an order to click, the drafts stay reachable below the list, as card 017 left them. */
 const TRANSIENT: readonly { kind: DraftKind; label: string }[] = [

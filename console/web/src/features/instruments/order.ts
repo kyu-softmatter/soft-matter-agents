@@ -8,10 +8,18 @@
 
 import type { LatestRun } from "./api";
 
+/** The row of the read-back an element is read from, named by the runtime: both parts matched exactly, never the element's id. */
+export interface ReadBack {
+  channel: string;
+  name: string;
+}
+
 export interface OrderElement {
   element: string;
   channel: string | null;
   entry_ref: string[];
+  /** Null says the runtime names no row for this element, and then no row is its reading. */
+  read_back: ReadBack | null;
 }
 
 export interface OrderBranch {
@@ -32,6 +40,7 @@ export interface HandSet {
   element: string;
   channel: string | null;
   slots: Slot[];
+  read_back: ReadBack | null;
 }
 
 export interface ReadOrder {
@@ -72,9 +81,19 @@ const isStr = (v: unknown): v is string => typeof v === "string" && v !== "";
 const isChannel = (v: unknown): v is string | null => v === null || typeof v === "string";
 const isStrings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === "string");
 
+const CHANNEL_NAME = /^[a-z0-9_]+$/;
+
+/** A pair, or the null the runtime gives for an element it names no row for. `undefined` is a pair that is not there or does not narrow. */
+function readBackOf(v: unknown): ReadBack | null | undefined {
+  if (v === null) return null;
+  if (!isRecord(v) || typeof v.channel !== "string" || !CHANNEL_NAME.test(v.channel) || !isStr(v.name)) return undefined;
+  return { channel: v.channel, name: v.name };
+}
+
 function elementOf(v: unknown): OrderElement | null {
   if (!isRecord(v) || !isStr(v.element) || !isChannel(v.channel) || !isStrings(v.entry_ref)) return null;
-  return { element: v.element, channel: v.channel, entry_ref: v.entry_ref };
+  const read_back = readBackOf(v.read_back);
+  return read_back === undefined ? null : { element: v.element, channel: v.channel, entry_ref: v.entry_ref, read_back };
 }
 
 function listOf<T>(v: unknown, one: (x: unknown) => T | null): T[] | null {
@@ -108,7 +127,8 @@ function slotOf(v: unknown): Slot | null {
 function handSetOf(v: unknown): HandSet | null {
   if (!isRecord(v) || !isStr(v.element) || !isChannel(v.channel)) return null;
   const slots = listOf(v.slots, slotOf);
-  return slots === null ? null : { element: v.element, channel: v.channel, slots };
+  const read_back = readBackOf(v.read_back);
+  return slots === null || read_back === undefined ? null : { element: v.element, channel: v.channel, slots, read_back };
 }
 
 const NOT_NARROWED = "the page could not read the order it was given";

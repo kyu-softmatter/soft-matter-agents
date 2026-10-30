@@ -514,7 +514,7 @@ describe("the live optical path on Optics and control", () => {
   });
 
   it("a made draft shows the server's reasons, the run's refusal among them", async () => {
-    const reasons = ["Refused until you write a limit: your safety file has none for this part yet.", "The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command."];
+    const reasons = ["No limit has been named for this quantity yet, so this draft is refused before it can be signed.", "The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command."];
     show({
       hash: "#/instruments/optics",
       draft: () => ({ status: 200, body: { kind: "dialamp", card: { card: "plan" }, valid: true, problems: [], range_problems: [], refused_today: reasons, saved: false, note: "n" } }),

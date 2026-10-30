@@ -10,6 +10,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
@@ -23,7 +24,7 @@ from sma_console.agents.schema_lite import Schemas
 from sma_console.agents.sma_files import repository_root
 
 REPO = repository_root()
-STATUS, LIMITS, LATEST, DRAFT = (f"/api/instruments/{p}" for p in ("status", "limits", "latest-run", "draft"))
+STATUS, LIMITS, LATEST, DRAFT, CHANGES = (f"/api/instruments/{p}" for p in ("status", "limits", "latest-run", "draft", "changes"))
 NOW = datetime(2026, 10, 24, 12, 0, 0, tzinfo=UTC)
 SHA = "a" * 64
 
@@ -419,7 +420,177 @@ def test_the_draft_route_and_the_others_send_nothing_to_an_instrument(client, tr
     from sma_console.server.api import instruments as mod
 
     paths = sorted((r.path, sorted(r.methods)) for r in mod.router.routes)
-    assert paths == [("/draft", ["POST"]), ("/latest-run", ["GET"]), ("/limits", ["GET"]), ("/status", ["GET"])]
+    assert paths == [("/changes", ["POST"]), ("/draft", ["POST"]), ("/latest-run", ["GET"]), ("/limits", ["GET"]), ("/status", ["GET"])]
+
+
+# -- the changes: the clicks of the drawing, collected into one plan draft ---------------------------------
+
+
+def changes(c, parts=(), selectors=()):
+    return c.post(CHANGES, json={"parts": list(parts), "selectors": list(selectors)})
+
+
+LAMP = dict(kind="dialamp", state="on", intensity_percent=12)
+AURA = dict(kind="aura", color="blue", power_mw=0.5)
+EXPOSURE = dict(kind="camera_exposure", exposure_ms=30)
+SLOT = dict(element="filter_turret_1", value="five_band")
+
+
+def give_every_schema_limit(root):
+    """Write into the tree's safety file every ceiling the safety schema names, each far above any value a part can
+    take, and the two the schema holds for light and exposure (`illumination_power_max`, `exposure_time_max`) in the units
+    a part is measured in. Nothing in the schema says one of them covers the Aura, the lamp or the red camera, so
+    a draft's refusal must not move."""
+    base = root / "microscope_runtime" / "envelope" / "safety.json"
+    doc = json.loads(base.read_text("utf-8"))
+    schema = json.loads((root / "contracts" / "schemas" / "envelope_safety.schema.json").read_text("utf-8"))
+    ceilings = [n for n, v in schema["$defs"]["microscope_limits"]["properties"].items() if v.get("$ref") == "#/$defs/ceiling"]
+    assert {"illumination_power_max", "exposure_time_max"} <= set(ceilings), ceilings
+    unit = {"illumination_power_max": "mW", "exposure_time_max": "ms", "optical_power_max": "mW"}
+    for name in ceilings:
+        spec = json.loads(json.dumps(doc["targets"][0]["limits"]["optical_power_max"]))  # a ceiling with its confirmation
+        spec["value"], spec["unit"] = 1e9, unit.get(name, "mW")
+        doc["targets"][0]["limits"][name] = spec
+    base.write_text(json.dumps(doc), encoding="utf-8")
+    return ceilings
+
+
+def test_the_changes_are_one_ordinary_plan_card_and_the_schema_alone_judges_it(client, tree):
+    d = changes(client(), [LAMP, AURA, EXPOSURE], [SLOT]).json()
+    card = d["card"]
+    assert card["card"] == "plan" and card["status"] == "DRAFT" and d["saved"] is False and d["kind"] == "changes"
+    assert [a["device"] for a in card["actions"]] == ["DiaLamp", "Aura", "Kinetix_red"]
+    assert card["system_configuration"]["selectors"] == [SLOT]
+    assert d["problems"] == Schemas(REPO / "contracts" / "schemas").validate(card, "plan.schema.json")[:12]
+    assert d["problems"] and any("goal_id" in p or "observable" in p for p in d["problems"]), d["problems"]
+    assert not any("selector" in p for p in d["problems"])  # the schema has no complaint about the required state itself
+    assert d["valid"] is False
+
+
+def test_a_selector_the_schema_takes_on_an_accepted_plan_and_a_bad_one_it_refuses(client, tree):
+    """A positive control: a trap draft the schema accepts still passes with the required state added, and a bad
+    element name is refused by the schema's own pattern, so the check above is not blind to selectors."""
+    schemas = Schemas(REPO / "contracts" / "schemas")
+    card = post(client(), kind="trap_steps", pattern="line", objective="100x", n=2, spacing_um=1.0, strength=0.3).json()["card"]
+    assert schemas.validate(card, "plan.schema.json") == []
+    card["system_configuration"] = {"config": "console_draft", "devices": ["optical_tweezers"], "selectors": [SLOT]}
+    assert schemas.validate(card, "plan.schema.json") == []
+    card["system_configuration"]["selectors"] = [dict(SLOT, element="Filter Turret")]
+    assert any("selectors" in p for p in schemas.validate(card, "plan.schema.json"))
+
+
+def test_a_selectors_only_draft_is_refused_by_the_schema_today_in_the_schemas_words(client, tree):
+    d = changes(client(), [], [SLOT]).json()
+    assert d["valid"] is False and any("devices" in p for p in d["problems"]), d["problems"]
+    assert any("required state" in r for r in d["refused_today"])
+
+
+PARTS = {"the transmitted lamp's intensity": LAMP, "the Aura LED's power": AURA, "the red camera's exposure": EXPOSURE}
+
+
+def test_every_part_draft_is_refused_before_signing_because_no_limit_has_been_named_for_its_quantity(client, tree):
+    for words, part in PARTS.items():
+        d = changes(client(), [part]).json()
+        assert d["valid"] is False
+        assert d["range_problems"] == [f"No limit has been named for {words} yet, so this draft cannot be signed."], d["range_problems"]
+        assert any("limit" in r for r in d["refused_today"])
+
+
+def test_a_draft_of_all_three_is_refused_once_for_each_quantity_and_in_the_order_added(client, tree):
+    d = changes(client(), [EXPOSURE, LAMP, AURA]).json()
+    assert [p.split(" for ")[1].split(" yet")[0] for p in d["range_problems"]] == [
+        "the red camera's exposure", "the transmitted lamp's intensity", "the Aura LED's power"]
+
+
+def test_a_safety_file_holding_every_limit_its_schema_names_changes_no_refusal(client, tree):
+    before = {w: changes(client(), [p]).json() for w, p in PARTS.items()}
+    named = give_every_schema_limit(tree)
+    assert "illumination_power_max" in named and "exposure_time_max" in named
+    for words, part in PARTS.items():
+        after = changes(client(), [part]).json()
+        assert after["valid"] is False and after["range_problems"] == before[words]["range_problems"], (words, after["range_problems"])
+        assert after["refused_today"] == before[words]["refused_today"]
+
+
+def test_no_value_is_compared_with_anything_so_a_value_inside_any_limit_is_refused_the_same(client, tree):
+    give_every_schema_limit(tree)
+    for part in (dict(LAMP, intensity_percent=0), dict(AURA, power_mw=1e-6), dict(EXPOSURE, exposure_ms=1e-6)):
+        d = changes(client(), [part]).json()
+        assert d["valid"] is False and len(d["range_problems"]) == 1 and "No limit has been named" in d["range_problems"][0]
+
+
+def test_a_part_draft_is_refused_with_or_without_a_safety_file_and_reads_none(client, tree):
+    for words, part in PARTS.items():
+        with_file = changes(client(), [part]).json()["range_problems"]
+        (tree / "microscope_runtime" / "envelope" / "safety.json").unlink(missing_ok=True)
+        assert changes(client(), [part]).json()["range_problems"] == with_file == [f"No limit has been named for {words} yet, so this draft cannot be signed."]
+        shutil.copy(REPO / "microscope_runtime" / "envelope" / "safety.json", tree / "microscope_runtime" / "envelope" / "safety.json")
+
+
+def test_the_changes_route_never_opens_the_safety_file(client, tree, monkeypatch):
+    def refuse(*a, **k):
+        raise AssertionError("the changes route read the safety file")
+    monkeypatch.setattr(instruments, "read_limits", refuse)
+    assert changes(client(), [LAMP, AURA, EXPOSURE], [SLOT]).status_code == 200
+
+
+def test_no_limit_name_for_a_part_draft_is_written_in_the_consoles_sources():
+    """The names this page once proposed are not in `src/` or `web/src/` (which limit covers a quantity is not this
+    page's to say), and a part's limit is named nowhere: the schema's own `illumination_power_max` and `exposure_time_max`
+    are read by no part draft."""
+    root = REPO / "console"
+    names = re.compile(r"aura_power_max|dialamp_intensity_max|camera_exposure_max|PART_LIMITS")
+    covers = re.compile(r"illumination_power_max|exposure_time_max")
+    found, covering = [], []
+    for base in (root / "src", root / "web" / "src"):
+        for f in base.rglob("*"):
+            if not f.is_file() or f.suffix not in {".py", ".ts", ".tsx", ".css", ".json"} or "node_modules" in f.parts:
+                continue
+            text = f.read_text("utf-8")
+            if names.search(text):
+                found.append(f.relative_to(root).as_posix())
+            if covers.search(text):
+                covering.append(f.relative_to(root).as_posix())
+    assert found == [], found
+    assert covering == [], covering
+
+
+def test_the_changes_draft_is_written_nowhere_and_sends_nothing(client, tree, seat):
+    before_tree, before_repo = tree_hash(tree), tree_hash(REPO / "console" / "src")
+    c = client()
+    for parts, sel in (([LAMP, AURA, EXPOSURE], [SLOT]), ([], [SLOT]), ([LAMP], [])):
+        assert changes(c, parts, sel).status_code == 200
+    assert tree_hash(tree) == before_tree and tree_hash(REPO / "console" / "src") == before_repo
+
+
+@pytest.mark.parametrize("parts,selectors", [
+    ([], []), ([LAMP, LAMP], []), ([], [SLOT, SLOT]), ([], [dict(SLOT, element="Filter Turret")]), ([], [dict(SLOT, element="")]),
+    ([], [dict(SLOT, value="  ")]), ([dict(kind="dialamp", state="on", intensity_percent=101)], []),
+])
+def test_a_changes_draft_that_cannot_be_built_is_refused_in_words(client, tree, parts, selectors):
+    r = changes(client(), parts, selectors)
+    assert r.status_code == 422 and r.json()["detail"], (parts, selectors)
+
+
+def test_the_changes_route_accepts_only_the_three_parts_and_a_slot_and_nothing_else(client, tree):
+    for body in ({"parts": [{"kind": "laser_combiner"}]}, {"parts": [dict(LAMP, extra=1)]}, {"selectors": [dict(SLOT, extra=1)]},
+                 {"other": []}):
+        assert client().post(CHANGES, json=body).status_code == 422, body
+
+
+def test_who_may_ask_for_the_changes_draft_is_the_draft_rule(client, tree):
+    r = changes(client(login=VIEWER), [LAMP])
+    assert r.status_code == 403 and "only look" in r.json()["detail"]["message"]
+    assert changes(client(remote=True), [LAMP]).status_code == 403
+    assert changes(client(login=None), [LAMP]).status_code == 401
+
+
+def test_under_the_mock_store_the_changes_are_made_and_nothing_is_written(engine, make_client, tmp_path):
+    store = MockStore(tmp_path / "practice")
+    sample = tree_hash(MOCK_DATA)
+    d = make_client(engine, agent_store=store).post(CHANGES, json={"parts": [LAMP], "selectors": []}).json()
+    assert d["saved"] is False and d["valid"] is False and d["range_problems"] == ["No limit has been named for the transmitted lamp's intensity yet, so this draft cannot be signed."]
+    assert tree_hash(MOCK_DATA) == sample and not (tmp_path / "practice").exists()
 
 
 def test_the_pattern_points_are_what_a_person_would_draw():

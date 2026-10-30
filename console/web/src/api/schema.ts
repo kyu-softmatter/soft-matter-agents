@@ -1020,6 +1020,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/instruments/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Changes
+         * @description Collect the person's clicks into **one** plan draft and check it against plan.schema.json. A part with no limit
+         *     in the safety file is refused before signing. **It writes nothing: the draft is returned and saved nowhere.**
+         */
+        post: operations["changes_api_instruments_changes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/instruments/draft": {
         parameters: {
             query?: never;
@@ -1528,6 +1549,19 @@ export interface components {
              * @description the card file's content, untouched
              */
             data: unknown;
+        };
+        /** ChangesIn */
+        ChangesIn: {
+            /**
+             * Parts
+             * @default []
+             */
+            parts: components["schemas"]["PartIn"][];
+            /**
+             * Selectors
+             * @default []
+             */
+            selectors: components["schemas"]["SelectorIn"][];
         };
         /** ChannelOut */
         ChannelOut: {
@@ -2388,6 +2422,27 @@ export interface components {
             /** Note */
             note: string | null;
         };
+        /**
+         * PartIn
+         * @description One of the three parts software may command, as the person filled it in; nothing else is accepted.
+         */
+        PartIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "aura" | "dialamp" | "camera_exposure";
+            /** Color */
+            color?: string | null;
+            /** Power Mw */
+            power_mw?: number | null;
+            /** State */
+            state?: ("on" | "off") | null;
+            /** Intensity Percent */
+            intensity_percent?: number | null;
+            /** Exposure Ms */
+            exposure_ms?: number | null;
+        };
         /** PasswordIn */
         PasswordIn: {
             /** Password */
@@ -3210,6 +3265,18 @@ export interface components {
             session_id?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * SelectorIn
+         * @description A slot the person chose for a part moved by hand: a required state, which software never writes.
+         */
+        SelectorIn: {
+            /** Element */
+            element: string;
+            /** Value */
+            value: string;
+            /** Note */
+            note?: string | null;
         };
         /** SentTrapOut */
         SentTrapOut: {
@@ -5961,6 +6028,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LatestRunOut"];
+                };
+            };
+        };
+    };
+    changes_api_instruments_changes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

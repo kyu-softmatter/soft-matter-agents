@@ -5,12 +5,18 @@
  * The list is kept on this screen only. Nothing in this file sends anything.
  */
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { type DraftIn } from "./api";
+import { useClient } from "../../app/client";
+import { errorText } from "../questions/ui";
+import { type ChangesIn, type DraftIn, type DraftOut, makeChanges } from "./api";
+import { DraftView } from "./draft";
 import type { Slot } from "./order";
 import type { DraftKind } from "./parts";
 
+export const CANNOT_SIGN_YET = "This draft cannot be signed yet, because it is saved nowhere.";
+export const RUN_SENDS_NOTHING =
+  "Nothing is sent. Starting a run has its own card, and on the instrument a run starts only after the bench hand-over at the microscope.";
 export const NOT_SAVED_WORDS = "Not saved. This draft exists only on this screen.";
 export const SELECTOR_SAYS = "set by your hand at the bench hand-over, then read and compared; software never writes it";
 
@@ -61,7 +67,66 @@ export function ChangesProvider({ onTab, children }: { onTab?: (tab: string) => 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-export function ChangesList() {
+/**
+ * [Check the draft] and [Apply]. Both ask the server once, on the press, to build the one plan draft from the list and check it;
+ * neither sends anything to an instrument. [Apply] is signing and then the run button, and signing waits on a place to keep a
+ * draft (a signature is over a plan card on disk, and this draft is saved nowhere): until a card names that place, [Apply] is shown
+ * and refused. `signed` is the seam for what comes after signing; nothing sets it today.
+ */
+export function ApplyPanel({ signed = false }: { signed?: boolean }) {
+  const { items } = useChanges();
+  const client = useClient();
+  const key = items.map((c) => c.id).join(",");
+  const [checked, setChecked] = useState<{ key: string; draft: DraftOut; applied: boolean } | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
+  const [runSays, setRunSays] = useState(false);
+  const here = checked !== undefined && checked.key === key ? checked : undefined;
+  // an answer belongs to the list it was asked of: when the list changes, it goes, and it does not come back if the list does
+  useEffect(() => setChecked(undefined), [key]);
+  async function ask(applied: boolean) {
+    if (busy || items.length === 0) return;
+    const body: ChangesIn = {
+      parts: items.flatMap((c) => (c.kind === "part" ? [c.body as ChangesIn["parts"][number]] : [])),
+      selectors: items.flatMap((c) => (c.kind === "selector" ? [{ element: c.element, value: c.value }] : [])),
+    };
+    setBusy(true);
+    setError(undefined);
+    setChecked(undefined);
+    try {
+      setChecked({ key, draft: await makeChanges(client, body), applied });
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  const none = items.length === 0;
+  return (
+    <div className="inst-apply">
+      <button type="button" disabled={busy || none} onClick={() => void ask(false)}>Check the draft</button>
+      {" "}
+      <button type="button" disabled={busy || none} onClick={() => void ask(true)}>Apply</button>
+      {none && <p className="console-muted">Add a change first: there is nothing yet to check or apply.</p>}
+      {error !== undefined && <p role="alert" className="console-error">{error}</p>}
+      {here !== undefined && <DraftView draft={here.draft} />}
+      {here?.applied === true && (
+        <p role="alert" className="console-error" data-testid="apply-refused">
+          {here.draft.valid ? "" : "Not signed: this draft is refused before it can be signed. "}
+          {CANNOT_SIGN_YET}
+        </p>
+      )}
+      {signed && (
+        <p>
+          <button type="button" onClick={() => setRunSays(true)}>Run</button>{" "}
+          {runSays && <span data-testid="run-says" className="console-muted">{RUN_SENDS_NOTHING}</span>}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function ChangesList({ signed = false }: { signed?: boolean }) {
   const { items, remove } = useChanges();
   return (
     <section role="region" aria-label="Changes" className="inst-panel inst-changes">
@@ -85,6 +150,7 @@ export function ChangesList() {
         </>
       )}
       <p className="console-muted">{NOT_SAVED_WORDS}</p>
+      <ApplyPanel signed={signed} />
     </section>
   );
 }
