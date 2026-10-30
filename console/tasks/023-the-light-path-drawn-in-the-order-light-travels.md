@@ -161,9 +161,10 @@ markup or text taken from the file.
   - The page never matches on the element id, never translates one name
     into another, and holds no table of names.
   - `read_back: null` means the element has no row. It reads "no channel"
-    when the element has no channel, and "not read" otherwise, with the
-    reason that the runtime names no read-back row for it. It is never
-    matched on its id instead.
+    when the element has no channel, "not open" when the run did not open
+    the element's own channel, and "not read" otherwise, with the reason
+    that the runtime names no read-back row for it. It is never matched on
+    its id instead.
   - A pair on a channel the run did not open reads "not open". A pair whose
     row the read-back does not hold reads "not read", naming the pair.
   - An order without the field fails the schema, so it reads as an order
@@ -204,7 +205,13 @@ it.
 - **Moved-by-hand elements** (the turrets, wheels, port, disk, light-path
   selector and nosepiece) open their slot list.
   - The slots appear by the store's names, as part 2's shape carries
-    them, with the current slot marked as read.
+    them.
+  - **A slot is marked current only where the runtime says which slot the
+    read-back is** (amended 2026-10-29). The shape does not say it yet.
+    Until it does, no slot is marked. Beside the list, the page shows the
+    value the element's row read back, as read and with its source, and
+    says which slot that is has not been given. Matching that value to a
+    slot's name or number is a translation, and the page makes none.
   - Choosing a slot adds a **selector** to the draft, in the plan schema's
     `selectors`. The runtime makes it a required state: shown at the bench
     hand-over, set by the person's hand, then read and compared. Software
@@ -251,7 +258,24 @@ it.
   required states, in the order they were added, each removable. It keeps
   the words "Not saved. This draft exists only on this screen."
 - **A draft that touches a quantity with no limit in the safety file is
-  refused before signing**, and the page says so.
+  refused before signing**, and the page says so (amended 2026-10-29).
+  - The console names no limit and holds no table of limit names. Which
+    limit covers a quantity, and in what unit, is a safety decision. It is
+    the person's, and it has been put to them. The pairing will be one
+    contract that the runtime's refusal and the console both read. It has
+    not landed.
+  - Until it lands, nothing covers the Aura's power, the lamp's intensity
+    or the red camera's exposure. So every part draft is refused before
+    signing, and the page says no limit has been named for that quantity
+    yet. This is the intended state, not a placeholder.
+  - For these three the page reads nothing from the safety file. It
+    guesses no limit, looks none up by a name it made up, and does not
+    take `illumination_power_max` or `exposure_time_max` as covering any
+    of them.
+  - When the pairing lands, a later card points the page at it. The page
+    then takes the limit's name from the pairing and its value from the
+    safety file the run snapshotted. A null name, a missing limit and an
+    unreadable file each refuse.
 - **[Apply] is signing, then the run button.**
   - Signing is card 013's dialog. It shows the same list beside card 021's
     numbers nothing uses, and takes the password.
@@ -377,8 +401,9 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
   follows it.
 - **Clicks.**
   - A drafted element opens its fields in place.
-  - A moved-by-hand element lists the fixture's slots with the current one
-    marked read.
+  - A moved-by-hand element lists the fixture's slots and marks none
+    current. It shows the read-back value as read. A value equal to a
+    slot's number or name still marks nothing.
   - Choosing a slot adds a selector to the draft.
   - An unresolved slot word is refused, naming the word.
   - The combiner and the trap explain and show what was last sent.
@@ -386,6 +411,11 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
 - **Draft.**
   - The collected draft validates against `contracts/schemas/plan.schema.json`.
   - A quantity with no limit is refused before signing.
+  - Every part draft is refused before signing, saying no limit has been
+    named for its quantity. A fixture safety file that carries every limit
+    the safety schema names changes none of those refusals.
+  - No file under `src/` or `web/src/` holds a limit name for a part
+    draft.
   - [Apply] is refused with its reason while a draft is saved nowhere.
   - The run button sends nothing.
 - **Lights off (part 5).**
