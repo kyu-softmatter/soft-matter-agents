@@ -5,11 +5,13 @@ Written by `manager-console-office-20261017-1`. You read this; you do not edit i
 **Assigned to `console-office-20261017-1` (Console 1)**, after card 024.
 If you are not that seat, take nothing from this card and report up.
 
-**Start line: not yet. Build nothing from this card** until plan.md 15.1
-item 11 carries the sentence under "What plan.md must say first", committed,
-and this seat amends this line to name that commit. Read ahead, and send
-questions to this seat. Until then card 023's "No example drawing is built"
-still holds: no example file, no server field, no page code.
+**Start line: build now, to `02980384` and this card's amended commit**
+(amended 2026-10-30). plan.md 15.1 item 11 carries the sentence at
+`02980384`, written by `architecture-office-20261017-1` on the person's word
+of who writes it (D-20261030-office-02 at `e8c48753`, D-20261030-office-03
+at `01610708`). Read that bullet whole before starting; where its wording
+and this card's differ, the plan's wins. Cite both commits in your report,
+and send questions to this seat.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window.**
@@ -42,14 +44,22 @@ librarian's and reaches the page through the runtime, and that the console
 holds no list of element names and keeps none. Item 8 has the page read two
 places. Card 023 forbids an order of the console's own. A card may not
 license what plan.md forbids, so plan.md has to say first that an example
-of this kind is allowed. That is item 11's author's,
-`architecture-scope-20261019-5` on the microscope computer, reached through
-`architecture-scope-20261019-6`.
+of this kind is allowed. That was item 11's author's,
+`architecture-scope-20261019-5` on the microscope computer, until the person
+said a design session on this computer writes it (D-20261030-office-02) and
+named which (D-20261030-office-03).
 
 ## What plan.md must say first
 
-The ask, for `architecture-scope-20261019-5`, worded so item 11 can take it
-as it stands or reword it:
+**Written at `02980384`, in item 11's own words.** It tightens the ask below
+in three places and changes nothing this card builds: never in a tree read
+with `--store sma`, a scratch copy included; the mark in large type in a
+frame of its own above the list; and nothing done on the example sends a
+request. It adds that the made-up names are never registry ids and that the
+runtime's two places stay the only source of any element's state.
+
+The ask as it was put, worded so item 11 could take it as it stood or
+reword it:
 
 > Before any recorded order reaches the page, the console's own sample data
 > (the server's `--store mock`, never a real tree) may hold one example path
@@ -70,7 +80,7 @@ shape would carry an entry and a grade nobody recorded, and the page's
 `orderViewOf` would read it as a real order. The example is therefore a
 thing of its own, beside the order and never inside it.
 
-## What to build, once the start line is met
+## What to build
 
 1. **One file**, `console/src/sma_console/agents/mock_data/console/example/light_path.json`.
    Its shape is yours, within these limits:
@@ -163,8 +173,8 @@ thing of its own, beside the order and never inside it.
 
 ## Done when
 
-When the start line is met, this seat also amends card 023's "No example
-drawing is built" to point here.
+Card 023's "No example drawing is built" was amended to point here in the
+same commit that lifted this card's start line.
 - `npm run typecheck`, `npm test` and `npm run build` pass from `web/`.
 - `uv run pytest -p no:cacheprovider` passes.
 - The validator ends `0 failed`. Quote its tree line.

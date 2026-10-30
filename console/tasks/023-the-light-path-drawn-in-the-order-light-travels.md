@@ -34,9 +34,9 @@ first one works on: recorded runs, read as data.
 - **So until the mock connection lands, the running console shows 017's
   list on the light-path page, and the drawing appears only in the tests.**
   The person has the running console checked every three hours for whether
-  the light path shows, and that check will find the list. Whether the page
-  should show a made-up example drawing before then has been put to the
-  person. See "Not in this card".
+  the light path shows, and that check will find the list. Until then,
+  card 025 adds an example drawing above the list, marked as one, which is
+  not an order (amended 2026-10-30). See "Not in this card".
 
 ## Why
 
@@ -386,12 +386,11 @@ it.
   the bench hand-over.
 - **The connection to the mock and to the real system** are later steps,
   each with its own cards (see the top of this card).
-- **No example drawing is built.** Before the mock connection, the page
-  could draw only from an order nobody recorded. Whether it should show one
-  made up for the screen, marked as an example, is the person's question.
-  It was put to them through the intake seat on 2026-10-29. Until a
-  committed answer and an amendment here, build nothing for it, and add no
-  status file with an order to the console's sample data.
+- **The example drawing is card 025's, not this card's** (amended
+  2026-10-30). The person chose it (D-20261030-office-01, `f8e361dc`), and
+  plan.md 15.1 item 11 allows it at `02980384`. It is not an order. Add no
+  status file with an order to the console's sample data, and build the
+  example only as card 025 says.
 
 ## Tests, each watched failing first
 
@@ -488,7 +487,8 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
 - Send no request to a device, the host or the frame tap, beyond part 5's
   one message once it lands.
 - Build no stand-in for a runtime piece: no order of the console's own,
-  and no lights-off walk of the console's own.
+  and no lights-off walk of the console's own. Card 025's example is not an
+  order and stands in for none.
 - Load no outside font or script.
 - Write nothing outside `console/`, and install nothing.
 
