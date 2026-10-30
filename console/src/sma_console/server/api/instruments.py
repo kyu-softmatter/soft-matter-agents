@@ -110,6 +110,24 @@ class OrderOut(BaseModel):
     problems: list[str] = Field(default=[], description="why it is not understood, from the schema's own refusals")
 
 
+class ExampleElementOut(BaseModel):
+    id: str
+    label: str
+    control: str = Field(description="its kind of control, in the file's words")
+    setting: str = Field(description="its setting, in the file's words")
+
+
+class ExampleBranchOut(BaseModel):
+    elements: list[ExampleElementOut]
+
+
+class ExampleOut(BaseModel):
+    """The sample's example drawing (console card 025): not an order, and never inside one. It has no entry, no grade and no read-back."""
+
+    status: Literal["EXAMPLE"]
+    branches: list[ExampleBranchOut]
+
+
 class PathOut(BaseModel):
     order: OrderOut = Field(default=OrderOut(), description="the order light travels, from the same source as the elements: the latest snapshot event, or the status file outside a run")
     source: Literal["run", "status_file", "last_snapshot", "none"] = Field(
@@ -122,6 +140,7 @@ class PathOut(BaseModel):
     ended_how: str | None = Field(default=None, description="the run's outcome, as the run's own text has it")
     detail: str | None = None
     elements: list[PathElementOut] = []
+    example: ExampleOut | None = Field(default=None, description="the sample's example drawing: given only by the sample store and only while the order's state is `none`; null from every other source")
 
 
 class LatestRunOut(BaseModel):

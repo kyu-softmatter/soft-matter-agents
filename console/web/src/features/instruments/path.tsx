@@ -14,6 +14,7 @@
 import { shortTime } from "../questions/ui";
 import type { LatestRun } from "./api";
 import { Drawing } from "./drawing";
+import { ExampleDrawing } from "./example";
 import { RunBanner } from "./follow";
 import { type KindTable, orderViewOf } from "./order";
 import { NOT_BUILT } from "./pieces";
@@ -75,6 +76,7 @@ export function PathPanel({ run, kinds }: { run: LatestRun; kinds?: KindTable })
       <h3>The light path, now</h3>
       <RunBanner run={run} />
       <SourceLine path={run.path} />
+      {view.state === "none" && run.path.example != null && <ExampleDrawing example={run.path.example} />}
       {view.state === "read" ? (
         <Drawing order={view.order} run={run} kinds={kinds} />
       ) : (

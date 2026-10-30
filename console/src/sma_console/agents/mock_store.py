@@ -10,6 +10,7 @@ the sample's earlier requests are only read.
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import tempfile
@@ -34,6 +35,7 @@ from .store import (
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 MOCK_DATA = PACKAGE_DIR / "mock_data"
+EXAMPLE_PARTS = ("console", "example", "light_path.json")
 
 
 class MockStore:
@@ -154,6 +156,15 @@ class MockStore:
         readable, _ = store_requests.read_answers(
             self.answers_folders("librarian"), self.inbox_folders("librarian"), store_requests.schemas_in(root))
         return [r.doc for r in readable]
+
+    def example_path(self) -> dict[str, Any] | None:
+        """The example drawing (console card 025): one file the sample holds, written for the screen and not an order. It is
+        read from the sample's own folder and never from `runtime_root()`, and no other store has this method."""
+        try:
+            doc = json.loads(self.sample.root.joinpath(*EXAMPLE_PARTS).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        return doc if isinstance(doc, dict) else None
 
     def approvals_target_present(self) -> bool:
         return True  # practice: there is nothing to look for, and nothing is written

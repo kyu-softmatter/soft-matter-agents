@@ -1,0 +1,17 @@
+{
+  "status": "EXAMPLE",
+  "branches": [
+    {
+      "elements": [
+        {"id": "example_source_a", "label": "Source A", "control": "no control here", "setting": "open"},
+        {"id": "example_filter_b", "label": "Filter B", "control": "moved by hand", "setting": "slot B"}
+      ]
+    },
+    {
+      "elements": [
+        {"id": "example_splitter_c", "label": "Splitter C", "control": "drafted", "setting": "in"},
+        {"id": "example_camera_d", "label": "Camera D", "control": "no control here", "setting": "open"}
+      ]
+    }
+  ]
+}

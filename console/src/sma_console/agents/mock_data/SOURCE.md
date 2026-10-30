@@ -101,3 +101,11 @@ Written here, not copied:
 
 The console reads the librarian's `console_inbox/` and `answers/` of a real tree (card 020), and these ten
 answers and nine requests are what it shows from the mock store. Nothing in either folder is real.
+
+## The example drawing (console card 025)
+
+Written here, not copied:
+
+| Path | What |
+|---|---|
+| `console/example/light_path.json` | an **example** of a light path, written for the screen, not copied from anywhere: four made-up elements in two branches, each with a label, a kind of control in words and a setting in words. It holds no number, no entry, no grade and no read-back, and nothing in it is this microscope's. It is not an order and is never read as one: the Instruments page draws it, marked as an example, only while the sample gives no order, and `MockStore.example_path()` is the one place it is read. It is not under `microscope_runtime/` |

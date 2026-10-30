@@ -41,6 +41,20 @@
   padding-top: 6px;
 }
 
+/* The example is not this microscope's: its own frame and a heading as large as the panel's, so it cannot be taken for a reading. */
+.inst-example {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 2px dashed var(--line);
+  padding: 8px;
+}
+
+.inst-example h3 {
+  margin: 0;
+  font-size: 1.25em;
+}
+
 .inst-entry-id {
   font-family: monospace;
 }

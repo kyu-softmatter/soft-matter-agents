@@ -1804,6 +1804,41 @@ export interface components {
             /** Words */
             words: string;
         };
+        /** ExampleBranchOut */
+        ExampleBranchOut: {
+            /** Elements */
+            elements: components["schemas"]["ExampleElementOut"][];
+        };
+        /** ExampleElementOut */
+        ExampleElementOut: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Control
+             * @description its kind of control, in the file's words
+             */
+            control: string;
+            /**
+             * Setting
+             * @description its setting, in the file's words
+             */
+            setting: string;
+        };
+        /**
+         * ExampleOut
+         * @description The sample's example drawing (console card 025): not an order, and never inside one. It has no entry, no grade and no read-back.
+         */
+        ExampleOut: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "EXAMPLE";
+            /** Branches */
+            branches: components["schemas"]["ExampleBranchOut"][];
+        };
         /** FactOut */
         FactOut: {
             /** Label */
@@ -2604,6 +2639,8 @@ export interface components {
              * @default []
              */
             elements: components["schemas"]["PathElementOut"][];
+            /** @description the sample's example drawing: given only by the sample store and only while the order's state is `none`; null from every other source */
+            example?: components["schemas"]["ExampleOut"] | null;
         };
         /**
          * PermissionOut

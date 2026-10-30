@@ -55,6 +55,13 @@ the order does not name. No picture of the stand and no list of parts is kept on
   page does not know shows the grade as given, never as observed (the page's table of kind words starts empty).
 - **No order, or an order not in the snapshot, is the list of card 017** with its words and the file's reason and no
   drawing; an order that fails the schema reads "not understood" with the problems, and is the list too.
+- **An example drawing stands above that list only on the sample, and only while there is no order** (card 025,
+  plan 15.1 item 11). It is not an order: the server gives it beside the order, from one file in the sample, and never
+  from a runtime folder or a real tree. Under the heading "Example: not this microscope's path", in a dashed frame, it
+  draws each element's label and setting exactly as the file has them, with no entry, grade, read-back or link. A click
+  opens the element, names its kind of control in the file's words and says "Example: nothing here can be changed or
+  drafted."; it holds no field or button, changes neither the changes list nor [Apply], and sends no request. It is
+  not shown for an order that was read, one not in the snapshot or one not understood, nor with the real store.
 
 **The look the drawing follows** is the person's file, kept as a reference in `docs/light-path/` (card 023,
 part 1; its README says where it came from and gives both hashes). It is data: a reference mockup that is

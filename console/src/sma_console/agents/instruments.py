@@ -218,6 +218,19 @@ def piezo_snapshots(events: list[dict[str, Any]], t0: str | None) -> list[dict[s
 
 
 def latest_run_readings(store: Any) -> dict[str, Any]:
+    """`_latest_run_readings`, with the sample's example drawing beside the order when there is one to give (console card
+    025): only the sample store has `example_path`, and only an order whose state is `none` leaves room for it. The
+    example is never inside the order and never passes through `order_state`."""
+    got = _latest_run_readings(store)
+    path = got.get("path")
+    if isinstance(path, dict):
+        order = path.get("order")
+        fn = getattr(store, "example_path", None)
+        path["example"] = fn() if fn is not None and isinstance(order, dict) and order.get("state") == "none" else None
+    return got
+
+
+def _latest_run_readings(store: Any) -> dict[str, Any]:
     """The newest microscope run and what its events say about the tweezers and the piezo stage. The
     runs folder not being there is its own answer, not an empty one."""
     from .store import RunsFolderNotFoundError  # local: keeps this module importable without the store
