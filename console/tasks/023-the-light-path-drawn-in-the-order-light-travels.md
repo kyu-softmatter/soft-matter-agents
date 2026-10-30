@@ -3,15 +3,40 @@
 Written by `manager-console-office-20261017-1`. You read this; you do not edit it.
 
 **Assigned to `console-office-20261017-1` (Console 1)**, after card 022.
-The card has five parts, and **each part has its own start line**. Part 1
-starts now. Parts 2 to 5 each wait on a commit that is not in the tree
-today. Build each part to the commit its start line names, and cite that
+The card has five parts, and **each part has its own start line**. As
+amended on 2026-10-29, every start line names a commit that is in the
+tree. Build each part to the commit its start line names, and cite that
 commit in your report. Build nothing to a draft seen uncommitted in the
 working copy. If you are not that seat, take nothing from this card and
 report up.
 
 **Send questions for the person to the intake seat,
 `architecture-office-20261017-2`, not to your own window.**
+
+**This card is the interface, and the connections come after it**
+(amended 2026-10-29). The person set the order of the console's work
+(I-20261029-office-06, `d3b71d83`): "우선 목적은 인터페이스를 만드는것
+까지고 그 이후에 따로 목 시스템과의 연결, 실제 시스템까지 연결을 할거야."
+(The aim for now goes as far as building the interface. After that, and
+separately, come the connection to the mock system and then to the real
+system.) These are plan.md 15.1's three steps, and its item 6 says what the
+first one works on: recorded runs, read as data.
+- **All five parts are the interface.** Each is built against recorded data
+  and the schemas' own fixtures, and none waits on a runtime commit. Part
+  5's start line changes for this (below).
+- **The connection to the mock is not this card's.** It is what brings a
+  real order and a real lights-off reply to the page: librarian card 063,
+  runtime card 104 and the reader card after them, and runtime card 103 for
+  the host's handling of lights off. Nothing here waits for them, and
+  nothing here stands in for them.
+- **The connection to the real system comes after that.** It is the
+  person's, at the bench.
+- **So until the mock connection lands, the running console shows 017's
+  list on the light-path page, and the drawing appears only in the tests.**
+  The person has the running console checked every three hours for whether
+  the light path shows, and that check will find the list. Whether the page
+  should show a made-up example drawing before then has been put to the
+  person. See "Not in this card".
 
 ## Why
 
@@ -298,17 +323,22 @@ it.
   - Build the list, the refusal and the tests now. Build no place to save
     a draft.
 
-## Part 5 — [Lights off] (start once its message is pinned and the host handles it)
+## Part 5 — [Lights off] (start after part 4: its message is pinned)
 
-- **Start line.** Two things must be committed:
-  - the host's fourth request and its reply, in
-    `contracts/schemas/run_interface.schema.json`, with fixtures for both
-    sides;
-  - the host's handling of it on the mock (manager-microscope's card).
-  - Build to those commits. Until both land, build no button.
-  - The first is in: `lights_off_request`, `light_source_row` and
-    `lights_off_reply` at `99eec48d`. The second is runtime card 103,
-    still to land.
+- **Start line: the message is pinned, so part 5 may be built now**
+  (amended 2026-10-29, for the person's interface-first order above).
+  - Build the button, the server's route and the reply's display to
+    `lights_off_request`, `light_source_row` and `lights_off_reply` in
+    `contracts/schemas/run_interface.schema.json` at `99eec48d`. Read their
+    examples and `x_refused` from that file.
+  - The host's handling on the mock is runtime card 103, still to land. It
+    is the mock connection and not this part's. Build no handling of the
+    console's own in its place.
+  - The server reaches a host only through the host address it is started
+    with, and every session starts it with none. With no host given, the
+    server sends nothing, and the page shows the press as no answer: nothing
+    is known about the lights, use the switches. That is the intended state
+    in the interface step, not a fault.
 - **The message is exactly `{"lights_off": true}`.**
   - The page sends the server a press and nothing else.
   - The server sends the host those bytes and nothing else: no source, no
@@ -354,6 +384,14 @@ it.
   presets wait for part 4's place and a card of their own.
 - **The eyepiece confirmation is not taken on this page.** It belongs to
   the bench hand-over.
+- **The connection to the mock and to the real system** are later steps,
+  each with its own cards (see the top of this card).
+- **No example drawing is built.** Before the mock connection, the page
+  could draw only from an order nobody recorded. Whether it should show one
+  made up for the screen, marked as an example, is the person's question.
+  It was put to them through the intake seat on 2026-10-29. Until a
+  committed answer and an amendment here, build nothing for it, and add no
+  status file with an order to the console's sample data.
 
 ## Tests, each watched failing first
 
@@ -436,6 +474,8 @@ carrying the order, and, for part 5, the pinned message and reply fixtures.
     wait are shown as no answer, with no light off and nothing resent.
   - Stop sent and refused show no row.
   - During a run, the button says it also stops the plan.
+  - With no host given to the server, a press sends nothing and is shown
+    as no answer, with no light off.
   - Neither the assistant's lights-off nor `STOPS` is on its route.
 - **No request.** None leaves the page while it renders or refreshes.
   After part 5, the only one is the lights-off press.
