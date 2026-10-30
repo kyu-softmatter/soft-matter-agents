@@ -60,8 +60,12 @@ These are 11-25's, and they hold wherever the console sits.
    a Micro-Manager core and never calls a device module. What it may send to
    a run is the run interface in `contracts/schemas/run_interface.schema.json`
    and nothing else: a stop on the stop channel, a `get` on the frame tap,
-   and a live-on request that names a list the person approved. A stop is a
-   signal that can only stop; safety stays with deterministic code.
+   a live-on request that names a list the person approved, and the
+   lights-off request, exactly `{"lights_off": true}` (card 023 part 5).
+   A stop is a signal that can only stop. The lights-off request names no
+   source, value or run: the host runs the abort's own power-down and
+   nothing more, so it can only reduce light (`plan.md` 15.1 item 11, the
+   person's at `27139a5a`). Safety stays with deterministic code.
 4. **A number the console shows carries its source**, with its provenance
    in words: measured, computed or guessed. A guess shown to the person is
    still labelled a guess. A pixel size read from a configuration's frame
