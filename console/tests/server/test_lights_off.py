@@ -270,6 +270,17 @@ def test_a_press_writes_nothing_into_the_tree(client, host, tree):
     assert tree_hash(tree) == before
 
 
+@pytest.mark.parametrize("example", range(5))
+def test_a_press_asks_the_engine_nothing_so_it_is_not_the_assistants_lights_off(client, host, engine, example):
+    """The engine's own `lights_off` kind is the assistant's route. A press goes to the live-view host and the engine is
+    neither checked, shut down, read for a frame nor told anything about viewers."""
+    h = host(said(EXAMPLES[example]))
+    before = (list(engine.checks), list(engine.shutdowns), engine.frame_reads, list(engine.viewers), list(engine.sinks))
+    assert client(live_host=h.spec).post(URL).status_code == 200
+    assert h.requests == [LINE]
+    assert (engine.checks, engine.shutdowns, engine.frame_reads, engine.viewers, engine.sinks) == before
+
+
 def test_two_presses_are_two_requests_and_the_second_waits_for_no_state(client, host):
     h = host(said(EXAMPLES[2]))
     c = client(live_host=h.spec)

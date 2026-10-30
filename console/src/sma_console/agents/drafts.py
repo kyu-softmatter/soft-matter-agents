@@ -21,7 +21,6 @@ Limits are not written here. The ranges a trap pattern is held to come from the 
 from __future__ import annotations
 
 import math
-import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -190,7 +189,6 @@ PART_WORDS = {
     "dialamp": "the transmitted lamp's intensity",
     "camera_exposure": "the red camera's exposure",
 }
-SELECTOR_ELEMENT = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
 def part_refusals(parts: list[dict[str, Any]]) -> list[str]:
@@ -213,8 +211,8 @@ def changes_card(*, parts: list[dict[str, Any]], selectors: list[dict[str, Any]]
     chosen: list[dict[str, Any]] = []
     for s in selectors:
         element, value = s.get("element"), s.get("value")
-        if not isinstance(element, str) or not SELECTOR_ELEMENT.match(element):
-            raise DraftError("a required state names its element in lower case letters, digits and underscores")
+        if not isinstance(element, str):
+            raise DraftError("a required state names its element")  # which names are allowed is the schema's to say
         if not isinstance(value, str) or not value.strip():
             raise DraftError("a required state names the slot it asks for")
         if element in seen:

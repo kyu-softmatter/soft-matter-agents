@@ -566,12 +566,22 @@ def test_the_changes_draft_is_written_nowhere_and_sends_nothing(client, tree, se
 
 
 @pytest.mark.parametrize("parts,selectors", [
-    ([], []), ([LAMP, LAMP], []), ([], [SLOT, SLOT]), ([], [dict(SLOT, element="Filter Turret")]), ([], [dict(SLOT, element="")]),
+    ([], []), ([LAMP, LAMP], []), ([], [SLOT, SLOT]),
     ([], [dict(SLOT, value="  ")]), ([dict(kind="dialamp", state="on", intensity_percent=101)], []),
 ])
 def test_a_changes_draft_that_cannot_be_built_is_refused_in_words(client, tree, parts, selectors):
     r = changes(client(), parts, selectors)
     assert r.status_code == 422 and r.json()["detail"], (parts, selectors)
+
+
+@pytest.mark.parametrize("element", ["Filter Turret", "", "1turret", "turret-1"])
+def test_a_bad_element_name_comes_back_in_the_schemas_words_and_not_the_consoles_own(client, tree, element):
+    """The element pattern has one source, plan.schema.json: the route builds the draft and the schema says what is wrong."""
+    r = changes(client(), [LAMP], [dict(SLOT, element=element)])
+    assert r.status_code == 200
+    d = r.json()
+    assert d["valid"] is False and any("selectors" in p for p in d["problems"]), d["problems"]
+    assert d["problems"][:12] == [p for p in Schemas(REPO / "contracts" / "schemas").validate(d["card"], "plan.schema.json")][:12]
 
 
 def test_the_changes_route_accepts_only_the_three_parts_and_a_slot_and_nothing_else(client, tree):
