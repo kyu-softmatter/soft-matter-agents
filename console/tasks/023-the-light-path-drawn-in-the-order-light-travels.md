@@ -261,13 +261,19 @@ it.
   refused before signing**, and the page says so (amended 2026-10-29).
   - The console names no limit and holds no table of limit names. Which
     limit covers a quantity, and in what unit, is a safety decision. It is
-    the person's, and it has been put to them. The pairing will be one
-    contract that the runtime's refusal and the console both read. It has
-    not landed.
-  - Until it lands, nothing covers the Aura's power, the lamp's intensity
-    or the red camera's exposure. So every part draft is refused before
-    signing, and the page says no limit has been named for that quantity
-    yet. This is the intended state, not a placeholder.
+    the person's. The pairing will be one contract that the runtime's
+    refusal and the console both read. It has not landed.
+  - **The person has answered: none of the three is set for now**
+    (D-20261029-office-04, `698ba049`): "세 상한은 당분간 정하지 않는다.
+    Aura 광원 세기, 투과광 램프 밝기, 빨간 카메라 노출 시간을 바꾸는 초안은
+    지금처럼 서명 전에 모두 거부한다." (The three limits are not set for
+    now. Drafts that change the Aura's power, the lamp's brightness or the
+    red camera's exposure time are all refused before signing, as now.)
+  - So nothing covers the Aura's power, the lamp's intensity or the red
+    camera's exposure, and every part draft is refused before signing. The
+    page says no limit has been named for that quantity yet. This is the
+    intended state, not a placeholder, and it changes only on a later
+    decision of the person's and a card that follows it.
   - For these three the page reads nothing from the safety file. It
     guesses no limit, looks none up by a name it made up, and does not
     take `illumination_power_max` or `exposure_time_max` as covering any
