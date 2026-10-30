@@ -7,6 +7,7 @@ import { useRef } from "react";
 
 import { type LatestRun } from "./api";
 import { ChangesList, ChangesProvider } from "./changes";
+import { LightsOff } from "./lightsoff";
 import { PartDraft, REFUSED_NO_LIMIT } from "./partdraft";
 import { type DraftKind, MOVED_BY_HAND } from "./parts";
 import { PathPanel } from "./path";
@@ -20,12 +21,13 @@ const TRANSIENT: readonly { kind: DraftKind; label: string }[] = [
   { kind: "dialamp", label: "Transmitted lamp" },
 ];
 
-export function Optics({ run, onTab }: { run: LatestRun; onTab?: (tab: string) => void }) {
+export function Optics({ run, onTab, onRefresh }: { run: LatestRun; onTab?: (tab: string) => void; onRefresh?: () => void }) {
   const drafts = useRef<HTMLDivElement>(null);
   const drawn = orderViewOf(run).state === "read";
   return (
     <ChangesProvider onTab={onTab}>
       <section aria-label="Optics and control" className="inst-optics">
+        <LightsOff running={run.state === "ok" && run.running} onAnswered={onRefresh} />
         <PathPanel run={run} onDraft={() => drafts.current?.focus()} />
         <ChangesList />
         <p className="console-muted">{MOVED_BY_HAND}</p>

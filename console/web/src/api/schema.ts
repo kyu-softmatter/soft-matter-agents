@@ -1020,6 +1020,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/instruments/lights-off": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lights Off
+         * @description Ask the live-view host to turn the lights off: `{"lights_off": true}`, once, and show its answer row by row.
+         *
+         *     It can only ask for less light, so it needs no password step and no confirmation. It is an ordinary write, not one
+         *     of the stops: it needs the login any write needs and is refused from another computer. It takes nothing from the request. The host is the one this server was started with
+         *     (`--live-host`, `--live-host-file`), never the live view's default file, and with none given **nothing is sent**.
+         *     A reply the schema refuses is shown as no answer, and nothing is ever resent. It writes nothing.
+         */
+        post: operations["lights_off_api_instruments_lights_off_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/instruments/changes": {
         parameters: {
             query?: never;
@@ -1031,8 +1056,8 @@ export interface paths {
         put?: never;
         /**
          * Changes
-         * @description Collect the person's clicks into **one** plan draft and check it against plan.schema.json. A part with no limit
-         *     in the safety file is refused before signing. **It writes nothing: the draft is returned and saved nowhere.**
+         * @description Collect the person's clicks into **one** plan draft and check it against plan.schema.json. Every part is refused
+         *     before signing: no limit has been named for its quantity, and the safety file is not read. **It writes nothing: the draft is returned and saved nowhere.**
          */
         post: operations["changes_api_instruments_changes_post"];
         delete?: never;
@@ -2104,6 +2129,25 @@ export interface components {
             piezo: components["schemas"]["PiezoPointOut"][];
         };
         /**
+         * LightSourceOut
+         * @description One row of the host's reply, as the host gave it (`light_source_row`): the console adds and changes nothing.
+         */
+        LightSourceOut: {
+            /** Source */
+            source: string;
+            /** Channel */
+            channel: string;
+            /**
+             * Result
+             * @enum {string}
+             */
+            result: "off" | "sent" | "not_turned_off";
+            /** Read Back */
+            read_back: string | null;
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
          * Lights
          * @description The one light shape (light_changed, snapshot, records).
          */
@@ -2120,6 +2164,26 @@ export interface components {
             error?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** LightsOffOut */
+        LightsOffOut: {
+            /**
+             * Answer
+             * @description the host's own word, or the console's: no_host (nothing was sent) or no_answer (no acceptable reply)
+             * @enum {string}
+             */
+            answer: "done" | "stop_sent" | "refused" | "no_answer" | "no_host";
+            /** How */
+            how?: ("own_run" | "run_stop") | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Sources
+             * @default []
+             */
+            sources: components["schemas"]["LightSourceOut"][];
         };
         /** LimitsOut */
         LimitsOut: {
@@ -6029,6 +6093,47 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LatestRunOut"];
                 };
+            };
+        };
+    };
+    lights_off_api_instruments_lights_off_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LightsOffOut"];
+                };
+            };
+            /** @description the request carried a body or a query */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description another computer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

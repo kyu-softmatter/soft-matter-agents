@@ -1,8 +1,8 @@
 # Instruments screens (console card 012)
 
 Area `instruments` (`web/src/features/instruments/`, hash `#/instruments/<tab>`). Six sub-tabs that do
-three things only: **show, draft and stop**. Nothing here sends a command to an instrument, connects to the
-live-view host, or saves a draft. A piece the runtime has not built yet says "not built yet", and the console
+three things only: **show, draft and stop**. Nothing here sends a command to an instrument or saves a draft. The one
+connection to the live-view host is the [Lights off] press (below), and it is made only when the person presses it. A piece the runtime has not built yet says "not built yet", and the console
 builds no stand-in for it.
 
 Server routes (`server/api/instruments.py`), all reads except the draft, which composes and writes nothing:
@@ -12,6 +12,7 @@ Server routes (`server/api/instruments.py`), all reads except the draft, which c
 | `GET /api/instruments/status` | `microscope_runtime/.runtime_status/idle_status.json` as data, checked against `contracts/schemas/idle_status.schema.json` read from the tree. Absent is `none`, an invalid file is `invalid` with why, and no reading is taken from either |
 | `GET /api/instruments/limits` | the person's own limits from `microscope_runtime/envelope/safety.json`: the piezo range and the tweezers ranges. Never written into code; a limit the file lacks is `null` |
 | `GET /api/instruments/latest-run` | the newest microscope run's events: the traps and strengths last sent (all "sent": the tweezers report nothing back) and the piezo snapshots (read back) |
+| `POST /api/instruments/lights-off` | [Lights off] (card 023, part 5): sends the live-view host the one line `{"lights_off": true}` and answers with what the host said, checked against `lights_off_reply`. An ordinary write: it needs the login and is refused from another computer. It is neither the assistant's lights-off nor a stop |
 | `POST /api/instruments/draft` | a plan draft built from what the person chose, checked against `contracts/schemas/plan.schema.json` read from the tree, **returned and saved nowhere** (`saved` is always false). The login must be one that may draft, on the microscope computer |
 
 The schema is checked by `agents/schema_lite.py`, because the console's environment has no `jsonschema` and
@@ -85,6 +86,26 @@ imports it, and no source file names the folder.
   button that follows signing sends nothing; on the instrument a run starts only after the bench hand-over.
 - **No limit is named for these quantities for now** (the person's answer). The page holds no limit name for them, and a
   safety file that holds every limit its schema lists changes none of these refusals; they end when a limit is named.
+
+## Lights off
+
+The **[Lights off]** button sits at the top of the Optics tab (card 023, part 5). One press asks the server once, with
+nothing in the request; the server sends the live-view host exactly `{"lights_off": true}` and shows the host's answer.
+No password, no draft, no confirmation: a lights-off that waits is a slower one.
+
+- **Which host.** Only the address the server was started with (`--live-host` or `--live-host-file`). With none given the
+  server sends nothing and the page says nothing is known about the lights and to use the switches. The default file the
+  live view falls back to is never used, and a host that is not on this computer is never connected to.
+- **Sent once.** A failure, a silence (the server waits up to 60 s) or a refused reply is shown and never resent.
+- **A reply is shown only after the schema accepts it**; otherwise it is "no answer": no light is shown off and the page
+  says "Nothing is known about the lights: use the switches."
+- **Done** names the run, and says "The running plan was stopped." when the run was a stop of a running plan. One row per
+  source in the host's order: *Off* with what was read back; *Sent*, which cannot be read back and is never shown off;
+  *Not turned off* with the host's reason and "Use the switch on the device."
+- **Stop sent** shows no source and no row: the run, the reason, and "Check each light at its switch".
+- **Refused** gives the reason and says nothing was sent to any light and to use the switches.
+- **During a run** the button says it also stops the running plan.
+- **After the reply** the path shows the result from its two sources as for any run; the press changes nothing on its own.
 
 A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
 transmitted lamp (state and intensity) and the red camera's exposure. Each is **refused before signing, because no

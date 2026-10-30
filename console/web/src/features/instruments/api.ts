@@ -1,7 +1,8 @@
 /**
  * The Instruments screens' wire types and calls (console card 012): the idle status file, the person's
- * limits, the latest run's events, and a plan draft. Every route is a read or a composition: nothing here
- * sends a command to an instrument, and a draft is returned and saved nowhere.
+ * limits, the latest run's events, and a plan draft. Every route is a read or a composition, except [Lights off]
+ * (`lightsOff`, card 023 part 5): the one press that asks the live-view host to turn the lights off. A draft is
+ * returned and saved nowhere.
  */
 
 import { type Client, CommandRefused } from "../../app/client";
@@ -15,8 +16,11 @@ export type LatestRun = Schemas["LatestRunOut"];
 export type DraftIn = Schemas["DraftIn"];
 export type DraftOut = Schemas["DraftOut"];
 export type ChangesIn = Schemas["ChangesIn"];
+export type LightsOffOut = Schemas["LightsOffOut"];
+export type LightSourceOut = Schemas["LightSourceOut"];
 
 export const PATHS = {
+  lightsOff: "/api/instruments/lights-off",
   status: "/api/instruments/status",
   limits: "/api/instruments/limits",
   latestRun: "/api/instruments/latest-run",

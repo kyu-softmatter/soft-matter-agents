@@ -4,7 +4,10 @@ Everything here is read from the runtime's files or composed on request, and **n
 instrument, written to a tree or saved**: the idle status file, the person's limits and the latest run's
 events are read; a plan draft is built from what the person chose, checked against the schema read from
 the tree, and returned. The console builds no stand-in for a runtime piece that does not exist yet
-(check now, the idle status writer, latest frames), and opens no connection to the live-view host.
+(check now, the idle status writer, latest frames).
+
+The one connection it opens to the live-view host is [Lights off] (card 023 part 5): one line that can only ask
+for less light, sent once to the address this server was started with, and the answer shown as the host gave it.
 """
 
 from __future__ import annotations
@@ -12,10 +15,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...agents import StoreError, drafts, instruments
+from ...agents import StoreError, drafts, instruments, sma_lights
 from ...agents.schema_lite import SchemaError, Schemas
 from ...agents.sma_files import RootNotFoundError, repository_root
 from . import AgentStoreDep, Login, Refusal, server_action_why
@@ -167,6 +171,25 @@ class DraftIn(BaseModel):
     tolerance_um: float | None = None
 
 
+class LightSourceOut(BaseModel):
+    """One row of the host's reply, as the host gave it (`light_source_row`): the console adds and changes nothing."""
+
+    source: str
+    channel: str
+    result: Literal["off", "sent", "not_turned_off"]
+    read_back: str | None
+    reason: str | None = None
+
+
+class LightsOffOut(BaseModel):
+    answer: Literal["done", "stop_sent", "refused", "no_answer", "no_host"] = Field(
+        description="the host's own word, or the console's: no_host (nothing was sent) or no_answer (no acceptable reply)")
+    how: Literal["own_run", "run_stop"] | None = None
+    run_id: str | None = None
+    reason: str | None = None
+    sources: list[LightSourceOut] = []
+
+
 class DraftOut(BaseModel):
     kind: str
     card: dict[str, Any]
@@ -245,6 +268,31 @@ def latest_run(store: AgentStoreDep) -> LatestRunOut:
         return LatestRunOut(**instruments.latest_run_readings(store))
     except StoreError as e:
         raise Refusal(500, "store_error", str(e)).http() from e
+
+
+LIGHTS_OFF_TAKES_NOTHING = ("[Lights off] takes no body and no query: the request is the one line the console builds, "
+                            "and nothing the browser sends reaches the host")
+
+
+@router.post("/lights-off", response_model=LightsOffOut,
+             responses={400: {"description": "the request carried a body or a query"},
+                        401: {"description": "not logged in"}, 403: {"description": "another computer"}})
+async def lights_off(request: Request, store: AgentStoreDep) -> LightsOffOut:
+    """Ask the live-view host to turn the lights off: `{"lights_off": true}`, once, and show its answer row by row.
+
+    It can only ask for less light, so it needs no password step and no confirmation. It is an ordinary write, not one
+    of the stops: it needs the login any write needs and is refused from another computer. It takes nothing from the request. The host is the one this server was started with
+    (`--live-host`, `--live-host-file`), never the live view's default file, and with none given **nothing is sent**.
+    A reply the schema refuses is shown as no answer, and nothing is ever resent. It writes nothing."""
+    if request.url.query or await request.body():
+        raise Refusal(400, "lights_off_takes_nothing", LIGHTS_OFF_TAKES_NOTHING).http()
+    state = request.app.state
+    addr, why_not = sma_lights.host_to_ask(getattr(state, "live_host", None), getattr(state, "live_host_file", None))
+    if addr is None:
+        return LightsOffOut(answer="no_host", reason=why_not)
+    r = await run_in_threadpool(sma_lights.lights_off, addr, _schemas(store))
+    return LightsOffOut(answer=r.answer, how=r.how, run_id=r.run_id, reason=r.reason,  # type: ignore[arg-type]
+                        sources=[LightSourceOut(**row) for row in r.sources])
 
 
 def _draft_refusal(me: Any) -> Refusal | None:

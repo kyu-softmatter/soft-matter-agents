@@ -429,4 +429,32 @@ describe("nothing is commanded and nothing is saved", () => {
     const allowed = new Set([PATHS.status, PATHS.limits, PATHS.latestRun, SIGNING, "/api/auth/me", "/api/auth/setup", "/api/auth/control", "/api/auth/activity"]);
     expect(t.calls.map((c) => c.path).filter((p) => !allowed.has(p))).toEqual([]);
   });
+
+  it("[Lights off] on the Optics tab is the one request a press adds, and it says it also stops a running plan only while one runs", async () => {
+    const answer = { answer: "no_answer", how: null, run_id: null, reason: "the host did not answer", sources: [] };
+    const t = show({ hash: "#/instruments/optics", extra: { [PATHS.lightsOff]: () => ({ status: 200, body: answer }) } });
+    const button = await screen.findByRole("button", { name: "Lights off" });
+    expect(screen.queryByText(/also stops that plan/)).toBeNull();
+    expect(t.posts()).toEqual([]);
+    fireEvent.click(button);
+    await screen.findByTestId("lights-off-result");
+    expect(t.posts().map((c) => [c.path, c.init?.body ?? null])).toEqual([[PATHS.lightsOff, null]]);
+  });
+
+  it("after the reply the run's files are read again, and the answer stays shown", async () => {
+    const answer = { answer: "refused", how: null, run_id: null, reason: "the run lock is held by a process this host cannot stop", sources: [] };
+    const t = show({ hash: "#/instruments/optics", extra: { [PATHS.lightsOff]: () => ({ status: 200, body: answer }) } });
+    const reads = () => t.calls.filter((c) => c.path === PATHS.latestRun).length;
+    fireEvent.click(await screen.findByRole("button", { name: "Lights off" }));
+    await screen.findByTestId("lights-off-result");
+    await waitFor(() => expect(reads()).toBe(2));
+    expect(screen.getByTestId("lights-off-result").textContent).toContain(answer.reason);
+    expect(t.posts().length).toBe(1);
+  });
+
+  it("with a run going the button says it also stops the running plan", async () => {
+    show({ hash: "#/instruments/optics", run: { ...RUN, running: true, path: NO_RUN.path } });
+    await screen.findByRole("button", { name: "Lights off" });
+    expect(screen.getByText(/also stops that plan/)).toBeTruthy();
+  });
 });

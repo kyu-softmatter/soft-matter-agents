@@ -416,11 +416,13 @@ def test_who_may_draft_is_the_servers_present_rule_said_in_words(client, tree):
 
 
 def test_the_draft_route_and_the_others_send_nothing_to_an_instrument(client, tree):
-    """Every route on this router is a read or a composition: there is no command kind, no run request, no stop."""
+    """Every route on this router is a read or a composition, except /lights-off (card 023 part 5): that one sends the
+    live-view host the one line the run interface gives it (tests/server/test_lights_off.py) and nothing else. There is no
+    command kind, no run request, no stop."""
     from sma_console.server.api import instruments as mod
 
     paths = sorted((r.path, sorted(r.methods)) for r in mod.router.routes)
-    assert paths == [("/changes", ["POST"]), ("/draft", ["POST"]), ("/latest-run", ["GET"]), ("/limits", ["GET"]), ("/status", ["GET"])]
+    assert paths == [("/changes", ["POST"]), ("/draft", ["POST"]), ("/latest-run", ["GET"]), ("/lights-off", ["POST"]), ("/limits", ["GET"]), ("/status", ["GET"])]
 
 
 # -- the changes: the clicks of the drawing, collected into one plan draft ---------------------------------
