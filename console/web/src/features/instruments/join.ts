@@ -4,7 +4,7 @@
  * **The reading is found by the pair the order gives** (`read_back.channel` and `read_back.name`), matched exactly against a
  * row's channel and name; never by the element's id. No normalisation and no table of names live here. What this file does hold
  * is a short table by **the element's own channel**, not by element: the
- * three parts software may draft, the two channels that have no control at all, and the channels that have a section tab of their
+ * one part software may draft, the two channels that have no control at all, and the channels that have a section tab of their
  * own. A channel is the runtime's name for a device group, so a table of them says nothing about which element the order names.
  */
 
@@ -49,7 +49,6 @@ export const handSetOf = (el: OrderElement, hand: HandSet[]): HandSet | undefine
 
 /** The draft forms there are. An element on one of these channels opens that form, whatever the read-back calls its control. */
 export const CHANNEL_DRAFT: Record<string, DraftKind> = { camera_red: "camera_exposure" };
-const PARTS: readonly string[] = ["aura", "dialamp", "camera_exposure"];
 
 /** Channels that have no control at all: a click explains why and shows what was last sent. */
 export const NO_CONTROL_CHANNELS: readonly string[] = ["laser_combiner", "optical_tweezers"];
@@ -66,16 +65,18 @@ export const CHANNEL_TAB: Record<string, { tab: string; label: string }> = {
 export const tabOf = (channel: string | null) =>
   channel !== null && Object.hasOwn(CHANNEL_TAB, channel) ? CHANNEL_TAB[channel] : undefined;
 
-export type Control = { kind: "draft"; part: DraftKind | null } | { kind: "hand" } | { kind: "none" };
+export type Control = { kind: "draft"; part: DraftKind } | { kind: "no_draft"; words: string } | { kind: "hand" } | { kind: "none" };
 
-/** The one control an element has: moved by hand, drafted, or none given. The order's `hand_set` is the strongest word. */
+/**
+ * The one control an element has: moved by hand, drafted (the red camera's exposure only, by its channel), no draft offered yet
+ * (the row's own words say why, and none are made up here), or none given. The order's `hand_set` is the strongest word.
+ */
 export function controlOf(el: OrderElement, found: Found, hand: HandSet[]): Control {
   if (handSetOf(el, hand) !== undefined) return { kind: "hand" };
   if (el.channel !== null && Object.hasOwn(CHANNEL_DRAFT, el.channel)) return { kind: "draft", part: CHANNEL_DRAFT[el.channel] };
   if (el.channel !== null && NO_CONTROL_CHANNELS.includes(el.channel)) return { kind: "none" };
-  if (found.kind === "row" && found.row.control === "draft") {
-    const part = found.row.draft;
-    return { kind: "draft", part: part !== null && part !== undefined && PARTS.includes(part) ? (part as DraftKind) : null };
+  if (found.kind === "row" && found.row.control === "no_draft" && typeof found.row.words === "string" && found.row.words !== "") {
+    return { kind: "no_draft", words: found.row.words };
   }
   if (found.kind === "row" && found.row.control === "hand") return { kind: "hand" };
   return { kind: "none" };

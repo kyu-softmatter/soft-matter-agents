@@ -10,9 +10,11 @@ this module writes no file. Console drafts have no goal, so the question number 
   positions and switched on, then a hold for the person.
 * `piezo_card` is an `operation` plan: a step (and, if asked, the return step) or a host-timed sine on the fine
   piezo stage, the one thing a draft may command here that has both a software path and a schema shape.
-* `part_card` composes what a change to the Aura LED, the transmitted lamp or the red camera's exposure
-  would be. `plan.schema.json` has no operation that sets a light or an exposure, so such a card is
-  checked and its refusal shown, not offered for signing; nothing is bent to make it pass.
+* `part_card` composes what a change to the red camera's exposure would be, named as a plan names it: the
+  registry's device `camera_red`, the action `set_exposure` and the registered quantity `exposure_time`
+  (console card 024). The Aura and the transmitted lamp have no draft: a run cannot take either yet, and
+  nothing here names a device, an action or a number for them. The card is checked and its refusal shown,
+  not offered for signing; nothing is bent to make it pass.
 
 Limits are not written here. The ranges a trap pattern is held to come from the person's safety file
 (`instruments.tweezers_ranges`) and are passed in.
@@ -30,10 +32,10 @@ MAX_TRAPS = 64  # a screen-side sanity ceiling on what is composed; the instrume
 PIEZO_DEVICE = "piezo_stage"
 PIEZO_STEP_ROLES = ("verify_mapping", "direction_finding", "approach", "return")
 PIEZO_Z_ROLES = ("direction_finding", "return")  # until the piezo-Z direction is recorded (plan.schema.json)
+#: `camera_exposure` is the console's own name for the form and the draft kind; it never appears in a plan, which
+#: names the registry's `camera_red`.
 PARTS = {
-    "aura": {"device": "Aura", "label": "Aura III LED"},
-    "dialamp": {"device": "DiaLamp", "label": "Transmitted lamp"},
-    "camera_exposure": {"device": "Kinetix_red", "label": "Camera, red arm: exposure"},
+    "camera_exposure": {"device": "camera_red", "label": "Camera, red arm: exposure"},
 }
 
 
@@ -139,10 +141,10 @@ def trap_range_problems(card: dict[str, Any], ranges: dict[str, Any]) -> list[st
 
 
 def part_card(*, part: str, fields: dict[str, Any], now: datetime) -> dict[str, Any]:
-    """What a change to one of the three parts software may command would be, as a plan card. The schema
-    cannot say it (see the module note), so this card is checked and its refusal is shown."""
+    """What a change to the red camera's exposure would be, as a plan card. The run cannot take it yet (see the module
+    note), so this card is checked and its refusal is shown."""
     if part not in PARTS:
-        raise DraftError(f"software may command only: {', '.join(PARTS)}")
+        raise DraftError(f"a draft is offered only for: {', '.join(PARTS)}")
     device = PARTS[part]["device"]
     numbers: list[dict[str, Any]] = []
     params: list[str] = []
@@ -155,23 +157,13 @@ def part_card(*, part: str, fields: dict[str, Any], now: datetime) -> dict[str, 
                         "grade": "E5", "precision": "order_of_magnitude"})
         params.append(name)
 
-    if part == "aura":
-        if not isinstance(fields.get("color"), str) or not fields["color"].strip():
-            raise DraftError("the Aura LED's colour is a name")
-        number("power", fields.get("power_mw"), "mW", 1e-9, 1e9)
-        action = f"set_{fields['color'].strip().lower().replace(' ', '_')}"
-    elif part == "dialamp":
-        if fields.get("state") not in ("on", "off"):
-            raise DraftError("the lamp's state is on or off")
-        number("intensity", fields.get("intensity_percent"), "percent", 0, 100)
-        action = f"state_{fields['state']}_and_intensity"
-    else:
-        number("exposure", fields.get("exposure_ms"), "ms", 1e-9, 1e9)
-        action = "set_exposure"
-    card = _head(now, part)
+    # the quantity is `exposure_time` (contracts/quantities.json); the form asks for milliseconds and the run converts
+    # the unit, so the number stays in `ms` here
+    number("exposure_time", fields.get("exposure_ms"), "ms", 1e-9, 1e9)
+    card = _head(now, "camera")
     card.update({
         "numbers": numbers, "purpose": "verify", "intent": "confirm",
-        "actions": [{"id": f"set_{part}", "device": device, "action": action, "reversible": True,
+        "actions": [{"id": "set_camera_exposure", "device": device, "action": "set_exposure", "reversible": True,
                      "parameters": params, "tier": 1}],
         "envelope_check": {"checked_against": [], "status": "unavailable",
                            "note": "No limit has been named for this part yet, so the instrument refuses it."},
@@ -180,13 +172,11 @@ def part_card(*, part: str, fields: dict[str, Any], now: datetime) -> dict[str, 
     return card
 
 
-#: What each part's quantity is called when it is refused. **No limit has been named for any of them**: which limit
-#: in the person's safety file would cover the Aura's power, the lamp's intensity or the red camera's exposure is the
-#: runtime's and the safety schema's to say, so nothing here names one, reads one or treats another quantity's limit as
-#: covering it. Until that is said, every part draft is refused before signing.
+#: What the part's quantity is called when it is refused. **No limit has been named for it**: which limit in the person's
+#: safety file would cover the red camera's exposure is the runtime's and the safety schema's to say, so nothing here
+#: names one, reads one or treats another quantity's limit as covering it. Until that is said, the draft is refused
+#: before signing.
 PART_WORDS = {
-    "aura": "the Aura LED's power",
-    "dialamp": "the transmitted lamp's intensity",
     "camera_exposure": "the red camera's exposure",
 }
 

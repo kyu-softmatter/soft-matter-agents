@@ -7,7 +7,7 @@ import { fakeTransport, type Route } from "../../test/fakes";
 import { PATHS as QPATHS } from "../questions/api";
 import { PATHS } from "./api";
 import InstrumentsScreen from "./index";
-import { DRAFT_LINK } from "./path";
+import { NO_DRAFT_LABEL, RUN_REFUSES } from "./parts";
 
 /** The Instruments screens on a followed run (console card 015): the run's own files, nothing started or sent. */
 
@@ -342,11 +342,11 @@ describe("the piezo draft is an operation plan, shown and saved nowhere", () => 
 describe("the live optical path on Optics and control", () => {
   interface El {
     key: string; name: string; channel: string; state: string; value: string | null; t_wall: string | null; reason: string | null;
-    backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null;
+    backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null; words: string | null;
   }
   const el = (name: string, channel: string, state: string, extra: Partial<El> = {}): El => ({
     key: `${channel}/${name}`, name, channel, state, value: null, t_wall: null, reason: null, backend: null, sent: null, sent_at: null,
-    control: "hand", draft: null, ...extra,
+    control: "hand", draft: null, words: null, ...extra,
   });
   const T1 = "2026-10-26T09:00:01Z";
   const read = (name: string, channel: string, value: string, extra: Partial<El> = {}) =>
@@ -356,8 +356,8 @@ describe("the live optical path on Optics and control", () => {
     read("Nosepiece", "stand_ti2e", "3"),
     read("CSUW1-Dichroic", "confocal_csuw1", "1"),
     el("LightPath", "stand_ti2e", "not_read", { reason: "the read returned no position for it" }),
-    read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
-    read("Aura", "stand_ti2e", "0", { control: "draft", draft: "aura" }),
+    read("DiaLamp", "stand_ti2e", "1", { control: "no_draft", words: "No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and no table of its on and off states." }),
+    read("Aura", "stand_ti2e", "0", { control: "no_draft", words: "No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has nowhere to read that model from yet, so it guesses none." }),
     el("laser_combiner", "laser_combiner", "sent", {
       value: "assumed on", reason: "It reports nothing back, so it is shown at the most dangerous state its commands allow.",
       sent: '{"state": "off"}', sent_at: "2026-10-26T09:00:02Z", control: null,
@@ -388,10 +388,10 @@ describe("the live optical path on Optics and control", () => {
     expect(handOf(item("FilterTurret1"))).toEqual(["moved by hand"]);
   });
 
-  it("each element with a control shows exactly one of moved by hand or drafted, and the laser has neither", async () => {
+  it("each element with a control shows exactly one of moved by hand or no draft offered yet, and the laser has neither", async () => {
     const { item } = await open(PATH_RUN);
     for (const n of ["FilterTurret1", "Nosepiece", "CSUW1-Dichroic", "LightPath"]) expect(handOf(item(n))).toEqual(["moved by hand"]);
-    for (const n of ["DiaLamp", "Aura"]) expect(handOf(item(n))).toEqual([DRAFT_LINK]);
+    for (const n of ["DiaLamp", "Aura"]) expect(handOf(item(n))).toEqual([NO_DRAFT_LABEL]);
     expect(handOf(item("laser_combiner"))).toEqual([]);
   });
 
@@ -475,36 +475,26 @@ describe("the live optical path on Optics and control", () => {
     expect(within(item("laser_combiner")).queryAllByRole("button")).toEqual([]);
   });
 
-  it("the lamp and the LED carry the draft link, which moves focus to the drafts", async () => {
+  it("the lamp and the LED carry no button and no refusal notice: no draft is offered for them yet", async () => {
     const t = await open(PATH_RUN);
-    for (const n of ["DiaLamp", "Aura"]) expect(within(t.item(n)).getAllByRole("button").map((b) => b.textContent)).toEqual([DRAFT_LINK]);
-    fireEvent.click(within(t.item("DiaLamp")).getByRole("button"));
-    expect(document.activeElement).toBe(screen.getByRole("group", { name: "Drafts" }));
+    for (const n of ["DiaLamp", "Aura"]) {
+      expect(within(t.item(n)).queryAllByRole("button")).toEqual([]);
+      expect(t.item(n).textContent).not.toContain(RUN_REFUSES);
+    }
   });
 
-  it("beside the draft links it says the run will refuse the draft, and the Aura for longer", async () => {
-    const { item } = await open(PATH_RUN);
-    const refuse = /The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command/;
-    expect(item("DiaLamp").textContent).toMatch(refuse);
-    expect(item("Aura").textContent).toMatch(refuse);
-    expect(item("Aura").textContent).toContain("stays refused longer than the lamp and the camera, until which light engine feeds which channel is settled");
-    expect(item("DiaLamp").textContent).not.toContain("stays refused longer");
-  });
-
-  it("the Light source drafts say the run will refuse them, the Aura for longer", async () => {
+  it("the Optics page offers no Light source draft and no Drafts group", async () => {
     show({ hash: "#/instruments/optics" });
-    const aura = await screen.findByRole("group", { name: "Aura III LED" });
-    const lamp = screen.getByRole("group", { name: "Transmitted lamp" });
-    for (const g of [aura, lamp]) expect(g.textContent).toContain("The run will refuse this draft even when it is made and signed");
-    expect(aura.textContent).toContain("stays refused longer than the lamp and the camera");
-    expect(lamp.textContent).not.toContain("stays refused longer");
+    await screen.findByRole("region", { name: "Live optical path" });
+    expect(screen.queryByRole("group", { name: "Aura III LED" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Transmitted lamp" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Drafts" })).toBeNull();
   });
 
   it("the red camera's draft on the Cameras page says the run will refuse it", async () => {
     show({ hash: "#/instruments/cameras" });
     const cam = await screen.findByRole("group", { name: "Camera red arm" });
-    expect(cam.textContent).toContain("The run will refuse this draft even when it is made and signed");
-    expect(cam.textContent).not.toContain("stays refused longer");
+    expect(cam.textContent).toContain(RUN_REFUSES);
   });
 
   it("the piezo draft is not told the run will refuse it", async () => {
@@ -514,14 +504,15 @@ describe("the live optical path on Optics and control", () => {
   });
 
   it("a made draft shows the server's reasons, the run's refusal among them", async () => {
-    const reasons = ["No limit has been named for this quantity yet, so this draft is refused before it can be signed.", "The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command."];
+    const reasons = ["No limit has been named for the red camera's exposure yet, so this draft cannot be signed.", RUN_REFUSES];
     show({
-      hash: "#/instruments/optics",
-      draft: () => ({ status: 200, body: { kind: "dialamp", card: { card: "plan" }, valid: true, problems: [], range_problems: [], refused_today: reasons, saved: false, note: "n" } }),
+      hash: "#/instruments/cameras",
+      draft: () => ({ status: 200, body: { kind: "camera_exposure", card: { card: "plan" }, valid: true, problems: [], range_problems: [], refused_today: reasons, saved: false, note: "n" } }),
     });
-    const lamp = await screen.findByRole("group", { name: "Transmitted lamp" });
-    fireEvent.click(within(lamp).getByRole("button", { name: /^Draft/ }));
-    await waitFor(() => expect(within(lamp).getAllByText(/The run will refuse this draft/).length).toBeGreaterThan(1));
+    const cam = await screen.findByRole("group", { name: "Camera red arm" });
+    fireEvent.change(within(cam).getByLabelText("Exposure (ms)"), { target: { value: "40" } });
+    fireEvent.click(within(cam).getByRole("button", { name: /^Draft/ }));
+    await waitFor(() => expect(within(cam).getAllByText(/The run will refuse this draft/).length).toBeGreaterThan(1));
   });
 
   it("outside a run it says where the path was read: the status file, with its write time and the run's outcome", async () => {
@@ -571,11 +562,11 @@ describe("the live optical path on Optics and control", () => {
     expect(within(panel).getByText(/No order is given/)).toBeTruthy();
   });
 
-  it("no request leaves the page while it renders, refreshes or its draft link is pressed, except the reads of files", async () => {
+  it("no request leaves the page while it renders or refreshes, except the reads of files", async () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     const { t, panel } = await open(PATH_RUN);
     await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-    fireEvent.click(within(panel).getAllByRole("button", { name: DRAFT_LINK })[0]);
+    expect(within(panel).queryAllByRole("button", { name: /draft/i })).toEqual([]);
     await act(async () => { await vi.advanceTimersByTimeAsync(100); });
     expect(t.calls.filter((c) => c.init?.method !== undefined && c.init.method !== "GET")).toEqual([]);
     const allowed = new Set<string>([PATHS.status, PATHS.limits, PATHS.latestRun, QPATHS.signing]);

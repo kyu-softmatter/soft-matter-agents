@@ -1725,7 +1725,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "trap_steps" | "aura" | "dialamp" | "camera_exposure" | "piezo";
+            kind: "trap_steps" | "camera_exposure" | "piezo";
             /** Pattern */
             pattern?: ("line" | "circle" | "grid") | null;
             /** Objective */
@@ -1736,14 +1736,6 @@ export interface components {
             spacing_um?: number | null;
             /** Strength */
             strength?: number | null;
-            /** Color */
-            color?: string | null;
-            /** Power Mw */
-            power_mw?: number | null;
-            /** State */
-            state?: ("on" | "off") | null;
-            /** Intensity Percent */
-            intensity_percent?: number | null;
             /** Exposure Ms */
             exposure_ms?: number | null;
             /** Axis */
@@ -2488,22 +2480,14 @@ export interface components {
         };
         /**
          * PartIn
-         * @description One of the three parts software may command, as the person filled it in; nothing else is accepted.
+         * @description The one part a draft is offered for, as the person filled it in; nothing else is accepted.
          */
         PartIn: {
             /**
              * Kind
-             * @enum {string}
+             * @constant
              */
-            kind: "aura" | "dialamp" | "camera_exposure";
-            /** Color */
-            color?: string | null;
-            /** Power Mw */
-            power_mw?: number | null;
-            /** State */
-            state?: ("on" | "off") | null;
-            /** Intensity Percent */
-            intensity_percent?: number | null;
+            kind: "camera_exposure";
             /** Exposure Ms */
             exposure_ms?: number | null;
         };
@@ -2561,14 +2545,19 @@ export interface components {
             sent_at?: string | null;
             /**
              * Control
-             * @description moved by hand (no control), or drafted on this page; None for the laser
+             * @description moved by hand (no control), or no draft is offered for it yet (`words` say why); None for the laser
              */
-            control?: ("hand" | "draft") | null;
+            control?: ("hand" | "no_draft") | null;
             /**
              * Draft
-             * @description the draft kind, where control is `draft`
+             * @description a draft kind the server's draft list holds; no row carries one today, and the camera's form is reached through its channel
              */
-            draft?: ("aura" | "dialamp") | null;
+            draft?: "camera_exposure" | null;
+            /**
+             * Words
+             * @description where control is `no_draft`: why no draft is offered, in the words the person is shown
+             */
+            words?: string | null;
         };
         /** PathOut */
         PathOut: {

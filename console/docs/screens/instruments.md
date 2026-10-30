@@ -39,7 +39,7 @@ from nothing else: each branch the order names, each element in its sequence, an
 the order does not name. No picture of the stand and no list of parts is kept on the page.
 
 - **Each drawn element** shows its name, its state in the four words below, how it was read, whether it is "moved by
-  hand" or "drafted" (or "control not given"), and the order's entry ids **as text, never followed**.
+  hand", "drafted" or "no draft is offered yet" (or "control not given"), and the order's entry ids **as text, never followed**.
 - **The state is joined by the pair the order gives the element** (its read-back channel and name), matched exactly
   against a row's channel and name; never by the element's id, and no normalisation and no table of names live on the
   page. The pair's channel may differ from the element's own, which still decides its control and its tab. An element
@@ -63,9 +63,11 @@ imports it, and no source file names the folder.
 
 **A click opens an element and offers only what the rules already allow** (card 023, part 3):
 
-- **A drafted element** (the Aura LED, the transmitted lamp, the red camera's exposure) opens its draft fields in place,
-  with the refusal notice, and no link to another tab. The red camera is found by its channel; the lamp and the Aura keep
-  the draft the read-back's row names.
+- **The red camera's element** opens its exposure field in place, with the refusal notice, and no link to another tab. It is
+  found by its channel. **The Aura and the transmitted lamp open words and no fields** (card 024): "No draft is offered for
+  the Aura yet. A plan will name the light engine by its model, and the console has nowhere to read that model from yet, so
+  it guesses none." and "No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its
+  brightness, and no table of its on and off states." The server's row carries the words; the page shows them as given.
 - **A part moved by hand** opens the slot list the order gives, by the store's names, with **no slot marked as the
   current one**: nothing gives the page which slot a position read back means, so beside the list it shows the value the
   element's row read back, how it was read and when, and says which of the slots that is has not been given. A value
@@ -79,9 +81,9 @@ imports it, and no source file names the folder.
 - **Changes collect in one list**, "These changes will be made:", in the order added, each removable, kept only on this
   screen. Nothing is requested while the page renders, an element is opened or a slot is chosen.
 - **[Check the draft] and [Apply]** each ask the server once, on the press, to collect the list into one ordinary plan card
-  and check it with `plan.schema.json`; the schema's refusal is shown as it words it. **Every part draft** (the Aura's power, the
-  lamp's brightness, the red camera's exposure) is refused before signing, and the page says no limit has been named
-  for that quantity yet; nothing is read from the safety file for these quantities. **[Apply] is shown and refused**: signing is over a plan card on disk and this draft is saved nowhere, so it says
+  and check it with `plan.schema.json`; the schema's refusal is shown as it words it. **The one part draft** (the red camera's
+  exposure) is refused before signing, and the page says no limit has been named for that quantity yet; nothing is read
+  from the safety file for it. **[Apply] is shown and refused**: signing is over a plan card on disk and this draft is saved nowhere, so it says
   "This draft cannot be signed yet, because it is saved nowhere." No password is asked and nothing is written. The run
   button that follows signing sends nothing; on the instrument a run starts only after the bench hand-over.
 - **No limit is named for these quantities for now** (the person's answer). The page holds no limit name for them, and a
@@ -107,12 +109,13 @@ No password, no draft, no confirmation: a lights-off that waits is a slower one.
 - **During a run** the button says it also stops the running plan.
 - **After the reply** the path shows the result from its two sources as for any run; the press changes nothing on its own.
 
-A draft is offered where the runtime's list of what software may command names the part: the Aura LED, the
-transmitted lamp (state and intensity) and the red camera's exposure. Each is **refused before signing, because no
-limit has been named for it yet**. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
+A draft is offered for the red camera's exposure only: its plan step names `camera_red`, the action `set_exposure` and the
+quantity `exposure_time`, which the run's capabilities list. It is **refused before signing, because no limit has been named
+for it yet**. The Aura and the transmitted lamp are drawn and listed with their state as read, and say that no draft is
+offered yet; their drafts return when a run can take them. Every other part reads "set by hand; software may not move it", and the laser combiner reads "close
 was sent; assumed open until a shutter that reads back shows it blocked".
 
-`plan.schema.json` has no operation that sets a light or an exposure, so these three drafts are composed,
+`plan.schema.json` has no operation that sets an exposure, so this draft is composed,
 checked and **shown with the schema's refusal, never offered for signing**. Nothing is bent to make one pass.
 A schema change for them is architecture's.
 
@@ -177,11 +180,10 @@ channel and the frame tap's `get`, and only from the screens that already did th
     did not open (never "off"). *Not read*: a channel busy at the read, or an element the read returned no
     position for, with the reason and no value. On the mock each state is labelled the mock's own.
   - **Beside the state, exactly one of** "moved by hand" (every light-path selector and the objective; no
-    control) or the draft link (the Aura and the transmitted lamp only).
-  - **Beside every draft link** for the Aura, the lamp and the red camera, on every page that offers them: the
-    draft can be made and signed and the run will refuse it, because the runtime cannot yet match the element to
-    what software may command. The Aura stays refused longer, until which light engine feeds which channel is
-    settled. The piezo's draft is not affected.
+    control), "no draft is offered yet" (the Aura and the transmitted lamp), or "drafted" (the red camera).
+  - **Beside the red camera's draft**, on every page that offers it: "The run will refuse this draft even when it is made
+    and signed: nothing recorded yet tells it how to set the red camera's exposure on this microscope." The piezo's draft is
+    not affected.
   - **Where the source gives an order, it is a drawing** (card 023); where it gives none, the list stays, with the
     words "No order is given for these elements, so this is a list, not a drawing of the path." The two known traps
     (the turret label that names the wrong position, splitter states that send no light to one camera) and "a

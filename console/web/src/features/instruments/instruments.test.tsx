@@ -67,7 +67,7 @@ const RUN = {
 const DRAFT_OUT = (kind: string, valid: boolean) => ({
   kind, card: { card: "plan", id: `plan-${kind}`, author: "human" }, valid,
   problems: valid ? [] : ["$.operation: required property is missing"], range_problems: [],
-  refused_today: ["No limit has been named for this quantity yet, so this draft is refused before it can be signed."],
+  refused_today: ["No limit has been named for the red camera's exposure yet, so this draft cannot be signed."],
   saved: false, note: "A draft is shown in full and saved nowhere. Where a console draft goes before the person signs it is still to be designed.",
 });
 
@@ -188,7 +188,6 @@ describe("Optics and control", () => {
     await screen.findByRole("region", { name: "Optics and control" });
     return t;
   };
-  const drafts = () => screen.getByRole("group", { name: "Drafts" });
 
   it("no longer draws a picture of the stand or lists parts the order does not name", async () => {
     await open();
@@ -204,51 +203,11 @@ describe("Optics and control", () => {
     expect(screen.queryByRole("group", { name: "Light path drawing" })).toBeNull();
   });
 
-  it("says what is moved by hand, and offers a draft for exactly the two lights", async () => {
+  it("says what is moved by hand, and offers no draft at all on this page: the camera's is on Cameras", async () => {
     await open();
     expect(screen.getByText(/^Moved by hand:/)).toBeTruthy();
-    expect(within(drafts()).getAllByRole("button", { name: /^Draft / }).map((b) => b.textContent).sort()).toEqual(["Draft Aura III LED", "Draft Transmitted lamp"]);
-  });
-
-  it("each draft says no limit has been named for it yet", async () => {
-    await open();
-    for (const part of ["Aura III LED", "Transmitted lamp"]) {
-      const box = within(drafts()).getByRole("group", { name: part });
-      expect(within(box).getByText(/no limit has been named for this quantity yet/i)).toBeTruthy();
-    }
-  });
-
-  it("a draft is requested from the server, shown in full, and saved nowhere", async () => {
-    const t = await open();
-    const box = within(drafts()).getByRole("group", { name: "Aura III LED" });
-    fireEvent.change(within(box).getByLabelText("Colour"), { target: { value: "Blue" } });
-    fireEvent.change(within(box).getByLabelText("Power (mW)"), { target: { value: "5" } });
-    fireEvent.click(within(box).getByRole("button", { name: "Draft Aura III LED" }));
-    const view = await screen.findByRole("region", { name: "Plan draft" });
-    expect(within(view).getByLabelText("Draft plan card").textContent).toContain('"id": "plan-aura"');
-    expect(within(view).getByText(/Not saved/)).toBeTruthy();
-    expect(within(view).getByText(/still to be designed/)).toBeTruthy();
-    expect(t.posts().map((c) => [c.path, JSON.parse(String(c.init?.body))])).toEqual([[PATHS.draft, { kind: "aura", color: "Blue", power_mw: 5 }]]);
-  });
-
-  it("a draft the schema refuses is shown with the refusal and not offered for signing", async () => {
-    await open({ draft: () => ({ status: 200, body: DRAFT_OUT("dialamp", false) }) });
-    const box = within(drafts()).getByRole("group", { name: "Transmitted lamp" });
-    fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "30" } });
-    fireEvent.click(within(box).getByRole("button", { name: "Draft Transmitted lamp" }));
-    const view = await screen.findByRole("region", { name: "Plan draft" });
-    expect(within(view).getByText("This draft is not offered for signing.")).toBeTruthy();
-    expect(within(view).getByText("$.operation: required property is missing")).toBeTruthy();
-  });
-
-  it("shows the server's refusal in words when the login may not draft", async () => {
-    await open({
-      draft: () => ({ status: 403, body: { detail: { code: "role", message: "This login can only look: it cannot make a plan draft." } } }),
-    });
-    const box = within(drafts()).getByRole("group", { name: "Transmitted lamp" });
-    fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "20" } });
-    fireEvent.click(within(box).getByRole("button", { name: "Draft Transmitted lamp" }));
-    expect((await screen.findByRole("alert")).textContent).toContain("This login can only look");
+    expect(screen.queryByRole("group", { name: "Drafts" })).toBeNull();
+    expect(screen.queryAllByRole("button", { name: /^Draft / })).toEqual([]);
   });
 });
 
@@ -281,9 +240,48 @@ describe("Cameras", () => {
     await waitFor(() => expect(screen.queryByRole("button", { name: "Live view" })).toBeNull());
   });
 
-  it("has the exposure draft of the Optics tab", async () => {
+  const cameraBox = () => screen.getByRole("group", { name: "Camera red arm" });
+  const fill = (value: string) => fireEvent.change(within(cameraBox()).getByLabelText("Exposure (ms)"), { target: { value } });
+
+  it("has the red camera's exposure draft, and no Aura or lamp draft", async () => {
     await open();
     expect(screen.getByRole("button", { name: "Draft Camera red arm exposure" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Draft Aura III LED" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Draft Transmitted lamp" })).toBeNull();
+  });
+
+  it("says no limit has been named for the red camera's exposure yet", async () => {
+    await open();
+    expect(within(cameraBox()).getByText(/no limit has been named for this quantity yet/i)).toBeTruthy();
+  });
+
+  it("a draft is requested from the server, shown in full, and saved nowhere", async () => {
+    const t = await open();
+    fill("40");
+    fireEvent.click(within(cameraBox()).getByRole("button", { name: "Draft Camera red arm exposure" }));
+    const view = await screen.findByRole("region", { name: "Plan draft" });
+    expect(within(view).getByLabelText("Draft plan card").textContent).toContain('"id": "plan-camera_exposure"');
+    expect(within(view).getByText(/Not saved/)).toBeTruthy();
+    expect(within(view).getByText(/still to be designed/)).toBeTruthy();
+    expect(t.posts().map((c) => [c.path, JSON.parse(String(c.init?.body))])).toEqual([[PATHS.draft, { kind: "camera_exposure", exposure_ms: 40 }]]);
+  });
+
+  it("a draft the schema refuses is shown with the refusal and not offered for signing", async () => {
+    await open({ draft: () => ({ status: 200, body: DRAFT_OUT("camera_exposure", false) }) });
+    fill("30");
+    fireEvent.click(within(cameraBox()).getByRole("button", { name: "Draft Camera red arm exposure" }));
+    const view = await screen.findByRole("region", { name: "Plan draft" });
+    expect(within(view).getByText("This draft is not offered for signing.")).toBeTruthy();
+    expect(within(view).getByText("$.operation: required property is missing")).toBeTruthy();
+  });
+
+  it("shows the server's refusal in words when the login may not draft", async () => {
+    await open({
+      draft: () => ({ status: 403, body: { detail: { code: "role", message: "This login can only look: it cannot make a plan draft." } } }),
+    });
+    fill("20");
+    fireEvent.click(within(cameraBox()).getByRole("button", { name: "Draft Camera red arm exposure" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("This login can only look");
   });
 });
 

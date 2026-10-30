@@ -5,7 +5,7 @@
 
 import { shortTime } from "../questions/ui";
 import type { LatestRun } from "./api";
-import { AURA_REFUSED_LONGER, RUN_REFUSES } from "./parts";
+import { RUN_REFUSES } from "./parts";
 
 export type Element = LatestRun["path"]["elements"][number];
 
@@ -14,14 +14,9 @@ export const STATE_LABEL: Record<Element["state"], string> = {
   read_back: "read back", sent: "sent", not_open: "not open", not_read: "not read",
 };
 
-/** What the person is told beside every draft link for the Aura, the lamp and the red camera. */
-export function RunRefuses({ aura = false }: { aura?: boolean }) {
-  return (
-    <span className="inst-refuses">
-      {RUN_REFUSES}
-      {aura && <> {AURA_REFUSED_LONGER}</>}
-    </span>
-  );
+/** What the person is told beside the red camera's exposure draft. */
+export function RunRefuses() {
+  return <span className="inst-refuses">{RUN_REFUSES}</span>;
 }
 
 export function Reading({ e }: { e: Element }) {

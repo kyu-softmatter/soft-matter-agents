@@ -28,9 +28,8 @@ router = APIRouter()
 
 VIEWER_DRAFT = "This login can only look: it cannot make a plan draft."
 REMOTE_DRAFT = "Plan drafts are made at the microscope computer only. This browser is viewing from another computer."
-RUN_REFUSES = ("The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element "
-               "to what software may command.")
-AURA_REFUSED_LONGER = "The Aura stays refused longer than the lamp and the camera, until which light engine feeds which channel is settled."
+RUN_REFUSES = ("The run will refuse this draft even when it is made and signed: nothing recorded yet tells it how to set "
+               "the red camera's exposure on this microscope.")
 
 
 class StatusOut(BaseModel):
@@ -98,8 +97,10 @@ class PathElementOut(BaseModel):
     backend: str | None = Field(default=None, description="which backend answered; `mock` is the mock's own state")
     sent: str | None = Field(default=None, description="what was last sent to the channel, as compact text")
     sent_at: str | None = None
-    control: Literal["hand", "draft"] | None = Field(default=None, description="moved by hand (no control), or drafted on this page; None for the laser")
-    draft: Literal["aura", "dialamp"] | None = Field(default=None, description="the draft kind, where control is `draft`")
+    control: Literal["hand", "no_draft"] | None = Field(
+        default=None, description="moved by hand (no control), or no draft is offered for it yet (`words` say why); None for the laser")
+    draft: Literal["camera_exposure"] | None = Field(default=None, description="a draft kind the server's draft list holds; no row carries one today, and the camera's form is reached through its channel")
+    words: str | None = Field(default=None, description="where control is `no_draft`: why no draft is offered, in the words the person is shown")
 
 
 class OrderOut(BaseModel):
@@ -146,16 +147,12 @@ class DraftIn(BaseModel):
     """What the person chose; nothing else is accepted."""
 
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["trap_steps", "aura", "dialamp", "camera_exposure", "piezo"]
+    kind: Literal["trap_steps", "camera_exposure", "piezo"]
     pattern: Literal["line", "circle", "grid"] | None = None
     objective: Literal["40x", "60x", "100x"] | None = None
     n: int | None = None
     spacing_um: float | None = None
     strength: float | None = None
-    color: str | None = None
-    power_mw: float | None = None
-    state: Literal["on", "off"] | None = None
-    intensity_percent: float | None = None
     exposure_ms: float | None = None
     axis: Literal["x", "y", "z"] | None = None
     move: Literal["step", "sine"] | None = None
@@ -202,14 +199,10 @@ class DraftOut(BaseModel):
 
 
 class PartIn(BaseModel):
-    """One of the three parts software may command, as the person filled it in; nothing else is accepted."""
+    """The one part a draft is offered for, as the person filled it in; nothing else is accepted."""
 
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["aura", "dialamp", "camera_exposure"]
-    color: str | None = None
-    power_mw: float | None = None
-    state: Literal["on", "off"] | None = None
-    intensity_percent: float | None = None
+    kind: Literal["camera_exposure"]
     exposure_ms: float | None = None
 
 
@@ -326,8 +319,6 @@ def changes(body: ChangesIn, store: AgentStoreDep, me: Login) -> DraftOut:
     refused: list[str] = []
     if parts:
         refused += ["No limit has been named for these quantities yet, so they are refused before signing.", RUN_REFUSES]
-    if any(p["kind"] == "aura" for p in parts):
-        refused.append(AURA_REFUSED_LONGER)
     if body.selectors:
         refused.append(SELECTOR_REFUSED)
     try:
@@ -372,8 +363,6 @@ def draft(body: DraftIn, store: AgentStoreDep, me: Login) -> DraftOut:
         else:
             card = drafts.part_card(part=body.kind, fields=body.model_dump(exclude_none=True), now=now)
             refused = ["No limit has been named for this quantity yet, so this draft is refused before it can be signed.", RUN_REFUSES]
-            if body.kind == "aura":
-                refused.append(AURA_REFUSED_LONGER)
     except drafts.DraftError as e:
         raise Refusal(422, "invalid", str(e)).http() from e
     try:

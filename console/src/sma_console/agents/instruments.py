@@ -291,7 +291,15 @@ def channel_states(events: list[dict[str, Any]], t0: str | None) -> dict[str, An
 
 
 LASER = "laser_combiner"
-DRAFTED = {"Aura": "aura", "DiaLamp": "dialamp"}  # the only elements this page drafts; the safety file still decides whether a draft may run
+#: The elements no draft is offered for yet (console card 024), each with the words the person is shown. A run cannot take
+#: either: a plan will name the light engine by its model, which nothing the console may read gives; and the lamp's
+#: brightness has no recorded quantity and its on and off states no table.
+NO_DRAFT = {
+    "Aura": ("No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has "
+             "nowhere to read that model from yet, so it guesses none."),
+    "DiaLamp": ("No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and "
+                "no table of its on and off states."),
+}
 ASSUMED_ON = "assumed on"
 LASER_REASON = ("It reports nothing back, so it is shown at the most dangerous state its commands allow -- on -- "
                 "until something readable shows the beam blocked. What was sent never shows it off.")
@@ -332,16 +340,17 @@ def _text(v: Any) -> str | None:
 def _row(name: str, channel: str, state: str, *, value: Any = None, t_wall: str | None = None, reason: str | None = None,
          backend: str | None = None, sent: str | None = None, sent_at: str | None = None) -> dict[str, Any]:
     """One element of the path. Exactly one state; a laser has no control; every light-path selector and the
-    objective is moved by hand; only the Aura and the transmitted lamp are drafted."""
+    objective is moved by hand; the Aura and the transmitted lamp are not drafted, and say why in `words`."""
+    words = None
     if channel == LASER:
         control, draft = None, None
-    elif name in DRAFTED:
-        control, draft = "draft", DRAFTED[name]
+    elif name in NO_DRAFT:
+        control, draft, words = "no_draft", None, NO_DRAFT[name]
     else:
         control, draft = "hand", None
     return {"key": f"{channel}/{name}", "name": name, "channel": channel, "state": state, "value": _text(value),
             "t_wall": t_wall, "reason": reason, "backend": backend, "sent": sent, "sent_at": sent_at,
-            "control": control, "draft": draft}
+            "control": control, "draft": draft, "words": words}
 
 
 def _elements_of(state: Any) -> dict[str, Any] | None:

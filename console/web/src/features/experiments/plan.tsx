@@ -122,11 +122,9 @@ function RunRow({ run }: { run: RunOut }) {
   );
 }
 
-type Kind = "trap_steps" | "aura" | "dialamp" | "camera_exposure" | "piezo";
+type Kind = "trap_steps" | "camera_exposure" | "piezo";
 const KINDS: { id: Kind; label: string }[] = [
   { id: "trap_steps", label: "Trap pattern" },
-  { id: "aura", label: "Aura III LED" },
-  { id: "dialamp", label: "Transmitted lamp" },
   { id: "camera_exposure", label: "Camera red arm exposure" },
   { id: "piezo", label: "Piezo stage" },
 ];
@@ -146,7 +144,7 @@ function Composer() {
         </select>
       </label>
       {kind === "trap_steps" && <TrapDraft />}
-      {(kind === "aura" || kind === "dialamp" || kind === "camera_exposure") && (
+      {kind === "camera_exposure" && (
         <PartDraft key={kind} kind={kind} label={KINDS.find((k) => k.id === kind)?.label ?? kind} />
       )}
       {kind === "piezo" && <PiezoDraft />}

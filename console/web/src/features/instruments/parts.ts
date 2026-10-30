@@ -4,13 +4,13 @@
  * travels through them, come from the order the run's source gives, and no part is named on this page.
  */
 
-export type DraftKind = "aura" | "dialamp" | "camera_exposure";
+export type DraftKind = "camera_exposure";
 
-/** Beside every draft link for the Aura, the lamp and the red camera. The server words the same sentences in `refused_today`. */
+/** Beside the red camera's exposure draft. The server words the same sentence in `refused_today`. */
 export const RUN_REFUSES =
-  "The run will refuse this draft even when it is made and signed: the runtime cannot yet match this element to what software may command.";
-export const AURA_REFUSED_LONGER =
-  "The Aura stays refused longer than the lamp and the camera, until which light engine feeds which channel is settled.";
+  "The run will refuse this draft even when it is made and signed: nothing recorded yet tells it how to set the red camera's exposure on this microscope.";
+/** What the control of the Aura and the transmitted lamp says, now that no draft is offered for them (card 024). The reasons come with the row. */
+export const NO_DRAFT_LABEL = "no draft is offered yet";
 export const BY_HAND = "set by hand; software may not move it";
 export const COMBINER_SENTENCE = "close was sent; assumed open until a shutter that reads back shows it blocked";
 export const MOVED_BY_HAND =

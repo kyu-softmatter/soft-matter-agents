@@ -12,6 +12,7 @@ import hashlib
 import json
 import re
 import shutil
+import typing
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from sma_console.agents import MockStore, SmaFiles, drafts, instruments
 from sma_console.agents.mock_store import MOCK_DATA
 from sma_console.agents.schema_lite import Schemas
 from sma_console.agents.sma_files import repository_root
+from sma_console.server.api.instruments import DraftIn
 
 REPO = repository_root()
 STATUS, LIMITS, LATEST, DRAFT, CHANGES = (f"/api/instruments/{p}" for p in ("status", "limits", "latest-run", "draft", "changes"))
@@ -357,30 +359,74 @@ def test_count_and_flicker_are_said_to_be_refused_until_a_limit_exists(client, t
     assert "Trap count" in text and "Flicker rate" in text and "until" in text
 
 
-def test_the_three_part_drafts_are_composed_checked_and_refused_with_the_schemas_own_words(client, tree):
-    cases = [
-        dict(kind="aura", color="blue", power_mw=0.5),
-        dict(kind="dialamp", state="on", intensity_percent=12),
-        dict(kind="camera_exposure", exposure_ms=30),
-    ]
-    for body in cases:
-        d = post(client(), **body).json()
-        assert d["valid"] is False and d["saved"] is False
-        assert d["problems"] and any("goal_id" in p or "observable" in p for p in d["problems"]), d["problems"]
-        assert d["card"]["actions"][0]["device"] in ("Aura", "DiaLamp", "Kinetix_red")
-        assert any("limit" in r for r in d["refused_today"])
+CAMERA_ACTION = {"id": "set_camera_exposure", "device": "camera_red", "action": "set_exposure", "reversible": True,
+                 "parameters": ["exposure_time"], "tier": 1}
+CAMERA_NUMBER = {"name": "exposure_time", "value": 30, "unit": "ms", "source": "assumed:the_persons_choice",
+                 "grade": "E5", "precision": "order_of_magnitude"}
 
 
-def test_only_the_three_parts_are_offered_and_nothing_else_is_accepted(client, tree):
+def test_the_camera_draft_is_composed_checked_and_refused_with_the_schemas_own_words(client, tree):
+    d = post(client(), kind="camera_exposure", exposure_ms=30).json()
+    assert d["valid"] is False and d["saved"] is False
+    assert d["problems"] and any("goal_id" in p or "observable" in p for p in d["problems"]), d["problems"]
+    assert any("limit" in r for r in d["refused_today"])
+
+
+def test_the_camera_draft_names_what_a_run_takes_and_one_number(client, tree):
+    """Card 024: the registry's device, the one action and the registered quantity; `camera_exposure` is the form's
+    name and never appears in a plan; the millisecond value is converted by the run, so it stays in `ms` here."""
+    card = post(client(), kind="camera_exposure", exposure_ms=30).json()["card"]
+    assert card["actions"] == [CAMERA_ACTION]
+    assert card["numbers"] == [CAMERA_NUMBER]
+    # the console's draft kind is its own name and is never a device, a thread or a card id; only the action's own id holds the word
+    assert "Kinetix" not in json.dumps(card) and card["id"].count("camera_exposure") == 0 and card["thread"].count("camera_exposure") == 0
+    problems = Schemas(REPO / "contracts" / "schemas").validate(card, "plan.schema.json")
+    assert not any("actions" in p or "numbers" in p for p in problems), problems  # only the goal-less plan's own gaps remain
+
+
+def test_only_the_camera_is_offered_and_nothing_else_is_accepted(client, tree):
     for body in ({"kind": "filter_turret", "color": "x"}, {"kind": "objective"}, {"kind": "laser_combiner"},
                  {"kind": "trap_steps", "pattern": "spiral"}, {"kind": "trap_steps", "objective": "4x"},
-                 {"kind": "aura", "color": "blue", "power_mw": 1, "extra": 1}):
+                 {"kind": "camera_exposure", "exposure_ms": 1, "extra": 1}):
         assert post(client(), **body).status_code == 422, body
 
 
 @pytest.mark.parametrize("body", [
-    dict(kind="aura", power_mw=1), dict(kind="aura", color="blue", power_mw=-1), dict(kind="dialamp", state="dim", intensity_percent=1),
-    dict(kind="dialamp", state="on", intensity_percent=101), dict(kind="camera_exposure", exposure_ms=0),
+    dict(kind="aura", color="blue", power_mw=0.5), dict(kind="dialamp", state="on", intensity_percent=12),
+    dict(kind="aura"), dict(kind="dialamp"),
+])
+def test_the_aura_and_the_lamp_have_no_draft_at_either_route_and_no_card_comes_back(client, tree, body):
+    """Card 024: both kinds are unknown to the server's draft list, so each route refuses them and builds nothing."""
+    for r in (post(client(), **body), client().post(CHANGES, json={"parts": [body]})):
+        assert r.status_code == 422, (body, r.status_code)
+        assert "card" not in r.json() and "card" not in json.dumps(r.json()), r.text
+
+
+def test_every_draft_the_server_can_build_names_a_device_in_the_capabilities_file(client, tree):
+    """Card 024: a plan names registry devices and never a Micro-Manager label. The capabilities file is the registry's
+    list of what a configuration carries. The piezo stage is the one device not in it: it is a channel of the runtime
+    with its own software path (as 023 part 3's table test says), and the `operation` shape names it by id."""
+    known = {d for c in json.loads((REPO / "contracts" / "capabilities" / "microscope.json").read_text("utf-8-sig"))["configurations"]
+             for d in c["devices"]}
+    known |= {"piezo_stage"}
+    bodies = [dict(kind="trap_steps"), dict(kind="camera_exposure", exposure_ms=30), piezo_body()]
+    kinds = set(typing.get_args(DraftIn.model_fields["kind"].annotation))
+    assert kinds == {b["kind"] for b in bodies}, kinds  # a kind added without a body here is not tested
+    built = {b["kind"]: post(client(), **b).json()["card"] for b in bodies}
+    built["changes"] = changes(client(), [EXPOSURE]).json()["card"]
+    for kind, card in built.items():
+        named = {a["device"] for a in card["actions"]}
+        if "system_configuration" in card:
+            named |= set(card["system_configuration"]["devices"])
+        if "operation" in card:
+            named.add(card["operation"]["device"])
+        if "trap_steps" in card:
+            named.add(card["trap_steps"]["device"])
+        assert named and named <= known, (kind, named - known)
+
+
+@pytest.mark.parametrize("body", [
+    dict(kind="camera_exposure", exposure_ms=0),
     dict(kind="trap_steps", n=0), dict(kind="trap_steps", n=1000), dict(kind="trap_steps", strength=1.5),
     dict(kind="trap_steps", spacing_um=0),
 ])
@@ -392,8 +438,7 @@ def test_a_bad_choice_is_refused_in_words(client, tree, body):
 def test_no_draft_is_written_anywhere(client, tree, seat):
     before_tree, before_repo = tree_hash(tree), tree_hash(REPO / "console" / "src")
     c = client()
-    for body in (dict(kind="trap_steps"), dict(kind="aura", color="blue", power_mw=1), dict(kind="dialamp", state="on", intensity_percent=5),
-                 dict(kind="camera_exposure", exposure_ms=10)):
+    for body in (dict(kind="trap_steps"), dict(kind="camera_exposure", exposure_ms=10)):
         assert post(c, **body).status_code == 200
     assert tree_hash(tree) == before_tree and tree_hash(REPO / "console" / "src") == before_repo
 
@@ -432,8 +477,6 @@ def changes(c, parts=(), selectors=()):
     return c.post(CHANGES, json={"parts": list(parts), "selectors": list(selectors)})
 
 
-LAMP = dict(kind="dialamp", state="on", intensity_percent=12)
-AURA = dict(kind="aura", color="blue", power_mw=0.5)
 EXPOSURE = dict(kind="camera_exposure", exposure_ms=30)
 SLOT = dict(element="filter_turret_1", value="five_band")
 
@@ -441,7 +484,7 @@ SLOT = dict(element="filter_turret_1", value="five_band")
 def give_every_schema_limit(root):
     """Write into the tree's safety file every ceiling the safety schema names, each far above any value a part can
     take, and the two the schema holds for light and exposure (`illumination_power_max`, `exposure_time_max`) in the units
-    a part is measured in. Nothing in the schema says one of them covers the Aura, the lamp or the red camera, so
+    a part is measured in. Nothing in the schema says one of them covers the red camera's exposure, so
     a draft's refusal must not move."""
     base = root / "microscope_runtime" / "envelope" / "safety.json"
     doc = json.loads(base.read_text("utf-8"))
@@ -458,10 +501,11 @@ def give_every_schema_limit(root):
 
 
 def test_the_changes_are_one_ordinary_plan_card_and_the_schema_alone_judges_it(client, tree):
-    d = changes(client(), [LAMP, AURA, EXPOSURE], [SLOT]).json()
+    d = changes(client(), [EXPOSURE], [SLOT]).json()
     card = d["card"]
     assert card["card"] == "plan" and card["status"] == "DRAFT" and d["saved"] is False and d["kind"] == "changes"
-    assert [a["device"] for a in card["actions"]] == ["DiaLamp", "Aura", "Kinetix_red"]
+    assert card["actions"] == [CAMERA_ACTION] and card["system_configuration"]["devices"] == ["camera_red"]
+    assert card["numbers"] == [CAMERA_NUMBER]
     assert card["system_configuration"]["selectors"] == [SLOT]
     assert d["problems"] == Schemas(REPO / "contracts" / "schemas").validate(card, "plan.schema.json")[:12]
     assert d["problems"] and any("goal_id" in p or "observable" in p for p in d["problems"]), d["problems"]
@@ -487,7 +531,7 @@ def test_a_selectors_only_draft_is_refused_by_the_schema_today_in_the_schemas_wo
     assert any("required state" in r for r in d["refused_today"])
 
 
-PARTS = {"the transmitted lamp's intensity": LAMP, "the Aura LED's power": AURA, "the red camera's exposure": EXPOSURE}
+PARTS = {"the red camera's exposure": EXPOSURE}
 
 
 def test_every_part_draft_is_refused_before_signing_because_no_limit_has_been_named_for_its_quantity(client, tree):
@@ -496,12 +540,6 @@ def test_every_part_draft_is_refused_before_signing_because_no_limit_has_been_na
         assert d["valid"] is False
         assert d["range_problems"] == [f"No limit has been named for {words} yet, so this draft cannot be signed."], d["range_problems"]
         assert any("limit" in r for r in d["refused_today"])
-
-
-def test_a_draft_of_all_three_is_refused_once_for_each_quantity_and_in_the_order_added(client, tree):
-    d = changes(client(), [EXPOSURE, LAMP, AURA]).json()
-    assert [p.split(" for ")[1].split(" yet")[0] for p in d["range_problems"]] == [
-        "the red camera's exposure", "the transmitted lamp's intensity", "the Aura LED's power"]
 
 
 def test_a_safety_file_holding_every_limit_its_schema_names_changes_no_refusal(client, tree):
@@ -516,7 +554,7 @@ def test_a_safety_file_holding_every_limit_its_schema_names_changes_no_refusal(c
 
 def test_no_value_is_compared_with_anything_so_a_value_inside_any_limit_is_refused_the_same(client, tree):
     give_every_schema_limit(tree)
-    for part in (dict(LAMP, intensity_percent=0), dict(AURA, power_mw=1e-6), dict(EXPOSURE, exposure_ms=1e-6)):
+    for part in (dict(EXPOSURE, exposure_ms=1e-6), dict(EXPOSURE, exposure_ms=1e6)):
         d = changes(client(), [part]).json()
         assert d["valid"] is False and len(d["range_problems"]) == 1 and "No limit has been named" in d["range_problems"][0]
 
@@ -533,7 +571,7 @@ def test_the_changes_route_never_opens_the_safety_file(client, tree, monkeypatch
     def refuse(*a, **k):
         raise AssertionError("the changes route read the safety file")
     monkeypatch.setattr(instruments, "read_limits", refuse)
-    assert changes(client(), [LAMP, AURA, EXPOSURE], [SLOT]).status_code == 200
+    assert changes(client(), [EXPOSURE], [SLOT]).status_code == 200
 
 
 def test_no_limit_name_for_a_part_draft_is_written_in_the_consoles_sources():
@@ -560,14 +598,14 @@ def test_no_limit_name_for_a_part_draft_is_written_in_the_consoles_sources():
 def test_the_changes_draft_is_written_nowhere_and_sends_nothing(client, tree, seat):
     before_tree, before_repo = tree_hash(tree), tree_hash(REPO / "console" / "src")
     c = client()
-    for parts, sel in (([LAMP, AURA, EXPOSURE], [SLOT]), ([], [SLOT]), ([LAMP], [])):
+    for parts, sel in (([EXPOSURE], [SLOT]), ([], [SLOT]), ([EXPOSURE], [])):
         assert changes(c, parts, sel).status_code == 200
     assert tree_hash(tree) == before_tree and tree_hash(REPO / "console" / "src") == before_repo
 
 
 @pytest.mark.parametrize("parts,selectors", [
-    ([], []), ([LAMP, LAMP], []), ([], [SLOT, SLOT]),
-    ([], [dict(SLOT, value="  ")]), ([dict(kind="dialamp", state="on", intensity_percent=101)], []),
+    ([], []), ([EXPOSURE, EXPOSURE], []), ([], [SLOT, SLOT]),
+    ([], [dict(SLOT, value="  ")]), ([dict(EXPOSURE, exposure_ms=0)], []),
 ])
 def test_a_changes_draft_that_cannot_be_built_is_refused_in_words(client, tree, parts, selectors):
     r = changes(client(), parts, selectors)
@@ -577,31 +615,31 @@ def test_a_changes_draft_that_cannot_be_built_is_refused_in_words(client, tree, 
 @pytest.mark.parametrize("element", ["Filter Turret", "", "1turret", "turret-1"])
 def test_a_bad_element_name_comes_back_in_the_schemas_words_and_not_the_consoles_own(client, tree, element):
     """The element pattern has one source, plan.schema.json: the route builds the draft and the schema says what is wrong."""
-    r = changes(client(), [LAMP], [dict(SLOT, element=element)])
+    r = changes(client(), [EXPOSURE], [dict(SLOT, element=element)])
     assert r.status_code == 200
     d = r.json()
     assert d["valid"] is False and any("selectors" in p for p in d["problems"]), d["problems"]
     assert d["problems"][:12] == [p for p in Schemas(REPO / "contracts" / "schemas").validate(d["card"], "plan.schema.json")][:12]
 
 
-def test_the_changes_route_accepts_only_the_three_parts_and_a_slot_and_nothing_else(client, tree):
-    for body in ({"parts": [{"kind": "laser_combiner"}]}, {"parts": [dict(LAMP, extra=1)]}, {"selectors": [dict(SLOT, extra=1)]},
+def test_the_changes_route_accepts_only_the_camera_and_a_slot_and_nothing_else(client, tree):
+    for body in ({"parts": [{"kind": "laser_combiner"}]}, {"parts": [dict(EXPOSURE, extra=1)]}, {"selectors": [dict(SLOT, extra=1)]},
                  {"other": []}):
         assert client().post(CHANGES, json=body).status_code == 422, body
 
 
 def test_who_may_ask_for_the_changes_draft_is_the_draft_rule(client, tree):
-    r = changes(client(login=VIEWER), [LAMP])
+    r = changes(client(login=VIEWER), [EXPOSURE])
     assert r.status_code == 403 and "only look" in r.json()["detail"]["message"]
-    assert changes(client(remote=True), [LAMP]).status_code == 403
-    assert changes(client(login=None), [LAMP]).status_code == 401
+    assert changes(client(remote=True), [EXPOSURE]).status_code == 403
+    assert changes(client(login=None), [EXPOSURE]).status_code == 401
 
 
 def test_under_the_mock_store_the_changes_are_made_and_nothing_is_written(engine, make_client, tmp_path):
     store = MockStore(tmp_path / "practice")
     sample = tree_hash(MOCK_DATA)
-    d = make_client(engine, agent_store=store).post(CHANGES, json={"parts": [LAMP], "selectors": []}).json()
-    assert d["saved"] is False and d["valid"] is False and d["range_problems"] == ["No limit has been named for the transmitted lamp's intensity yet, so this draft cannot be signed."]
+    d = make_client(engine, agent_store=store).post(CHANGES, json={"parts": [EXPOSURE], "selectors": []}).json()
+    assert d["saved"] is False and d["valid"] is False and d["range_problems"] == ["No limit has been named for the red camera's exposure yet, so this draft cannot be signed."]
     assert tree_hash(MOCK_DATA) == sample and not (tmp_path / "practice").exists()
 
 
@@ -862,15 +900,33 @@ def test_every_selector_and_the_objective_is_moved_by_hand_and_offers_nothing_el
         assert (rows[name]["control"], rows[name]["draft"]) == ("hand", None), name
 
 
-def test_only_the_aura_and_the_transmitted_lamp_are_drafted_and_each_names_its_draft(client, tree, runs):
+AURA_WORDS = ("No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has "
+              "nowhere to read that model from yet, so it guesses none.")
+LAMP_WORDS = ("No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and no "
+              "table of its on and off states.")
+
+
+def test_the_aura_and_the_transmitted_lamp_are_shown_with_no_draft_offered_and_say_why_in_the_servers_words(client, tree, runs):
     run = runs("run-20261026-001")
     snap(run, 1.0, {"widefield_source_b": stand({"DiaLamp": {"State": 1, "Intensity": 12}, "Aura": {"State": 0}}),
                     "stand_ti2e": stand({"nosepiece": "3"})})
     rows = by_name(client().get(LATEST).json())
-    assert (rows["DiaLamp"]["control"], rows["DiaLamp"]["draft"]) == ("draft", "dialamp")
-    assert (rows["Aura"]["control"], rows["Aura"]["draft"]) == ("draft", "aura")
+    assert (rows["DiaLamp"]["control"], rows["DiaLamp"]["draft"], rows["DiaLamp"]["words"]) == ("no_draft", None, LAMP_WORDS)
+    assert (rows["Aura"]["control"], rows["Aura"]["draft"], rows["Aura"]["words"]) == ("no_draft", None, AURA_WORDS)
     assert rows["DiaLamp"]["value"] == '{"Intensity": 12, "State": 1}' and rows["DiaLamp"]["state"] == "read_back"
-    assert rows["nosepiece"]["control"] == "hand"
+    assert rows["nosepiece"]["control"] == "hand" and rows["nosepiece"]["words"] is None
+
+
+def test_a_row_draft_is_only_ever_a_kind_the_servers_draft_list_holds(client, tree, runs):
+    from sma_console.server.api.instruments import PathElementOut
+
+    run = runs("run-20261026-001")
+    snap(run, 1.0, {"widefield_source_b": stand({"DiaLamp": {"State": 1}, "Aura": {"State": 0}}), "stand_ti2e": stand({"nosepiece": "3"})})
+    held = set(typing.get_args(DraftIn.model_fields["kind"].annotation))
+    allowed = {v for a in typing.get_args(PathElementOut.model_fields["draft"].annotation) if a is not type(None)
+               for v in typing.get_args(a)}
+    assert allowed <= held, allowed - held
+    assert {r["draft"] for r in by_name(client().get(LATEST).json()).values()} <= held | {None}
 
 
 def test_element_names_come_from_the_read_back_and_follow_it(client, tree, runs):
@@ -1113,15 +1169,26 @@ def test_following_the_path_writes_nothing(client, tree, runs):
     assert tree_state(tree) == before
 
 
-def test_a_draft_for_the_aura_the_lamp_or_the_red_camera_says_the_run_will_refuse_it_and_why(client, tree):
-    said = {}
-    for body in (dict(kind="aura", color="blue", power_mw=0.5), dict(kind="dialamp", state="on", intensity_percent=12),
-                 dict(kind="camera_exposure", exposure_ms=30)):
-        said[body["kind"]] = " ".join(post(client(), **body).json()["refused_today"])
-    for kind, text in said.items():
-        assert "run will refuse" in text and "match" in text and "software may command" in text, (kind, text)
-    assert "longer" in said["aura"] and "light engine" in said["aura"]
-    assert "light engine" not in said["dialamp"] and "light engine" not in said["camera_exposure"]
+CAMERA_NOTICE = ("The run will refuse this draft even when it is made and signed: nothing recorded yet tells it how to "
+                 "set the red camera's exposure on this microscope.")
+
+
+def test_the_camera_draft_says_the_run_will_refuse_it_for_want_of_what_sets_its_exposure(client, tree):
+    one = post(client(), kind="camera_exposure", exposure_ms=30).json()["refused_today"]
+    many = changes(client(), [EXPOSURE]).json()["refused_today"]
+    assert CAMERA_NOTICE in one and CAMERA_NOTICE in many
+    assert not any("light engine" in r or "match" in r or "software may command" in r for r in one + many)
+
+
+def test_card_017s_sentence_is_in_no_file_under_src_or_web_src():
+    root = REPO / "console"
+    found = []
+    for base in (root / "src", root / "web" / "src"):
+        for f in base.rglob("*"):
+            if f.is_file() and f.suffix in {".py", ".ts", ".tsx", ".css", ".json"} and "node_modules" not in f.parts:
+                if re.search(r"cannot yet match|AURA_REFUSED_LONGER|stays refused longer", f.read_text("utf-8")):
+                    found.append(f.relative_to(root).as_posix())
+    assert found == [], found
 
 
 def test_the_piezo_drafts_own_note_does_not_say_the_run_will_refuse_it(client, tree):

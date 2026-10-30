@@ -12,7 +12,7 @@ import type { LatestRun } from "./api";
 import InstrumentsScreen from "./index";
 import { type KindTable, DESCRIPTION_WORDS } from "./order";
 import { NO_ORDER, PathPanel } from "./path";
-import { AURA_REFUSED_LONGER, RUN_REFUSES } from "./parts";
+import { NO_DRAFT_LABEL, RUN_REFUSES } from "./parts";
 
 /**
  * The light path drawn in the order light travels (console card 023, part 2). Every order used here is the schema file's own
@@ -38,11 +38,11 @@ const KNOWN_OBSERVED: KindTable = { [READ.source_kind]: { kind: "observed" } };
 
 interface Row {
   key: string; name: string; channel: string; state: string; value: string | null; t_wall: string | null; reason: string | null;
-  backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null;
+  backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null; words: string | null;
 }
 const row = (name: string, channel: string, state: string, extra: Partial<Row> = {}): Row => ({
   key: `${channel}/${name}`, name, channel, state, value: null, t_wall: null, reason: null, backend: null, sent: null, sent_at: null,
-  control: "hand", draft: null, ...extra,
+  control: "hand", draft: null, words: null, ...extra,
 });
 const read = (name: string, channel: string, value: string, extra: Partial<Row> = {}) =>
   row(name, channel, "read_back", { value, t_wall: T1, backend: "mock", ...extra });
@@ -51,9 +51,13 @@ const read = (name: string, channel: string, value: string, extra: Partial<Row> 
  * The read-back rows that the example order's pairs name (the lamp's pair is the schema's own, DiaLamp on stand_ti2e), and two that
  * it does not. The pairs for the Aura and the lamp are the test's choice until the runtime reports them (runtime card 104).
  */
+const AURA_WORDS = "No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has nowhere to read that model from yet, so it guesses none.";
+const LAMP_WORDS = "No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and no table of its on and off states.";
+const lampRow = (value: string, extra: Partial<Row> = {}) => read("DiaLamp", "stand_ti2e", value, { control: "no_draft", words: LAMP_WORDS, ...extra });
+
 const ROWS: Row[] = [
-  read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
-  read("Aura", "stand_ti2e", "0", { control: "draft", draft: "aura" }),
+  lampRow("1"),
+  read("Aura", "stand_ti2e", "0", { control: "no_draft", words: AURA_WORDS }),
   read("Nosepiece", "stand_ti2e", "3"),
 ];
 
@@ -91,7 +95,7 @@ function panelOf(run: LatestRun, kinds?: KindTable) {
   clients.push(client);
   const ui = (r: LatestRun) => (
     <ClientProvider client={client}>
-      <ChangesProvider><PathPanel run={r} onDraft={() => undefined} kinds={kinds} /></ChangesProvider>
+      <ChangesProvider><PathPanel run={r} kinds={kinds} /></ChangesProvider>
     </ClientProvider>
   );
   const out = render(ui(run));
@@ -316,7 +320,7 @@ describe("the banner", () => {
     seen.entry_ref = "light_path_order_observed_20261101";
     seen.source = "an observation at the stand";
     seen.branches = [{ branch: "observed_branch", elements: [{ element: "only_observed", channel: null, entry_ref: ["an_entry"], read_back: null }], place_not_recorded: [] }];
-    view.rerender(<ClientProvider client={clients[0]}><ChangesProvider><PathPanel run={readRun(seen)} onDraft={() => undefined} kinds={KNOWN_OBSERVED} /></ChangesProvider></ClientProvider>);
+    view.rerender(<ClientProvider client={clients[0]}><ChangesProvider><PathPanel run={readRun(seen)} kinds={KNOWN_OBSERVED} /></ChangesProvider></ClientProvider>);
     expect(screen.queryByText(DESCRIPTION_WORDS)).toBeNull();
     const banner = document.querySelector("[data-banner]") as HTMLElement;
     expect(banner.getAttribute("data-banner")).toBe("observed");
@@ -481,7 +485,7 @@ describe("values", () => {
 
   it("a sent state is shown as sent, with what was sent, and a not-read state with its reason and no value", () => {
     const rows = [
-      row("DiaLamp", "stand_ti2e", "sent", { sent: '{"state": "on"}', sent_at: "2026-10-26T09:00:05Z", control: "draft", draft: "dialamp" }),
+      row("DiaLamp", "stand_ti2e", "sent", { sent: '{"state": "on"}', sent_at: "2026-10-26T09:00:05Z", control: "no_draft", words: LAMP_WORDS }),
       row("Polarizer", "stand_ti2e", "not_read", { reason: "busy at the read" }),
     ];
     const o = copy(READ);
@@ -496,16 +500,23 @@ describe("values", () => {
 });
 
 describe("controls and the notice", () => {
-  it("a drafted element says drafted and carries 017's refusal notice word for word, the Aura's longer one included", () => {
+  it("the Aura and the lamp say that no draft is offered yet, and carry no refusal notice, since there is no draft to refuse", () => {
     const o = copy(READ);
     o.branches[0].elements.push(place("Aura", "stand_ti2e", { channel: "stand_ti2e", name: "Aura" }));
     panelOf(readRun(o));
-    expect(controlOf(item("dia_lamp"))).toEqual(["drafted"]);
-    expect(item("dia_lamp").textContent).toContain(RUN_REFUSES);
-    expect(item("dia_lamp").textContent).not.toContain(AURA_REFUSED_LONGER);
-    expect(controlOf(item("Aura"))).toEqual(["drafted"]);
-    expect(item("Aura").textContent).toContain(RUN_REFUSES);
-    expect(item("Aura").textContent).toContain(AURA_REFUSED_LONGER);
+    for (const n of ["dia_lamp", "Aura"]) {
+      expect(controlOf(item(n))).toEqual([NO_DRAFT_LABEL]);
+      expect(item(n).textContent).not.toContain(RUN_REFUSES);
+      expect(item(n).textContent).not.toContain("drafted");
+    }
+  });
+
+  it("the red camera's element says drafted and carries the refusal notice word for word", () => {
+    const o = copy(READ);
+    o.branches[0].elements.push(place("red_arm", "camera_red", { channel: "stand_ti2e", name: "Nosepiece" }));
+    panelOf(readRun(o));
+    expect(controlOf(item("red_arm"))).toEqual(["drafted"]);
+    expect(item("red_arm").textContent).toContain(RUN_REFUSES);
   });
 
   it("an element in the order's hand_set reads moved by hand, and so does a matched element the read-back says is by hand", () => {
@@ -577,8 +588,8 @@ describe("controls and the notice", () => {
 
 describe("lines show order, never light", () => {
   it("turning a source on changes that source's label and nothing on any line", () => {
-    const off = [read("DiaLamp", "stand_ti2e", "0", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
-    const on = [read("DiaLamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }), ...ROWS.slice(1)];
+    const off = [lampRow("0"), ...ROWS.slice(1)];
+    const on = [lampRow("1"), ...ROWS.slice(1)];
     const view = panelOf(readRun(READ, off));
     const marks = () => {
       const d = view.drawing() as HTMLElement;

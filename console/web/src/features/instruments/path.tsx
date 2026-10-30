@@ -7,7 +7,7 @@
  * **The element names are the read-back's own.** No list of them lives here: an element the read-back omits
  * does not appear, and one it names without a position reads "not read" with its reason and no value. Each
  * element shows exactly one state (read back, sent, not open, not read) and, beside it, exactly one of
- * "moved by hand" (no control at all) or a draft link (the Aura and the transmitted lamp only). On the mock
+ * "moved by hand" (no control at all) or "no draft is offered yet" (the Aura and the transmitted lamp, card 024). On the mock
  * every state is the mock's, and says so.
  */
 
@@ -17,6 +17,7 @@ import { Drawing } from "./drawing";
 import { RunBanner } from "./follow";
 import { type KindTable, orderViewOf } from "./order";
 import { NOT_BUILT } from "./pieces";
+import { NO_DRAFT_LABEL } from "./parts";
 import { BY_HAND_LABEL, Reading, RunRefuses, STATE_LABEL } from "./readout";
 
 export { BY_HAND_LABEL, RunRefuses, STATE_LABEL };
@@ -24,7 +25,6 @@ export { BY_HAND_LABEL, RunRefuses, STATE_LABEL };
 type Path = LatestRun["path"];
 
 export const NO_ORDER = "No order is given for these elements, so this is a list, not a drawing of the path.";
-export const DRAFT_LINK = "Draft on the Light source tab";
 export const NO_SNAPSHOT = "This run has taken no snapshot yet, so no element has been read.";
 export const NO_SOURCE = `No snapshot and no status file have been written yet, so there is nothing to show: ${NOT_BUILT}.`;
 
@@ -46,7 +46,7 @@ export function SourceLine({ path }: { path: Path }) {
 }
 
 /** Seventeen's list, for a source that gives no order or one the page does not understand: nothing is drawn. */
-function ElementList({ path, onDraft }: { path: Path; onDraft: () => void }) {
+function ElementList({ path }: { path: Path }) {
   return (
     <>
       <ul aria-label="Path elements">
@@ -58,14 +58,7 @@ function ElementList({ path, onDraft }: { path: Path; onDraft: () => void }) {
             {" · "}
             <Reading e={e} />
             {e.control === "hand" && <> · <span className="inst-control" data-control="hand">{BY_HAND_LABEL}</span></>}
-            {e.control === "draft" && (
-              <>
-                {" · "}
-                <button type="button" data-control="draft" onClick={onDraft}>{DRAFT_LINK}</button>
-                {" "}
-                <RunRefuses aura={e.draft === "aura"} />
-              </>
-            )}
+            {e.control === "no_draft" && <> · <span className="inst-control" data-control="no_draft">{NO_DRAFT_LABEL}</span></>}
           </li>
         ))}
       </ul>
@@ -74,7 +67,7 @@ function ElementList({ path, onDraft }: { path: Path; onDraft: () => void }) {
 }
 
 /** The light path now: the drawing when the source gave an order this page understands, 017's list otherwise. `kinds` is for tests; the page's own table starts empty. */
-export function PathPanel({ run, onDraft, kinds }: { run: LatestRun; onDraft: () => void; kinds?: KindTable }) {
+export function PathPanel({ run, kinds }: { run: LatestRun; kinds?: KindTable }) {
   const view = orderViewOf(run);
   return (
     <section aria-label="Live optical path" className="inst-panel">
@@ -93,7 +86,7 @@ export function PathPanel({ run, onDraft, kinds }: { run: LatestRun; onDraft: ()
               <ul aria-label="Why the order is not understood">{view.problems.map((p) => <li key={p}>{p}</li>)}</ul>
             </>
           )}
-          <ElementList path={run.path} onDraft={onDraft} />
+          <ElementList path={run.path} />
         </>
       )}
       <p className="console-muted">Known trap: the turret label that names the wrong position.</p>

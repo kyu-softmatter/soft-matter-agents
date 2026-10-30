@@ -10,7 +10,7 @@ import { HAND_SELECTOR_SAYS, NOT_OFFERED, NO_SLOTS_GIVEN, SLOT_NOT_GIVEN } from 
 import { CHANNEL_DRAFT, CHANNEL_TAB, NO_CONTROL_CHANNELS } from "./join";
 import { Optics } from "./optics";
 import { PathPanel } from "./path";
-import { COMBINER_SENTENCE, RUN_REFUSES } from "./parts";
+import { COMBINER_SENTENCE, NO_DRAFT_LABEL, RUN_REFUSES } from "./parts";
 import capabilities from "../../../../../contracts/capabilities/microscope.json";
 
 /**
@@ -34,17 +34,21 @@ const pairOf = (element: string, channel: string) => ({ channel, name: element }
 
 interface Row {
   key: string; name: string; channel: string; state: string; value: string | null; t_wall: string | null; reason: string | null;
-  backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null;
+  backend: string | null; sent: string | null; sent_at: string | null; control: string | null; draft: string | null; words: string | null;
 }
 const row = (name: string, channel: string, state: string, extra: Partial<Row> = {}): Row => ({
   key: `${channel}/${name}`, name, channel, state, value: null, t_wall: null, reason: null, backend: null, sent: null, sent_at: null,
-  control: "hand", draft: null, ...extra,
+  control: "hand", draft: null, words: null, ...extra,
 });
 const read = (name: string, channel: string, value: string, extra: Partial<Row> = {}) =>
   row(name, channel, "read_back", { value, t_wall: T1, backend: "mock", ...extra });
 
+/** The two sentences card 024 gives, word for word; the server pins the same ones, so a change on either side fails a test here. */
+const AURA_WORDS = "No draft is offered for the Aura yet. A plan will name the light engine by its model, and the console has nowhere to read that model from yet, so it guesses none.";
+const LAMP_WORDS = "No draft is offered for the transmitted lamp yet. The run has no recorded quantity for its brightness, and no table of its on and off states.";
+
 const ROWS: Row[] = [
-  read("dia_lamp", "stand_ti2e", "1", { control: "draft", draft: "dialamp" }),
+  read("dia_lamp", "stand_ti2e", "1", { control: "no_draft", words: LAMP_WORDS }),
   read("filter_turret_1", "stand_ti2e", "five_band"),
   read("nosepiece", "stand_ti2e", "3"),
   row("laser_shutter", "laser_combiner", "sent", { control: null, sent: '{"shutter":"closed"}', sent_at: T1 }),
@@ -98,7 +102,7 @@ function show(run: LatestRun = runWith(), onTab: (rest: string) => void = () => 
   const out = render(
     <ClientProvider client={client}>
       <ChangesProvider onTab={onTab}>
-        <PathPanel run={run} onDraft={() => undefined} />
+        <PathPanel run={run} />
         <ChangesList />
       </ChangesProvider>
     </ClientProvider>,
@@ -134,14 +138,43 @@ describe("a click opens an element and nothing else", () => {
   });
 });
 
-describe("a drafted element opens its fields in place", () => {
-  it("opens the lamp's draft fields in the drawing, with the refusal notice, and links to no other tab for it", () => {
+describe("the red camera's exposure opens its fields in place; the Aura and the lamp open words and no fields", () => {
+  it("opens the lamp with the server's words, no fields, no draft button and no refusal notice", () => {
     show();
     const box = open("dia_lamp");
-    expect(within(box).getByRole("group", { name: "Transmitted lamp" })).toBeTruthy();
-    expect(within(box).getByLabelText("Intensity (%)")).toBeTruthy();
-    expect(within(box).getAllByText(RUN_REFUSES).length).toBeGreaterThan(0);
+    expect(within(box).getByText(LAMP_WORDS)).toBeTruthy();
+    expect(within(box).queryAllByRole("textbox").length + within(box).queryAllByRole("combobox").length + within(box).queryAllByRole("spinbutton").length).toBe(0);
+    expect(within(box).queryByRole("button", { name: /draft|add to the changes/i })).toBeNull();
+    expect(within(box).queryByRole("group", { name: "Transmitted lamp" })).toBeNull();
+    expect(box.textContent).not.toContain(RUN_REFUSES);
     expect(within(box).queryByRole("button", { name: /Light source tab/ })).toBeNull();
+  });
+
+  it("opens the Aura the same way, with its own words", () => {
+    const o = orderWithElements();
+    o.branches[0].elements.push(place("aura", "stand_ti2e"));
+    show(runWith([...ROWS, read("aura", "stand_ti2e", "off", { control: "no_draft", words: AURA_WORDS })], o));
+    const box = open("aura");
+    expect(within(box).getByText(AURA_WORDS)).toBeTruthy();
+    expect(within(box).queryAllByRole("textbox").length + within(box).queryAllByRole("combobox").length).toBe(0);
+    expect(within(box).queryByRole("button", { name: /draft|add to the changes/i })).toBeNull();
+    expect(within(box).queryByRole("group", { name: "Aura III LED" })).toBeNull();
+  });
+
+  it("says in the drawing, beside the element, that no draft is offered yet, and not that it is drafted", () => {
+    show();
+    const li = document.querySelector('[data-drawn="dia_lamp"]') as HTMLElement;
+    expect(Array.from(li.querySelectorAll("[data-control]")).map((n) => [n.getAttribute("data-control"), n.textContent])).toEqual([["no_draft", NO_DRAFT_LABEL]]);
+    expect(NO_DRAFT_LABEL).toBe("no draft is offered yet");
+    expect(li.textContent).not.toContain("drafted");
+    expect(li.textContent).not.toContain(RUN_REFUSES);
+  });
+
+  it("takes no words of its own: a no-draft row that carries none is shown with no control given", () => {
+    show(runWith(ROWS.map((r) => (r.name === "dia_lamp" ? { ...r, words: null } : r))));
+    const box = open("dia_lamp");
+    expect(box.textContent).not.toContain("No draft is offered");
+    expect(within(box).getByText("This page is given no control for this element.")).toBeTruthy();
   });
 
   it("opens the red camera's exposure field for an element on the red camera's channel, though the read-back calls it moved by hand", () => {
@@ -160,19 +193,19 @@ describe("a drafted element opens its fields in place", () => {
 
   it("adds a filled draft to the changes, in words, and refuses an empty one without adding it", () => {
     show();
-    const box = open("dia_lamp");
+    const box = open("kinetix_exposure");
     fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
-    expect(within(box).getByRole("alert").textContent).toMatch(/intensity/i);
+    expect(within(box).getByRole("alert").textContent).toMatch(/exposure/i);
     expect(changeWords()).toEqual([]);
-    fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "40" } });
+    fireEvent.change(within(box).getByLabelText("Exposure (ms)"), { target: { value: "40" } });
     fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
-    expect(changeWords()).toEqual(["Transmitted lamp: on, 40 %"]);
+    expect(changeWords()).toEqual(["Camera red arm exposure: 40 ms"]);
   });
 
   it("refuses a second draft of the same part until the first is removed", () => {
     show();
-    const box = open("dia_lamp");
-    fireEvent.change(within(box).getByLabelText("Intensity (%)"), { target: { value: "40" } });
+    const box = open("kinetix_exposure");
+    fireEvent.change(within(box).getByLabelText("Exposure (ms)"), { target: { value: "40" } });
     fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
     fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
     expect(within(box).getByRole("alert").textContent).toMatch(/already/);
@@ -372,7 +405,7 @@ describe("no click offers a laser line, a power or a software move", () => {
     }
   });
 
-  it("offers the three drafts' own fields and no others: the lamp's, and none on the trap, combiner or hand parts", () => {
+  it("offers the one draft's own field, the red camera's exposure, and none on the lamp, the trap, the combiner or the hand parts", () => {
     show();
     const fields = (name: string) => {
       const box = open(name);
@@ -384,7 +417,8 @@ describe("no click offers a laser line, a power or a software move", () => {
     expect(fields("laser_shutter")).toBe(0);
     expect(fields("filter_turret_1")).toBe(0);
     expect(fields("nosepiece")).toBe(0);
-    expect(fields("dia_lamp")).toBe(2);
+    expect(fields("dia_lamp")).toBe(0);
+    expect(fields("kinetix_exposure")).toBe(1);
   });
 });
 
@@ -436,11 +470,11 @@ describe("the changes list", () => {
   it("shows 'These changes will be made:' with each change in the order added, as a setting or a required state", () => {
     show(withSlots());
     fireEvent.click(within(open("filter_turret_1")).getByRole("button", { name: "Choose slot 0" }));
-    const lamp = open("dia_lamp");
-    fireEvent.change(within(lamp).getByLabelText("Intensity (%)"), { target: { value: "40" } });
+    const lamp = open("kinetix_exposure");
+    fireEvent.change(within(lamp).getByLabelText("Exposure (ms)"), { target: { value: "40" } });
     fireEvent.click(within(lamp).getByRole("button", { name: "Add to the changes" }));
     expect(within(changes()).getByText("These changes will be made:")).toBeTruthy();
-    expect(changeWords()).toEqual(["filter_turret_1 set by hand to five_band (slot 0)", "Transmitted lamp: on, 40 %"]);
+    expect(changeWords()).toEqual(["filter_turret_1 set by hand to five_band (slot 0)", "Camera red arm exposure: 40 ms"]);
     expect(Array.from(changes().querySelectorAll("[data-change-kind]")).map((n) => n.getAttribute("data-change-kind"))).toEqual(["selector", "part"]);
     expect(within(changes()).getAllByText(/^required state$|^setting$/).map((n) => n.textContent)).toEqual(["required state", "setting"]);
   });
@@ -448,11 +482,11 @@ describe("the changes list", () => {
   it("removes one change and leaves the rest in their order", () => {
     show(withSlots());
     fireEvent.click(within(open("filter_turret_1")).getByRole("button", { name: "Choose slot 0" }));
-    const lamp = open("dia_lamp");
-    fireEvent.change(within(lamp).getByLabelText("Intensity (%)"), { target: { value: "40" } });
+    const lamp = open("kinetix_exposure");
+    fireEvent.change(within(lamp).getByLabelText("Exposure (ms)"), { target: { value: "40" } });
     fireEvent.click(within(lamp).getByRole("button", { name: "Add to the changes" }));
     fireEvent.click(within(changes()).getByRole("button", { name: "Remove filter_turret_1 set by hand to five_band (slot 0)" }));
-    expect(changeWords()).toEqual(["Transmitted lamp: on, 40 %"]);
+    expect(changeWords()).toEqual(["Camera red arm exposure: 40 ms"]);
   });
 
   it("states the selector's words: set by the person's hand, then read and compared", () => {
@@ -509,26 +543,12 @@ describe("what the clicks leave out and refuse, said in the click's own words", 
   });
 });
 
-describe("the Aura's draft names what is missing", () => {
-  const withAura = () => {
-    const o = orderWithElements();
-    o.branches[0].elements.push(place("aura", "stand_ti2e"));
-    return runWith([...ROWS, read("aura", "stand_ti2e", "off", { control: "draft", draft: "aura" })], o);
-  };
-
-  it("asks for the colour and the power, each by name, and adds nothing", () => {
-    show(withAura());
-    const box = open("aura");
-    const add = () => fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
-    add();
-    expect(within(box).getByRole("alert").textContent).toBe("Not added: fill in the colour and the power first.");
-    fireEvent.change(within(box).getByLabelText("Colour"), { target: { value: "blue" } });
-    add();
-    expect(within(box).getByRole("alert").textContent).toBe("Not added: fill in the power first.");
-    fireEvent.change(within(box).getByLabelText("Colour"), { target: { value: "" } });
-    fireEvent.change(within(box).getByLabelText("Power (mW)"), { target: { value: "2" } });
-    add();
-    expect(within(box).getByRole("alert").textContent).toBe("Not added: fill in the colour first.");
+describe("the camera's draft names what is missing", () => {
+  it("asks for the exposure by name and adds nothing", () => {
+    show();
+    const box = open("kinetix_exposure");
+    fireEvent.click(within(box).getByRole("button", { name: "Add to the changes" }));
+    expect(within(box).getByRole("alert").textContent).toBe("Not added: fill in the exposure first.");
     expect(changeWords()).toEqual([]);
   });
 });
@@ -547,13 +567,14 @@ describe("the page around the drawing", () => {
     expect(screen.queryByRole("group", { name: "Drafts" })).toBeNull();
   });
 
-  it("keeps the two drafts below the list where the source gives no order to click", () => {
+  it("offers no draft of the Aura or the lamp below the list either, where the source gives no order to click", () => {
     const run = runWith();
     optics({ ...run, path: { ...run.path, order: { state: "none", data: null, problems: [] } } } as LatestRun);
     expect(screen.getByRole("region", { name: "Changes" })).toBeTruthy();
-    const group = screen.getByRole("group", { name: "Drafts" });
-    expect(within(group).getByRole("group", { name: "Aura III LED" })).toBeTruthy();
-    expect(within(group).getByRole("group", { name: "Transmitted lamp" })).toBeTruthy();
+    expect(screen.queryByRole("group", { name: "Drafts" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Aura III LED" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Transmitted lamp" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Draft / })).toBeNull();
   });
 });
 

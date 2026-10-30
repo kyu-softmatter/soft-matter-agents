@@ -14,7 +14,7 @@ import type { DraftKind } from "./parts";
 
 const CHANGES = "/api/instruments/changes";
 const SLOT = { slot: 3, name: "five_band", resolves: true };
-const LAMP = { kind: "dialamp", state: "on", intensity_percent: 12 } as const;
+const CAMERA = { kind: "camera_exposure", exposure_ms: 30 } as const;
 
 const draft = (over: Partial<DraftOut> = {}): DraftOut => ({
   kind: "changes", card: { card: "plan", status: "DRAFT" }, valid: true, problems: [], range_problems: [], refused_today: [],
@@ -24,11 +24,11 @@ const draft = (over: Partial<DraftOut> = {}): DraftOut => ({
 const clients: Client[] = [];
 afterEach(() => clients.splice(0).forEach((c) => c.events.stop()));
 
-function Adder({ part = "dialamp" as DraftKind, words = "Transmitted lamp: on, 12 %" }) {
+function Adder({ part = "camera_exposure" as DraftKind, words = "Camera red arm exposure: 30 ms" }) {
   const c = useChanges();
   return (
     <>
-      <button type="button" onClick={() => c.addPart(part, LAMP, words)}>add lamp</button>
+      <button type="button" onClick={() => c.addPart(part, CAMERA, words)}>add camera</button>
       <button type="button" onClick={() => c.addSelector("filter_turret_1", "stand_ti2e", SLOT)}>add slot</button>
       <button type="button" onClick={() => c.addSelector("polarizer", null, { ...SLOT, name: "x" })}>add second slot</button>
     </>
@@ -56,9 +56,9 @@ const asked = (fake: { calls: { path: string; init?: RequestInit }[] }) => fake.
 describe("the changes list sends nothing until a button is pressed", () => {
   it("makes no request while it renders, collects, removes or re-renders", () => {
     const view = show();
-    click("add lamp");
+    click("add camera");
     click("add slot");
-    click(/^Remove Transmitted lamp/);
+    click(/^Remove Camera red arm exposure/);
     view.rerender(<></>);
     expect(asked(view.fake)).toEqual([]);
     expect(view.fake.calls.filter((c) => c.path.startsWith("/api/instruments"))).toEqual([]);
@@ -68,7 +68,7 @@ describe("the changes list sends nothing until a button is pressed", () => {
 describe("Check the draft", () => {
   it("sends the settings and the required states in the order they were added, and nothing else", async () => {
     const view = show({ [CHANGES]: () => ({ status: 200, body: draft() }) });
-    click("add lamp");
+    click("add camera");
     click("add slot");
     click("Check the draft");
     await screen.findByLabelText("Plan draft");
@@ -76,14 +76,14 @@ describe("Check the draft", () => {
     const sent = asked(view.fake);
     expect(sent).toHaveLength(1);
     expect(JSON.parse(String(sent[0].init?.body))).toEqual({
-      parts: [{ kind: "dialamp", state: "on", intensity_percent: 12 }],
+      parts: [{ kind: "camera_exposure", exposure_ms: 30 }],
       selectors: [{ element: "filter_turret_1", value: "five_band" }],
     });
   });
 
   it("shows the schema's refusal in the schema's words and offers no signing", async () => {
     show({ [CHANGES]: () => ({ status: 200, body: draft({ valid: false, problems: ["$.devices: [] is too short"] }) }) });
-    click("add lamp");
+    click("add camera");
     click("Check the draft");
     const box = await screen.findByLabelText("Plan draft");
     expect(within(box).getByText("$.devices: [] is too short")).toBeTruthy();
@@ -91,9 +91,9 @@ describe("Check the draft", () => {
   });
 
   it("says a quantity with no limit named yet is refused before signing, in the server's words", async () => {
-    const why = "No limit has been named for the transmitted lamp's intensity yet, so this draft cannot be signed.";
+    const why = "No limit has been named for the red camera's exposure yet, so this draft cannot be signed.";
     show({ [CHANGES]: () => ({ status: 200, body: draft({ valid: false, range_problems: [why] }) }) });
-    click("add lamp");
+    click("add camera");
     click("Check the draft");
     const box = await screen.findByLabelText("Plan draft");
     expect(within(box).getByText(why)).toBeTruthy();
@@ -102,7 +102,7 @@ describe("Check the draft", () => {
 
   it("forgets a check when the list changes, so an answer is never shown for a list it was not asked of", async () => {
     show({ [CHANGES]: () => ({ status: 200, body: draft() }) });
-    click("add lamp");
+    click("add camera");
     click("Check the draft");
     await screen.findByLabelText("Plan draft");
     click("add slot");
@@ -120,7 +120,7 @@ describe("Check the draft", () => {
 
   it("says what went wrong when the server refuses to build the draft", async () => {
     show({ [CHANGES]: () => ({ status: 422, body: { detail: "this part is already in the draft" } }) });
-    click("add lamp");
+    click("add camera");
     click("Check the draft");
     expect((await screen.findByRole("alert")).textContent).toContain("this part is already in the draft");
   });
@@ -128,7 +128,7 @@ describe("Check the draft", () => {
   it("keeps the words 'Not saved. This draft exists only on this screen.'", async () => {
     show({ [CHANGES]: () => ({ status: 200, body: draft() }) });
     expect(screen.getByText(NOT_SAVED_WORDS)).toBeTruthy();
-    click("add lamp");
+    click("add camera");
     expect(screen.getByText(NOT_SAVED_WORDS)).toBeTruthy();
   });
 });
@@ -136,7 +136,7 @@ describe("Check the draft", () => {
 describe("[Apply] is shown and refused while a draft is saved nowhere", () => {
   it("checks the draft on the press, then says it cannot be signed yet because it is saved nowhere, and opens no password field", async () => {
     const view = show({ [CHANGES]: () => ({ status: 200, body: draft() }) });
-    click("add lamp");
+    click("add camera");
     expect(asked(view.fake)).toEqual([]);
     click("Apply");
     const refusal = await screen.findByTestId("apply-refused");
@@ -149,9 +149,9 @@ describe("[Apply] is shown and refused while a draft is saved nowhere", () => {
   });
 
   it("gives the limit's refusal first when a quantity has no limit named, and still says it is saved nowhere", async () => {
-    const why = "No limit has been named for the Aura LED's power yet, so this draft cannot be signed.";
+    const why = "No limit has been named for the red camera's exposure yet, so this draft cannot be signed.";
     show({ [CHANGES]: () => ({ status: 200, body: draft({ valid: false, range_problems: [why] }) }) });
-    click("add lamp");
+    click("add camera");
     click("Apply");
     const refusal = await screen.findByTestId("apply-refused");
     expect(refusal.textContent).toContain("cannot be signed");
@@ -161,7 +161,7 @@ describe("[Apply] is shown and refused while a draft is saved nowhere", () => {
 
   it("writes nothing and sends nothing but the one check", async () => {
     const view = show({ [CHANGES]: () => ({ status: 200, body: draft() }) });
-    click("add lamp");
+    click("add camera");
     click("Apply");
     await screen.findByTestId("apply-refused");
     const other = view.fake.calls.filter((c) => c.path !== CHANGES && !c.path.startsWith("/api/auth"));
@@ -178,7 +178,7 @@ describe("the run button, after signing, sends nothing", () => {
 
   it("says nothing is sent and why, and sends no request", async () => {
     const view = show({}, { signed: true });
-    click("add lamp"); // a list to ask about, so a press that wrongly asked would be heard
+    click("add camera"); // a list to ask about, so a press that wrongly asked would be heard
     const before = view.fake.calls.length;
     click("Run");
     expect((await screen.findByTestId("run-says")).textContent).toBe(RUN_SENDS_NOTHING);

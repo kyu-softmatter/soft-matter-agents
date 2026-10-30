@@ -311,14 +311,6 @@ describe("Plan: drafts", () => {
     expect(JSON.parse(String(posts()[0].init?.body)).kind).toBe("trap_steps");
   });
 
-  it("a light draft shows the schema's refusal and is not offered for signing", async () => {
-    show();
-    fireEvent.change(await screen.findByLabelText("Kind of draft"), { target: { value: "aura" } });
-    fireEvent.click(await screen.findByRole("button", { name: "Draft Aura III LED" }));
-    expect(await screen.findByText(/refused by the schema for a light or exposure change/)).toBeTruthy();
-    expect(screen.getByText("This draft is not offered for signing.")).toBeTruthy();
-  });
-
   it("an exposure draft shows the schema's refusal too", async () => {
     show();
     fireEvent.change(await screen.findByLabelText("Kind of draft"), { target: { value: "camera_exposure" } });
@@ -326,10 +318,11 @@ describe("Plan: drafts", () => {
     expect(await screen.findByText(/refused by the schema/)).toBeTruthy();
   });
 
-  it("offers every kind the Instruments composer has", async () => {
+  it("offers every kind the Instruments composer has, and none for the Aura or the lamp", async () => {
     show();
     const sel = await screen.findByLabelText("Kind of draft");
-    expect(within(sel).getAllByRole("option").map((o) => (o as HTMLOptionElement).value)).toEqual(["trap_steps", "aura", "dialamp", "camera_exposure", "piezo"]);
+    expect(within(sel).getAllByRole("option").map((o) => (o as HTMLOptionElement).value)).toEqual(["trap_steps", "camera_exposure", "piezo"]);
+    expect(within(sel).queryByRole("option", { name: /Aura|lamp/i })).toBeNull();
   });
 });
 

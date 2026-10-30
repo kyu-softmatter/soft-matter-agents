@@ -21,6 +21,7 @@ import { type Control, controlOf, handSetOf, lookup } from "./join";
 import {
   type HandSet, type KindTable, type OrderBranch, type OrderElement, type ReadOrder, bannerOf,
 } from "./order";
+import { NO_DRAFT_LABEL } from "./parts";
 import { BY_HAND_LABEL, Reading, RunRefuses, STATE_LABEL } from "./readout";
 
 export const NO_CONTROL = "control not given";
@@ -36,10 +37,11 @@ function ControlLabel({ control }: { control: Control }) {
       <>
         <span className="inst-control" data-control="draft">drafted</span>
         {" "}
-        <RunRefuses aura={control.part === "aura"} />
+        <RunRefuses />
       </>
     );
   }
+  if (control.kind === "no_draft") return <span className="inst-control" data-control="no_draft">{NO_DRAFT_LABEL}</span>;
   return <span className="inst-control" data-control="none">{NO_CONTROL}</span>;
 }
 
