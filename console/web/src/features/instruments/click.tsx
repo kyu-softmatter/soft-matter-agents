@@ -1,6 +1,6 @@
 /**
  * What a click opens in the drawing (console card 023, part 3): the element's own controls, and only those the rules already
- * allow. A drafted element opens its draft fields in place; a part moved by hand opens its slot list, and choosing a slot adds a
+ * allow. A drafted element opens its draft fields in the panel beside the areas; a part moved by hand opens its slot list, and choosing a slot adds a
  * required state that software never writes; the laser combiner and the trap say why they have no control; the Aura and the
  * transmitted lamp say, in the server's words and with no field, that no draft is offered yet (card 024). **No click offers a
  * laser line, a power, a level for any light, or a software move of a hand-moved part.** Nothing here sends anything.
@@ -86,6 +86,7 @@ export function ClickPanel({ el, found, control, hand, run }: { el: OrderElement
   const tab = tabOf(el.channel);
   return (
     <div role="group" aria-label={`Opened: ${el.element}`} className="inst-opened">
+      <h4 className="inst-opened-title">{el.element}</h4>
       {control.kind === "draft" && <PartDraft kind={control.part} label={DRAFT_LABEL[control.part]} onAdd={addPart} />}
       {control.kind === "no_draft" && <p data-testid="no-draft-words">{control.words}</p>}
       {control.kind === "hand" && (hand === undefined || hand.slots.length === 0 ? (

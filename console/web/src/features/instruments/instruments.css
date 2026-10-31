@@ -2,16 +2,52 @@
   font-weight: 600;
 }
 
-.inst-drawing,
-.inst-branch {
+/* The drawing's look (card 026): a white rounded card holding tinted areas, a box per element, and the clicked element in a panel beside them. */
+.inst-drawing {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.inst-stage {
+  --area: color-mix(in srgb, var(--line) 30%, var(--bg));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.inst-areas {
+  flex: 1 1 22rem;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
 }
 
 .inst-branch {
-  border: 1px solid var(--line);
-  padding: 8px;
+  flex: 1 1 11rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--area);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.inst-branch h4 {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .inst-branch ol,
@@ -23,8 +59,76 @@
   flex-direction: column;
 }
 
+.inst-holes ul {
+  gap: 6px;
+}
+
 .inst-branch li {
-  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A box is one button: the name in bold, then what is known of it, smaller and quieter. */
+.inst-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.inst-box[aria-expanded="true"] {
+  border-color: var(--accent);
+}
+
+.inst-box .inst-name {
+  font-weight: 700;
+}
+
+.inst-lines {
+  font-size: 0.85em;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.inst-side {
+  flex: 1 1 16rem;
+  max-width: 24rem;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.inst-side .inst-opened {
+  border: 0;
+  padding: 0;
+  margin-top: 0;
+}
+
+.inst-opened-title {
+  margin: 0;
+}
+
+/* Below the shell's narrow breakpoint the areas stack in one column and the panel falls beneath them. */
+@media (max-width: 720px) {
+  .inst-stage,
+  .inst-areas {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inst-side {
+    max-width: none;
+  }
 }
 
 /* A join shows order only: one fixed style, whatever any element reads. */
@@ -32,7 +136,7 @@
   display: block;
   width: 2px;
   height: 12px;
-  margin: 4px 0 0 8px;
+  margin: 0 auto;
   background: var(--line);
 }
 

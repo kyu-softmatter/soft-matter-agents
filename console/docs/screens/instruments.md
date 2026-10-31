@@ -62,6 +62,15 @@ the order does not name. No picture of the stand and no list of parts is kept on
   opens the element, names its kind of control in the file's words and says "Example: nothing here can be changed or
   drafted."; it holds no field or button, changes neither the changes list nor [Apply], and sends no request. It is
   not shown for an order that was read, one not in the snapshot or one not understood, nor with the real store.
+- **The look is the person's page's, in words** (card 026): each branch is a tinted, rounded area labelled with its name in
+  small upper-case monospaced letters (a look from the style alone, the text stays as the order spells it; the example's
+  areas carry no label); areas stand side by side in the order's sequence and stack in one column on a narrow screen; each
+  element is a bordered box, its name in bold with its state lines beneath, and the box is one button that carries
+  `aria-expanded`. A click opens the element in a panel beside the areas, headed by its name, one at a time, with no close
+  button: a second click on the open box closes it. Elements with no recorded place stay in their branch's area behind a
+  dashed rule, joined to nothing. A join is one plain line between neighbours and no line joins two areas. Not carried from
+  the file: beams coloured by wavelength with thickness or brightness, per-line laser power, the store's "what is known" and
+  safety notes, the canvas's positions and names, presets and "Check this path".
 
 **The look the drawing follows** is the person's file, kept as a reference in `docs/light-path/` (card 023,
 part 1; its README says where it came from and gives both hashes). It is data: a reference mockup that is

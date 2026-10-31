@@ -668,3 +668,92 @@ describe("the whole screen, with nothing sent", () => {
     expect(fake.calls.map((c) => c.path).filter((p) => !allowed.has(p))).toEqual([]);
   });
 });
+
+describe("the drawing takes the look of the person's page (console card 026)", () => {
+  const first = (READ.branches[0].elements as Json[]).map((e) => e.element as string);
+  const box = (name: string) => screen.getByRole("button", { name: `Open ${name}` });
+  const expanded = () => screen.getAllByRole("button", { name: /^Open / }).filter((n) => n.getAttribute("aria-expanded") === "true").map((n) => n.getAttribute("aria-label"));
+  const panels = () => screen.queryAllByRole("group", { name: /^Opened: / });
+
+  it("is one area per branch the order names, in the order's sequence, labelled exactly as spelled, and no other", () => {
+    const view = panelOf(readRun());
+    const areas = Array.from((view.drawing() as HTMLElement).querySelectorAll("section[data-branch]"));
+    expect(areas.map((a) => a.getAttribute("data-branch"))).toEqual(READ.branches.map((b: Json) => b.branch));
+    for (const a of areas) {
+      const label = a.querySelector("h4") as HTMLElement;
+      expect(label.textContent).toBe(a.getAttribute("data-branch"));
+      expect(a.classList.contains("inst-branch")).toBe(true);
+    }
+    expect(areas.map((a) => a.parentElement?.className)).toEqual(areas.map(() => "inst-areas"));
+  });
+
+  it("is a box per element, the name first and each state line after it as its own element, inside one button", () => {
+    panelOf(readRun());
+    for (const e of READ.branches[0].elements as Json[]) {
+      const li = item(e.element);
+      const b = li.querySelector("button.inst-box") as HTMLElement;
+      expect(b).toBeTruthy();
+      expect(b.getAttribute("aria-label")).toBe(`Open ${e.element}`);
+      expect(Array.from(b.children).map((c) => c.className)).toEqual(["inst-name", "inst-lines"]);
+      expect(b.children[0].textContent).toBe(e.element);
+      const lines = b.children[1] as HTMLElement;
+      expect(lines.querySelector("[data-state]")).toBeTruthy();
+      expect(lines.querySelector(".inst-entry")).toBeTruthy();
+      expect(b.getAttribute("aria-describedby")).toBe(lines.id);
+      expect(b.querySelector("button, a, input, select, textarea, [role=button]")).toBeNull();
+    }
+  });
+
+  it("opens one panel on a click, outside every branch's list and headed by that element, and none before", () => {
+    const view = panelOf(readRun());
+    expect(panels()).toHaveLength(0);
+    expect(expanded()).toEqual([]);
+    fireEvent.click(box(first[0]));
+    const [opened] = panels();
+    expect(panels()).toHaveLength(1);
+    expect(opened.getAttribute("aria-label")).toBe(`Opened: ${first[0]}`);
+    expect(within(opened).getByRole("heading", { name: first[0] })).toBeTruthy();
+    expect((view.drawing() as HTMLElement).contains(opened)).toBe(true);
+    for (const a of Array.from(document.querySelectorAll("section[data-branch]"))) expect(a.contains(opened)).toBe(false);
+    expect(opened.closest("li")).toBeNull();
+  });
+
+  it("moves the panel on a click on a second box, closes it on a click on the open box, and aria-expanded names only the open box", () => {
+    panelOf(readRun());
+    fireEvent.click(box(first[0]));
+    expect(expanded()).toEqual([`Open ${first[0]}`]);
+    fireEvent.click(box(first[1]));
+    expect(expanded()).toEqual([`Open ${first[1]}`]);
+    expect(panels().map((p) => p.getAttribute("aria-label"))).toEqual([`Opened: ${first[1]}`]);
+    fireEvent.click(box(first[1]));
+    expect(expanded()).toEqual([]);
+    expect(panels()).toHaveLength(0);
+  });
+
+  it("has no close button in the panel, and the panel is not a box's child", () => {
+    panelOf(readRun());
+    fireEvent.click(box(first[0]));
+    const [opened] = panels();
+    expect(within(opened).queryByRole("button", { name: /close|hide/i })).toBeNull();
+    expect(opened.closest("button")).toBeNull();
+  });
+
+  it("draws no svg, no marker-end and no inline style that names a position", () => {
+    const view = panelOf(readRun(), KNOWN_DESCRIPTION);
+    fireEvent.click(box(first[0]));
+    const d = view.drawing() as HTMLElement;
+    expect(d.querySelector("svg, [marker-end]")).toBeNull();
+    for (const n of Array.from(d.querySelectorAll("[style]"))) expect(n.getAttribute("style")).not.toMatch(/left|top|right|bottom|transform|position/i);
+  });
+
+  it("keeps an element with no recorded place inside its branch's area, below the joined boxes and joined to nothing", () => {
+    panelOf(readRun(), KNOWN_DESCRIPTION);
+    const b = READ.branches[0];
+    const region = screen.getByRole("region", { name: `Branch ${b.branch}` });
+    const holes = within(region).getByRole("group", { name: `${b.branch}: place not recorded` });
+    const drawn = within(region).getByRole("list", { name: `${b.branch} elements` });
+    expect(drawn.compareDocumentPosition(holes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(holes.querySelector("[data-join]")).toBeNull();
+    expect(holes.querySelectorAll("button.inst-box").length).toBe(b.place_not_recorded.length);
+  });
+});

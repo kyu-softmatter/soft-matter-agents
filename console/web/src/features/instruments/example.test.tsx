@@ -92,9 +92,9 @@ describe("the example above 017's list", () => {
     const items = Array.from(section.querySelectorAll("li"));
     expect(items).toHaveLength(FILE_ELEMENTS.length);
     items.forEach((li, i) => {
-      const clone = li.cloneNode(true) as HTMLElement;
-      clone.querySelectorAll("button, .inst-join").forEach((n) => n.remove());
-      expect((clone.textContent ?? "").trim()).toBe(`${FILE_ELEMENTS[i].label} · ${FILE_ELEMENTS[i].setting}`);
+      expect(li.querySelector(".inst-name")?.textContent).toBe(FILE_ELEMENTS[i].label);
+      expect(li.querySelector(".inst-lines")?.textContent).toBe(FILE_ELEMENTS[i].setting);
+      expect(li.textContent).toBe(`${FILE_ELEMENTS[i].label}${FILE_ELEMENTS[i].setting}`);
     });
   });
 
@@ -177,5 +177,84 @@ describe("a click on an example element", () => {
     }
     await act(async () => { await Promise.resolve(); });
     expect(v.fake.calls).toEqual([]);
+  });
+});
+
+describe("the example takes the look of the person's page (console card 026)", () => {
+  const box = (label: string) => screen.getByRole("button", { name: `Open ${label}` });
+
+  it("stands as one unlabelled area per branch of the file, and the file names no branch", () => {
+    const section = view(runWith(none)).section() as HTMLElement;
+    const areas = within(section).getAllByRole("region", { name: "Example branch" });
+    expect(areas).toHaveLength((example as Json).branches.length);
+    for (const a of areas) expect(a.querySelector("h1, h2, h3, h4, h5, h6, [role=heading]")).toBeNull();
+    areas.forEach((a, i) => {
+      const labels = Array.from(a.querySelectorAll("li .inst-name")).map((n) => n.textContent);
+      expect(labels).toEqual((example as Json).branches[i].elements.map((e: Json) => e.label));
+    });
+  });
+
+  it("draws each element as one box, the label first and the setting beneath it, in the file's order", () => {
+    const section = view(runWith(none)).section() as HTMLElement;
+    const boxes = Array.from(section.querySelectorAll("li > button.inst-box"));
+    expect(boxes).toHaveLength(FILE_ELEMENTS.length);
+    boxes.forEach((b, i) => {
+      expect(Array.from(b.children).map((c) => c.className)).toEqual(["inst-name", "inst-lines"]);
+      expect(b.children[0].textContent).toBe(FILE_ELEMENTS[i].label);
+      expect(b.children[1].textContent).toBe(FILE_ELEMENTS[i].setting);
+    });
+  });
+
+  it("joins neighbours with one plain line, none after the last box of an area, and draws no svg", () => {
+    const section = view(runWith(none)).section() as HTMLElement;
+    for (const a of within(section).getAllByRole("region", { name: "Example branch" })) {
+      const lis = Array.from(a.querySelectorAll("li"));
+      expect(a.querySelectorAll(".inst-join")).toHaveLength(lis.length - 1);
+      expect(lis.at(-1)?.querySelector(".inst-join")).toBeNull();
+    }
+    for (const j of Array.from(section.querySelectorAll(".inst-join"))) {
+      expect(j.getAttribute("style")).toBeNull();
+      expect(j.textContent).toBe("");
+    }
+    expect(section.querySelector("svg, [marker-end]")).toBeNull();
+  });
+
+  it("shows no panel until a click, and a click opens one inside the example's frame and outside every area", () => {
+    const section = view(runWith(none)).section() as HTMLElement;
+    expect(screen.queryByRole("group", { name: /^Opened: / })).toBeNull();
+    const e = FILE_ELEMENTS[0];
+    fireEvent.click(box(e.label));
+    const opened = screen.getByRole("group", { name: `Opened: ${e.label}` });
+    expect(section.contains(opened)).toBe(true);
+    for (const a of within(section).getAllByRole("region", { name: "Example branch" })) expect(a.contains(opened)).toBe(false);
+    expect(within(opened).getByRole("heading", { name: e.label })).toBeTruthy();
+    expect(opened.querySelector("input, select, textarea, button, a, [href], [role=button], [role=combobox], [role=listbox]")).toBeNull();
+  });
+
+  it("opens one box at a time: a second click moves the panel, a click on the open box closes it, and aria-expanded names only the open box", () => {
+    view(runWith(none));
+    const [a, b] = FILE_ELEMENTS;
+    const expanded = () => screen.getAllByRole("button", { name: /^Open / }).filter((n) => n.getAttribute("aria-expanded") === "true").map((n) => n.getAttribute("aria-label"));
+    expect(expanded()).toEqual([]);
+    fireEvent.click(box(a.label));
+    expect(expanded()).toEqual([`Open ${a.label}`]);
+    fireEvent.click(box(b.label));
+    expect(expanded()).toEqual([`Open ${b.label}`]);
+    expect(screen.getAllByRole("group", { name: /^Opened: / })).toHaveLength(1);
+    expect(screen.queryByRole("group", { name: `Opened: ${a.label}` })).toBeNull();
+    fireEvent.click(box(b.label));
+    expect(expanded()).toEqual([]);
+    expect(screen.queryByRole("group", { name: /^Opened: / })).toBeNull();
+  });
+
+  it("keeps the draft as it was through every click and every move of the panel", async () => {
+    view(runWith(none));
+    fireEvent.click(screen.getByRole("button", { name: "seed a change" }));
+    await act(async () => { await Promise.resolve(); });
+    const before = screen.getByTestId("items").textContent;
+    for (const e of FILE_ELEMENTS) fireEvent.click(box(e.label));
+    fireEvent.click(box(FILE_ELEMENTS.at(-1)?.label as string));
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByTestId("items").textContent).toBe(before);
   });
 });
