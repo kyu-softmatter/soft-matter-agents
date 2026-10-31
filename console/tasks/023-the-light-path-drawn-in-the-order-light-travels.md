@@ -153,7 +153,9 @@ only. They never come from:
 
 **What the page shows.** The look follows part 1's file, rebuilt in the
 console's own components and CSS: no outside fonts, no `support.js`, and no
-markup or text taken from the file.
+markup or text taken from the file. What that look is, in words, is card
+026's (amended 2026-10-30): areas per branch, boxes per element, and the
+clicked element in a panel beside them.
 - **Each branch the order names, in its order, and no other.** Rename,
   reorder or remove an element in the order, and the drawing follows.
 - **Each drawn element shows** its name and its state, by 017's labels:
