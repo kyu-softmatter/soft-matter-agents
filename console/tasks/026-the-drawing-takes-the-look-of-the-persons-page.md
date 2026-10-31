@@ -209,6 +209,20 @@ your report what you saw: the areas side by side, the boxes, a click
 opening the panel beside them, and the narrow width stacking them. This
 seat checks it again on a clean clone.
 
+The page asks for a sign-in first (amended 2026-10-30, the same day).
+- Run it on a port other than 8765, where the person's own console runs.
+- Pass `--config-dir` an empty folder outside the tree, made for this look
+  and deleted after it. Never the default folder: it holds the person's
+  accounts and audit log.
+- Make a throwaway account in that folder. Its password goes in no file in
+  the tree, no message and no report.
+- If you cannot sign in that way, say so in your report and look by no
+  other route. The look then waits for the intake seat's check of the
+  console, and this seat's clean-clone check covers the build.
+- Your `npm run build` writes `web/dist`, which the person's console serves
+  from disk, so a reload of the person's page shows the new look. Say in
+  your report when the build landed.
+
 ## What not to do
 
 - Read nothing new: no store, no snapshot, no canvas, and nothing from the
