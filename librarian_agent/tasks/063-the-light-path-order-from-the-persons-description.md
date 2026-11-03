@@ -73,6 +73,39 @@ rest of `c46095ec` are the rule.
 - **The grade is the one the source derives, not one this card assigns.** You
   have said it is E5, operator recall and not a measurement. Every row says it
   comes from a description and was not checked on this microscope.
+- **The person says the page rests on what was checked at the microscope.**
+  Amended 2026-11-03, citing `76dd0a9f` (R-20261103-scope-01). In the Office
+  computer's intake window on 2026-10-30, ~18:03 -0700, committed at `cf8e47a2`
+  (I-20261030-office-02), the person said, verbatim:
+
+  > 해당 그림과 설정은 실제 현미경에서 확인한 것을 바탕으로 만든건데
+
+  ("That drawing and those settings were made from what was confirmed at the
+  real microscope.") What that changes, decided by this seat:
+  - **Record it in the source record**, verbatim with its commit, as the
+    person's word that the description rests on observation.
+  - **It does not regrade any fact by itself.** An operator reading at the
+    instrument is a reading of a named thing at a known time. This line names
+    neither which parts were checked nor when, and the page's own labels
+    still mark some parts as inferred or assumed. So the entry keeps the grade
+    the description derives: operator recall, unless you judge that the
+    store's rules read this line otherwise. If you do, say which rule and why.
+  - **The blanks stay blank.** A part the page marks inferred, assumed, from an
+    earlier setup or from a spec sheet is not entered. The statement does not
+    say that part was checked, and the console keeps those parts blank until
+    microscope card 101's check by eye. This is the console manager's line too
+    (R-20261030-office-07).
+  - **The question that would settle it has gone to the person through the
+    intake desk**: which parts were checked at the microscope, and when. If the
+    answer names parts and a time, those parts are re-entered as an operator
+    reading, superseding this entry's rows for them. Do not wait for it to
+    enter this one.
+- **The arrangement on the page is not this card's yet.** The person decided
+  on 2026-10-31 (`772182ca`, D-20261031-office-01) that the console draws the
+  path in the page's arrangement, and that the arrangement becomes a recorded
+  fact first. Its form waits on a line in plan.md 15.1 item 11 and then a
+  schema pin by the microscope's manager. Enter no arrangement under this card.
+  A later amendment, or a card of its own, will say when and in what form.
 
 ## What to enter
 
