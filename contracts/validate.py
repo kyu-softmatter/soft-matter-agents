@@ -325,6 +325,12 @@ ARTIFACT_SCHEMA = {
     # check 1 as an unknown artifact -- and check 87's history rows read only
     # check 87, so none of them could see that.
     "kb_map": "kb_map.schema.json",
+    # 2026-11-03, D-20261103-office-11 item 1 (c90291b1), librarian task 065:
+    # the librarian's standing lint, reported beside the query log. Wired here
+    # with its schema and its check 1 rows before the tool exists, so the
+    # first real report is not refused as an unknown artifact the way the
+    # map's was.
+    "kb_lint": "kb_lint.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]

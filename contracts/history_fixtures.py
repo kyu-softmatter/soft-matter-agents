@@ -1181,6 +1181,68 @@ def fixture_01_a_map_entry_node_without_its_grade(repo: Path) -> str:
                                                "status": "current"}))
 
 
+def _kb_lint(**over) -> dict:
+    """A kb_lint report as task 065 shapes it: one open conflict pair, one
+    unfiled entry, nothing else found."""
+    body = {"artifact": "kb_lint", "schema_version": "0.1", "kb_version": "kbv-bbbbbbbbbbbb",
+            "run_at": "2026-11-03T23:50:00-08:00", "run_by": "librarian-20261007-1",
+            "trigger": "publish", "query_log_lines": 0,
+            "unresolved_relations": [{"entry_id": "e1", "field": "conflict_with", "names": "e2",
+                                      "problem": "open_pair"}],
+            "past_valid_until": [], "unfiled": ["e3"], "unpaged_names": [], "repeated_gaps": []}
+    body.update(over)
+    return body
+
+
+def fixture_01_a_lint_report_that_conforms(repo: Path) -> str:
+    """The librarian's standing lint (D-20261103-office-11), as its tool will
+    write it beside the query log."""
+    start = base(repo)
+    write(repo, "librarian_agent/queries/lint-20261103.json", _kb_lint())
+    commit(repo, "a lint report", "librarian_agent/queries", seat="librarian")
+    return f"{start}..HEAD"
+
+
+def fixture_01_a_lint_report_carrying_an_entry_value(repo: Path) -> str:
+    """A lint finding that copies the entry's number into the report: the
+    report would become a second place a value lives. Only the schema refuses it."""
+    start = base(repo)
+    write(repo, "librarian_agent/queries/lint-20261103.json",
+          _kb_lint(past_valid_until=[{"entry_id": "e4", "valid_until": "2026-10-01", "value": 0.108}]))
+    commit(repo, "a lint report carrying a value", "librarian_agent/queries", seat="librarian")
+    return f"{start}..HEAD"
+
+
+def fixture_25_a_card_citing_a_wiki_page(repo: Path) -> str:
+    """A card whose kb_ref names a wiki page instead of an entry.
+
+    The person's decision of 2026-11-03 (D-20261103-office-11 item 4) makes
+    kb/wiki and kb/guides a generated reading layer that no card may cite.
+    No check of its own enforces that, because none is needed: a card reaches
+    the store only through kb_refs and kb: sources, both resolve against the
+    index's entries, and a page is never an entry. This row is the evidence
+    that the structural answer holds -- the page sits in the store, its stem
+    is the cited id, and the citation is refused as naming nothing.
+    """
+    start = base(repo)
+    kb = "librarian_agent/kb"
+    write(repo, f"{kb}/entries/e1.json", {"id": "e1"})
+    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": "kbv-bbbbbbbbbbbb", "entry_count": 1,
+                                     "entries": {"e1": {"file": "entries/e1.json", "grade": "E3"}},
+                                     "handles": {}})
+    write(repo, f"{kb}/wiki/device_laser_combiner.md",
+          "# laser_combiner\n\nWhat the store holds about it [e1].\n\n"
+          "<sub>Generated from the knowledge store at kbv-bbbbbbbbbbbb. Do not edit by hand: correct the store "
+          "and regenerate.</sub>\n")
+    commit(repo, "a store with one entry and one page", kb, seat="librarian")
+    ref = {"entry_id": "device_laser_combiner", "grade": "E3", "kb_version": "kbv-bbbbbbbbbbbb"}
+    card = dict(_decision_card([_KAPPA], [], kb_refs=[ref]), kb_version="kbv-bbbbbbbbbbbb")
+    rel = "simulation_agent/questions/sim-20260923-901/axis_bd_overdamped_a2.json"
+    write(repo, rel, card)
+    commit(repo, "a card citing the page", rel, seat="simulation")
+    return f"{start}..HEAD"
+
+
 def fixture_87_a_publish_that_left_the_wiki_behind(repo: Path) -> str:
     """The guides' 2026-09-29 shape, on a wiki page: the store and its export
     moved, and one page of two was not regenerated."""
@@ -2291,6 +2353,14 @@ FIXTURES = [
      fixture_01_a_map_entry_node_without_its_grade),
     (87, "PASS", "the map at kbv-bbbbbbbbbbbb",
      fixture_01_a_map_entry_node_without_its_grade),
+    # The lint report's schema (2026-11-03, D-20261103-office-11), wired before
+    # its tool exists so the first real report is not an unknown artifact.
+    (25, "FAIL", "kb_ref cites 'device_laser_combiner', which the store does not have",
+     fixture_25_a_card_citing_a_wiki_page),
+    (1, "PASS", "conform to their schema", fixture_01_a_lint_report_that_conforms),
+    (1, "FAIL", "Additional properties are not allowed ('value' was unexpected) "
+                "[librarian_agent/queries/lint-20261103.json]",
+     fixture_01_a_lint_report_carrying_an_entry_value),
     (89,"FAIL", "rewrote lines its parent held; this log is append-only",
      fixture_89_a_harness_log_line_rewritten),
     # HP-007: an example is judged at its own instant, a real permit by the

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kb_lint.schema.json",
+  "title": "librarian_agent/queries/lint-<YYYYMMDD>[-<n>].json -- the librarian's standing check of the store, as a report",
+  "description": "Added 2026-11-03 for the person's decision D-20261103-office-11 (c90291b1), item 1: the store is checked as a standing operation and what the check finds is reported as a card. No existing kind fits. A findings file runs from an execution seat to the librarian, and a result card needs a plan, while a console store request runs the other way, from the person to the store. So this is its own artifact. It sits beside queries/log.jsonl and not inside kb/, because it is a record of an operation on the store and not knowledge: kb_version hashes the entries, and everything inside kb/ is either citable or noise in that hash. It is written by librarian_agent/src/kb_lint.py (librarian task 065) and never by hand. Five lists, one per thing the person named. Each list says WHICH entries or names, never what to do about them: a lint finding is an agenda for the librarian session and never an edit, and an empty list is a finding too. The report carries NO NUMBER TAKEN FROM AN ENTRY, the rule kb/wiki/map.json keeps, so the report cannot become a second place a value lives. repeated_gaps is read from the query log OUTSIDE the server, so it is editorial and may never shape an answer (plan.md 4.3.1 rule 4). That is why it lives in this report and in no tool.",
+  "type": "object",
+  "properties": {
+    "artifact": { "const": "kb_lint" },
+    "schema_version": { "const": "0.1" },
+    "kb_version": {
+      "type": "string",
+      "pattern": "^kbv-[0-9a-f]{12}$",
+      "description": "the store the check read. A report is true of this version and nothing later"
+    },
+    "run_at": { "type": "string", "format": "date-time" },
+    "run_by": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "the librarian seat that ran it, as contracts/seats.json names it"
+    },
+    "trigger": {
+      "enum": ["publish", "session_start", "asked"],
+      "description": "what made it run. publish: in the same sitting as export_snapshot.py, beside the guides and the wiki. session_start: the librarian session's first act, before its first task. asked: a seat or the person asked for one. No clock trigger, because a job held by a session lapses with that session, so a schedule written as a clock would read as kept on the days it was not"
+    },
+    "query_log_lines": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "how many lines of queries/log.jsonl repeated_gaps was counted from, so a later count can say what moved"
+    },
+    "unresolved_relations": {
+      "type": "array",
+      "description": "Contradictions and replacements the store does not yet hold consistently. A conflict both sides record is KEPT, not merged, and is not a defect. It is listed as open_pair so the session sees what still disagrees, while the other kinds are defects in the record",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entry_id": { "$ref": "#/$defs/entry_id" },
+          "field": { "enum": ["conflict_with", "refuted_by", "refutes", "supersedes"] },
+          "names": { "type": "string", "minLength": 1 },
+          "problem": {
+            "enum": ["open_pair", "one_sided", "names_no_entry", "superseded_still_cited"],
+            "description": "open_pair: both sides name each other, and the disagreement stands. one_sided: this entry names the other and the other does not name it back. names_no_entry: the id is in no entry. superseded_still_cited: a current entry's text or relation still names an entry that has been replaced"
+          }
+        },
+        "required": ["entry_id", "field", "names", "problem"],
+        "additionalProperties": false
+      }
+    },
+    "past_valid_until": {
+      "type": "array",
+      "description": "entries whose valid_until is a date earlier than run_at's. An event-bounded entry is not listed here: the check cannot see an event happen",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entry_id": { "$ref": "#/$defs/entry_id" },
+          "valid_until": { "type": "string", "format": "date" }
+        },
+        "required": ["entry_id", "valid_until"],
+        "additionalProperties": false
+      }
+    },
+    "unfiled": {
+      "type": "array",
+      "description": "entries that name no subject, the ones kb/wiki/unfiled.md lists: an entry no page leads to",
+      "items": { "$ref": "#/$defs/entry_id" }
+    },
+    "unpaged_names": {
+      "type": "array",
+      "description": "a name a registry or the staging tables hold that no wiki page carries, so a reader looking for it finds nothing. Registered observables are not listed: wiki.py renders a page for every one, entries or not",
+      "items": {
+        "type": "object",
+        "properties": {
+          "registry": {
+            "enum": ["device", "quantity", "sample", "configuration"],
+            "description": "the kind of name, matching the wiki's page kinds"
+          },
+          "name": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+$" },
+          "held_in": {
+            "type": "string",
+            "minLength": 1,
+            "description": "the repository path of the table that holds the name"
+          }
+        },
+        "required": ["registry", "name", "held_in"],
+        "additionalProperties": false
+      }
+    },
+    "repeated_gaps": {
+      "type": "array",
+      "description": "names callers asked for and the store did not supply, more than once, counted from the query log. Self-test callers are excluded, and so is an in_published_table answer, which sent the caller to a table that exists. Sorted by name: an order by count would be a ranking, and a ranking is the thing rule 4 keeps away from answers",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["absent", "condition_mismatch", "inaccessible", "unqualified_source"] },
+          "asks": { "type": "integer", "minimum": 2 },
+          "questions": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "distinct questions among the asks, taken from the caller_id"
+          },
+          "last_asked": { "type": "string", "format": "date-time" }
+        },
+        "required": ["name", "kind", "asks", "questions", "last_asked"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["artifact", "schema_version", "kb_version", "run_at", "run_by", "trigger", "query_log_lines",
+               "unresolved_relations", "past_valid_until", "unfiled", "unpaged_names", "repeated_gaps"],
+  "additionalProperties": false,
+  "$defs": {
+    "entry_id": { "type": "string", "pattern": "^[a-z0-9_]+$" }
+  }
+}

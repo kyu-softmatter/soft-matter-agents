@@ -197,6 +197,88 @@ server was reachable has to name the gap it stands on (check 39).
 10. **A confirmation mark applied in bulk is not a confirmation.** Stamp the row
     you re-read, never a batch.
 
+## Standing operations: ingest, lint, and the log of both
+
+The person adopted these on 2026-11-03 (D-20261103-office-11, `c90291b1`;
+`plan.md` 4.3 item 9 and 4.3.1). Task 065 builds the tools. Until it lands,
+do the ingest in this order by hand, and leave lint and the log unrun rather
+than imitate them.
+
+**Ingest one source at a time, in four steps, and never two sources in one
+pass:**
+1. **The summary.** Write the source record in `kb/sources/` and its
+   distillation note in `kb/distilled/`, the page that says what the
+   source holds.
+2. **The entries.** One claim per file, under the rules above.
+3. **The index.** Run `python src/kb_index.py`.
+4. **The log.** Append one ingest line (below).
+
+A second source starts only after the first one's log line is written. Two
+sources in one pass make one log line with two sources on it, and then no
+line can say which source an entry came from.
+
+**Lint is the store checked against itself, and it changes nothing.**
+`python src/kb_lint.py` writes one report to
+`queries/lint-<YYYYMMDD>[-<n>].json`, in the form
+`contracts/schemas/kb_lint.schema.json` fixes. The report has five lists:
+- **unresolved relations**: a `conflict_with`, `refuted_by`, `refutes` or
+  `supersedes` that is open, one-sided, names no entry, or points at a
+  replaced entry something still cites;
+- **past `valid_until`**: an entry whose date has passed;
+- **unfiled**: an entry under no subject, the ones `kb/wiki/unfiled.md` lists;
+- **unpaged names**: a name a registry holds and no page carries;
+- **repeated gaps**: a gap callers keep hitting, counted from
+  `queries/log.jsonl`.
+
+Each list says which entries or names, never what to do about them. A
+finding is the next session's agenda. Every fix is its own act under the
+rules above, and nothing is deleted. The report carries no number taken
+from an entry, so it cannot become a second place a value lives.
+
+**Repeated gaps are read from the query log, so they are editorial**
+(`plan.md` 4.3.1 rule 4). The count lives in `kb_lint.py` and in this
+report and nowhere else. `mcp_server.py` never imports `kb_lint.py`, and
+`query_log.py` still offers no reader by caller, by observable or by count.
+The list is sorted by name and never by count.
+
+**When it runs.** The `trigger` field records which one:
+- `session_start`: the session's first act, before the first task. Skip it
+  when the latest report already stands at the current `kb_version` and
+  query-log length, and say in your first reply that you skipped it.
+- `publish`: in the same sitting as `export_snapshot.py`, beside the guides
+  and the wiki. Commit the report with the publish.
+- `asked`: when a seat or the person asks for one.
+
+There is no clock trigger on purpose. A timed job is held by a session and
+lapses with it, so a schedule written as a clock would read as kept on the
+days nobody ran it. After each lint, send manager-librarian the report's
+path and one count per list.
+
+**The ingest and lint log is `queries/ingest_log.jsonl`.** It is a record,
+like the query log beside it: outside `kb/`, outside `kb_version`, and never
+cited. `src/ingest_log.py` appends it, and nothing else writes it.
+- **One line per act.** `op` is `ingest`, `withdraw` or `lint`.
+- **Each line names** the seat, the time, the sources, the entries entered
+  or withdrawn, the report for a lint, and `kb_version` before and after.
+- **A lint line's two versions are equal**, because lint changes nothing.
+  A line where they differ is a lint that wrote to the store.
+- **The shape is fixed** and an unknown field is refused, as in
+  `query_log.py`. Commit it with the work it records.
+
+**The wiki is a generated reading layer, and no card can cite it.**
+`kb/wiki/` and `kb/guides/` are rendered from entries by code and never
+written by hand. Every sentence that states something about the world
+carries the entry id it rests on. A card cannot cite a page, and that needs
+no check of its own. A card reaches the store only through `kb_refs` and
+`kb:` sources, both resolve against the index's entries, and a page is
+never an entry. Check 25 refuses a page id in a card's `kb_refs`. A card's
+`kb:` source needs a `kb_refs` record, so check 25 refuses that too. Check 43
+refuses `kb:<page>` inside an entry. A history row proves it with a wiki
+page's stem.
+**Never give an entry an id that equals a page's file stem** (for example
+`device_camera_blue`). That would make a page's name citable. On 2026-11-03
+none of the 352 entry ids matched any of the 99 page stems.
+
 ## The console inbox: four kinds of request (`plan.md` 7.1.1)
 
 **`librarian_agent/console_inbox/` is named here, so it is yours to read.**
@@ -355,6 +437,8 @@ python3 librarian_agent/src/safety_guides.py --check   # fail if any guide diffe
 python3 librarian_agent/src/wiki.py                    # regenerate kb/wiki/ -- with every publish, beside the guides
 python3 librarian_agent/src/wiki.py --check            # fail if any page differs from what the store renders
 python3 librarian_agent/src/wiki.py --self-test        # the page rules, on a synthetic store
+python3 librarian_agent/src/kb_lint.py                 # the store checked against itself -> queries/lint-<date>.json (task 065)
+python3 librarian_agent/src/kb_lint.py --self-test     # each list, on a synthetic store (task 065)
 python3 contracts/validate.py                          # entries are schema-checked here too
 ```
 
