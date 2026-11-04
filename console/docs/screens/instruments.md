@@ -75,7 +75,8 @@ the order does not name. No picture of the stand and no list of parts is kept on
 **The look the drawing follows** is the person's file, kept as a reference in `docs/light-path/` (card 023,
 part 1; its README says where it came from and gives both hashes). It is data: a reference mockup that is
 replicated and not copied whole, carrying no fact or number into a card or the drawing. Nothing serves, builds or
-imports it, and no source file names the folder.
+imports it, and no source file names the folder. The look will come from Figma frames filed in `docs/figma/` once the
+person sends them (card 027); until then it is the light-path file's, as card 026 built it.
 
 **A click opens an element and offers only what the rules already allow** (card 023, part 3):
 
