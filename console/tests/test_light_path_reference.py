@@ -6,6 +6,7 @@ names, and nothing in the console's code or in its build refers to them.
 """
 
 import hashlib
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -21,6 +22,9 @@ SHA256 = {
     "canvas.json": "eab0c3c01541b47d8e30156b22e5b0ccbe7d9c6d6a7b8afa7ecc5a60bd71c138",
 }
 SIZE = {"Main.dc.html": 79719, "canvas.json": 334}
+
+# a slash, or one or more backslashes (a path written inside a string literal doubles each one)
+NAMES_FOLDER = re.compile(r"docs(/|\\+)light-path")
 
 GIT = shutil.which("git")
 
@@ -79,8 +83,7 @@ def _text_files(root: Path):
 def test_no_source_file_names_the_folder(tree):
     assert tree.is_dir()
     named = [p.relative_to(CONSOLE).as_posix() for p in _text_files(tree)
-             if "docs/light-path" in p.read_text(encoding="utf-8", errors="replace")
-             or "docs\\light-path" in p.read_text(encoding="utf-8", errors="replace")]
+             if NAMES_FOLDER.search(p.read_text(encoding="utf-8", errors="replace"))]
     assert named == []
 
 

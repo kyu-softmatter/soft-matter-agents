@@ -33,7 +33,9 @@ NAME_FORM = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*\.png$")
 SHA_FORM = re.compile(r"^[0-9a-f]{64}$")
 CARD_FORM = re.compile(r"^[0-9]{3}$")
 DATE_FORM = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
-NO_FRAME_SENTENCE = "No frame is filed yet."
+# a slash, or one or more backslashes (a path written inside a string literal doubles each one)
+NAMES_FOLDER = re.compile(r"docs(/|\\+)figma")
+NO_FRAME_SENTENCE ="No frame is filed yet."
 LINK_WORD = "figma" + ".com"
 
 GIT = shutil.which("git")
@@ -175,7 +177,7 @@ def naming_problems(tree: Path) -> list:
     for path in sorted(tree.rglob("*")):
         if path.is_file():
             text = path.read_bytes().decode("utf-8", errors="replace")
-            if "docs/figma" in text or "docs\\figma" in text:
+            if NAMES_FOLDER.search(text):
                 found.append(path.relative_to(tree).as_posix())
     return found
 
@@ -356,8 +358,12 @@ def test_a_source_file_naming_the_folder_is_found(tmp_path):
     tree.mkdir()
     (tree / "a.ts").write_text("import x from '../docs/figma/x'", encoding="utf-8")
     (tree / "b.ts").write_text("'..\\docs\\figma\\x'", encoding="utf-8")
+    # a backslash path inside a TS or Python string literal is written with two backslashes,
+    # so that is the text on disk; built with chr so no editor or shell halves it
+    two = chr(92) * 2
+    (tree / "d.ts").write_text(f"'..{two}docs{two}figma{two}x'", encoding="utf-8")
     (tree / "c.ts").write_text("nothing", encoding="utf-8")
-    assert naming_problems(tree) == ["a.ts", "b.ts"]
+    assert naming_problems(tree) == ["a.ts", "b.ts", "d.ts"]
 
 
 def test_a_build_file_with_a_listed_digest_or_a_name_from_the_folder_is_found(tmp_path):
