@@ -1220,6 +1220,7 @@
     {
       "seat": "simulation-scope-20261019-1",
       "committer_email": "simulation-scope-20261019-1@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by simulation-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "simulation_agent"
       ],
@@ -1236,6 +1237,7 @@
     {
       "seat": "bridge-scope-20261019-1",
       "committer_email": "bridge-scope-20261019-1@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by bridge-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "bridge"
       ],
@@ -1395,6 +1397,7 @@
     {
       "seat": "librarian-scope-20261019-3",
       "committer_email": "librarian-scope-20261019-3@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by librarian-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "librarian_agent"
       ],
@@ -1737,6 +1740,7 @@
     {
       "seat": "architecture-scope-20261019-4",
       "committer_email": "architecture-scope-20261019-4@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by architecture-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -1761,6 +1765,7 @@
     {
       "seat": "manager-microscope-scope-20261019-5",
       "committer_email": "manager-microscope-scope-20261019-5@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-microscope-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -1789,6 +1794,7 @@
     {
       "seat": "manager-simulation-scope-20261019-3",
       "committer_email": "manager-simulation-scope-20261019-3@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-simulation-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -1813,6 +1819,7 @@
     {
       "seat": "manager-librarian-scope-20261019-4",
       "committer_email": "manager-librarian-scope-20261019-4@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-librarian-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -1841,6 +1848,7 @@
     {
       "seat": "manager-bridge-scope-20261019-3",
       "committer_email": "manager-bridge-scope-20261019-3@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-bridge-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -2064,6 +2072,7 @@
     {
       "seat": "manager-microscope-scope-20261019-6",
       "committer_email": "manager-microscope-scope-20261019-6@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-microscope-scope-20261105-2; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -2096,6 +2105,7 @@
     {
       "seat": "harness-scope-20261019-1",
       "committer_email": "harness-scope-20261019-1@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by harness-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -2107,6 +2117,7 @@
     {
       "seat": "architecture-scope-20261019-5",
       "committer_email": "architecture-scope-20261019-5@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by architecture-scope-20261105-2; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -2122,6 +2133,7 @@
     {
       "seat": "architecture-scope-20261019-6",
       "committer_email": "architecture-scope-20261019-6@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by architecture-scope-20261105-3; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design"
       ],
@@ -2133,6 +2145,7 @@
     {
       "seat": "manager-console-scope-20261019-1",
       "committer_email": "manager-console-scope-20261019-1@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by manager-console-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "design",
         "console"
@@ -2163,6 +2176,7 @@
     {
       "seat": "console-scope-20261019-1",
       "committer_email": "console-scope-20261019-1@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by console-scope-20261105-1; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "console"
       ],
@@ -2171,6 +2185,7 @@
     {
       "seat": "microscope-scope-20261019-7",
       "committer_email": "microscope-scope-20261019-7@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by microscope-scope-20261105-2; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "microscope_agent"
       ],
@@ -2182,6 +2197,7 @@
     {
       "seat": "microscope-scope-20261019-8",
       "committer_email": "microscope-scope-20261019-8@seat.invalid",
+      "status": "closed 2026-11-05 -- replaced by microscope-scope-20261105-3; the person, in architecture-scope-20261019-1's window: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\"",
       "owns": [
         "microscope_agent"
       ],
@@ -2200,6 +2216,291 @@
         "microscope_agent/"
       ],
       "note": "The desktop session titled \"Hardware connection testing\" on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root, opened 2026-11-05. It asked for this row by message; the person's words, as that session reported them from its own window, were: asked which role the window should take to save the day's REA findings in soft-matter-agents, the person chose \"Microscope\"; asked whether to open an architecture window to register the seat so the file can be committed, the person answered \"Yes, register it\". The person then confirmed in architecture-scope-20261019-1's window on 2026-11-05 that this row should be added. n is 1, the first microscope seat for scope on 2026-11-05. owns and paths copied by code from microscope-scope-20261019-8. The session sits at the repository root, not microscope_agent/, so its agent-directory denials do not apply; its only intended write is one findings file under microscope_agent/findings/. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "architecture-scope-20261105-1",
+      "committer_email": "architecture-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "CLAUDE.md",
+        "ARCHITECT.md",
+        "README.md",
+        "LICENSE",
+        "docs/",
+        ".claude/",
+        ".mcp.json",
+        "pyproject.toml",
+        "uv.lock",
+        "pixi.lock",
+        ".gitignore",
+        ".gitattributes",
+        "contracts/seats.json"
+      ],
+      "note": "The session titled \"Architecture · bench\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of architecture-scope-20261019-4, which is closed. Every field except seat, committer_email and note copied by code from architecture-scope-20261019-4. Not yet seated: the person names this seat to the session in its own window. Closes architecture-scope-20261019-4."
+    },
+    {
+      "seat": "architecture-scope-20261105-2",
+      "committer_email": "architecture-scope-20261105-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "plan.md",
+        "docs/"
+      ],
+      "excludes": [
+        "docs/ideas/"
+      ],
+      "note": "The session titled \"Architecture · design docs\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of architecture-scope-20261019-5, which is closed. Every field except seat, committer_email and note copied by code from architecture-scope-20261019-5. Not yet seated: the person names this seat to the session in its own window. Closes architecture-scope-20261019-5."
+    },
+    {
+      "seat": "architecture-scope-20261105-3",
+      "committer_email": "architecture-scope-20261105-3@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "docs/ideas/"
+      ],
+      "note": "The session titled \"Intake desk\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of architecture-scope-20261019-6, which is closed. Every field except seat, committer_email and note copied by code from architecture-scope-20261019-6. Not yet seated: the person names this seat to the session in its own window. Closes architecture-scope-20261019-6."
+    },
+    {
+      "seat": "harness-scope-20261105-1",
+      "committer_email": "harness-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "contracts/harness/"
+      ],
+      "note": "The session titled \"a new Meta harness session\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of harness-scope-20261019-1, which is closed. Every field except seat, committer_email and note copied by code from harness-scope-20261019-1. Not yet seated: the person names this seat to the session in its own window. Closes harness-scope-20261019-1."
+    },
+    {
+      "seat": "manager-microscope-scope-20261105-1",
+      "committer_email": "manager-microscope-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The session titled \"Microscope manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-microscope-scope-20261019-5, which is closed. Every field except seat, committer_email and note copied by code from manager-microscope-scope-20261019-5. Not yet seated: the person names this seat to the session in its own window. Closes manager-microscope-scope-20261019-5."
+    },
+    {
+      "seat": "manager-microscope-scope-20261105-2",
+      "committer_email": "manager-microscope-scope-20261105-2@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "microscope_agent/CLAUDE.md",
+        "microscope_agent/.claude/",
+        "microscope_agent/tasks/",
+        "microscope_agent/README.md",
+        "microscope_runtime/CLAUDE.md",
+        "microscope_runtime/.claude/",
+        "microscope_runtime/tasks/",
+        "microscope_runtime/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/capabilities/microscope.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The session titled \"Runtime manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-microscope-scope-20261019-6, which is closed. Every field except seat, committer_email and note copied by code from manager-microscope-scope-20261019-6. Not yet seated: the person names this seat to the session in its own window. Closes manager-microscope-scope-20261019-6."
+    },
+    {
+      "seat": "manager-console-scope-20261105-1",
+      "committer_email": "manager-console-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design",
+        "console"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "console/CLAUDE.md",
+        "console/.claude/",
+        "console/tasks/",
+        "console/README.md",
+        "microscope_agent/console_inbox/",
+        "simulation_agent/console_inbox/",
+        "librarian_agent/console_inbox/"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/harness/",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "note": "The session titled \"Console manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-console-scope-20261019-1, which is closed. Every field except seat, committer_email and note copied by code from manager-console-scope-20261019-1. Not yet seated: the person names this seat to the session in its own window. Closes manager-console-scope-20261019-1."
+    },
+    {
+      "seat": "manager-simulation-scope-20261105-1",
+      "committer_email": "manager-simulation-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "simulation_agent/CLAUDE.md",
+        "simulation_agent/.claude/",
+        "simulation_agent/tasks/",
+        "simulation_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/seats.json"
+      ],
+      "note": "The session titled \"Simulation manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-simulation-scope-20261019-3, which is closed. Every field except seat, committer_email and note copied by code from manager-simulation-scope-20261019-3. Not yet seated: the person names this seat to the session in its own window. Closes manager-simulation-scope-20261019-3."
+    },
+    {
+      "seat": "manager-librarian-scope-20261105-1",
+      "committer_email": "manager-librarian-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "librarian_agent/CLAUDE.md",
+        "librarian_agent/.claude/",
+        "librarian_agent/tasks/",
+        "librarian_agent/README.md"
+      ],
+      "excludes": [
+        "contracts/seats.json",
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/round_hashes.schema.json",
+        "contracts/schemas/thread_status.schema.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/kb_entry.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The session titled \"Librarian manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-librarian-scope-20261019-4, which is closed. Every field except seat, committer_email and note copied by code from manager-librarian-scope-20261019-4. Not yet seated: the person names this seat to the session in its own window. Closes manager-librarian-scope-20261019-4."
+    },
+    {
+      "seat": "manager-bridge-scope-20261105-1",
+      "committer_email": "manager-bridge-scope-20261105-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "README.md",
+        "contracts/",
+        "bridge/CLAUDE.md",
+        "bridge/.claude/",
+        "bridge/tasks/",
+        "bridge/README.md"
+      ],
+      "excludes": [
+        "contracts/capabilities/microscope.json",
+        "contracts/capabilities/simulation.json",
+        "contracts/schemas/kb_entry.schema.json",
+        "contracts/seats.json"
+      ],
+      "owns_in_contracts": [
+        "contracts/schemas/ask.schema.json",
+        "contracts/schemas/thread_status.schema.json",
+        "contracts/schemas/round_hashes.schema.json"
+      ],
+      "shared_in_contracts": "Everything else under contracts/ is held by all four managers and is not divided: validate.py, schemas/common.schema.json, units.json, observables.json, validation_limits.json, hooks/, examples/ and the card schemas both executing agents use. There check 41 gives attribution and not refusal -- `paths` starting at contracts/ looks like a division and is not one, and this line is here so the registry does not imply a boundary it cannot hold. What guards that surface is the worktree merge (6.2.1), not this file.",
+      "note": "The session titled \"Bridge manager\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of manager-bridge-scope-20261019-3, which is closed. Every field except seat, committer_email and note copied by code from manager-bridge-scope-20261019-3. Not yet seated: the person names this seat to the session in its own window. Closes manager-bridge-scope-20261019-3."
+    },
+    {
+      "seat": "microscope-scope-20261105-2",
+      "committer_email": "microscope-scope-20261105-2@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_runtime/"
+      ],
+      "note": "The session titled \"Microscope · runtime\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of microscope-scope-20261019-7, which is closed. Every field except seat, committer_email and note copied by code from microscope-scope-20261019-7. Not yet seated: the person names this seat to the session in its own window. Closes microscope-scope-20261019-7."
+    },
+    {
+      "seat": "microscope-scope-20261105-3",
+      "committer_email": "microscope-scope-20261105-3@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_agent/"
+      ],
+      "note": "The session titled \"Microscope · planning\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of microscope-scope-20261019-8, which is closed. Every field except seat, committer_email and note copied by code from microscope-scope-20261019-8. Not yet seated: the person names this seat to the session in its own window. Closes microscope-scope-20261019-8."
+    },
+    {
+      "seat": "console-scope-20261105-1",
+      "committer_email": "console-scope-20261105-1@seat.invalid",
+      "owns": [
+        "console"
+      ],
+      "note": "The session titled \"Console\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of console-scope-20261019-1, which is closed. Every field except seat, committer_email and note copied by code from console-scope-20261019-1. Not yet seated: the person names this seat to the session in its own window. Closes console-scope-20261019-1."
+    },
+    {
+      "seat": "simulation-scope-20261105-1",
+      "committer_email": "simulation-scope-20261105-1@seat.invalid",
+      "owns": [
+        "simulation_agent"
+      ],
+      "note": "The session titled \"Simulation\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of simulation-scope-20261019-1, which is closed. Every field except seat, committer_email and note copied by code from simulation-scope-20261019-1. Not yet seated: the person names this seat to the session in its own window. Closes simulation-scope-20261019-1."
+    },
+    {
+      "seat": "librarian-scope-20261105-1",
+      "committer_email": "librarian-scope-20261105-1@seat.invalid",
+      "owns": [
+        "librarian_agent"
+      ],
+      "note": "The session titled \"Librarian\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of librarian-scope-20261019-3, which is closed. Every field except seat, committer_email and note copied by code from librarian-scope-20261019-3. Not yet seated: the person names this seat to the session in its own window. Closes librarian-scope-20261019-3."
+    },
+    {
+      "seat": "bridge-scope-20261105-1",
+      "committer_email": "bridge-scope-20261105-1@seat.invalid",
+      "owns": [
+        "bridge"
+      ],
+      "note": "The session titled \"Bridge\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of bridge-scope-20261019-1, which is closed. Every field except seat, committer_email and note copied by code from bridge-scope-20261019-1. Not yet seated: the person names this seat to the session in its own window. Closes bridge-scope-20261019-1."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
