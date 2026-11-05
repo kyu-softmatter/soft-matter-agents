@@ -293,21 +293,95 @@ The loop has never gone past "the microscope's goal". The last four steps have
 never been done for any thread. The missing result-card writer is the one gap
 in the code itself; the others are steps that have simply never been done.
 
+## 7. Follow-up the same morning (10:15–11:00)
+
+### Fixed or confirmed
+
+- **Simulation environment for this worktree:** built. It runs from
+  `/mnt/d/closed-loop-validation` and loads this branch's `contracts/`, not
+  main's. The engine check says it matches the pin. The smoke run gave the same
+  result as before (about 16,700 steps/s, mean squared displacement ratio
+  0.88), and the trajectory round-trip check passes.
+- **Kinetix cameras:** both visible to Windows from 10:21, after the person
+  switched them on.
+- **Tweez 300:** its USB link was back from 10:20 and its program from 10:20:55.
+  Port 2070 accepted a connection at 10:22:38. The connection was closed
+  without sending anything.
+- **The gate strips the configuration's startup preset before loading**, so a
+  load sets no mirror or port position. Section 1 implied otherwise.
+
+### The DMD, for later: not used today (the person, 2026-11-05)
+
+**No Micro-Manager driver for the Mightex Polygon1000 works with the core the
+run engine uses.** Until one arrives, the approved configuration
+`DMD_dualcam_LUNF.cfg` cannot load from Python.
+
+| | Interface version | Polygon1000 driver |
+|---|---|---|
+| Micro-Manager core in Python (pymmcore 12.5.0.75.0) | 75 | — |
+| `C:\Program Files\Micro-Manager-2.0` (built 2023-12-23) | 71 | present: Mightex's 2021 support package, copied there 2023-11-28 |
+| pymmcore-plus `Micro-Manager_2.0.3_20260806` | 75 | **absent** |
+
+- The engine loads from the pymmcore-plus folder, which is what pymmcore-plus
+  picks by default. Every bench load that ever succeeded used that folder with
+  a configuration **without** the DMD: 2026-09-24 and 2026-10-02.
+- The Program Files folder is no way round it: every driver there is
+  version 71, so the core would refuse all of them, not just the DMD.
+- The pymmcore-plus folder has `mmgr_dal_MightexPolygon.dll` (version 75), but
+  that driver is written for the Polygon400 and uses the Polygon400 library.
+  When Micro-Manager's core loaded it, it began searching for connected
+  devices, and it crashed Python with an access violation. It was not tried
+  again.
+- Forum reports say this driver does not fully support the Polygon1000, and
+  Micro-Manager does not publish the Polygon1000 driver's source.
+- **What closes it:** a Polygon1000 driver built for device interface 75,
+  from Mightex. The person decided to wait for Mightex. When one arrives, check
+  its interface version before anything loads it; reading the version opens no
+  device.
+- Running the reader against the approved configuration
+  (`run-20261105-901`, kept in the session's scratch folder) stopped at the
+  DMD line before any device started: no device was opened.
+
+### A configuration without the DMD, for today
+
+The approved configuration with line 8
+(`Device,MightexPolygon1000,MightexPolygon1000,MightexPolygon1000`) removed is
+the one change. Every other byte is kept, and no other line names the DMD.
+Its sha256 is `193d71079fef3a93852e3b1753472556da726de593fbc18e2fc102e57ad0ed15`.
+It loads only after the person writes an approval for that hash.
+
+### Still open
+
+- **The documented device-reader command does not start:**
+  `python microscope_runtime/src/read_devices.py ...` crashes on Python 3.12.
+  The runtime's `operator.py` hides Python's own `operator` module when the
+  script's folder comes first on the import path. `python -P ...` runs it.
+  The simulation agent has the same trap. This is for the runtime session to
+  fix.
+- **The commit tool on this branch cannot commit a new file.** It uses
+  `git commit --only`, which refuses an untracked path, so new files have to be
+  staged by name first.
+- **Its `--push` does not add the credential helper** this computer needs, and
+  the push of the readiness report waited for the person's own terminal.
+
 ## Before the live test: what to do
 
 **On the bench, yours:**
-1. Power on both Kinetix cameras and confirm they appear in Device Manager.
-2. Start the Tweez 300 GUI so port 2070 listens.
+1. ~~Power on both Kinetix cameras and confirm they appear in Device Manager.~~
+   Done, 10:21.
+2. ~~Start the Tweez 300 GUI so port 2070 listens.~~ Done, 10:21.
 3. Find and fix the two USB devices that are in error.
 4. Decide which program drives the LUN-F lasers (NIS-Elements or
    Micro-Manager).
-5. Decide which Micro-Manager folder the engine loads from.
+5. ~~Decide which Micro-Manager folder the engine loads from.~~ The
+   pymmcore-plus folder; see section 7. Approve the configuration without the
+   DMD for today, and wait for Mightex for the DMD.
 6. Hand the bench, in its own window, to the session that will run the live
    connection test.
 
 **In the repository, the sessions':**
-7. Build the simulation environment for this worktree (the `pixi install`
-   command in section 2).
+7. ~~Build the simulation environment for this worktree.~~ Done; see
+   section 7.
 8. Have the microscope and simulation agents re-copy their knowledge snapshots.
 9. Decide whether to install the commit gate.
 10. Pick one thread, carry it through plan → mock run → result card → return
