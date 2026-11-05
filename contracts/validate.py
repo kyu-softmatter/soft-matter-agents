@@ -1843,12 +1843,6 @@ ALLOWED_PATHS = [
     r"^simulation_agent/envelope/(budget|snapshot)\.json$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
-    # The removed console's three empty inbox placeholders (2026-11-04), allowed
-    # only until the commit under `human` that deletes them; the next design
-    # commit removes this line. They could not go with console/: check 91,
-    # which forbade deleting them, left in a contracts/ commit, and check 35
-    # keeps contracts/ and the console's boundary in separate commits.
-    r"^(microscope|simulation|librarian)_agent/console_inbox/\.gitkeep$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
