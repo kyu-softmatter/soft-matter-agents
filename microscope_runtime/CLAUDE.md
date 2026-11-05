@@ -65,8 +65,16 @@ agent's folder, `contracts/` or `plan.md`.
 
 ## Talking to the person
 
-Ask the person directly, in this window. Three acts stay the person's own, in their own place:
-signing a plan's hash, writing a safety value, and handing over the bench.
+**Questions for the person go to the intake session on this computer**, as "Talking to the person" in
+the root `CLAUDE.md` says.
+- Act on its committed line, citing the commit.
+- If no intake session is running, ask in this window.
+
+**The bench is the exception, and it never passes through the intake session.** Open a device only
+after the person has said, in this window, that the bench is yours.
+
+Four acts stay the person's own, in their own place: signing a plan's hash, writing a safety value,
+handing over the bench, and paying.
 
 ## Before committing
 
