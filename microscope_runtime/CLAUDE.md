@@ -15,19 +15,18 @@ until the person moves them, the safety policy and approvals still sit in
 
 ## Who writes here
 
-- **The runtime seat**, which the person opens in this folder and seats in
-  that window. Its `paths` in `contracts/seats.json` are
-  `microscope_runtime/`, and check 41 refuses it anywhere else.
-- **manager-microscope** writes `tasks/`, this file and `.claude/`. A seat
-  that can edit its own orders has none.
+- **The runtime session**, which the person opens in this folder. It commits as `microscope`, the
+  one name for the whole microscope boundary (contracts/seats.json; plan.md 6.2.1).
+- **A design session** at the repository root writes `tasks/`, this file and `.claude/`, on the
+  person's word. A session that can edit its own orders has none.
 - **The person** writes `envelope/safety.json`, `envelope/console_login.json`
   and `approvals/`, by hand, and commits them. No session writes or commits
   any of them, ever. A console-signed approval is the one file another
   program writes there: the console's server, at the moment the person types
   the password (plan.md 15.1 item 4).
 
-A planning seat, narrowed to `microscope_agent/`, is refused here. The two
-folders are one boundary divided by seat, and the line between them is the
+The planning session in `microscope_agent/` works on paper and does not write here by habit. The two
+folders are one boundary under one name, and the line between them is the
 one the design already draws: the design plans, the runtime runs what the
 person approved.
 
@@ -66,14 +65,11 @@ agent's folder, `contracts/` or `plan.md`.
 
 ## Talking to the person
 
-Questions for the person, and results meant for them, go to the intake seat,
-`architecture-office-20261017-2`, not to this window (plan.md 6). A decision
-said there counts once its line is committed in `docs/ideas/`, and you cite
-that commit. Three acts stay the person's own, in their own place: signing a
-plan's hash, writing a safety value, and handing over the bench.
+Ask the person directly, in this window. Three acts stay the person's own, in their own place:
+signing a plan's hash, writing a safety value, and handing over the bench.
 
 ## Before committing
 
-Commit and push through `contracts/tools/seat_commit.py`, naming paths, as
-the root `CLAUDE.md` says. Run the validator under the interpreter that file
+Commit through `contracts/tools/seat_commit.py --seat microscope`, naming paths, as
+the root `CLAUDE.md` says, and push only when the person says so. Run the validator under the interpreter that file
 names for this computer. Never `--no-verify`, `--amend` or force.

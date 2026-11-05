@@ -99,7 +99,7 @@ def base(repo: Path) -> str:
     run(repo, "init", "-q", "-b", "main")
     shutil.copytree(CONTRACTS, repo / "contracts")
     write(repo, "README.md", "# fixture\n")
-    return commit(repo, "base", "contracts", "README.md", seat="architecture")
+    return commit(repo, "base", "contracts", "README.md", seat="design")
 
 
 # --------------------------------------------------------------------------- #
@@ -118,7 +118,7 @@ def fixture_35_one_commit_two_boundaries(repo: Path) -> str:
     write(repo, "microscope_agent/questions/q/goal.json", {"card": "goal"})
     write(repo, "simulation_agent/questions/q/goal.json", {"card": "goal"})
     commit(repo, "one commit, two agents",
-           "microscope_agent", "simulation_agent", seat="microscope-1")
+           "microscope_agent", "simulation_agent", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -133,7 +133,7 @@ def fixture_41_seat_writes_outside_its_own(repo: Path) -> str:
     start = base(repo)
     write(repo, "bridge/threads/t/status.json", {"artifact": "thread_status"})
     commit(repo, "microscope seat writes into the bridge's tree",
-           "bridge", seat="microscope-1")
+           "bridge", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -151,10 +151,10 @@ def fixture_35_a_root_commit_in_the_range_is_judged(repo: Path) -> str:
     write(repo, "microscope_agent/questions/q/goal.json", {"card": "goal"})
     write(repo, "simulation_agent/questions/q/goal.json", {"card": "goal"})
     commit(repo, "a root commit writing into two agents",
-           "microscope_agent", "simulation_agent", seat="microscope-1")
+           "microscope_agent", "simulation_agent", seat="microscope")
     shutil.copytree(CONTRACTS, repo / "contracts")
     write(repo, "README.md", "# fixture\n")
-    commit(repo, "the registry, after the root", "contracts", "README.md", seat="architecture")
+    commit(repo, "the registry, after the root", "contracts", "README.md", seat="design")
     return "HEAD"
 
 
@@ -179,7 +179,7 @@ def fixture_41_an_imported_history_is_not_attributed(repo: Path) -> str:
     write(src, "docs/notes.md", "# notes\n")
     commit(src, "the imported project's second commit", "docs", seat="not-a-seat-here")
     run(repo, "subtree", "add", "-q", "--prefix=microscope_agent/autofocus", str(src), "main",
-        seat="microscope-1")
+        seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -198,22 +198,6 @@ def fixture_41_unregistered_committer(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
-def fixture_41_a_planning_seat_writes_into_the_runtime(repo: Path) -> str:
-    """A planning seat, narrowed to microscope_agent/, committing runtime code.
-
-    plan.md 15 puts the microscope runtime in its own folder inside the SAME
-    boundary, and the seats divide the boundary by `paths`. So nothing but the
-    narrowing keeps a design session out of device code -- the job card 064
-    did by naming files. microscope-1 carries paths ["microscope_agent/"] in
-    the real registry since df579182.
-    """
-    start = base(repo)
-    write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
-    commit(repo, "a planning seat writes into the runtime's folder",
-           "microscope_runtime", seat="microscope-1")
-    return f"{start}..HEAD"
-
-
 def readme(first: str, middle: str, last: str) -> str:
     """README.md with a first, a middle and a last line far enough apart to merge cleanly."""
     return "".join(line + chr(10) for line in [first, "", "one", "two", middle, "four", "five", "", last])
@@ -228,13 +212,13 @@ def _two_sided_readme(repo: Path) -> str:
     """
     base(repo)
     write(repo, "README.md", readme("# fixture", "three", "end"))
-    start = commit(repo, "a README with room for two edits", "README.md", seat="architecture")
+    start = commit(repo, "a README with room for two edits", "README.md", seat="design")
     run(repo, "checkout", "-q", "-b", "other")
     write(repo, "README.md", readme("# fixture", "three", "end, on the branch"))
-    commit(repo, "the branch edits the last line", "README.md", seat="architecture")
+    commit(repo, "the branch edits the last line", "README.md", seat="design")
     run(repo, "checkout", "-q", "main")
     write(repo, "README.md", readme("# fixture, on main", "three", "end"))
-    commit(repo, "main edits the first line", "README.md", seat="architecture")
+    commit(repo, "main edits the first line", "README.md", seat="design")
     return start
 
 
@@ -250,7 +234,7 @@ def fixture_41_a_clean_merge_attributes_nothing(repo: Path) -> str:
     attributed.
     """
     start = _two_sided_readme(repo)
-    run(repo, "merge", "-q", "--no-ff", "--no-edit", "other", seat="microscope-1")
+    run(repo, "merge", "-q", "--no-ff", "--no-edit", "other", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -262,29 +246,23 @@ def fixture_41_a_merge_that_adds_its_own_line_is_judged(repo: Path) -> str:
     cannot turn into skipping merges.
     """
     start = _two_sided_readme(repo)
-    run(repo, "merge", "-q", "--no-ff", "--no-commit", "other", seat="microscope-1")
+    run(repo, "merge", "-q", "--no-ff", "--no-commit", "other", seat="microscope")
     write(repo, "README.md", readme("# fixture, on main", "three, added while merging", "end, on the branch"))
-    commit(repo, "a merge that adds a line of its own", "README.md", seat="microscope-1")
+    commit(repo, "a merge that adds a line of its own", "README.md", seat="microscope")
     return f"{start}..HEAD"
 
 
 def fixture_41_the_runtime_seat_inside_the_runtime(repo: Path) -> str:
-    """A seat narrowed to microscope_runtime/ committing runtime code is admitted.
+    """The microscope name committing runtime code is admitted.
 
-    The other side of the refusal above: a classifier that refused every
-    runtime path to everyone would satisfy that fixture alone, and the runtime
-    seat of plan.md 15 step 4 could not land the move. No such seat is
-    registered yet, so this appends one, the way the person's seating will.
+    microscope_runtime/ sits in the microscope boundary (plan.md 15) and one
+    name, `microscope`, commits all of it. A classifier that refused every
+    runtime path to everyone would refuse this commit.
     """
-    seat = "microscope-20261018-9"
-    start = _registry_with(repo, {"seat": seat, "committer_email": f"{seat}@seat.invalid",
-                                  "owns": ["microscope_agent"], "paths": ["microscope_runtime/"],
-                                  "note": "a fixture's runtime seat"},
-                           "seats: a runtime seat for the fixture").split("..")[0]
+    start = base(repo)
     write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
-    commit(repo, "the runtime seat writes its own code", "microscope_runtime", seat=seat)
+    commit(repo, "the microscope writes its run engine", "microscope_runtime", seat="microscope")
     return f"{start}..HEAD"
-
 
 def fixture_35_the_design_and_runtime_folders_are_one_boundary(repo: Path) -> str:
     """One commit into microscope_agent/ and microscope_runtime/ is one boundary.
@@ -298,7 +276,7 @@ def fixture_35_the_design_and_runtime_folders_are_one_boundary(repo: Path) -> st
     write(repo, "microscope_agent/src/run_lock.py", "VALUE = 1\n")
     write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
     commit(repo, "one commit across the microscope's two folders",
-           "microscope_agent", "microscope_runtime", seat="microscope-1")
+           "microscope_agent", "microscope_runtime", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -313,138 +291,28 @@ def fixture_35_one_commit_into_the_runtime_and_another_agent(repo: Path) -> str:
     write(repo, "microscope_runtime/src/operator.py", "VALUE = 1\n")
     write(repo, "simulation_agent/src/engine.py", "VALUE = 1\n")
     commit(repo, "one commit, the runtime and another agent",
-           "microscope_runtime", "simulation_agent", seat="microscope-1")
-    return f"{start}..HEAD"
-
-
-def _console_seat() -> str:
-    """The first open execution seat in the real registry: it owns the console
-    boundary and no `paths` narrows it.
-
-    Read, not written down, for the reason base() copies seats.json: a fixture
-    that named today's console seat would break the day that seat closes, and
-    one that invented a seat would keep passing after the real registry moved.
-
-    The narrowing matters since `59012b85` (2026-10-26). The console managers
-    then came to own the boundary too, narrowed to the console's orders and
-    the three inboxes, and they sit first in the file. Picking by `owns`
-    alone handed these fixtures a manager. That seat may write console/CLAUDE.md
-    and may not write console/src/, which is each fixture's verdict reversed.
-    """
-    reg = json.loads((CONTRACTS / "seats.json").read_text(encoding="utf-8"))
-    for s in reg.get("seats", []):
-        if "console" in (s.get("owns") or []) and not s.get("closed") and not s.get("paths"):
-            return s["seat"]
-    raise RuntimeError("no open, unnarrowed seat in contracts/seats.json owns the console boundary")
-
-
-def fixture_35_one_commit_into_the_console_and_an_agent(repo: Path) -> str:
-    """One commit writing into console/ and microscope_agent/ at once.
-
-    console/ became a boundary of its own on 2026-10-17 (plan.md 15). Until
-    the classifier knew it, console/ was `unattributable`, which check 35 does
-    not count, so this commit read as one boundary and passed. It is the shape
-    the console's move must not take: its additions and the deletions of the
-    originals are two commits by two seats, because no seat may make them one.
-    """
-    start = base(repo)
-    write(repo, "console/src/pkg/app.py", "VALUE = 1\n")
-    write(repo, "microscope_agent/questions/q/goal.json", {"card": "goal"})
-    commit(repo, "one commit, the console and an agent",
-           "console", "microscope_agent", seat="microscope-1")
-    return f"{start}..HEAD"
-
-
-def fixture_41_an_agent_seat_writes_into_the_console(repo: Path) -> str:
-    """A microscope seat committing a screen of the console's.
-
-    The console reads all four agents, and the reason it left the microscope
-    agent's folder is that a seat of one agent would otherwise own the screens
-    about the other three. Before the classifier knew console/, this was
-    refused only as `unattributable`, which names no owner.
-    """
-    start = base(repo)
-    write(repo, "console/web/index.html", "<!doctype html>\n")
-    commit(repo, "a microscope seat writes into the console's tree",
-           "console", seat="microscope-1")
-    return f"{start}..HEAD"
-
-
-def fixture_41_the_console_seat_writes_its_own_orders(repo: Path) -> str:
-    """The console's execution seat committing its own CLAUDE.md.
-
-    An agent directory's CLAUDE.md, README.md, .claude/ and tasks/ are the
-    design side's and its manager's (6.2), and the console's are too: a seat
-    that can edit its own orders has none. This is the case DESIGN_OWNED
-    exists for, and the console was added to it with this fixture.
-    """
-    start = base(repo)
-    write(repo, "console/CLAUDE.md", "# console\n")
-    commit(repo, "the console seat edits its own standing orders",
-           "console", seat=_console_seat())
-    return f"{start}..HEAD"
-
-
-def fixture_41_the_console_seat_inside_its_own(repo: Path) -> str:
-    """The console's execution seat committing its own code is admitted.
-
-    The other side of the two refusals above. Without it, a classifier that
-    refused every console/ path to everyone would satisfy both, and the
-    console seat could not land its move.
-    """
-    start = base(repo)
-    write(repo, "console/src/pkg/app.py", "VALUE = 1\n")
-    commit(repo, "the console seat writes its own code",
-           "console", seat=_console_seat())
-    return f"{start}..HEAD"
-
-
-def fixture_01_a_card_beside_the_consoles_mock_data_is_read(repo: Path) -> str:
-    """Only the console's mock-data folder is stepped over, and nothing beside it.
-
-    The console's mock data is a copied sample of this repository's tree, and
-    every card in it is a mock, so the card checks do not read it
-    (CONSOLE_MOCK_DATA). The dangerous direction for such a rule is the wide
-    one -- a skip that also hid a real card, or a console-only card shape,
-    which 11-25 rule 2 forbids. So this fixture puts a card of an unknown kind
-    one name beside the folder, `agents/mock_data_draft.json`, which a prefix
-    without its trailing slash would swallow, and asserts check 1 still reads
-    it. A mock card of another unknown kind sits inside the folder; that it is
-    not reported is what the skip does, and no row can assert an absence.
-    """
-    start = base(repo)
-    write(repo, "console/src/pkg/agents/mock_data/microscope_agent/questions/q/goal.json",
-          {"card": "console_only_mock"})
-    write(repo, "console/src/pkg/agents/mock_data_draft.json", {"card": "console_only_shape"})
-    commit(repo, "a mock card and a card beside the mock folder", "console", seat=_console_seat())
+           "microscope_runtime", "simulation_agent", seat="microscope")
     return f"{start}..HEAD"
 
 
 def fixture_01_an_artifact_in_a_tree_without_cards_is_judged(repo: Path) -> str:
-    """HP-015 (2026-10-22): check 1 judges an artifact when no card is present.
+    """Check 1 judges an artifact when no card is present (2026-10-22).
 
-    Check 1 returned N/A ("no cards found") before it reached its artifact
-    loop, so a tree holding a harness retro or proposal and no card had none of
-    them schema-checked. HP-013's rejected group was judged that way, from a
-    run over the group alone, and its three check 1 failures went unseen
-    (INC-20261022-04). The live tree always holds cards and a rejected group is
+    Check 1 once returned N/A ("no cards found") before it reached its artifact
+    loop, so a tree holding an artifact and no card had none of them
+    schema-checked. The live tree always holds cards and a rejected group is
     judged together with every other fixture, so neither can show the case.
     Only a built tree with every card taken out can. The examples are removed
-    in a commit of their own, and then a retro missing `verdict` is added.
+    in a commit of their own, and then a lint report carrying a value is added.
     """
     base(repo)
     shutil.rmtree(repo / "contracts" / "examples")
-    start = commit(repo, "the copied examples, and every card with them, out", "contracts",
-                   seat="harness-office-20261016-1")
-    write(repo, "contracts/harness/retro/20261022.json", {
-        "artifact": "harness_retro", "schema_version": "0.1", "seat": "harness-office-20261016-1",
-        "on": "2026-10-22", "trigger": "daily", "tree": "the fixture's",
-        "observed": [{"source": "fixture", "path": None, "window": "-", "found": "nothing"}],
-        "new_incidents": [], "measured": [], "proposals": [], "landed_today": [], "next": []})
-    commit(repo, "a retro with no verdict, in a tree with no card", "contracts/harness",
-           seat="harness-office-20261016-1")
+    start = commit(repo, "the copied examples, and every card with them, out", "contracts", seat="design")
+    write(repo, "librarian_agent/queries/lint-20261103.json",
+          _kb_lint(past_valid_until=[{"entry_id": "e4", "valid_until": "2026-10-01", "value": 0.108}]))
+    commit(repo, "a lint report carrying a value, in a tree with no card", "librarian_agent/queries",
+           seat="librarian")
     return f"{start}..HEAD"
-
 
 def fixture_26_snapshot_is_a_copy_of_another_commit(repo: Path) -> str:
     """An envelope snapshot whose embedded text belongs to a different commit.
@@ -480,7 +348,7 @@ def fixture_26_snapshot_is_a_copy_of_another_commit(repo: Path) -> str:
         "tables": {},
     })
     commit(repo, "carry a snapshot that names one commit and holds another's bytes",
-           "microscope_agent", seat="microscope-1")
+           "microscope_agent", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -506,7 +374,7 @@ def fixture_46_vocabulary_pin_that_never_stood(repo: Path) -> str:
         },
     })
     commit(repo, "a result pinning a vocabulary that never stood",
-           "microscope_agent", seat="microscope-1")
+           "microscope_agent", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -533,7 +401,7 @@ def fixture_76_a_local_settings_file_is_named(repo: Path) -> str:
     head = base(repo)
     write(repo, ".claude/settings.json", {"permissions": {"deny": []}})
     run(repo, "add", "--", ".claude/settings.json")
-    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="architecture")
+    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="design")
     # untracked on purpose, and never added
     write(repo, ".claude/settings.local.json",
           {"disabledMcpjsonServers": ["librarian"], "permissions": {"deny": ["Bash(rm*)"]}})
@@ -555,7 +423,7 @@ def fixture_76_an_export_says_it_could_not_have_seen_it(repo: Path) -> str:
     head = base(repo)
     write(repo, ".claude/settings.json", {"permissions": {"deny": []}})
     run(repo, "add", "--", ".claude/settings.json")
-    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="architecture")
+    run(repo, "commit", "-q", "--no-verify", "-m", "settings", seat="design")
     write(repo, ".claude/settings.local.json", {"disabledMcpjsonServers": ["librarian"]})
     return f"{head}..HEAD"
 
@@ -583,10 +451,10 @@ def fixture_78_a_classifier_edit_orphans_a_path_in_history(repo: Path) -> str:
     seats["enforced_from"] = start
     write(repo, "contracts/seats.json", seats)
     commit(repo, "the enforcement line, named for this repository",
-           "contracts/seats.json", seat="architecture")
+           "contracts/seats.json", seat="design")
 
     write(repo, "README.md", "# fixture, and a root file the classifier knows\n")
-    commit(repo, "a root file both lists carry", "README.md", seat="architecture")
+    commit(repo, "a root file both lists carry", "README.md", seat="design")
 
     # The edit itself: SHARED_PATHS stops knowing the name, and ALLOWED_PATHS
     # keeps permitting it. Targeted at that line rather than at the first
@@ -602,7 +470,7 @@ def fixture_78_a_classifier_edit_orphans_a_path_in_history(repo: Path) -> str:
         raise AssertionError("no SHARED_PATHS assignment to edit")
     v.write_text("".join(lines))
     commit(repo, "the classifier stops knowing a name history still carries",
-           "contracts/validate.py", seat="architecture")
+           "contracts/validate.py", seat="design")
     return f"{start}..HEAD"
 
 
@@ -623,7 +491,7 @@ def fixture_79_gitignore_excludes_a_directory_the_walker_enters(repo: Path) -> s
     start = base(repo)
     write(repo, ".gitignore", "__pycache__/\n.venv/\n.pixi/\nbuild/\n*.pyc\n")
     commit(repo, "a .gitignore naming a directory the walker still enters",
-           ".gitignore", seat="architecture")
+           ".gitignore", seat="design")
     return f"{start}..HEAD"
 
 
@@ -657,7 +525,7 @@ def fixture_80_five_forms_and_five_that_must_not_fire(repo: Path) -> str:
         "optical_paths": [{"id": "confocal"}],
     })
     write(repo, "microscope_agent/src/probe_subject.py", SUBJECT_80)
-    sha = commit(repo, "plant", "librarian_agent", "microscope_agent", seat="microscope-1")
+    sha = commit(repo, "plant", "librarian_agent", "microscope_agent", seat="microscope")
     return f"{head}..{sha}"
 
 
@@ -964,40 +832,17 @@ def _registry_with(repo: Path, extra: dict, message: str) -> str:
     doc["dated_form_from"] = start
     doc["seats"].append(extra)
     write(repo, "contracts/seats.json", doc)
-    commit(repo, message, "contracts/seats.json", seat="architecture")
+    commit(repo, message, "contracts/seats.json", seat="design")
     return f"{start}..HEAD"
-
-
-def fixture_84_a_seat_registered_after_the_epoch_with_an_undated_name(repo: Path) -> str:
-    """A seat added after the dated form took effect, named the old way.
-
-    The person asked on 2026-09-23 for <role>-<YYYYMMDD>-<n>. Entries that
-    existed then keep their names; a new one that does not follow the form is
-    refused. The name here also carries a date that is not on the calendar,
-    so the parse has to reject both the shape and the thirteenth month."""
-    return _registry_with(repo, {"seat": "simulation-20261345-1", "committer_email":
-                                 "simulation-20261345-1@seat.invalid", "owns": ["simulation_agent"]},
-                          "a seat whose date does not exist")
 
 
 def fixture_84_two_seats_share_one_committer_email(repo: Path) -> str:
     """Two seats, one committer email. Measured in a scratch copy before this
     check was asked for: the gate passed it and check 41 then handed one seat's
     commits to the other, because a seat is identified by its email."""
-    return _registry_with(repo, {"seat": "manager-simulation", "committer_email":
-                                 "manager-simulation@seat.invalid", "owns": ["design"],
-                                 "excludes": ["contracts/seats.json"]},
+    return _registry_with(repo, {"seat": "simulation", "committer_email":
+                                 "simulation@seat.invalid", "owns": ["simulation_agent"]},
                           "a second entry reusing an email already registered")
-
-
-def fixture_84_a_manager_that_can_write_the_registry(repo: Path) -> str:
-    """A manager entry without contracts/seats.json in `excludes`. Measured
-    before it was asked for: such an entry passed check 41 on seats.json AND
-    plan.md -- a design seat able to rewrite the file that bounds it."""
-    return _registry_with(repo, {"seat": "manager-sweep-20260923-1", "committer_email":
-                                 "manager-sweep-20260923-1@seat.invalid", "owns": ["design"],
-                                 "paths": ["contracts/"]},
-                          "a manager entry with no exclusion of the registry")
 
 
 def fixture_68_a_superseded_record_cannot_be_rewritten(repo: Path) -> str:
@@ -1038,7 +883,7 @@ def fixture_68_a_superseded_record_cannot_be_rewritten(repo: Path) -> str:
     reg["quantities"].append({"id": "number_density", "definition": "count per volume",
                               "unit": "1/ml", "kind": "physical"})
     write(repo, "contracts/quantities.json", reg)
-    sha = commit(repo, "plant", "microscope_agent", "contracts", seat="microscope-1")
+    sha = commit(repo, "plant", "microscope_agent", "contracts", seat="microscope")
     return f"{head}..{sha}"
 
 
@@ -1267,89 +1112,6 @@ def fixture_87_wiki_at_the_published_version_while_the_store_moved(repo: Path) -
                       "an entry committed after the last publish, with the wiki at the published version")
 
 
-def fixture_89_a_harness_log_line_rewritten(repo: Path) -> str:
-    """A committed line of the meta-harness ledger, edited in a later commit.
-
-    The two harness logs are append-only (plan.md 8.3): a correction is a new
-    line. No file fixture can show that, because the defect is a difference
-    between two commits and not anything either tree holds -- each tree's
-    ledger is well-formed on its own.
-    """
-    base(repo)
-    line = {"at": "2026-10-16T20:51:00Z", "proposal": "HP-001", "outcome": "drafted",
-            "by_seat": "harness-office-20261016-1"}
-    write(repo, "contracts/harness/ledger.jsonl", json.dumps(line) + "\n")
-    start = commit(repo, "harness: one ledger line", "contracts/harness", seat="harness-office-20261016-1")
-    line["at"] = "2026-10-16T21:00:00Z"
-    write(repo, "contracts/harness/ledger.jsonl", json.dumps(line) + "\n")
-    commit(repo, "harness: the same line, edited in place", "contracts/harness",
-           seat="harness-office-20261016-1")
-    return f"{start}..HEAD"
-
-
-def fixture_89_two_machines_record_on_one_day(repo: Path) -> str:
-    """HP-013 (2026-10-22): two harness seats on two machines, one day.
-
-    harness-office-20261016-1 and harness-scope-20261019-1 hold the same
-    paths, contracts/harness/. Under the date-only form both would mint
-    INC-<date>-01 and both would write retro/<date>.json, and the second
-    commit would be refused or conflict. With the machine word each mints its
-    own ids and writes its own retro, and the set passes.
-
-    HP-014 (2026-10-22) added the proposal and the check 1 row. HP-013 widened
-    the id in the incident schema alone, and the retro and proposal schemas
-    kept the old form, so this build's two retros failed check 1 while the
-    rows here read only checks 89 and 13. Now a retro and a proposal each cite
-    a machine-word id, and check 1 has to pass over them. The live records
-    every built repository copies are taken out in a commit of their own
-    first, so the range judges only the two seats' records: their commit refs
-    are the real repository's and resolve nowhere here.
-    """
-    base(repo)
-    shutil.rmtree(repo / "contracts" / "harness")
-    start = commit(repo, "the copied live harness records, out", "contracts", seat="harness-office-20261016-1")
-
-    def incident(iid: str, seat: str) -> dict:
-        return {"id": iid, "on": "2026-10-22", "class": "head-moves-between-read-and-write",
-                "what": f"An incident {seat} recorded on 2026-10-22.",
-                "evidence": [{"kind": "prose_only", "ref": "CLAUDE.md@5df5a6f8:148-166"}], "seats": [],
-                "source": "CLAUDE.md@5df5a6f8:148-166", "enforced_by": None, "recorded_by": seat,
-                "recorded_on": "2026-10-22"}
-
-    def retro(seat: str, ids: list) -> dict:
-        return {"artifact": "harness_retro", "schema_version": "0.1", "seat": seat, "on": "2026-10-22",
-                "trigger": "daily", "tree": "the fixture's", "verdict": "verdict: fixture",
-                "observed": [{"source": "fixture", "path": None, "window": "-", "found": "nothing"}],
-                "new_incidents": ids, "measured": [], "proposals": [], "landed_today": [], "next": []}
-
-    office, scope = "harness-office-20261016-1", "harness-scope-20261019-1"
-    write(repo, "contracts/harness/incidents.jsonl",
-          json.dumps(incident("INC-20261022-office-01", office)) + "\n"
-          + json.dumps(incident("INC-20261022-scope-01", scope)) + "\n")
-    write(repo, "contracts/harness/retro/20261022-office.json", retro(office, ["INC-20261022-office-01"]))
-    write(repo, "contracts/harness/retro/20261022-scope.json", retro(scope, ["INC-20261022-scope-01"]))
-    write(repo, "contracts/harness/proposals/HP-901.json", {
-        "artifact": "harness_proposal", "schema_version": "0.1", "id": "HP-901",
-        "title": "A proposal from the microscope computer's harness seat", "drafted_by": scope,
-        "drafted_on": "2026-10-22", "kind": "reshape", "class": "head-moves-between-read-and-write",
-        "answers": ["INC-20261022-scope-01"],
-        "classification": {"members_found": ["INC-20261022-office-01", "INC-20261022-scope-01"],
-                           "looked_in": ["the fixture's incidents.jsonl"]},
-        "changes": [{"path": "contracts/tools/seat_commit.py", "owner": "any manager",
-                     "change": "Nothing; the fixture needs a proposal that cites the ids."}],
-        "touches_core": [], "needs_threshold": False,
-        "proof": {"fixtures": [], "replay": {"range": None, "new_fail_on_accepted": None, "run_line": None},
-                  "equivalence": {"before": None, "after": None}},
-        "reach": {"already_running": [], "how_they_learn": "the fixture has no one running",
-                  "use_site": None},
-        "revert": "git revert <landing commit>"})
-    write(repo, "contracts/harness/ledger.jsonl",
-          json.dumps({"at": "2026-10-22T12:00:00Z", "proposal": "HP-901", "outcome": "drafted",
-                      "by_seat": scope}) + "\n")
-    commit(repo, "two harness seats on two machines record on one day", "contracts/harness", seat=office)
-    return f"{start}..HEAD"
-
-
 def _real_permit(repo: Path, extra: dict, message: str) -> str:
     """A scope approval in an agent's approvals/, where real permits live.
 
@@ -1372,7 +1134,7 @@ def _real_permit(repo: Path, extra: dict, message: str) -> str:
             "kb_refs": [], "degraded": ["librarian_agent"]}
     card.update(extra)
     write(repo, "microscope_agent/approvals/scope-fixture-real-permit.json", card)
-    commit(repo, message, "microscope_agent", seat="microscope-1")
+    commit(repo, message, "microscope_agent", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1407,7 +1169,7 @@ def fixture_79_a_runtime_status_file_forced_into_a_commit(repo: Path) -> str:
     start = base(repo)
     write(repo, "microscope_runtime/.runtime_status/idle_status.json", {"artifact": "idle_status"})
     run(repo, "add", "-f", "--", "microscope_runtime/.runtime_status/idle_status.json")
-    run(repo, "commit", "-q", "--no-verify", "-m", "the idle status file, forced in", seat="microscope-office-20261017-1")
+    run(repo, "commit", "-q", "--no-verify", "-m", "the idle status file, forced in", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1420,7 +1182,7 @@ def fixture_41_the_runtime_seat_commits_an_approval(repo: Path) -> str:
     start = base(repo)
     write(repo, "microscope_runtime/approvals/appr-x.json", {"card": "plan_approval"})
     commit(repo, "a seat commits the person's approval", "microscope_runtime/approvals/appr-x.json",
-           seat="microscope-office-20261017-1")
+           seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1429,7 +1191,7 @@ def fixture_41_a_planning_seat_commits_the_safety_policy(repo: Path) -> str:
     start = base(repo)
     write(repo, "microscope_agent/envelope/safety.json", {"limits": {}})
     commit(repo, "a seat commits the person's safety policy", "microscope_agent/envelope/safety.json",
-           seat="microscope-office-20261015-1")
+           seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1439,282 +1201,6 @@ def fixture_41_the_person_commits_an_approval(repo: Path) -> str:
     write(repo, "microscope_runtime/approvals/appr-x.json", {"card": "plan_approval"})
     commit(repo, "the person's approval", "microscope_runtime/approvals/appr-x.json", seat="human")
     return f"{start}..HEAD"
-
-
-def _console_word(repo: Path, *, login_placed: str = "kyu", login_signed: str = "kyu", sha_wrong: bool = False,
-                  changed_after: bool = False, absent: bool = False, decision: str = "yes",
-                  touches_core: list | None = None, perm_seat: str = "human", login_on_disk_only: bool = False,
-                  login_changed_after: bool = False, kind: str = "loosen") -> str:
-    """HP-016 (2026-10-23): a loosening landed on the person's word given through the console.
-
-    The person, Q-20261022-office-14, committed at 659c2214: the permission for a
-    loosening may be given on the console's screen by login and password. The
-    console writes microscope_runtime/approvals/harness/<HP>-<sha12>.json at the
-    password; the person commits it under `human`; a manager lands the
-    proposal with a person_word of the console form. Each keyword breaks one of
-    check 89's six readings, and the defaults meet all of them.
-    """
-    base(repo)
-    shutil.rmtree(repo / "contracts" / "harness")
-    start = commit(repo, "the copied live harness records, out", "contracts", seat="harness-office-20261016-1")
-    office = "harness-office-20261016-1"
-    write(repo, "contracts/harness/incidents.jsonl", json.dumps({
-        "id": "INC-20261023-office-01", "on": "2026-10-23", "class": "contract-has-no-slot-for-it",
-        "what": "A rule the fixture loosens.", "evidence": [{"kind": "prose_only", "ref": "plan.md@ca9d24a6:1"}],
-        "seats": [], "source": "plan.md@ca9d24a6:1", "enforced_by": None, "recorded_by": office,
-        "recorded_on": "2026-10-23"}) + "\n")
-    prop = {
-        "artifact": "harness_proposal", "schema_version": "0.1", "id": "HP-902",
-        "title": "A loosening the fixture lands on a console word", "drafted_by": office,
-        "drafted_on": "2026-10-23", "kind": kind, "class": "contract-has-no-slot-for-it",
-        "answers": ["INC-20261023-office-01"],
-        "classification": {"members_found": ["INC-20261023-office-01"], "looked_in": ["the fixture"]},
-        "changes": [{"path": "contracts/validate.py", "owner": "any manager", "change": "Nothing; a fixture."}],
-        "touches_core": touches_core or [], "needs_threshold": False,
-        "proof": {"fixtures": [], "replay": {"range": None, "new_fail_on_accepted": None, "run_line": None},
-                  "equivalence": None},
-        "reach": {"already_running": [], "how_they_learn": "nobody runs in a fixture", "use_site": None},
-        "revert": "git revert <landing commit>"}
-    rel = "contracts/harness/proposals/HP-902.json"
-    write(repo, rel, prop)
-    write(repo, "contracts/harness/ledger.jsonl", json.dumps(
-        {"at": "2026-10-23T10:00:00Z", "proposal": "HP-902", "outcome": "drafted", "by_seat": office}) + "\n")
-    shown = commit(repo, "a proposal the screen shows", "contracts/harness", seat=office)
-    blob = subprocess.run(["git", "-C", str(repo), "cat-file", "blob", f"{shown}:{rel}"], capture_output=True,
-                          check=True).stdout
-    sha = hashlib.sha256(blob).hexdigest()
-    named = ("0" * 64) if sha_wrong else sha
-    words = f"Give permission for HP-902 as shown, sha256 {named[:12]}: yes"
-    perm_rel = f"microscope_runtime/approvals/harness/HP-902-{named[:12]}.json"
-    write(repo, "microscope_runtime/envelope/console_login.json", {
-        "artifact": "console_login", "schema_version": "0.1", "login": login_placed,
-        "written_by": "the person, in a fixture", "written_at": "2026-10-23"})
-    write(repo, perm_rel, {
-        "artifact": "harness_permission", "schema_version": "0.1", "proposal": "HP-902",
-        "proposal_commit": shown, "proposal_sha256": named, "decision": decision, "screen_words": words,
-        "signed_at": "2026-10-23T11:00:00Z", "signed_through": {"via": "console", "login": login_signed}})
-    paths = ([] if login_on_disk_only else ["microscope_runtime/envelope/console_login.json"]) + \
-        ([] if absent else [perm_rel])
-    commit(repo, "the person's console login and permission", *paths, seat=perm_seat)
-    if absent:
-        (repo / perm_rel).unlink()
-    if changed_after:
-        prop["changes"] = prop["changes"] + [{"path": "contracts/seats.json", "owner": "any manager",
-                                              "change": "Something the person never saw."}]
-    prop["person_word"] = {"quote": words, "said_in_window_of": f"console:{login_signed}", "on": "2026-10-23",
-                           "recorded_in": perm_rel}
-    write(repo, rel, prop)
-    with open(repo / "contracts/harness/ledger.jsonl", "a", encoding="utf-8", newline="\n") as fh:
-        fh.write(json.dumps({"at": "2026-10-23T12:00:00Z", "proposal": "HP-902", "outcome": "landed",
-                             "by_seat": office, "commit": shown, "revert_command": f"git revert {shown[:8]}"}) + "\n")
-    commit(repo, "HP-902 landed on the person's console word", "contracts/harness",
-           seat="manager-microscope-20261003-1")
-    if login_changed_after:
-        write(repo, "microscope_runtime/envelope/console_login.json", {
-            "artifact": "console_login", "schema_version": "0.1", "login": "kyu-new",
-            "written_by": "the person, in a fixture", "written_at": "2026-10-24"})
-        commit(repo, "the person changes the console login", "microscope_runtime/envelope/console_login.json",
-               seat="human")
-    return f"{start}..HEAD"
-
-
-def fixture_89_a_loosening_landed_on_a_console_word(repo: Path) -> str:
-    return _console_word(repo)
-
-
-def fixture_89_a_console_word_under_another_login(repo: Path) -> str:
-    return _console_word(repo, login_placed="kyu", login_signed="admin")
-
-
-def fixture_89_a_console_word_whose_hash_is_not_the_proposals(repo: Path) -> str:
-    return _console_word(repo, sha_wrong=True)
-
-
-def fixture_89_a_console_word_and_changes_the_person_never_saw(repo: Path) -> str:
-    return _console_word(repo, changed_after=True)
-
-
-def fixture_89_a_console_word_whose_file_is_gone(repo: Path) -> str:
-    return _console_word(repo, absent=True)
-
-
-def fixture_89_a_console_no_cited_for_a_landing(repo: Path) -> str:
-    return _console_word(repo, decision="no")
-
-
-def fixture_89_a_change_to_the_core_landed_on_a_console_word(repo: Path) -> str:
-    """HP-018 (the person, 881f5119): a change to the core may land on a console word too."""
-    return _console_word(repo, touches_core=["harness_rules_1_to_5"])
-
-
-def fixture_89_a_console_word_on_a_tightening(repo: Path) -> str:
-    """HP-018: a tighten touching nothing in the core needs no word, and a console word on one is refused."""
-    return _console_word(repo, kind="tighten")
-
-
-def fixture_89_a_console_word_committed_under_a_seat(repo: Path) -> str:
-    return _console_word(repo, perm_seat="microscope-office-20261017-1")
-
-
-def fixture_89_a_console_word_survives_a_later_login_change(repo: Path) -> str:
-    """HP-017: the login is read as it stood when the permission was committed, so a change after keeps the landing."""
-    return _console_word(repo, login_changed_after=True)
-
-
-def fixture_89_a_console_word_whose_login_was_never_committed(repo: Path) -> str:
-    """HP-017: a login file on disk only binds nothing; it is committed before a permission can bind."""
-    return _console_word(repo, login_on_disk_only=True)
-
-
-def fixture_41_a_seat_commits_a_harness_permission(repo: Path) -> str:
-    """HP-016: the subfolder is the person's like the rest of approvals/, shown and not assumed."""
-    start = base(repo)
-    write(repo, "microscope_runtime/approvals/harness/HP-902-000000000000.json", {"artifact": "harness_permission"})
-    commit(repo, "a seat writes the person's word", "microscope_runtime/approvals/harness/HP-902-000000000000.json",
-           seat="microscope-office-20261017-1")
-    return f"{start}..HEAD"
-
-
-def _console_inbox(repo: Path, *, rewrite: bool = False, delete: bool = False) -> str:
-    """7.1.1 rules 3 and 9 (2026-10-24): a console question item and its answer, committed, then left alone or changed.
-
-    The item and the answer are append-only: a correction is a new item. Check 91
-    reads each commit's changes, so an item rewritten or removed in a later
-    commit fails at that commit.
-    """
-    start = base(repo)
-    # The examples stay in the copied tree, so the item takes ids of its own:
-    # an item id two items hold, or a question id two items ask, is a failure
-    # of its own and not the one these fixtures test.
-    item = json.loads((repo / "contracts/examples/console_question.json").read_text(encoding="utf-8"))
-    item.update(item_id="ci-20261024-231500-h91a", question_id="mic-20261024-c091")
-    answer = json.loads((repo / "contracts/examples/console_answer.json").read_text(encoding="utf-8"))
-    answer.update(answer_id="ca-20261026-120001-h91a", item_id=item["item_id"], question_id=item["question_id"])
-    irel = f"microscope_agent/console_inbox/{item['item_id']}.json"
-    arel = f"microscope_agent/answers/{answer['answer_id']}.json"
-    write(repo, irel, item)
-    commit(repo, "the console's server writes a question item", irel, seat=_console_seat())
-    write(repo, arel, answer)
-    commit(repo, "the microscope agent answers it", arel, seat="microscope-office-20261015-1")
-    if rewrite:
-        item["words"] = item["words"] + " (edited)"
-        write(repo, irel, item)
-        commit(repo, "the item is rewritten", irel, seat=_console_seat())
-    if delete:
-        run(repo, "rm", "-q", "--", arel)
-        run(repo, "commit", "-q", "--no-verify", "-m", "the answer is removed", seat="microscope-office-20261015-1")
-    return f"{start}..HEAD"
-
-
-def fixture_91_a_console_question_answered_and_left_alone(repo: Path) -> str:
-    return _console_inbox(repo)
-
-
-def fixture_91_a_console_question_item_rewritten(repo: Path) -> str:
-    return _console_inbox(repo, rewrite=True)
-
-
-def fixture_91_a_console_answer_removed(repo: Path) -> str:
-    return _console_inbox(repo, delete=True)
-
-
-def _store_answer_history(repo: Path, *, newer_number: bool = False) -> str:
-    """7.1.1 rule 6 (2026-10-26): an answer names a published store version, and is read at that version.
-
-    The store is published at the version contracts/examples/store_answer.json
-    names, holding the entry it reports, and then moves on with that entry's
-    number changed. The example answer must still stand, read at the commit
-    that carried its version and not at the tree's own. With `newer_number`, a
-    second answer names the old version and gives the number only the newer
-    store holds, which must fail: a number is the store's at the version the
-    answer names.
-    """
-    start = base(repo)
-    example = json.loads((repo / "contracts/examples/store_answer.json").read_text(encoding="utf-8"))
-    kbv, eid = example["kb_version"], example["entries_made"][0]
-    entry = json.loads((REPO / f"librarian_agent/kb/entries/{eid}.json").read_text(encoding="utf-8"))
-    kb = "librarian_agent/kb"
-    write(repo, f"{kb}/entries/{eid}.json", entry)
-    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": kbv, "entry_count": 1,
-                                     "entries": {eid: {"file": f"entries/{eid}.json"}}, "handles": {}})
-    commit(repo, "the store is published with the entry the example answer reports", kb, seat="librarian")
-    old = copy.deepcopy(entry["numbers"][0])
-    entry["numbers"][0]["value"] = old["value"] + 0.05
-    write(repo, f"{kb}/entries/{eid}.json", entry)
-    write(repo, f"{kb}/index.json", {"schema_version": 1, "kb_version": "kbv-bbbbbbbbbbbb", "entry_count": 1,
-                                     "entries": {eid: {"file": f"entries/{eid}.json"}}, "handles": {}})
-    commit(repo, "the store moves on and the entry's number changes", kb, seat="librarian")
-    if newer_number:
-        answer = dict(example, answer_id="ca-20261026-160000-h95b", outcome="answered",
-                      reason="the store holds the maker's figure", answer="as the maker states it",
-                      entries_cited=[eid],
-                      numbers=[dict(entry["numbers"][0], entry_id=eid, covers_conditions="not_stated")])
-        for k in ("entries_made", "precision", "note"):
-            answer.pop(k, None)
-        for n in answer["numbers"]:
-            n.pop("precision", None)
-            n.pop("note", None)
-        arel = f"librarian_agent/answers/{answer['answer_id']}.json"
-        write(repo, arel, answer)
-        commit(repo, "an answer at the old version gives the newer number", arel, seat="librarian")
-    return f"{start}..HEAD"
-
-
-def fixture_95_an_answer_on_a_version_the_store_has_moved_past(repo: Path) -> str:
-    return _store_answer_history(repo)
-
-
-def fixture_95_an_answer_gives_a_number_its_version_does_not_hold(repo: Path) -> str:
-    return _store_answer_history(repo, newer_number=True)
-
-
-def _store_answer_pinned(repo: Path, *, pin: str = "bytes", item: bool = True) -> str:
-    """7.1.1 rule 4 (2026-10-27): an answer in answers/ pins the bytes of the inbox item it answers.
-
-    On top of the published store above, the console's server writes a
-    recalled-value request into librarian_agent/console_inbox/ and the
-    librarian answers it `waiting_for_a_name`, an outcome that names no store
-    version, so only branch e can judge it. `pin` says what the answer hashed:
-    the item's bytes, or the same item re-serialised without indentation, the
-    in-memory form a writer holds and not the file that landed. With
-    `item=False` the answer is committed and its item is not, which is check
-    91's failure and none of this one's.
-    """
-    rng = _store_answer_history(repo)
-    req = json.loads((repo / "contracts/examples/console_store_request.json").read_text(encoding="utf-8"))
-    req.update(item_id="ci-20261027-090000-h95e", attachments=[],
-               words="The 40x water objective's working distance is 2.5 mm, as I remember it.",
-               request={"kind": "enter_document", "source_kind": "operator_recall", "read_by": "member-1",
-                        "fact_wanted": "the working distance of the 40x water objective",
-                        "value": {"value": 2.5, "unit": "mm"}})
-    irel = f"librarian_agent/console_inbox/{req['item_id']}.json"
-    write(repo, irel, req)
-    if item:
-        commit(repo, "the console's server writes a store request", irel, seat=_console_seat())
-    held = (repo / irel).read_bytes() if pin == "bytes" else json.dumps(req).encode("utf-8")
-    if not item:
-        (repo / irel).unlink()
-    answer = {"artifact": "store_answer", "schema_version": "0.1", "answer_id": "ca-20261027-100000-h95e",
-              "item_id": req["item_id"], "request_sha256": hashlib.sha256(held).hexdigest(),
-              "answered_by": "seat:librarian-20261007-1", "answered_at": "2026-10-27T10:00:00Z",
-              "outcome": "waiting_for_a_name", "reason": "no registered quantity names a working distance",
-              "quantity_name": "working_distance"}
-    arel = f"librarian_agent/answers/{answer['answer_id']}.json"
-    write(repo, arel, answer)
-    commit(repo, "the librarian answers it", arel, seat="librarian")
-    return rng
-
-
-def fixture_95_an_answer_pins_its_items_bytes(repo: Path) -> str:
-    return _store_answer_pinned(repo)
-
-
-def fixture_95_an_answer_pins_its_item_reserialised(repo: Path) -> str:
-    return _store_answer_pinned(repo, pin="reserialised")
-
-
-def fixture_95_an_answer_whose_item_is_not_in_the_tree(repo: Path) -> str:
-    return _store_answer_pinned(repo, item=False)
 
 
 def _device_label_store(repo: Path, change=None) -> str:
@@ -2265,25 +1751,13 @@ FIXTURES = [
     (41, "PENDING", "not a seat in", fixture_41_unregistered_committer),
     (35, "FAIL", "a session writes inside one agent", fixture_35_a_root_commit_in_the_range_is_judged),
     (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_an_imported_history_is_not_attributed),
-    # The console's boundary (plan.md 15, 2026-10-17). Each refusal row names
-    # the console in its phrase, so a classifier that left console/
-    # unattributable -- refused, but as nobody's -- satisfies none of them.
-    (35, "FAIL", "one commit writes into ['console', 'microscope_agent']",
-     fixture_35_one_commit_into_the_console_and_an_agent),
-    (41, "FAIL", "this path is console's", fixture_41_an_agent_seat_writes_into_the_console),
-    (41, "FAIL", "owns ['console']; this path is design's", fixture_41_the_console_seat_writes_its_own_orders),
-    (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_console_seat_inside_its_own),
-    (41, "FAIL", "is narrowed to ['microscope_agent/'], which does not cover this path",
-     fixture_41_a_planning_seat_writes_into_the_runtime),
-    (41, "PASS", "2 commits stay inside the seat that made them", fixture_41_the_runtime_seat_inside_the_runtime),
+    (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_runtime_seat_inside_the_runtime),
     (41, "PASS", "and 1 merges contributed nothing of their own", fixture_41_a_clean_merge_attributes_nothing),
     (41, "FAIL", "owns ['microscope_agent']; this path is design's", fixture_41_a_merge_that_adds_its_own_line_is_judged),
     (35, "PASS", "stay inside one boundary (microscope_agent)",
      fixture_35_the_design_and_runtime_folders_are_one_boundary),
     (35, "FAIL", "one commit writes into ['microscope_agent', 'simulation_agent']",
      fixture_35_one_commit_into_the_runtime_and_another_agent),
-    (1, "FAIL", "unknown card kind 'console_only_shape' [console/src/pkg/agents/mock_data_draft.json]",
-     fixture_01_a_card_beside_the_consoles_mock_data_is_read),
     (26, "FAIL", "does not match the committed bytes", fixture_26_snapshot_is_a_copy_of_another_commit),
     (46, "FAIL", "obs-000000000000", fixture_46_vocabulary_pin_that_never_stood),
     (76, "PASS", "disabledMcpjsonServers", fixture_76_a_local_settings_file_is_named),
@@ -2300,9 +1774,7 @@ FIXTURES = [
     (77, "FAIL", "did not evaluate it", fixture_77_a_deletion_on_a_criterion_nobody_evaluated),
     (77, "FAIL", "that criterion NOT firing", fixture_77_a_deletion_on_a_stop_criterion_that_did_not_fire),
     (83, "PASS", "deleted outside the pipeline", fixture_83_a_written_trajectory_deleted_by_hand),
-    (84, "FAIL", "with a real calendar date", fixture_84_a_seat_registered_after_the_epoch_with_an_undated_name),
     (84, "FAIL", "is the committer email of 2 seats", fixture_84_two_seats_share_one_committer_email),
-    (84, "FAIL", "can write the registry", fixture_84_a_manager_that_can_write_the_registry),
     (80, "PASS", "5 site(s) decide a device's role", fixture_80_five_forms_and_five_that_must_not_fire),
     (68, "LOST", "/axis_live_a2.json]", fixture_68_a_superseded_record_cannot_be_rewritten),
     # The same built repository, asserted from the other side. Two rows because
@@ -2361,8 +1833,6 @@ FIXTURES = [
     (1, "FAIL", "Additional properties are not allowed ('value' was unexpected) "
                 "[librarian_agent/queries/lint-20261103.json]",
      fixture_01_a_lint_report_carrying_an_entry_value),
-    (89,"FAIL", "rewrote lines its parent held; this log is append-only",
-     fixture_89_a_harness_log_line_rewritten),
     # HP-007: an example is judged at its own instant, a real permit by the
     # clock. Matched on the path as well, so the example files every built
     # repository carries cannot satisfy either row.
@@ -2370,49 +1840,14 @@ FIXTURES = [
                  "clock [microscope_agent/approvals/", fixture_19_a_real_permit_declaring_an_example_instant),
     (19, "FAIL", "(the wall clock), but is not marked voided [microscope_agent/approvals/",
      fixture_19_a_real_permit_is_judged_by_the_wall_clock),
-    # HP-013: the accepted half. Its rejected halves are the check89 groups
-    # two_machines_one_id and machine_word_not_its_seats. Two rows on one
-    # built repository: the records pass check 89, and the machine-word retro
-    # names pass check 13, which a narrower ALLOWED_PATHS line would refuse.
-    (89, "PASS", "3 lines, 1 proposals and 2 retros", fixture_89_two_machines_record_on_one_day),
-    (13, "PASS", "files sit in declared paths", fixture_89_two_machines_record_on_one_day),
-    (1, "PASS", "conform to their schema", fixture_89_two_machines_record_on_one_day),
-    (1, "FAIL", "'verdict' is a required property [contracts/harness/retro/20261022.json]",
+    (1, "FAIL", "Additional properties are not allowed ('value' was unexpected) "
+                "[librarian_agent/queries/lint-20261103.json]",
      fixture_01_an_artifact_in_a_tree_without_cards_is_judged),
     (79, "FAIL", "is tracked by git inside a directory SKIP_DIRS names",
      fixture_79_a_runtime_status_file_forced_into_a_commit),
     (41, "FAIL", "commits the person's own file", fixture_41_the_runtime_seat_commits_an_approval),
     (41, "FAIL", "commits the person's own file", fixture_41_a_planning_seat_commits_the_safety_policy),
     (41, "PASS", "1 commits stay inside the seat that made them", fixture_41_the_person_commits_an_approval),
-    # HP-016 (2026-10-23): the person's word through the console.
-    (89, "PASS", "hold together", fixture_89_a_loosening_landed_on_a_console_word),
-    (89, "FAIL", "the logins differ", fixture_89_a_console_word_under_another_login),
-    (89, "FAIL", "and the permission names", fixture_89_a_console_word_whose_hash_is_not_the_proposals),
-    (89, "FAIL", "differ from what the person signed", fixture_89_a_console_word_and_changes_the_person_never_saw),
-    (89, "FAIL", "is not in the tree", fixture_89_a_console_word_whose_file_is_gone),
-    (89, "FAIL", "stands only on 'yes'", fixture_89_a_console_no_cited_for_a_landing),
-    (89, "PASS", "hold together", fixture_89_a_change_to_the_core_landed_on_a_console_word),
-    (89, "FAIL", "touching nothing in the core, which needs no word", fixture_89_a_console_word_on_a_tightening),
-    # 7.1.1 rules 3 and 9 (2026-10-24): console questions only grow.
-    (91, "PASS", "each answered", fixture_91_a_console_question_answered_and_left_alone),
-    (91, "FAIL", "modifies microscope_agent/console_inbox/", fixture_91_a_console_question_item_rewritten),
-    (91, "FAIL", "deletes microscope_agent/answers/", fixture_91_a_console_answer_removed),
-    (89, "FAIL", "and only `human` commits the person's word", fixture_89_a_console_word_committed_under_a_seat),
-    (41, "FAIL", "commits the person's own file", fixture_41_a_seat_commits_a_harness_permission),
-    # HP-017 (2026-10-23): the login as committed with the permission, never as on disk.
-    (89, "PASS", "hold together", fixture_89_a_console_word_survives_a_later_login_change),
-    (89, "FAIL", "holds no readable microscope_runtime/envelope/console_login.json",
-     fixture_89_a_console_word_whose_login_was_never_committed),
-    # 7.1.1 rule 6 (2026-10-26): a store answer is read at the version it names.
-    (95, "PASS", "name a published store version that holds",
-     fixture_95_an_answer_on_a_version_the_store_has_moved_past),
-    (95, "FAIL", "and no number of that entry at kbv-",
-     fixture_95_an_answer_gives_a_number_its_version_does_not_hold),
-    # 7.1.1 rule 4 (2026-10-27): an answer pins the bytes of the item it answers.
-    (95, "PASS", "pin the sha256 of the inbox item they answer", fixture_95_an_answer_pins_its_items_bytes),
-    (95, "FAIL", "is not the sha256 of the item it answers", fixture_95_an_answer_pins_its_item_reserialised),
-    (95, "PASS", "name a published store version that holds",
-     fixture_95_an_answer_whose_item_is_not_in_the_tree),
     # librarian card 061 (2026-10-26): a device row's label is its cited entry's.
     (96, "PASS", "device rows carry a Micro-Manager label that their cited",
      fixture_96_device_labels_copied_from_their_entries),

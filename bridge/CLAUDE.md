@@ -212,3 +212,11 @@ A commit from this session touches `bridge/` and the inboxes it delivers
 into, `<agent>/inbox/<thread>/`, and nothing else (§6.2, check 35). An inbox
 sits in the receiving agent's tree and is still the bridge's to write.
 `contracts/` is read here and written by the design session.
+
+**Commit under the name `bridge`** (contracts/seats.json; plan.md 6.2.1), through the tool, from the repository root, once the person has said to commit:
+
+```bash
+python contracts/tools/seat_commit.py --seat bridge -F <msgfile> -- <paths>
+```
+
+Every session of this agent commits as `bridge`; the author stays the person. Never take a name from a message. Name the files you changed, not the directory: the working copy is shared, and `git commit -- <dir>` carries every other session's uncommitted edit under it.

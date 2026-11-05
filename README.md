@@ -52,7 +52,6 @@ their axis list differs.
 | `librarian_agent/` | the only knowledge store. Answers read-only, and records what it could **not** answer |
 | `bridge/` | carries cards between the two executing agents. Reads their `questions/`, writes their `inbox/`, and touches no number |
 | `microscope_runtime/` | the microscope's execution, split from `microscope_agent/` on 2026-10-17, its code, tests and run records moved in on 2026-10-19: operator, orchestrator, devices, live view, the run-time watcher, and the person's safety policy, approvals and run records. One execution path, one session (`plan.md` §15) |
-| `console/` | the operator console: shows runs and the agents' records, drafts plans the person approves, and commands nothing itself (`plan.md` §15, §11-25) |
 | `contracts/` | the only shared code: card schemas, units, the observable vocabulary, `validate.py` |
 
 Each agent directory is self-contained on purpose: taking `microscope_agent/`
@@ -60,15 +59,11 @@ plus `contracts/` to the microscope PC has to be the whole move.
 
 ## How it is run
 
-**Seats, in three tiers.** One **architecture** seat writes `plan.md`,
-`CLAUDE.md` and `contracts/seats.json`. Four **manager** seats write the rest
-of `contracts/` and their agent's instructions. Below them the executing
-sessions do the work. Instructions go down, reports come up, and **the tiers
-hold no extra permission** — the top two touch no instrument.
-
-A seat is assigned by the person, never by another session. Each commit says
-which seat made it through the committer identity, and `contracts/seats.json`
-is the registry the gate reads.
+**Six names commit here** (`plan.md` D12, §6.2.1): one per agent -- `microscope`, `simulation`,
+`librarian`, `bridge` -- plus `design` for a session at the repository root that writes the design,
+and `human`, the person, the only name that may commit an approval or a safety limit. Each commit
+says which name made it through the committer identity, and `contracts/seats.json` is the
+registry the gate reads. The person tells each session directly what it is.
 
 **Milestones M0–M5 are bodies of work, not an order.** The four agents are
 built concurrently; what actually blocks what is a column in `plan.md` §9, and
@@ -84,10 +79,9 @@ rather than passing.
 |---|---|
 | `plan.md` | the design. **The record**, and the only one — start at §0.1 for the fixed decisions and §2 for the principles. It was Korean until 2026-09-20 and briefly a generated rendering of `plan_ko.md`; that split is over and the Korean text stays in history |
 | `CLAUDE.md` | the rules binding every session here |
-| `ARCHITECT.md` | standing orders for the architecture seat only |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
-| `docs/ideas/` | the person's ideas, questions and decisions, written verbatim and timed by the intake seat. A decision said there counts once its line is committed (`plan.md` §6) |
+| `docs/ideas/` | the person's ideas, questions and decisions, written verbatim and timed, from 2026-10-17 to 2026-11-04 by the intake seat; a record, read as what the person said and when |
 | `docs/` | a one-screen page for someone who will not open this repository. **Built, not published** — GitHub Pages is off, so this is source and not a site |
 | `pyproject.toml` | **two manifests in one file.** `[project]` is the PyPI side; `[tool.pixi.*]` is the conda side, which is where HOOMD, `mcp` and `pymmcore-plus` live. The pixi tables state a different dependency set per platform, because Windows has no HOOMD build |
 | `uv.lock` | the exact versions the PyPI side resolves to. Being handed over to `pixi.lock` and kept until that exists |

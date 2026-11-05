@@ -1,1 +1,0 @@
-# microscope_agent (fixture)

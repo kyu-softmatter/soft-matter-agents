@@ -282,40 +282,11 @@ ARTIFACT_SCHEMA = {
     # hand beside the safety policy. The approval reader compares a console-signed
     # approval's login to it; the console never reads or writes it.
     "console_login": "console_login.schema.json",
-    # 2026-10-23, HP-016: the person's word on a harness loosening, given through
-    # the console and committed by the person under approvals/harness/.
-    "harness_permission": "harness_permission.schema.json",
-    # 2026-10-16, HP-005: the meta-harness's two JSON records (plan.md 8.3).
-    # Its two JSONL files are line schemas and are judged by check 89, the
-    # way check 29 judges failures.jsonl, because collect() reads no .jsonl.
-    "harness_proposal": "harness_proposal.schema.json",
-    "harness_retro": "harness_retro.schema.json",
     # 2026-10-19, card 069 (19f4c1d8): the Micro-Manager configuration the
     # person approves for a hardware run, by the sha256 of its bytes. Without
     # this line the person's first approval would fail check 1 as an unknown
     # artifact, which the runtime seat reported when it built the gate.
     "mm_config_approval": "mm_config_approval.schema.json",
-    # 2026-10-24, console card 007 (plan.md 4.5): what the console's question
-    # window writes into its own folder. Not an ask -- that is the bridge's
-    # envelope. It claims nothing about being the person's own, so a reader
-    # treats every one as another login's until a proof exists.
-    "question_request": "question_request.schema.json",
-    # 2026-10-24, plan.md 7.1.1 rule 8 (approved at f59f7b45, not open): the
-    # question item the console's server will write into microscope_agent/ or
-    # simulation_agent/ console_inbox/. Its file also holds the envelope that
-    # the librarian's store requests $ref. No folder exists until the inbox
-    # opens; this line lets a schema be judged before then.
-    "console_question": "console_inbox_item.schema.json",
-    # 2026-10-24, plan.md 7.1.1 rules 5, 6 and 9: an agent's answer to a console
-    # question item, written into that agent's answers/ beside console_inbox/.
-    "console_answer": "console_answer.schema.json",
-    # 2026-10-26, plan.md 7.1.1 rules 4, 6 and 8 (approved at f59f7b45, not
-    # open): the librarian's four console inbox items -- enter a document,
-    # withdraw a value, offer a result, ask a question -- and the librarian's
-    # answer in librarian_agent/answers/. Only the committed examples exist
-    # until the inbox opens.
-    "console_store_request": "console_store_request.schema.json",
-    "store_answer": "store_answer.schema.json",
     # 2026-10-27, plan.md 15.1 item 10: one case of the unused-number rule, as
     # data, so the console's copy of the rule is tested on the cases check 97 is.
     "unused_numbers_case": "unused_numbers_case.schema.json",
@@ -539,26 +510,6 @@ def is_imported(rel: str) -> bool:
     return any(rel.startswith(prefix) for prefix in IMPORTED_SUBTREES)
 
 
-#: The console's mock data (plan.md 15, 2026-10-17): a copied sample of this
-#: repository's own tree -- microscope_agent/, simulation_agent/ and bridge/
-#: subtrees with goals, plans, results, runs and a thread ledger -- that the
-#: console shows when it is not connected. Every card-shaped file there is a
-#: mock by construction, because the console writes no card into this tree
-#: (11-25 rule 1). Read as cards they are 49 failures (check 1: 46, check 8: 1,
-#: check 37: 2), measured on 2026-10-17 by running the checks with the
-#: console's part of the imported subtree treated as outside it. So the card
-#: and Markdown checks step over this one folder, and over nothing else under
-#: console/: the rest is this repository's own and judged as such, unlike an
-#: imported subtree. Keyed on console/src/<package>/ and not on the package's
-#: name, which is renamed in the commit after the move.
-CONSOLE_MOCK_DATA = re.compile(r"^console/src/[A-Za-z0-9_]+/agents/mock_data/")
-
-
-def is_mock_data(rel: str) -> bool:
-    """True for a repository-relative POSIX path inside the console's mock data."""
-    return bool(CONSOLE_MOCK_DATA.match(rel))
-
-
 #: git's empty tree, the base a root commit is diffed against (check 35).
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
@@ -670,7 +621,7 @@ def collect(roots: Iterable[Path], include_rejected: bool = False) -> Bundle:
             b.all_files.append(p)
             try:
                 rel_p = p.relative_to(REPO).as_posix()
-                if is_imported(rel_p) or is_mock_data(rel_p):
+                if is_imported(rel_p):
                     continue
             except ValueError:
                 pass
@@ -1869,26 +1820,11 @@ ALLOWED_PATHS = [
     # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
     # name, not as any file in tools/, so the next tool is declared too.
     r"^contracts/tools/(seat_commit|seat_commit_fixtures)\.py$",
-    # The meta-harness's four records (8.3 HP-005, 2026-10-16), the names
-    # section 7 already lists. Ruled a reshape, not a widening: declaring a
-    # path the plan designed grants no seat reach it did not have. Check 89
-    # judges what lands here. A retro may also carry its harness seat's
-    # machine word, retro/<date>-<machine>(-<n>).json (HP-013, 2026-10-22), so
-    # two seats' passes on one day are two files and never an add/add conflict.
-    r"^contracts/harness/(incidents\.jsonl|ledger\.jsonl|proposals/HP-[0-9]{3}\.json|"
-    r"retro/[0-9]{8}(-[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*)?(-[0-9]+)?\.json)$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/examples/(rejected/)?[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
     r"^contracts/examples/rejected/check[0-9]{2}_[a-z0-9_]+/[A-Za-z0-9_.-]+\.(json|md|jsonl)$",
-    # A console inbox item's attachment beside its example or fixture item
-    # (check 92, 2026-10-26), named <item_id>--<name> with whatever extension
-    # the asker's file had. A check-92 fixture may nest a console_inbox/ to
-    # test what may sit inside one.
-    r"^contracts/examples/(rejected/check[0-9]{2}_[a-z0-9_]+/(console_inbox/)?)?"
-    r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-    r"^contracts/examples/rejected/check92_[a-z0-9_]+/console_inbox/(ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json|\.gitkeep)$",
     r"^microscope_agent/tasks/[A-Za-z0-9_.-]+$",
     # An imported subtree, whole (IMPORTED_SUBTREES, 2026-10-15). Its layout is
     # the imported project's, so it is declared once, not file by file.
@@ -1907,13 +1843,12 @@ ALLOWED_PATHS = [
     r"^simulation_agent/envelope/(budget|snapshot)\.json$",
     r"^(microscope|simulation)_agent/approvals/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
-    # The console inbox and the answers beside it (7.1.1 rules 1, 3 and 6, the
-    # opening sitting, 2026-10-26). An inbox holds a zero-byte .gitkeep, items
-    # and the attachments each item names (check 92 judges which); answers/
-    # holds answers named by their answer id, written by that agent alone.
-    r"^(microscope|simulation|librarian)_agent/console_inbox/(\.gitkeep|ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json|"
-    r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}--[A-Za-z0-9][A-Za-z0-9._-]{0,127})$",
-    r"^(microscope|simulation|librarian)_agent/answers/(\.gitkeep|ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json)$",
+    # The removed console's three empty inbox placeholders (2026-11-04), allowed
+    # only until the commit under `human` that deletes them; the next design
+    # commit removes this line. They could not go with console/: check 91,
+    # which forbade deleting them, left in a contracts/ commit, and check 35
+    # keeps contracts/ and the console's boundary in separate commits.
+    r"^(microscope|simulation|librarian)_agent/console_inbox/\.gitkeep$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
@@ -1935,9 +1870,6 @@ ALLOWED_PATHS = [
     # beside the policy. The person's own file (check 41's PERSONS_FILES).
     r"^microscope_runtime/envelope/console_login\.json$",
     r"^microscope_runtime/approvals/[A-Za-z0-9_.-]+$",
-    # HP-016 (2026-10-23): one subfolder, the person's word on a harness proposal
-    # given through the console, named by the proposal and the hash it showed.
-    r"^microscope_runtime/approvals/harness/HP-[0-9]{3}-[0-9a-f]{12}\.json$",
     r"^microscope_runtime/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
     r"^microscope_runtime/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
     r"^microscope_runtime/tests/[A-Za-z0-9_.-]+\.py$",
@@ -1982,23 +1914,6 @@ ALLOWED_PATHS = [
     r"^bridge/threads/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation|librarian)_agent/\.claude/.*$",
     r"^bridge/\.claude/.*$",
-    # The console's own folder (plan.md 15, 2026-10-17), a leaf above the
-    # four agents and not a fifth agent. Its instructions, cards and dead ends
-    # as every agent directory has them; its own manifest and lock, because an
-    # environment without the instrument's packages cannot open a core, which
-    # no settings file can promise (15); and its application -- src/, web/,
-    # tests/, docs/ -- declared by folder, because its layout is the imported
-    # project's and the move's card lists the files. Keyed on src/ and not on
-    # the package name, which is renamed after the move. This list first;
-    # section 7's tree is architecture's and follows.
-    r"^console/(CLAUDE\.md|README\.md|failures\.jsonl|pyproject\.toml|uv\.lock|\.python-version)$",
-    r"^console/tasks/[A-Za-z0-9_.-]+$",
-    r"^console/\.claude/.*$",
-    r"^console/(src|web|tests|docs)/.+$",
-    # The console's one folder of written records (plan.md 4.5): the question
-    # requests its question window writes, named by their id. Nothing reads
-    # them until the agents' new inbox, approved by the person, opens.
-    r"^console/requests/questions/qr-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}\.json$",
     r"^\.claude/.*$",
     # The public page (7). It is outside every agent and outside contracts/,
     # so nothing about it is shared code: it is the repository's own front
@@ -2241,7 +2156,7 @@ def check_16_dependency_direction(b: Bundle) -> list[Finding]:
     out: list[Finding] = []
     for f in CONTRACTS.glob("*.py"):
         bad = [m for m in re.findall(r"^\s*(?:from|import)\s+([A-Za-z0-9_.]+)", f.read_text(), re.M)
-               if m.split(".")[0] in {"microscope_agent", "microscope_runtime", "simulation_agent", "librarian_agent", "bridge", "console"}]
+               if m.split(".")[0] in {"microscope_agent", "microscope_runtime", "simulation_agent", "librarian_agent", "bridge"}]
         if bad:
             out.append(Finding(16, FAIL, f"contracts imports {bad}; contracts must import nothing (7.2 rule 1)", f.relative_to(REPO).as_posix()))
     src = list(agent_glob("src/*.py")) + list(agent_glob("src/devices/*.py"))
@@ -3311,16 +3226,14 @@ def check_34_compare_arms(b: Bundle) -> list[Finding]:
 AGENT_OF_PATH = [
     (re.compile(r"^microscope_agent/"), "microscope_agent"),
     # The microscope runtime, its own folder and the same boundary (plan.md 15,
-    # 2026-10-17): the seats divide the boundary by `paths`, so a planning
-    # seat narrowed to microscope_agent/ is refused here by check 41.
+    # 2026-10-17): one name, `microscope`, commits both (seats.json, 2026-11-04).
     (re.compile(r"^microscope_runtime/"), "microscope_agent"),
     (re.compile(r"^simulation_agent/"), "simulation_agent"),
     (re.compile(r"^librarian_agent/"), "librarian_agent"),
     (re.compile(r"^bridge/"), "bridge"),
-    # A boundary of its own with its own execution seat and its own manager,
-    # the person's choice on 2026-10-17 (plan.md 15). The console reads all
-    # four agents, so inside any one of them a seat of that agent would own
-    # the screens about the other three.
+    # The console's boundary, kept after the console itself (removed on branch
+    # closed-loop-validation, 2026-11-04) so that the history it left still
+    # classifies (check 78). Only `human` owns it, and nothing lives there now.
     (re.compile(r"^console/"), "console"),
 ]
 # `plan_ko.md` is deliberately still here, and deliberately gone from
@@ -3351,10 +3264,6 @@ SHARED_PATHS = re.compile(r"^(plan\.md|plan_ko\.md|CLAUDE\.md|ARCHITECT\.md|READ
 # 2026-09-19, and check 48 exists to make a `paths` entry that cannot be
 # granted fail loudly instead of silently.
 INBOX = re.compile(r"^(microscope|simulation)_agent/inbox/")
-# A console inbox sits in the receiving agent's tree and belongs to the
-# console (7.1.1 rule 2, the opening sitting, 2026-10-26): the console's
-# server writes it and the console execution seat commits it, .gitkeep and
-# items alike. An agent able to write it could mint a question no login asked.
 CONSOLE_INBOX = re.compile(r"^(microscope|simulation|librarian)_agent/console_inbox/")
 
 DESIGN_OWNED = re.compile(r"^((microscope|simulation|librarian)_agent|microscope_runtime|bridge|console)/(CLAUDE\.md|README\.md|\.claude/|tasks/)")
@@ -3374,6 +3283,8 @@ def seat_boundary_of(path: str) -> str:
     # is the one thing the bridge exists to make impossible.
     if INBOX.match(path):
         return "bridge"
+    # The console's inboxes sat in the receiving agents' trees and were the
+    # console's; their history keeps that boundary (check 78), as console/ does.
     if CONSOLE_INBOX.match(path):
         return "console"
     for rx, agent in AGENT_OF_PATH:
@@ -8092,49 +8003,25 @@ def check_83_written_trajectories_are_present(b: Bundle) -> list[Finding]:
                           f"pipeline, {outside} deleted outside it")]
 
 
-# The registry as it stood just before the first dated seat name was added
-# (8faa473's parent): 34 entries, none dated. Entries present there keep their
-# old form; any entry added after must be dated. seats.json is where an epoch
-# belongs -- `enforced_from` lives there for check 78 -- so `dated_form_from`
-# is read from it first, and this constant is the fallback until the registry
-# carries the key. A built fixture repository sets the key in its own copy.
-DATED_FORM_EPOCH = "77710041a0b8d9a84e4a9188124e7ea4ff554e98"
-DATED_SEAT = re.compile(r"^(?P<role>.+)-(?P<date>[0-9]{8})-(?P<n>[1-9][0-9]*)$")
-
-
 def check_84_seat_registry_is_sound(b: Bundle) -> list[Finding]:
-    """The seat registry is internally sound, in three ways and one report.
+    """Every name in the registry commits under an email that is its own and no one else's.
 
-    Each was measured to matter before it was asked for, in a scratch copy on
-    2026-09-23, and none of them moved any verdict when broken:
+    Measured to matter before it was asked for, in a scratch copy on
+    2026-09-23: a duplicated email passed the gate and silently re-routed
+    another name's commits to it, because check 41 identifies a committer by
+    its email. So each `committer_email` equals `seat` + `@seat.invalid`, and
+    no two rows share one.
 
-    - EVERY committer_email IS UNIQUE AND EQUALS `seat` + `@seat.invalid`. A
-      duplicated email passed the gate and silently re-routed another seat's
-      commits to it, because check 41 identifies a seat by its email.
-    - EVERY MANAGER-NAMED ENTRY CARRIES contracts/seats.json IN `excludes`.
-      A manager entry without it passed check 41 on both seats.json and
-      plan.md -- a design seat that can write anything, including the file
-      that says what it may write.
-    - EVERY ENTRY FIRST REGISTERED AFTER THE DATED FORM'S EPOCH IS DATED:
-      `<role>-<YYYYMMDD>-<n>`, parsed from the right so a role may itself
-      contain hyphens, with a date that exists on the calendar. Entries present
-      at the epoch are grandfathered by reading the registry THERE, the way
-      check 78 reads history rather than guessing from today's names.
-
-    And it REPORTS, without failing, a design-owning entry other than `human`
-    that has neither `paths` nor `excludes`: such an entry can write anything
-    in its boundary if anyone commits under it. Today that is `design`, the
-    identity from before the seats were divided, vacated since.
+    Until 2026-11-04 it also held two rules for a registry of one row per
+    session: every manager row excluded the registry from its paths, and every
+    row added after 2026-09-23 carried a dated name. The six-name registry
+    (plan.md 6.2.1) has neither managers nor per-session rows, so both went
+    with it; the commits made under them were judged when they were made.
     """
-    import datetime
-    import subprocess
-
-    seats_doc = load_seats() or {}
-    seats = seats_doc.get("seats") or []
+    seats = (load_seats() or {}).get("seats") or []
     if not seats:
         return [Finding(84, PENDING, "contracts/seats.json holds no seats")]
     out: list[Finding] = []
-
     counts: dict[str, int] = {}
     for st in seats:
         counts[str(st.get("committer_email"))] = counts.get(str(st.get("committer_email")), 0) + 1
@@ -8148,60 +8035,9 @@ def check_84_seat_registry_is_sound(b: Bundle) -> list[Finding]:
             out.append(Finding(84, FAIL, f"{email!r} is the committer email of {counts[str(email)]} seats, so "
                                          "check 41 cannot tell their commits apart and hands one seat's work to "
                                          "another", "contracts/seats.json"))
-        if str(name).startswith("manager") and "contracts/seats.json" not in (st.get("excludes") or []):
-            out.append(Finding(84, FAIL, f"manager entry {name!r} does not exclude contracts/seats.json, so it can "
-                                         "write the registry that says what it may write", "contracts/seats.json"))
-
-    epoch = str(seats_doc.get("dated_form_from") or DATED_FORM_EPOCH)
-    try:
-        at = json.loads(subprocess.run(["git", "-C", str(GIT_REPO), "show", f"{epoch}:contracts/seats.json"],
-                                       capture_output=True, text=True, check=True).stdout)
-        grandfathered = {x.get("seat") for x in at.get("seats") or []}
-    except (OSError, subprocess.CalledProcessError, ValueError):
-        grandfathered = None
-    if grandfathered is None:
-        out.append(Finding(84, PENDING, f"the registry at the dated form's epoch {epoch[:7]} cannot be read, so "
-                                        "which entries keep their old form is unknown and the form is not judged"))
-    else:
-        for st in seats:
-            name = str(st.get("seat"))
-            if name in grandfathered:
-                continue
-            m = DATED_SEAT.match(name)
-            ok = False
-            if m:
-                try:
-                    datetime.date(int(m["date"][:4]), int(m["date"][4:6]), int(m["date"][6:]))
-                    ok = True
-                except ValueError:
-                    pass
-            if not ok:
-                out.append(Finding(84, FAIL, f"seat {name!r} was registered after the dated form's epoch and is not "
-                                             "<role>-<YYYYMMDD>-<n> with a real calendar date", "contracts/seats.json"))
-
-    open_design = [str(st.get("seat")) for st in seats if "design" in (st.get("owns") or [])
-                   and not st.get("paths") and not st.get("excludes") and st.get("seat") != "human"]
-    if open_design:
-        out.append(Finding(84, PASS, f"{', '.join(open_design)} own design with neither paths nor excludes, so each "
-                                     "could write anything in that boundary if anyone committed under it -- reported, "
-                                     "not failed", "contracts/seats.json"))
-    if any(f.status == FAIL for f in out):
-        return out
-    n_dated = sum(1 for st in seats if grandfathered is not None and st.get("seat") not in grandfathered)
-    return out + [Finding(84, PASS, f"{len(seats)} seats: emails unique and self-named, every manager entry "
-                                    f"excludes the registry, {n_dated} registered since the dated form all dated")]
+    return out or [Finding(84, PASS, f"{len(seats)} seats: emails unique and self-named")]
 
 
-#: What a preparatory run may not dispatch to (11-21 condition 3). The devices
-#: that change WHERE the objective, the sample or a trapped object sits -- the
-#: things that can collide or displace -- named both ways a log may name them:
-#: the registry's element and channel ids, and the Micro-Manager labels a
-#: session script calls. Selectors are deliberately NOT here: a mirror, a filter,
-#: a port or a condenser position changes which light reaches the detector and
-#: cannot reach the sample. The first preparatory run's load moved the Lapp
-#: branch mirror by its Startup preset, as the person's recorded decision, and
-#: that is a selector. A written choice, reported to architecture on 2026-09-24
-#: with the check, for correction rather than as a ruling.
 PREPARATORY_MOTION_SET = frozenset({
     "z_drive", "nosepiece", "motor_stage", "pfs", "piezo_stage", "optical_tweezers",
     "ZDrive", "Nosepiece", "XYStage", "PFS", "PFSOffset",
@@ -9074,424 +8910,6 @@ def check_88_focus_search(b: Bundle) -> list[Finding]:
                                c.rel))
     return out
 
-HARNESS_DIR = "contracts/harness"
-HARNESS_LOGS = ("incidents.jsonl", "ledger.jsonl")
-HARNESS_LINE_SCHEMA = {"incidents.jsonl": "harness_incident.schema.json",
-                       "ledger.jsonl": "harness_ledger_entry.schema.json"}
-
-
-def _harness_home(rel: str) -> str | None:
-    """Which set of harness records a file belongs to, or None.
-
-    The live set is contracts/harness/, with proposals/ and retro/ under it. A
-    rejected fixture is a group folder, which allows no subdirectory, so there
-    the four records sit flat beside each other and the group is the set.
-    Proposals and retros are found by their `artifact`, never by folder, so
-    one rule reads both shapes.
-
-    A path outside the repository comes back from _rel as a native string,
-    which on Windows has backslashes, and fixture_group splits on "/"; so a
-    set handed in from scratch was read as no set at all.
-    """
-    rel = rel.replace("\\", "/")
-    if rel.startswith(HARNESS_DIR + "/"):
-        return HARNESS_DIR
-    g = fixture_group(rel)
-    return g[0] if g else None
-
-
-# An incident id, in either form (HP-013, 2026-10-22): INC-<date>-<nn>, or
-# INC-<date>-<machine>-<nn> for a harness seat on another machine. A machine
-# word is lower-case letters and digits, starting with a letter, possibly in
-# hyphenated parts (kyuhwan-macbook); nn is two digits, so the two never blur.
-# The same shape is harness_incident.schema.json's $defs/incident_id, the one
-# definition the retro and proposal schemas reference (HP-014).
-INCIDENT_ID = re.compile(r"^INC-(?P<date>[0-9]{8}|undated)-"
-                         r"(?:(?P<machine>[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*)*)-)?[0-9]{2}$")
-
-
-def check_89_harness_records(b: Bundle, commit_range: str | None = None,
-                             staged: bool = False) -> list[Finding]:
-    """The meta-harness's records hold together (plan.md 8.3, HP-005).
-
-    Check 1 judges a proposal and a retro against their schemas, because they
-    are artifacts. Everything a schema cannot see is here: each line of the
-    two JSONL files against its line schema, and the facts that span files --
-    an incident id is unique, an undated id has no date, every commit named
-    resolves, every incident named exists, every ledger line has a proposal
-    file whose name is its id, and the ratchet: a loosening, a retirement or a
-    change to the core lands only with the person's word, and a proposal that
-    needs a threshold lands not at all (rules 1 and 4). A proposal's stage is
-    its last ledger line, so the ledger is where landing is refused.
-
-    Both JSONL files are append-only. Under --staged and on a plain run, the
-    bytes HEAD holds must be a prefix of the tree's; under --commit-range, the
-    same holds for every first-parent commit against its parent. Line endings
-    are compared as LF, because a Windows checkout may hold CRLF for the same
-    committed bytes.
-
-    No threshold is introduced: every refusal is a structural fact.
-    """
-    import subprocess
-
-    sets: dict[str, dict] = {}
-
-    def home(rel: str) -> dict | None:
-        h = _harness_home(rel)
-        if h is None:
-            return None
-        return sets.setdefault(h, {"logs": {}, "proposals": [], "retros": []})
-
-    for p in b.all_files:
-        if p.name not in HARNESS_LOGS:
-            continue
-        rel = _rel(p)
-        s = home(rel)
-        if s is not None:
-            s["logs"][p.name] = p
-    for a in b.artifacts:
-        kind = a.data.get("artifact")
-        if kind not in ("harness_proposal", "harness_retro"):
-            continue
-        s = home(a.rel)
-        if s is not None:
-            s["proposals" if kind == "harness_proposal" else "retros"].append(a)
-
-    out: list[Finding] = []
-    history = _check_89_append_only(commit_range, staged)
-    out.extend(history)
-    if not sets:
-        return out or [Finding(89, NA, "no meta-harness records in this tree")]
-
-    try:
-        import jsonschema
-        from referencing import Registry, Resource
-        resources = [(f.name, Resource.from_contents(json.loads(f.read_text())))
-                     for f in (CONTRACTS / "schemas").glob("*.json")]
-        registry = Registry().with_resources(resources)
-        line_validators = {
-            name: jsonschema.Draft202012Validator(
-                json.loads((CONTRACTS / "schemas" / schema).read_text()), registry=registry)
-            for name, schema in HARNESS_LINE_SCHEMA.items()}
-    except ImportError as exc:
-        line_validators = None
-        out.append(Finding(89, PENDING, f"{exc.name or exc} not importable under {sys.executable}: "
-                                        "the JSONL lines were not judged against their line schemas"))
-
-    # Every commit any record names, resolved in one call.
-    wanted: dict[str, list[tuple[str, str]]] = {}
-    n_lines = 0
-    for h, s in sorted(sets.items()):
-        parsed: dict[str, list[tuple[int, dict]]] = {}
-        for name, p in sorted(s["logs"].items()):
-            rel = _rel(p)
-            parsed[name] = []
-            for i, line in enumerate(p.read_text(encoding="utf-8-sig").splitlines(), 1):
-                if not line.strip():
-                    continue
-                n_lines += 1
-                try:
-                    rec = json.loads(line)
-                except json.JSONDecodeError as exc:
-                    out.append(Finding(89, FAIL, f"line {i}: {exc}", rel))
-                    continue
-                if not isinstance(rec, dict):
-                    out.append(Finding(89, FAIL, f"line {i}: a line is one JSON object", rel))
-                    continue
-                if line_validators is not None:
-                    for err in sorted(line_validators[name].iter_errors(rec), key=lambda e: list(e.path)):
-                        loc = "/".join(str(x) for x in err.path) or "(root)"
-                        out.append(Finding(89, FAIL, f"line {i}: {loc}: {err.message}", rel))
-                parsed[name].append((i, rec))
-        s["parsed"] = parsed
-
-        inc_rel = f"{h}/incidents.jsonl"
-        incident_ids: set[str] = set()
-        for i, rec in parsed.get("incidents.jsonl", []):
-            iid = rec.get("id")
-            if iid in incident_ids:
-                out.append(Finding(89, FAIL, f"line {i}: incident id {iid} is already used above; an id "
-                                             "names one incident", inc_rel))
-            incident_ids.add(iid)
-            # Two forms since HP-013 (2026-10-22): INC-<date>-<nn>, and
-            # INC-<date>-<machine>-<nn> for a harness seat on another machine,
-            # so two seats recording on the same day never mint the same id.
-            # The date is read by name, not by position, and an id this does
-            # not parse leaves its shape to the line schema above.
-            m = INCIDENT_ID.match(iid) if isinstance(iid, str) else None
-            undated = (m.group("date") == "undated") if m else \
-                (isinstance(iid, str) and iid.startswith("INC-undated-"))
-            if undated != (rec.get("on") is None):
-                out.append(Finding(89, FAIL, f"line {i}: {iid} has on={rec.get('on')!r}; an undated id has "
-                                             "on null, and a dated one has its date", inc_rel))
-            elif not undated and isinstance(rec.get("on"), str) and isinstance(iid, str) \
-                    and (m.group("date") if m else iid[4:12]) != rec["on"].replace("-", ""):
-                out.append(Finding(89, FAIL, f"line {i}: {iid} says one date and on says {rec['on']}",
-                                   inc_rel))
-            # A machine word is the recording seat's own: it must appear as a
-            # whole word in recorded_by, or a seat could write another
-            # machine's id space and the collision this form exists to prevent
-            # comes back.
-            if m and m.group("machine") and isinstance(rec.get("recorded_by"), str) \
-                    and f"-{m.group('machine')}-" not in f"-{rec['recorded_by']}-":
-                out.append(Finding(89, FAIL, f"line {i}: {iid} carries the machine word "
-                                             f"{m.group('machine')!r}, which is not in its recording seat's "
-                                             f"name {rec['recorded_by']!r}", inc_rel))
-            for ev in rec.get("evidence") or []:
-                if isinstance(ev, dict) and ev.get("kind") == "commit" and isinstance(ev.get("ref"), str):
-                    wanted.setdefault(ev["ref"], []).append((inc_rel, f"line {i}: {iid}'s evidence"))
-        s["incident_ids"] = incident_ids
-
-        by_id: dict[str, Card] = {}
-        for prop in s["proposals"]:
-            pid = prop.data.get("id")
-            stem = Path(prop.rel).stem
-            if pid != stem:
-                out.append(Finding(89, FAIL, f"the proposal in {Path(prop.rel).name} says it is {pid}; a "
-                                             "proposal's file is named by its id", prop.rel))
-            by_id.setdefault(pid, prop)
-            if "incidents.jsonl" in s["logs"]:
-                named = list(prop.data.get("answers") or []) + \
-                    list((prop.data.get("classification") or {}).get("members_found") or [])
-                for iid in sorted(set(named) - incident_ids):
-                    out.append(Finding(89, FAIL, f"{pid} names incident {iid}, which {inc_rel} does not hold",
-                                       prop.rel))
-        for retro in s["retros"]:
-            if "incidents.jsonl" in s["logs"]:
-                for iid in sorted(set(retro.data.get("new_incidents") or []) - incident_ids):
-                    out.append(Finding(89, FAIL, f"the retro names incident {iid}, which {inc_rel} does not "
-                                                 "hold", retro.rel))
-
-        led_rel = f"{h}/ledger.jsonl"
-        for i, rec in parsed.get("ledger.jsonl", []):
-            pid = rec.get("proposal")
-            prop = by_id.get(pid)
-            if prop is None:
-                out.append(Finding(89, FAIL, f"line {i}: {pid} has no proposal file, so nothing says what "
-                                             "this outcome was an outcome of", led_rel))
-            if isinstance(rec.get("commit"), str):
-                wanted.setdefault(rec["commit"], []).append((led_rel, f"line {i}: {pid} {rec.get('outcome')}"))
-            if rec.get("outcome") in ("landed", "refused") and prop is not None:
-                words = [("the ledger line", rec.get("person_word"))]
-                if rec.get("outcome") == "landed":
-                    words.append(("the proposal", prop.data.get("person_word")))
-                for whose, pw in words:
-                    if isinstance(pw, dict):
-                        out += _check_89_console_word(pw, pid, prop.data, prop.rel, rec.get("outcome"),
-                                                      f"line {i} ({whose})", led_rel)
-            if rec.get("outcome") != "landed" or prop is None:
-                continue
-            d = prop.data
-            if (d.get("kind") in ("loosen", "retire") or d.get("touches_core")) and not d.get("person_word"):
-                why = f"is a {d.get('kind')}" if d.get("kind") in ("loosen", "retire") else \
-                    f"touches the core ({', '.join(d.get('touches_core'))})"
-                out.append(Finding(89, FAIL, f"line {i}: {pid} landed, and it {why} with no person_word; "
-                                             "that lands only on the person's word (8.3 rule 1)", led_rel))
-            if d.get("needs_threshold") is True:
-                out.append(Finding(89, FAIL, f"line {i}: {pid} landed, and it needs a threshold nobody has "
-                                             "chosen; it stops at undecided (8.3 rule 4)", led_rel))
-
-    if wanted:
-        try:
-            batch = "".join(f"{ref}^{{commit}}\n" for ref in wanted)
-            res = subprocess.run(["git", "-C", str(GIT_REPO), "cat-file", "--batch-check"],
-                                 input=batch, capture_output=True, text=True, check=True).stdout.splitlines()
-            for ref, line in zip(wanted, res):
-                if line.endswith(" missing") or " commit " not in line:
-                    for rel, where in wanted[ref]:
-                        out.append(Finding(89, FAIL, f"{where} names commit {ref}, which does not resolve in "
-                                                     "this repository", rel))
-        except (OSError, subprocess.CalledProcessError) as exc:
-            out.append(Finding(89, PENDING, f"cannot ask git whether {len(wanted)} named commits resolve: {exc}"))
-
-    if not any(f.status == FAIL for f in out):
-        n_p = sum(len(s["proposals"]) for s in sets.values())
-        n_r = sum(len(s["retros"]) for s in sets.values())
-        out.append(Finding(89, PASS, f"{n_lines} lines, {n_p} proposals and {n_r} retros in {len(sets)} sets "
-                                     f"hold together; {len(wanted)} named commits resolve"))
-    return out
-
-
-#: A person_word given through the console (HP-016, the person at 659c2214).
-CONSOLE_WORD = re.compile(r"^console:(?P<login>[A-Za-z0-9][A-Za-z0-9._-]{0,63})$")
-PERMISSION_FILE = re.compile(r"^microscope_runtime/approvals/harness/(?P<pid>HP-[0-9]{3})-(?P<sha12>[0-9a-f]{12})\.json$")
-#: What the person signed and what must land unchanged. proof, reach and notes
-#: are filled in after the signature and may differ (HP-016 item 5).
-SIGNED_FIELDS = ("kind", "changes", "touches_core", "answers", "needs_threshold", "revert")
-
-
-def _check_89_console_word(pw: dict, pid: str, d: dict, prop_rel: str, outcome: str, where: str,
-                           rel: str) -> list[Finding]:
-    """A person_word given through the console, read at a landed or refused line (HP-016).
-
-    The words are the record: the person, 2026-10-23, committed at 659c2214,
-    "10: 규칙을 느슨하게 하는 제안의 허락도 그 화면에서 로그인과 비밀번호로 하고
-    싶다. 그 방식을 바꾸는 것을 받아들인다." (the permission for a proposal that
-    loosens a rule may be given on that screen too, by login and password).
-    So the word is a file the console writes at the password, in the person's
-    approvals folder, and the person commits. Six things, each a structural
-    fact and none a threshold:
-
-      1. recorded_in names a permission file for this proposal, present in
-         the tree, identical to what was committed, and every commit that
-         touched it was made under `human`;
-      2. it is a harness_permission naming this proposal, its decision is yes
-         for a landing and no for a refusal, its screen_words are the quote
-         and its signed_at's day is `on`;
-      3. the login after `console:`, the file's signed_through.login and the
-         login in microscope_runtime/envelope/console_login.json, which the
-         person places by hand, are equal byte for byte -- that file as it
-         stood in the commit that added the permission (HP-017);
-      4. proposal_sha256 is the sha256 of the proposal file's blob at
-         proposal_commit, read from git, and the file name carries its
-         first 12;
-      5. what was signed is what lands: SIGNED_FIELDS of the proposal in the
-         tree equal the signed blob's;
-      6. the form counts for every proposal that needs the person's word: a
-         loosening, a retirement, or any change to the core (HP-018, the
-         person at 881f5119: "10-2: 가장 중요한 부분을 바꾸는 제안도 관리자 화면에서
-         로그인과 비밀번호로 허락한다." -- a proposal that changes the most
-         important part is also permitted from the administrator screen by
-         login and password). A tighten or reshape touching nothing in the
-         core needs no word, and a console word on one is refused.
-    """
-    m = CONSOLE_WORD.match(str(pw.get("said_in_window_of") or ""))
-    if not m:
-        return []
-    import hashlib
-    import subprocess
-    out: list[Finding] = []
-
-    def fail(msg: str) -> list[Finding]:
-        out.append(Finding(89, FAIL, f"{where}: {pid}'s person_word was given through the console, and {msg} "
-                                     "(8.3 rule 1, HP-016)", rel))
-        return out
-
-    def git(*args: str) -> bytes:
-        return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, check=True).stdout
-
-    if d.get("kind") not in ("loosen", "retire") and not d.get("touches_core"):
-        return fail(f"the proposal is a {d.get('kind')} touching nothing in the core, which needs no word of the "
-                    "person's; the console form counts only for a proposal that does -- a loosening, a "
-                    "retirement, or a change to the core (HP-018)")
-    rec = str(pw.get("recorded_in") or "")
-    pm = PERMISSION_FILE.match(rec)
-    if not pm or pm.group("pid") != pid:
-        return fail(f"recorded_in {rec!r} is not a permission file for {pid} under "
-                    "microscope_runtime/approvals/harness/")
-    path = REPO / rec
-    if not path.is_file():
-        return fail(f"{rec} is not in the tree")
-    raw = path.read_bytes()
-    try:
-        perm = json.loads(raw.decode("utf-8-sig"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        return fail(f"{rec} is not readable JSON: {exc}")
-    # 1. committed, unchanged since, and only ever under `human`
-    human = next((s.get("committer_email") for s in load_seats().get("seats", [])
-                  if s.get("seat") == PERSONS_SEAT), None)
-    try:
-        emails = [e for e in git("log", "--format=%ce", "--", rec).decode().splitlines() if e.strip()]
-        held = git("cat-file", "blob", f"HEAD:{rec}")
-    except (OSError, subprocess.CalledProcessError):
-        emails, held = [], None
-    if not emails or held is None:
-        return fail(f"{rec} is in no commit; the person commits a permission as an approval")
-    if held.replace(b"\r\n", b"\n") != raw.replace(b"\r\n", b"\n"):
-        return fail(f"{rec} differs from what was committed")
-    others = sorted({e for e in emails if e != human})
-    if others:
-        return fail(f"{rec} was committed under {others}, and only `human` commits the person's word")
-    # 2. this proposal, this outcome, these words
-    if perm.get("artifact") != "harness_permission" or perm.get("proposal") != pid:
-        return fail(f"{rec} is not a harness_permission naming {pid}")
-    want = "yes" if outcome == "landed" else "no"
-    if perm.get("decision") != want:
-        return fail(f"{rec} says {perm.get('decision')!r}, and a line {outcome} stands only on {want!r}")
-    if pw.get("quote") != perm.get("screen_words"):
-        return fail("its quote is not the file's screen_words")
-    if str(perm.get("signed_at") or "")[:10] != pw.get("on"):
-        return fail(f"its date {pw.get('on')} is not the day the file was signed")
-    # 3. the person's own login, as the person placed it
-    # Read as committed in the commit that added the permission, never from disk
-    # (HP-017, INC-20261023-02): this line is re-judged on every run, so a
-    # working-copy read would fail every commit on a computer without the file,
-    # and every past landing everywhere once the person changes the login.
-    login_rel = "microscope_runtime/envelope/console_login.json"
-    try:
-        added = [x for x in git("log", "--diff-filter=A", "--format=%H", "--", rec).decode().split() if x]
-        placed = json.loads(git("show", f"{added[-1]}:{login_rel}").decode("utf-8-sig")).get("login") \
-            if added else None
-    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, AttributeError, UnicodeDecodeError):
-        placed = None
-    signed = (perm.get("signed_through") or {}).get("login")
-    if placed is None:
-        return fail(f"the commit that added {rec} holds no readable {login_rel}, so no login was the person's when "
-                    "it was signed; the login is committed before a permission can bind")
-    if not (m.group("login") == signed == placed):
-        return fail(f"the logins differ: the word says {m.group('login')!r}, the file {signed!r}, and the one the "
-                    f"person had placed when it was signed is {placed!r}; any other login binds nothing")
-    # 4. the hash is of what the screen showed
-    commit = str(perm.get("proposal_commit") or "")
-    try:
-        blob = git("cat-file", "blob", f"{commit}:{prop_rel}")
-    except (OSError, subprocess.CalledProcessError):
-        return fail(f"its proposal_commit {commit[:12]} holds no {prop_rel}")
-    sha = hashlib.sha256(blob).hexdigest()
-    if sha != perm.get("proposal_sha256") or sha[:12] != pm.group("sha12"):
-        return fail(f"the proposal at {commit[:12]} hashes to {sha[:12]}, and the permission names "
-                    f"{str(perm.get('proposal_sha256'))[:12]} in its body and {pm.group('sha12')} in its name")
-    # 5. what was signed is what lands
-    try:
-        signed_prop = json.loads(blob.decode("utf-8-sig"))
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        return fail(f"the proposal at {commit[:12]} is not JSON")
-    moved = [k for k in SIGNED_FIELDS if signed_prop.get(k) != d.get(k)]
-    if moved:
-        return fail(f"its {', '.join(moved)} differ from what the person signed at {commit[:12]}")
-    return out
-
-
-def _check_89_append_only(commit_range: str | None, staged: bool) -> list[Finding]:
-    """The two harness logs only grow. A line once committed is never edited
-    or removed: a correction is a new line, the way failures.jsonl does it."""
-    import subprocess
-
-    def git(*args: str) -> str | None:
-        r = subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True)
-        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
-
-    def lf(text: str) -> str:
-        return text.replace("\r\n", "\n")
-
-    rels = [f"{HARNESS_DIR}/{n}" for n in HARNESS_LOGS]
-    out: list[Finding] = []
-    if commit_range:
-        listing = git("rev-list", "--reverse", "--first-parent", commit_range, "--", *rels)
-        if listing is None:
-            return [Finding(89, FAIL, f"cannot read commit range {commit_range!r} for the harness logs")]
-        for sha in [x for x in listing.splitlines() if x.strip()]:
-            for rel in rels:
-                old = git("show", f"{sha}^1:{rel}")
-                if old is None:
-                    continue
-                new = git("show", f"{sha}:{rel}")
-                if new is None or not lf(new).startswith(lf(old)):
-                    out.append(Finding(89, FAIL, f"commit {sha[:8]} rewrote lines its parent held; this log is "
-                                                 "append-only, so a correction is a new line", rel))
-        return out
-    for rel in rels:
-        old = git("show", f"HEAD:{rel}")
-        if old is None:
-            continue
-        p = REPO / rel
-        new = p.read_text(encoding="utf-8") if p.exists() else None
-        if new is None or not lf(new).startswith(lf(old)):
-            out.append(Finding(89, FAIL, "the tree rewrites lines HEAD holds; this log is append-only, so a "
-                                         "correction is a new line", rel))
-    return out
-
-
 #: The folders a session runs the instrument from (plan.md 15). Each must
 #: carry its own guards on the person's files, because a session's inward
 #: denials resolve only from its own root (6.2).
@@ -9500,349 +8918,6 @@ EXECUTION_FOLDERS = ("microscope_runtime",)
 #: session's own folder: Edit(...), with a single leading slash.
 INWARD_GUARDS = ("Edit(/envelope/safety.json)", "Edit(/envelope/console_login.json)", "Edit(/approvals/**)",
                  "Edit(/tasks/**)", "Edit(/CLAUDE.md)", "Edit(/.claude/**)")
-
-
-#: A console question's id (plan.md 7.1.1 rule 9): the console's server mints the c.
-CONSOLE_QID = re.compile(r"^(mic|sim)-[0-9]{8}-c[0-9]{3}$")
-#: The two console folders in an agent's tree (7.1.1 rules 1 and 6).
-CONSOLE_FOLDERS = re.compile(r"^(microscope|simulation|librarian)_agent/(console_inbox|answers)/")
-
-
-def check_91_console_questions_are_linked_and_answered(b: Bundle, commit_range: str | None = None,
-                                                       staged: bool = False) -> list[Finding]:
-    """A console question is linked by its id and answered, and its records only grow (plan.md 7.1.1).
-
-    The person approved the console inbox (f59f7b45) to open only once both
-    runners refuse, by code, an unapproved run from another login's question.
-    Rule 9 (469f3e6a) makes the link the question id itself, so the runners key
-    on it and the gate holds the other half, failing closed:
-
-      1. every card carrying a console question id (-c<NNN>) has the inbox
-         item that asked it, so a session cannot mint a console-looking
-         question nobody asked;
-      2. every console question item has an answer naming its item id and its
-         question id, so a session cannot drop one -- and renaming a console
-         question into window form leaves exactly that orphan; likewise every
-         librarian store request has at least one store answer naming its
-         item id, and a store answer names a request that exists. An item
-         with no answer yet is PENDING (rule 10: the console commits the item
-         alone, the agent its answer after), so --strict counts it;
-      3. an answer that takes a question up names a goal card carrying the
-         item's question id, and an answer names an item that exists;
-      4. nothing under an agent's console_inbox/ or answers/ is modified or
-         deleted between commits (rule 3: append-only, a correction is a new
-         item), judged per commit under --commit-range and on the staged set
-         under --staged.
-
-    An item's own id is held to the -c form by its schema. Until the inbox
-    opens no such folder exists, and the only items are the examples.
-    """
-    out: list[Finding] = []
-    items = {}
-    for c in b.of_artifact("console_question"):
-        if "__unreadable__" in c.data:
-            continue
-        items.setdefault(c.data.get("item_id"), c)
-    answers = [c for c in b.of_artifact("console_answer") if "__unreadable__" not in c.data]
-    asked = {c.data.get("question_id"): c for c in items.values()}
-
-    cards = [c for c in b.cards if isinstance(c.data.get("qid"), str)]
-    by_qid: dict[str, list] = {}
-    for c in cards:
-        by_qid.setdefault(c.data["qid"], []).append(c)
-    for qid, cs in sorted(by_qid.items()):
-        if CONSOLE_QID.match(qid) and qid not in asked:
-            for c in cs:
-                out.append(Finding(91, FAIL, f"{qid} is a console question's id and no console inbox item asked "
-                                             "it; only the console's server mints a -c id (7.1.1 rule 9)", c.rel))
-
-    answered: dict[str, list] = {}
-    for a in answers:
-        iid, qid = a.data.get("item_id"), a.data.get("question_id")
-        item = items.get(iid)
-        if item is None:
-            out.append(Finding(91, FAIL, f"the answer names item {iid}, which no console inbox item is", a.rel))
-            continue
-        if item.data.get("question_id") != qid:
-            out.append(Finding(91, FAIL, f"the answer to {iid} names question {qid}, and the item asked "
-                                         f"{item.data.get('question_id')}", a.rel))
-            continue
-        answered.setdefault(iid, []).append(a)
-        if a.data.get("outcome") == "taken_up":
-            goal = str(a.data.get("goal_card") or "")
-            if not any(c.rel == goal and c.data.get("qid") == qid for c in by_qid.get(qid, [])):
-                out.append(Finding(91, FAIL, f"the answer to {iid} says it was taken up as {goal!r}, and no card "
-                                             f"there carries {qid}; the first stage uses the item's id for the goal "
-                                             "card it makes (7.1.1 rule 9)", a.rel))
-    # An item with no answer yet is PENDING, not FAIL (7.1.1 rule 10): the
-    # item is the console's to commit and its answer the agent's, check 41
-    # refuses one commit carrying both, so the item lands first and alone.
-    # A dropped item is still caught by the append-only rule below, and
-    # --strict counts an unanswered one.
-    for iid, item in sorted(items.items(), key=lambda kv: str(kv[0])):
-        if iid not in answered:
-            out.append(Finding(91, PENDING, f"console question {iid} ({item.data.get('question_id')}) has no "
-                                            "answer naming it yet; every item is taken up or refused, and a refusal "
-                                            "is written back, never silent (7.1.1 rules 5, 9 and 10)", item.rel))
-
-    # A run of a console question records the item its runner read
-    # (microscope card 089, simulation card 028). A run log carries no
-    # question id, so the plan it opened says whose question it was. A
-    # refused run is exempt from the requirement, since its item may never
-    # have been read, and never from the other direction: a run of a
-    # window question carrying an item is borrowing one.
-    by_rel = {c.rel: c for c in b.cards}
-    logs_with_item = 0
-    for log in b.of_artifact("run_log"):
-        if "__unreadable__" in log.data:
-            continue
-        ci = log.data.get("console_item")
-        pp = log.data.get("plan_path")
-        plan = by_rel.get(str(pp or ""))
-        # A plan_path that names no card leaves whose question ran unknown,
-        # and unknown is not "not a console question": a path written with
-        # backslashes on Windows misses here and would otherwise judge a
-        # console run as a window one. Ambiguity stops.
-        if pp and plan is None:
-            out.append(Finding(91, FAIL, f"plan_path {pp!r} names no card in this tree, so whose question the "
-                                         "run ran cannot be told; a plan path is repo-relative with forward "
-                                         "slashes", log.rel))
-            continue
-        qid = plan.data.get("qid") if plan is not None else None
-        console = isinstance(qid, str) and bool(CONSOLE_QID.match(qid))
-        if ci is None:
-            if console and log.data.get("ended") != "refused":
-                out.append(Finding(91, FAIL, f"the run ran {qid}, a console question, and its log carries no "
-                                             "console_item; the item the runner read is recorded with the run "
-                                             "(7.1.1 rule 9)", log.rel))
-            continue
-        logs_with_item += 1
-        if not console:
-            out.append(Finding(91, FAIL, f"the log carries a console_item and its plan's question is "
-                                         f"{qid if qid else 'unknown'}, not a console question; only a run of "
-                                         "a console question reads an inbox item (7.1.1 rule 9)", log.rel))
-            continue
-        item = items.get(ci.get("item_id"))
-        if ci.get("question_id") != qid:
-            out.append(Finding(91, FAIL, f"the log's console_item names question {ci.get('question_id')} and "
-                                         f"the plan it ran is {qid}", log.rel))
-        elif item is None or item.data.get("question_id") != qid:
-            out.append(Finding(91, FAIL, f"the log's console_item names item {ci.get('item_id')}, and no "
-                                         f"console inbox item by that id asked {qid}", log.rel))
-        elif ci.get("path") != item.rel:
-            out.append(Finding(91, FAIL, f"the log's console_item names {ci.get('path')} and the item "
-                                         f"{ci.get('item_id')} is {item.rel}", log.rel))
-        else:
-            import hashlib
-            got = hashlib.sha256(item.path.read_bytes()).hexdigest()
-            if got != ci.get("sha256"):
-                out.append(Finding(91, FAIL, f"the log's console_item records sha256 {ci.get('sha256')} for "
-                                             f"{item.rel} and its bytes hash to {got}; the run read other "
-                                             "bytes than the item holds (7.1.1 rule 3)", log.rel))
-
-    # The librarian's store requests (7.1.1 rules 4 and 8) are joined on the
-    # item id alone: a store answer carries no question id and no goal card,
-    # and one request may have several answers (waiting_for_a_name, then one
-    # that follows it), so the rule is at least one.
-    requests = {}
-    for c in b.of_artifact("console_store_request"):
-        if "__unreadable__" not in c.data:
-            requests.setdefault(c.data.get("item_id"), c)
-    store_answers = [c for c in b.of_artifact("store_answer") if "__unreadable__" not in c.data]
-    store_answered = set()
-    for a in store_answers:
-        iid = a.data.get("item_id")
-        if iid not in requests:
-            out.append(Finding(91, FAIL, f"the store answer names item {iid}, which no store request is", a.rel))
-        store_answered.add(iid)
-    # An answer that follows another names one that exists, for the same
-    # request, and not itself (7.1.1 rule 6: waiting_for_a_name, then a second
-    # answer). Matched on the answer id the path carries, so an example tree
-    # is judged the way librarian_agent/answers/ will be.
-    by_answer_id = {}
-    for a in store_answers:
-        by_answer_id.setdefault(a.data.get("answer_id"), a)
-    for a in store_answers:
-        fol = a.data.get("follows")
-        if not fol:
-            continue
-        m = re.search(r"(ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4})\.json$", str(fol))
-        prior = by_answer_id.get(m.group(1)) if m else None
-        if prior is None or prior is a:
-            out.append(Finding(91, FAIL, f"the store answer follows {fol!r}, and no other store answer in this "
-                                         "tree is that one; a second answer follows an answer that was written "
-                                         "(7.1.1 rule 6)", a.rel))
-        elif prior.data.get("item_id") != a.data.get("item_id"):
-            out.append(Finding(91, FAIL, f"the store answer to {a.data.get('item_id')} follows {fol!r}, which "
-                                         f"answers {prior.data.get('item_id')}; an answer follows one to the same "
-                                         "request (7.1.1 rule 6)", a.rel))
-
-    # An answer in an agent's answers/ is named by its own id, for both kinds,
-    # so a citation by file name and one by answer_id name the same answer.
-    for a in answers + store_answers:
-        m = re.search(r"(?:^|/)answers/(ca-[0-9]{8}-[0-9]{6}-[a-z0-9]{4})\.json$", a.rel)
-        if m and a.data.get("answer_id") != m.group(1):
-            out.append(Finding(91, FAIL, f"the answer's file is {m.group(1)}.json and its answer_id is "
-                                         f"{a.data.get('answer_id')!r}; an answer under answers/ is named by "
-                                         "its own id (7.1.1 rule 6)", a.rel))
-
-    # One item id, one item, across every agent's inbox and both kinds. The
-    # joins above keep the first and would read a second as already answered,
-    # so a duplicate is refused here rather than resolved by load order.
-    holders: dict = {}
-    for c in list(b.of_artifact("console_question")) + list(b.of_artifact("console_store_request")):
-        if "__unreadable__" not in c.data and c.data.get("item_id"):
-            holders.setdefault(c.data["item_id"], []).append(c.rel)
-    for iid, rels in sorted(holders.items()):
-        if len(rels) > 1:
-            for rel in rels:
-                out.append(Finding(91, FAIL, f"item id {iid} is held by {len(rels)} items ({', '.join(sorted(rels))}); "
-                                             "the console's server mints one id per item, and an answer naming it "
-                                             "could not say which it answers (7.1.1 rules 3 and 6)", rel))
-    for iid, req in sorted(requests.items(), key=lambda kv: str(kv[0])):
-        if iid not in store_answered:
-            out.append(Finding(91, PENDING, f"store request {iid} has no store answer naming it yet; every "
-                                            "request is answered, and a refusal is written back, never silent "
-                                            "(7.1.1 rules 8 and 10)", req.rel))
-
-    if commit_range or staged:
-        import subprocess
-
-        def git(*args: str) -> str:
-            return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, text=True,
-                                  check=True).stdout
-        try:
-            if staged:
-                rows = [("the staged set", git("diff", "--cached", "--name-status", "--no-renames"))]
-            else:
-                shas = [x for x in git("rev-list", "--reverse", "--no-merges", "--first-parent",
-                                       commit_range or "").split() if x]
-                rows = [(s[:7], git("diff-tree", "-r", "--no-commit-id", "--name-status", "--no-renames", s))
-                        for s in shas]
-        except (OSError, subprocess.CalledProcessError) as exc:
-            rows = []
-            out.append(Finding(91, PENDING, f"cannot read what changed: {exc}"))
-        for label, text in rows:
-            for line in text.splitlines():
-                parts = line.split("\t")
-                if len(parts) >= 2 and parts[0][:1] in ("M", "D") and CONSOLE_FOLDERS.match(parts[1]):
-                    what = "modifies" if parts[0][:1] == "M" else "deletes"
-                    out.append(Finding(91, FAIL, f"{label} {what} {parts[1]}; a console inbox item or answer is "
-                                                 "never rewritten or removed, and a correction is a new item "
-                                                 "(7.1.1 rule 3)", parts[1]))
-
-    if not any(f.status == FAIL for f in out):
-        seen = items or answers or requests or store_answers
-        out.append(Finding(91, PASS if seen else NA,
-                           f"{len(items)} console question items, each answered, and {len(answers)} answers, each "
-                           f"naming its item; every console question id has its item; {len(requests)} store "
-                           f"requests, each answered, and {len(store_answers)} store answers, each naming its request; "
-                           f"{logs_with_item} run logs naming the item they read, each matching it"
-                           if seen else "no console question items, store requests or answers in this tree"))
-    return out
-
-
-def _named_documents(node: object) -> list[str]:
-    """Every string under a `document` key anywhere inside a store request."""
-    found: list[str] = []
-    if isinstance(node, dict):
-        for k, v in node.items():
-            if k == "document" and isinstance(v, str):
-                found.append(v)
-            else:
-                found.extend(_named_documents(v))
-    elif isinstance(node, list):
-        for v in node:
-            found.extend(_named_documents(v))
-    return found
-
-
-def check_92_a_console_item_holds_the_files_it_names(b: Bundle) -> list[Finding]:
-    """A console inbox item names only files it carries, and carries them intact (plan.md 7.1.1 rule 4).
-
-    An entry made from a document request names the request as its source
-    (rule 3), so the attached document is part of that entry's provenance.
-    The schemas say a request names a file and the envelope lists files with
-    a sha256; they cannot say the two agree, or that the bytes are there:
-
-      a. every `document` a console_store_request names is one of its
-         envelope's attachments;
-      b. every attachment's file name begins with the item's own id and
-         `--` (the schema pins only the ci-...-- form), so an item cannot
-         list another item's file;
-      c. every attachment is a file beside its item whose bytes hash to the
-         sha256 the item records;
-      d. inside a console_inbox/ folder, every file is an item or an
-         attachment its item lists, so no file sits there bound to no hash.
-         The one exception is an empty `.gitkeep`, which lets git hold the
-         folder before its first item: the runners refuse when it is absent.
-
-    It holds for both item kinds, the console's questions and the
-    librarian's store requests; (b) to (d) by manager-console's agreement
-    (2026-10-26). An attachment missing `file` or `sha256` is the schema's
-    refusal and is skipped here. The bytes hashed are the judged tree's:
-    under --staged that is the hook's checkout-index export, which equals
-    the committed blob under **/console_inbox/** because .gitattributes
-    turns end-of-line conversion off there. The examples' attachments carry
-    no line ending, so they hash alike on every computer.
-    """
-    out: list[Finding] = []
-    items = [c for c in b.of_artifact("console_question", "console_store_request")
-             if "__unreadable__" not in c.data]
-    allowed = {c.path for c in items}
-    files = 0
-    for c in items:
-        iid = str(c.data.get("item_id") or "")
-        atts = [a for a in (c.data.get("attachments") or [])
-                if isinstance(a, dict) and isinstance(a.get("file"), str) and isinstance(a.get("sha256"), str)]
-        listed = {a["file"] for a in atts}
-        if c.data.get("artifact") == "console_store_request":
-            for doc in _named_documents(c.data.get("request")):
-                if doc not in listed:
-                    out.append(Finding(92, FAIL, f"the request names document {doc!r} and its attachments list "
-                                                 f"{sorted(listed) if listed else 'nothing'}; a document is handed "
-                                                 "in by attaching it (7.1.1 rule 4)", c.rel))
-        for a in atts:
-            name = a["file"]
-            if not name.startswith(iid + "--"):
-                out.append(Finding(92, FAIL, f"attachment {name!r} does not begin with the item's own id "
-                                             f"{iid}--; an item carries only its own files (7.1.1 rule 4)", c.rel))
-                continue
-            path = c.path.parent / name
-            allowed.add(path)
-            if not path.is_file():
-                out.append(Finding(92, FAIL, f"attachment {name} is listed and no such file is beside the item; "
-                                             "an item and its files land together (7.1.1 rule 4)", c.rel))
-                continue
-            got = hashlib.sha256(path.read_bytes()).hexdigest()
-            if got != a["sha256"]:
-                out.append(Finding(92, FAIL, f"attachment {name} is recorded as sha256 {a['sha256']} and its "
-                                             f"bytes hash to {got}; the file beside the item is not the one "
-                                             "the asker attached (7.1.1 rule 3)", c.rel))
-                continue
-            files += 1
-    inbox_files = 0
-    for p in b.all_files:
-        try:
-            rel = p.relative_to(REPO).as_posix()
-        except ValueError:
-            rel = p.as_posix()
-        if "console_inbox" not in rel.split("/")[:-1] or is_imported(rel) or is_mock_data(rel):
-            continue
-        if p.name == ".gitkeep" and p.stat().st_size == 0:
-            continue
-        inbox_files += 1
-        if p not in allowed:
-            out.append(Finding(92, FAIL, f"{rel} sits in a console_inbox/ and is neither an item nor an "
-                                         "attachment an item lists; nothing there is bound to no hash "
-                                         "(7.1.1 rules 3 and 4)", rel))
-    if not any(f.status == FAIL for f in out):
-        out.append(Finding(92, PASS if items or inbox_files else NA,
-                           f"{len(items)} console inbox items name only files they attach, {files} attached files "
-                           f"sit beside their items with matching bytes, and {inbox_files} files in console_inbox/ "
-                           "folders are each an item or a listed attachment"
-                           if items or inbox_files else "no console inbox items in this tree"))
-    return out
 
 
 def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Finding]:
@@ -9904,372 +8979,6 @@ def check_90_an_execution_folder_guards_the_persons_files(b: Bundle) -> list[Fin
             out.append(Finding(90, FAIL, f"the deny list lacks {guard}{why}", rel))
     return out or [Finding(90, PASS, f"{len(roots)} execution folder(s) carry the {len(INWARD_GUARDS)} inward guards, anchored "
                                      "at the folder, in the form Claude Code consults")]
-
-
-#: The agents a console inbox delivers to (plan.md 7.1.1 rule 1). Each denies
-#: its own session the folder, because the console's server writes it and the
-#: agent only reads it (rule 2).
-RECEIVING_AGENTS = ("microscope_agent", "simulation_agent", "librarian_agent")
-#: The guard, in the one form check 90 accepts: Edit(...), anchored at the
-#: session's own folder by a single leading slash.
-CONSOLE_INBOX_GUARD = "Edit(/console_inbox/**)"
-
-
-def check_93_an_agent_cannot_write_its_console_inbox(b: Bundle) -> list[Finding]:
-    """A receiving agent's settings deny its session its own console_inbox/ (plan.md 7.1.1 rules 2 and 8).
-
-    The console's server writes an agent's console_inbox/; the agent reads it
-    and never writes it, "denied in its settings the way the bridge's
-    `inbox/**` is". So each receiving agent's .claude/settings.json carries
-    Edit(/console_inbox/**), and carries it before the folder exists, as check
-    90 asks of the runtime's guards: a session that can write the folder can
-    write an item no console asked.
-
-    The form is check 90's, for check 90's reason: a Write path rule is never
-    consulted, and a pattern without the leading slash, or one naming the
-    agent's folder, does not resolve to that folder's console_inbox/. One star
-    is reported as well, because it leaves a subfolder unguarded.
-
-    WHAT A SETTINGS LINE CANNOT DO. It refuses the session's file tools, not
-    what a shell command writes, and a settings file this check does not see
-    can add refusals and cannot be relied on to; this asks only that the
-    repository's own file says the line. Who may commit into the folder is the
-    commit gate's, and that nothing landed there changes is check 91's.
-
-    Judged: the repository's own agent folders, and an agent folder directly
-    inside a rejected group that is a fixture for this check. An agent folder
-    inside another check's group is that check's input, not a session's root,
-    and the console's mock data and imported trees are neither.
-    """
-    roots: set[Path] = set()
-    for p in b.all_files:
-        for parent in p.parents:
-            if parent.name not in RECEIVING_AGENTS:
-                continue
-            rel = _rel(parent)
-            group = fixture_group(rel + "/-")
-            if parent.parent == REPO or (group is not None and group[1] == 93
-                                         and rel == f"{group[0]}/{parent.name}"):
-                roots.add(parent)
-            break
-    if not roots:
-        return [Finding(93, NA, f"no receiving agent folder ({', '.join(RECEIVING_AGENTS)}) holds a file in "
-                                "this tree")]
-    out: list[Finding] = []
-    for root in sorted(roots):
-        settings = root / ".claude" / "settings.json"
-        rel = _rel(settings).replace("\\", "/")
-        if not settings.exists():
-            out.append(Finding(93, FAIL, f"{root.name} has no .claude/settings.json, so a session rooted there "
-                                         "can write its own console_inbox/ (7.1.1 rule 2)", rel))
-            continue
-        try:
-            deny = (json.loads(settings.read_text(encoding="utf-8")).get("permissions") or {}).get("deny") or []
-        except (OSError, json.JSONDecodeError) as exc:
-            out.append(Finding(93, FAIL, f"unreadable settings: {exc}", rel))
-            continue
-        if CONSOLE_INBOX_GUARD in deny:
-            continue
-        near = {"Write(/console_inbox/**)": "a Write path rule is never consulted",
-                "Edit(console_inbox/**)": "a pattern without the leading slash does not resolve to this "
-                                          "folder's console_inbox/",
-                "Write(console_inbox/**)": "a Write path rule is never consulted",
-                f"Edit({root.name}/console_inbox/**)": "a pattern naming the folder itself resolves inside it, "
-                                                       "to a path that does not exist",
-                f"Write({root.name}/console_inbox/**)": "a Write path rule is never consulted",
-                "Edit(/console_inbox/*)": "one star leaves a subfolder unguarded"}
-        found = [d for d in deny if isinstance(d, str) and d in near]
-        why = "".join(f"; {d} is there and guards nothing: {near[d]}" for d in found)
-        out.append(Finding(93, FAIL, f"the deny list lacks {CONSOLE_INBOX_GUARD}{why} (7.1.1 rule 2)", rel))
-    return out or [Finding(93, PASS, f"{len(roots)} receiving agent folder(s) deny their session "
-                                     f"{CONSOLE_INBOX_GUARD}, anchored at the folder, in the form Claude Code "
-                                     "consults")]
-
-
-#: What a console inbox item never carries (plan.md 7.1.1 rule 4), by the keys
-#: that carry each in this repository's own contracts: a plan's three kinds and
-#: the fields every plan must have (plan.schema.json), what an approval binds
-#: and grants (plan_approval and scope_approval), a safety policy's version and
-#: targets (envelope_safety), and the run interface's messages with the command
-#: kinds the imported engine took (console/CLAUDE.md).
-FORBIDDEN_ITEM_KEYS: dict[str, str] = {
-    **dict.fromkeys(("operation", "trap_steps", "focus_search", "actions", "envelope_check",
-                     "stop_criteria", "success_criteria", "plan_id"), "a plan"),
-    **dict.fromkeys(("plan_hash", "plan_revision", "approved_by", "approved_at", "signed_through",
-                     "valid_until", "max_runs"), "an approval"),
-    **dict.fromkeys(("policy_version", "targets", "safety", "limits"), "a safety value"),
-    **dict.fromkeys(("command", "commands", "run", "stop", "abort", "live_on", "check_now", "frame_tap",
-                     "light_set", "goto_xy", "objective_change", "trap_move", "pattern_run"), "a command"),
-}
-#: The schemas that shape an inbox item; none may declare a forbidden key.
-INBOX_ITEM_SCHEMAS = ("console_inbox_item.schema.json", "console_store_request.schema.json")
-
-
-def _forbidden_in(node, where: str, depth: int = 0) -> list[str]:
-    """Every forbidden key in node, at every depth, as `where.path: what it is`.
-
-    `artifact` and `card` are forbidden below the top: the item's own
-    `artifact` is its kind, and either key anywhere else is a card riding
-    inside it -- the two keys by which this repository's files declare a
-    card.
-    """
-    found: list[str] = []
-    if isinstance(node, dict):
-        for k, v in node.items():
-            here = f"{where}.{k}"
-            if k in FORBIDDEN_ITEM_KEYS:
-                found.append(f"{here} ({FORBIDDEN_ITEM_KEYS[k]})")
-            elif k in ("artifact", "card") and depth > 0:
-                found.append(f"{here} (another card, {v!r})")
-            found.extend(_forbidden_in(v, here, depth + 1))
-    elif isinstance(node, list):
-        for i, v in enumerate(node):
-            found.extend(_forbidden_in(v, f"{where}[{i}]", depth + 1))
-    return found
-
-
-def check_94_a_console_item_carries_no_plan_approval_safety_value_or_command(b: Bundle) -> list[Finding]:
-    """A console inbox item carries no plan, approval, safety value or command (plan.md 7.1.1 rules 4 and 8).
-
-    Every object in both item schemas is closed, so check 1 already refuses a
-    key they do not declare. This holds the same line three places check 1
-    does not reach:
-
-      a. it reads every depth with the standard library alone, so it still
-         judges where check 1 goes PENDING for want of `jsonschema` and
-         `referencing` -- the Office computer's bare `python` is one such;
-      b. it reads inside every attachment an item lists whose bytes parse as
-         JSON, which no schema sees: a plan, an approval or any card attached
-         as a file is carried all the same (a document that is not JSON is
-         not read);
-      c. it reads the item schemas themselves, and fails one that declares a
-         forbidden key, since an item could then carry it and pass check 1.
-
-    The keys are FORBIDDEN_ITEM_KEYS, plus `artifact` and `card` below the
-    top: an item embeds no card and attaches none, since every other check
-    would read an attached card as a real one. The asker's words are free text and are never judged; a
-    question may talk about a plan, an approval or a stop, and may not carry
-    one. An attachment that is not the item's own (check 92) is not read here.
-    """
-    out: list[Finding] = []
-    for name in INBOX_ITEM_SCHEMAS:
-        path = CONTRACTS / "schemas" / name
-        try:
-            schema = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        declared: set[str] = set()
-        stack = [schema]
-        while stack:
-            node = stack.pop()
-            if isinstance(node, dict):
-                if isinstance(node.get("properties"), dict):
-                    declared.update(node["properties"])
-                stack.extend(node.values())
-            elif isinstance(node, list):
-                stack.extend(node)
-        both = sorted(declared & set(FORBIDDEN_ITEM_KEYS))
-        if both:
-            out.append(Finding(94, FAIL, f"the schema declares {', '.join(both)}, which an inbox item may never "
-                                         "carry; an item could then hold one and pass check 1 (7.1.1 rule 4)",
-                               _rel(path)))
-    items = [c for c in b.of_artifact("console_question", "console_store_request")
-             if "__unreadable__" not in c.data]
-    read = 0
-    for c in items:
-        found = _forbidden_in(c.data, "item")
-        iid = str(c.data.get("item_id") or "")
-        for a in c.data.get("attachments") or []:
-            name = a.get("file") if isinstance(a, dict) else None
-            if not isinstance(name, str) or not name.startswith(iid + "--"):
-                continue
-            path = c.path.parent / name
-            try:
-                doc = json.loads(path.read_bytes())
-            except (OSError, ValueError):
-                continue
-            read += 1
-            found.extend(_forbidden_in(doc, f"attachment {name}", 1))
-        if found:
-            more = f" and {len(found) - 3} more" if len(found) > 3 else ""
-            out.append(Finding(94, FAIL, f"the item carries {'; '.join(found[:3])}{more}; an inbox item carries "
-                                         "no plan, approval, safety value or command (7.1.1 rule 4)", c.rel))
-    if not any(f.status == FAIL for f in out):
-        out.append(Finding(94, PASS if items else NA,
-                           f"{len(items)} console inbox items and {read} attachments that are JSON carry no plan, "
-                           "approval, safety value or command at any depth, and the item schemas declare none"
-                           if items else "no console inbox items in this tree; the item schemas declare no "
-                                         "forbidden key"))
-    return out
-
-
-def check_95_a_store_answer_stands_on_a_published_store(b: Bundle) -> list[Finding]:
-    """A store answer names a store version anyone can read back, and what it reports is in it (7.1.1 rule 6).
-
-    The librarian writes an answer only after the store change it reports is
-    published, so the console can show it as fact. The schema can say that
-    `kb_version` has the shape of a version; it cannot say the version exists
-    or holds what the answer names. So, for every store answer that names one:
-
-      a. `kb_version` is carried by some commit's kb/index.json, or by the
-         judged tree's own -- an answer and the entries it made may land in
-         one commit. This is the server's own test (`version_history`): a
-         version nobody committed is one nobody can read back.
-      b. every entry it names is in that version: entries_made,
-         entries_marked, other_side, entries_cited and numbers[].entry_id.
-      c. each number it gives is one of that entry's numbers in value, unit,
-         grade and source, and the entry is among entries_cited, so a number
-         shown to the person carries the provenance the store records and no
-         other.
-      d. the mark it reports is in that version: a refuted entry's
-         `refuted_by` names one of other_side, a superseded entry is the
-         `supersedes` of one of other_side, an entry in conflict names one of
-         other_side in `conflict_with`.
-      e. an answer in an agent's `answers/` whose item sits in the sibling
-         `console_inbox/` as `<item_id>.json` pins that item's bytes:
-         `request_sha256` is their sha256 (7.1.1 rule 4). This branch reads
-         no store version, so it judges answers that name none. An item that
-         is absent is check 91's.
-
-    kb_version hashes the entries, so every commit carrying one version holds
-    the same entries and the first one found is read. Git that cannot be read
-    is PENDING for that answer, not a failure. An answer with no kb_version
-    where one is required is check 1's.
-    """
-    import subprocess
-    answers = [c for c in b.of_artifact("store_answer") if "__unreadable__" not in c.data]
-    if not answers:
-        return [Finding(95, NA, "no store answers in this tree")]
-    index_rel, entries_rel = "librarian_agent/kb/index.json", "librarian_agent/kb/entries"
-
-    def git(*args: str) -> str:
-        return subprocess.run(["git", "-C", str(GIT_REPO), *args], capture_output=True, text=True,
-                              encoding="utf-8", check=True).stdout
-
-    try:
-        judged = json.loads((REPO / index_rel).read_text(encoding="utf-8")).get("kb_version")
-    except (OSError, ValueError, AttributeError):
-        judged = None
-    where: dict[str, str | None] = {}   # version -> "" for the judged tree, a commit, or None for nowhere
-
-    def locate(kbv: str) -> str | None:
-        if kbv not in where:
-            found = "" if kbv == judged else None
-            if found is None:
-                for sha in git("log", f"-S{kbv}", "--format=%H", "--", index_rel).split():
-                    try:
-                        if json.loads(git("show", f"{sha}:{index_rel}")).get("kb_version") == kbv:
-                            found = sha
-                            break
-                    except (subprocess.CalledProcessError, ValueError, AttributeError):
-                        continue
-            where[kbv] = found
-        return where[kbv]
-
-    read: dict[tuple[str, str], dict | None] = {}
-
-    def entry(at: str, eid: str) -> dict | None:
-        if (at, eid) not in read:
-            try:
-                e = json.loads((REPO / entries_rel / f"{eid}.json").read_text(encoding="utf-8") if at == ""
-                               else git("show", f"{at}:{entries_rel}/{eid}.json"))
-            except (OSError, ValueError, subprocess.CalledProcessError):
-                e = None
-            read[(at, eid)] = e if isinstance(e, dict) and e.get("entry_id") == eid else None
-        return read[(at, eid)]
-
-    def ids(v: object) -> list[str]:
-        return [x for x in v if isinstance(x, str)] if isinstance(v, list) else []
-
-    out: list[Finding] = []
-    judged_n = pending = pinned = 0
-    for c in answers:
-        d = c.data
-        # e. An answer in an agent's answers/ pins the bytes of the item it
-        # answers, which sits in the sibling console_inbox/ and never changes
-        # once it lands (7.1.1 rule 4: "the request pinned by sha256"). The
-        # folder is -text in .gitattributes, so disk bytes are committed
-        # bytes. An item that is not there is check 91's failure, not this.
-        iid = d.get("item_id")
-        if (c.path.parent.name == "answers" and isinstance(iid, str)
-                and re.fullmatch(r"ci-[0-9]{8}-[0-9]{6}-[a-z0-9]{4}", iid)):
-            item = c.path.parent.parent / "console_inbox" / f"{iid}.json"
-            if item.is_file():
-                got = hashlib.sha256(item.read_bytes()).hexdigest()
-                if got != d.get("request_sha256"):
-                    out.append(Finding(95, FAIL, f"pins request_sha256 {d.get('request_sha256')}, and "
-                                                 f"console_inbox/{iid}.json hashes to {got}; the answer's "
-                                                 "request_sha256 is not the sha256 of the item it answers, "
-                                                 "whose bytes never change once they land (7.1.1 rule 4)", c.rel))
-                else:
-                    pinned += 1
-        kbv = d.get("kb_version")
-        if not isinstance(kbv, str):
-            continue
-        try:
-            at = locate(kbv)
-        except (OSError, subprocess.CalledProcessError) as exc:
-            pending += 1
-            out.append(Finding(95, PENDING, f"git could not be read ({type(exc).__name__}), so whether {kbv} "
-                                            "was ever published is unjudged", c.rel))
-            continue
-        if at is None:
-            out.append(Finding(95, FAIL, f"names kb_version {kbv}, which no commit's kb/index.json carries and "
-                                         "the judged tree's does not either; an answer is written after the "
-                                         "change it reports is published, at a version anyone can read back "
-                                         "(7.1.1 rule 6)", c.rel))
-            continue
-        judged_n += 1
-        here = "the judged tree" if at == "" else f"commit {at[:12]}"
-        named = {k: ids(d.get(k)) for k in ("entries_made", "entries_marked", "other_side", "entries_cited")}
-        nums = [n for n in (d.get("numbers") or []) if isinstance(n, dict) and isinstance(n.get("entry_id"), str)]
-        missing = sorted(eid for eid in {x for v in named.values() for x in v} | {n["entry_id"] for n in nums}
-                         if entry(at, eid) is None)
-        if missing:
-            out.append(Finding(95, FAIL, f"names {', '.join(missing)}, absent from {kbv} as {here} holds it; "
-                                         "every entry an answer reports is in the version it names "
-                                         "(7.1.1 rule 6)", c.rel))
-            continue
-        for n in nums:
-            eid = n["entry_id"]
-            theirs = [m for m in (entry(at, eid).get("numbers") or []) if isinstance(m, dict)]
-            if not any(all(m.get(k) == n.get(k) for k in ("value", "unit", "grade", "source")) for m in theirs):
-                out.append(Finding(95, FAIL, f"gives {n.get('name')!r} = {n.get('value')} {n.get('unit')} "
-                                             f"({n.get('grade')}, {n.get('source')}) from {eid}, and no number of "
-                                             f"that entry at {kbv} has that value, unit, grade and source; a "
-                                             "number shown to the person is the store's, with the store's "
-                                             "provenance (7.1.1 rule 6)", c.rel))
-            if eid not in named["entries_cited"]:
-                out.append(Finding(95, FAIL, f"gives a number from {eid} and does not list it in entries_cited; "
-                                             "an answer names the entries it rests on (7.1.1 rule 6)", c.rel))
-        outcome, other = d.get("outcome"), set(named["other_side"])
-        for m in named["entries_marked"]:
-            em = entry(at, m)
-            if outcome == "refuted":
-                ok, said = bool(set(ids(em.get("refuted_by"))) & other), f"{m}'s refuted_by names none of them"
-            elif outcome == "superseded":
-                ok = any((entry(at, o) or {}).get("supersedes") == m for o in other)
-                said = f"none of them supersedes {m}"
-            elif outcome == "in_conflict":
-                ok, said = bool(set(ids(em.get("conflict_with"))) & other), f"{m}'s conflict_with names none of them"
-            else:
-                continue
-            if not ok:
-                out.append(Finding(95, FAIL, f"reports {m} {outcome} against {', '.join(sorted(other)) or 'nothing'}, "
-                                             f"and at {kbv} {said}; the mark an answer reports is in the version "
-                                             "it names (7.1.1 rule 6)", c.rel))
-    if not any(f.status == FAIL for f in out):
-        said = []
-        if judged_n:
-            said.append(f"{judged_n} store answers name a published store version that holds every entry, "
-                        "number and mark they report")
-        if pinned:
-            said.append(f"{pinned} pin the sha256 of the inbox item they answer")
-        if said:
-            out.append(Finding(95, PASS, "; ".join(said)))
-        elif not pending:
-            out.append(Finding(95, NA, "no store answer names a store version or sits beside the item it answers"))
-    return out
 
 
 def check_96_a_device_label_is_its_cited_entrys(b: Bundle) -> list[Finding]:
@@ -10816,14 +9525,8 @@ CHECKS = [
     check_60_observables_are_registered_quantities,
     check_61_envelope_currency,
     check_87_safety_guides_follow_the_store, check_88_focus_search,
-    check_89_harness_records,
     check_90_an_execution_folder_guards_the_persons_files,
-    check_91_console_questions_are_linked_and_answered,
-    check_92_a_console_item_holds_the_files_it_names,
     check_97_the_unused_list_is_the_rules,
-    check_93_an_agent_cannot_write_its_console_inbox,
-    check_94_a_console_item_carries_no_plan_approval_safety_value_or_command,
-    check_95_a_store_answer_stands_on_a_published_store,
     check_96_a_device_label_is_its_cited_entrys,
     check_98_a_binding_and_a_state_word_are_their_cited_entrys,
     check_67_entry_units_are_declared,
@@ -10846,8 +9549,7 @@ def run(roots: list[Path], include_rejected: bool = False, commit_range: str | N
     findings: list[Finding] = []
     for fn in CHECKS:
         try:
-            if fn in (check_35_session_boundary, check_41_seat_attribution, check_89_harness_records,
-                      check_91_console_questions_are_linked_and_answered):
+            if fn in (check_35_session_boundary, check_41_seat_attribution):
                 findings.extend(fn(bundle, commit_range, staged))
             else:
                 findings.extend(fn(bundle))

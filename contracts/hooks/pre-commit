@@ -1,74 +1,35 @@
 #!/bin/sh
-# Refuse a commit that breaks a contract (plan.md 8) or crosses a session
-# boundary (6.2).
+# Refuse a commit that would put a failing tree into history (plan.md 8).
 #
-# This exists because the boundary was a convention rather than a gate. Each
-# agent's .claude/settings.json denies Write and Edit on another agent's files,
-# but it does not deny `python3 - <<PY` or `sed`, and both were used -- by every
-# session, including the design one. A rule enforced only where it is
-# convenient to enforce is P4 in reverse: the model deciding whether the check
-# applies.
+# The gate judges the tree the commit would create -- the index, unpacked --
+# and not the working copy, so another session's unfinished file neither
+# refuses this commit nor lets a broken one through. It runs the validator
+# with --staged, which adds checks 35 and 41: one boundary per commit, and
+# the committer's name (contracts/seats.json, six names, plan.md 6.2.1) owning
+# that boundary. Then every rejected fixture must still be rejected.
 #
-# It checks the tree the commit would create, not the working copy. Five
-# sessions share one working copy (6.2.1), so the working copy is nobody's
-# commit: it holds everyone's half-finished edits at once. The first version of
-# this hook validated it anyway, and on 2026-09-17 one session's in-progress KB
-# entries left check 25 red for hours, which refused every other session's
-# commit -- including commits that would have produced a green HEAD. The way
-# out was `--no-verify`, twice. A gate that refuses correct work does not get
-# fixed, it gets bypassed, and then it is not a gate.
-#
-# So: unpack the index into a scratch directory and run the validator there.
-# The index is what is about to be committed, which is the only state a commit
-# can be judged on.
-#
-# Install once per working copy:
-#     git config core.hooksPath contracts/hooks
-#
-# `git commit --no-verify` still bypasses this, and leaves no trace that it did.
-# The durable catch is running check 35 over a pushed range after the fact. A
-# hook makes the right thing easy, not the wrong thing impossible.
-
+# Commit through contracts/tools/seat_commit.py, which sets the committer from
+# the registry. A check is deleted only when declared: the tool passes
+# --removes-check N as SMA_REMOVES_CHECKS, and this hook refuses a commit that
+# removes any other check HEAD has.
 set -e
-
 REPO=$(git rev-parse --show-toplevel)
 cd "$REPO"
 
-# Probe by RUNNING, not by `command -v`. On Windows `python3` is a Microsoft
-# Store App Execution Alias: a real file that `command -v` finds, which prints
-# "Python was not found" and exits 49. Testing existence picked it every time,
-# and then every gate below ran the placeholder -- which reads as a refusal
-# with an empty failure list, because the alias's complaint contains no FAIL
-# (2026-09-24, plan.md 11-22). Only a zero exit from `-c ''` counts.
-#
-# AND PROBE FOR WHAT THE VALIDATOR NEEDS, not only for a python that runs
-# (2026-10-07). On the Office computer the bare `python` is Anaconda 3.9 with
-# no `referencing`, so check 1 fell back to PENDING and could reject nothing:
-# the first commit through this gate was refused because --expect-fail
-# found the schema fixtures unrejected, and every seat's commit would have
-# been. A python without jsonschema and referencing runs a weaker gate, and
-# a weaker gate passing is worse than no gate. So a candidate counts only if
-# it imports both; failing that, the uv command CLAUDE.md names for this
-# computer; failing that, refuse and say what is missing.
 PY=""
 for _c in python3 python; do
     if "$_c" -c 'import jsonschema, referencing' >/dev/null 2>&1; then PY="$_c"; break; fi
 done
-if [ -z "$PY" ] && command -v uv >/dev/null 2>&1    && uv run --offline --no-project --python 3.12 --with jsonschema python -c 'import jsonschema, referencing' >/dev/null 2>&1; then
+if [ -z "$PY" ] && command -v uv >/dev/null 2>&1 \
+   && uv run --offline --no-project --python 3.12 --with jsonschema python -c 'import jsonschema, referencing' >/dev/null 2>&1; then
     PY="uv run --offline --no-project --python 3.12 --with jsonschema python"
 fi
 if [ -z "$PY" ]; then
     echo "pre-commit: no python on PATH imports jsonschema and referencing, and uv cannot supply them;" >&2
-    echo "pre-commit: the gate would run without its schema check, so it does not run. Install them" >&2
-    echo "pre-commit: (pyproject.toml declares both) or make uv available." >&2
+    echo "pre-commit: the gate would run without its schema check, so it does not run." >&2
     exit 1
 fi
-# $PY may be several words (the uv form), so it is called through this
-# function, and never quoted as one word.
 py() { $PY "$@"; }
-# The validator reads text without naming an encoding, and on a cp1252 locale
-# it dies before it checks anything. UTF-8 mode makes the default what every
-# file here is.
 export PYTHONUTF8=1
 
 STAGED=$(git diff --cached --name-only)
@@ -76,181 +37,41 @@ if [ -z "$STAGED" ]; then
     exit 0
 fi
 
-# WHO this commit will be attributed to, which is not the same as who you are.
-# Check 41 reads the COMMITTER, and `.git/config.worktree` can pin `committer.*`
-# for every session sharing this working copy. `committer.*` beats `user.*`, so
-# it silently overrode one seat's `git -c user.email=...` five times in a row
-# before the cause was found (2026-09-22), and it took another seat's card
-# commit on 2026-09-23.
-#
-# The gate below cannot see it. The validator judges the tree the commit would
-# create and this file is never in that tree, which is why this is printed here
-# rather than checked there. The SessionStart hook says the same thing -- and
-# says it only to sessions that start after it, so every seat already running
-# hears it here or nowhere. That gap is the same one settings files and the
-# librarian's server have, and it is the reason this is worth saying twice.
-#
-# Reported rather than refused, and it does not cry wolf: the pin is only
-# called out when it is actually in force, because a seat that already passes
-# GIT_COMMITTER_NAME has handled it and a warning it has handled teaches it to
-# stop reading these lines.
+# The identity being spent, as git will record it. GIT_COMMITTER_* beat
+# user.* and a committer.* pinned in .git/config.worktree, which is in no tree.
 IDENT=$(git var GIT_COMMITTER_IDENT 2>/dev/null | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
 echo "pre-commit: committing as ${IDENT:-an identity git would not name}"
 WT=$(git rev-parse --git-path config.worktree 2>/dev/null)
 if [ -n "$WT" ] && [ -f "$WT" ]; then
     PINNED=$(git config --file "$WT" committer.name 2>/dev/null || true)
     if [ -n "$PINNED" ]; then
-        case "$IDENT" in
-            "$PINNED "*)
-                echo "            pinned by .git/config.worktree, which is shared and in no tree."
-                echo "            If that is not your seat, pass GIT_COMMITTER_NAME and"
-                echo "            GIT_COMMITTER_EMAIL on this commit. Rewriting that file is"
-                echo "            the same race one turn later: the last seat to write it wins."
-                ;;
-            *)
-                echo "            (.git/config.worktree pins '$PINNED'; this commit overrides it)"
-                ;;
-        esac
+        echo "            (.git/config.worktree pins '$PINNED'; GIT_COMMITTER_NAME overrides it)"
     fi
 fi
-
-# A seat committing by hand, around contracts/tools/seat_commit.py (plan.md
-# 8.3, HP-006, 2026-10-17). The root CLAUDE.md says a commit here is made
-# through the tool, and 2 of the first 9 commits after it landed were not
-# (aa9941d6, 2fcc3bc5) -- counted by the harness seat against the tool's own
-# record, .git/sma-seat-commit.jsonl. The tool sets SMA_SEAT_COMMIT in the
-# environment of the gate it runs, and a commit by hand does not. Reported,
-# never refused, and silent for a committer that is not a seat: the person
-# committing by hand is not who the rule is for. A commit made by
-# commit-tree, as `git subtree add` makes one, runs no hook and is not seen
-# here; the harness seat's count from the record still sees it.
-# The lines between the two markers are what contracts/tools/
-# seat_commit_fixtures.py runs, with the IDENT line above, so keep them
-# self-contained.
-# >>> seat-commit-tool notice
-case "$IDENT" in
-    seat:*)
-        if [ -z "${SMA_SEAT_COMMIT:-}" ]; then
-            echo "            not made through contracts/tools/seat_commit.py, as the root CLAUDE.md asks; reported, not refused"
-        fi
-        ;;
-esac
-# <<< seat-commit-tool notice
-
-# Show what is going in. The hook cannot tell whose work a staged file is --
-# `git add -A` in one session sweeps up another's uncommitted edits, and that is
-# how one commit came to carry three sessions' work under a message describing
-# one. It can at least make the set visible before the commit rather than after.
 echo "pre-commit: committing"
 echo "$STAGED" | sed 's#^#  #'
 
-# WHICH COMMIT FORM THIS IS, because the list above looks the same either way
-# and the two are not the same commit. git sets GIT_INDEX_FILE for both and
-# they differ: `git commit -- <paths>` points it at a temporary index holding
-# your paths on top of HEAD, so another session's staging is already excluded
-# from what is listed; a plain `git commit` points it at `.git/index` itself,
-# the shared one, so whatever anyone staged is in that list and in the commit.
-# Measured both forms in a scratch repository -- the hook comment below said
-# only that a temporary index exists, which reads as though it always does.
-#
-# The list alone cannot warn: another seat's path is a legal path and looks
-# like work. This says which kind of commit is being made, at the moment the
-# identity is spent.
-# NOT `git rev-parse --git-path index`, which was the obvious way and is
-# circular: when GIT_INDEX_FILE is set, --git-path index RETURNS it, so the
-# comparison matched under both forms and the warning fired on every commit.
-# Caught by running both rather than by reading, on the first attempt.
-# `--git-dir` does not consult the variable -- measured, it is `.git` under
-# both -- so the repository's own index is what to compare against. Either
-# side may be relative to the root, which we have cd'd to, so both are made
-# absolute before comparing.
-_IDX="$(git rev-parse --git-dir)/index"
-_GIF=${GIT_INDEX_FILE:-}
-case "$_IDX" in /*) ;; *) _IDX="$REPO/$_IDX" ;; esac
-case "$_GIF" in /*) ;; *) _GIF="$REPO/$_GIF" ;; esac
-if [ -n "${GIT_INDEX_FILE:-}" ] && [ "$_GIF" = "$_IDX" ]; then
-    echo "pre-commit: this is a PLAIN git commit, judged on the SHARED index --"
-    echo "            everything above is going in under your identity, including"
-    echo "            anything another session staged. Use \`git commit -- <paths>\`"
-    echo "            to commit only your own paths on top of HEAD."
-fi
-
-# And name what inside them is changing, because the filename is not enough to
-# recognise your own work. `git commit -- <path>` builds its index from the
-# WORKTREE state of that path, so another session's edit to the same file rides
-# in under your identity; twice on 2026-09-20 a commit here carried a second
-# seat's checks, and both times the committer had read the diff and still not
-# seen it, because what was printed was a path that was genuinely theirs too.
-#
-# A hunk header carries the enclosing function, so `def check_41_...` appears
-# next to `def check_06_...` and a commit that touches five checks says five
-# names. That is the smallest thing that would have caught either case. It does
-# not close the window between reading and committing -- nothing here can -- it
-# removes "there was no way to see it at commit time".
-CONTEXT=$(git diff --cached -U0 | sed -n 's/^@@ .* @@ \(.*\)$/\1/p' | sed 's/[[:space:]]*$//' | sort -u)
-if [ -n "$CONTEXT" ]; then
-    echo "pre-commit: inside them"
-    echo "$CONTEXT" | head -24 | cut -c1-92 | sed 's#^#    #'
-    TOTAL=$(echo "$CONTEXT" | wc -l | tr -d ' ')
-    [ "$TOTAL" -gt 24 ] && echo "    ... and $((TOTAL - 24)) more"
-fi
-
-# A commit that REMOVES a check HEAD has is almost always a stale base, and that
-# is the half the hunk names above do not reach. They show what your commit
-# touches; they cannot show what it silently rewinds.
-#
-# The surgical route -- build a temp index from HEAD, drop your own blob in,
-# commit -- stops you CARRYING another seat's work and does nothing about
-# OVERWRITING it, because `git read-tree HEAD` freezes a base that HEAD then
-# moves off. On 2026-09-21 two seats used that route within the hour and the
-# second reverted the first: read-tree ran before the other commit landed, so
-# the blob was correct against a HEAD that no longer existed. Fifth incident in
-# one file in one day, and the first in this direction.
-#
-# Narrow on purpose: only validate.py, only `def check_NN_`. The check registry
-# makes a vanished check unambiguous in a way a vanished function is not, and a
-# rule wide enough to cover every deletion would fire on every refactor.
+# A check deleted by accident is usually a stale base: HEAD moved under an
+# index built earlier. A check deleted on purpose is declared by number.
 if echo "$STAGED" | grep -q '^contracts/validate\.py$'; then
-    # Temp files rather than <(...): this hook is #!/bin/sh and process
-    # substitution is a bash extension. It parsed clean under `bash -n` and
-    # under `sh -n` -- the failure is at expansion time, inside $( ), so it
-    # surfaced only when a commit actually ran, and then it blocked every
-    # seat's commit in the repository rather than just the author's.
-    #
-    # And the commit that ADDED this guard ran this hook and still did not
-    # catch it, because validate.py was not staged in it, so the branch below
-    # never executed. A guard behind a condition is unverified until a commit
-    # MEETS that condition -- "the hook ran and passed" is not the same claim.
-    # It is verified now, in a clone: removing a check HEAD has is refused,
-    # by name, through the real hook path.
     _H=$(mktemp) && _I=$(mktemp)
-    git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_H"
-    git show :contracts/validate.py                 | sed -n 's/^def \(check_[0-9]*\)_.*/\1/p' | sort -u > "$_I"
-    GONE=$(comm -23 "$_H" "$_I")
+    git show HEAD:contracts/validate.py 2>/dev/null | sed -n 's/^def check_\([0-9]*\)_.*/\1/p' | sed 's/^0*//' | sort -u > "$_H"
+    git show :contracts/validate.py                 | sed -n 's/^def check_\([0-9]*\)_.*/\1/p' | sed 's/^0*//' | sort -u > "$_I"
+    GONE=$(comm -23 "$_H" "$_I" | tr '\n' ' ' | sed 's/ *$//')
     rm -f "$_H" "$_I"
-    if [ -n "$GONE" ]; then
+    SAID=$(echo "${SMA_REMOVES_CHECKS:-}" | tr ' ' '\n' | sed 's/^0*//' | grep -v '^$' | sort -u | tr '\n' ' ' | sed 's/ *$//')
+    GONE_SORTED=$(echo "$GONE" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ' | sed 's/ *$//')
+    if [ "$GONE_SORTED" != "$SAID" ]; then
         echo >&2
-        echo "pre-commit: refused. This commit removes checks that HEAD has:" >&2
-        echo "$GONE" | sed 's#^#    #' >&2
-        echo >&2
-        echo "            Almost certainly a stale base: HEAD moved between the" >&2
-        echo "            moment your index was built and now, so committing it" >&2
-        echo "            rewinds whatever landed in between. Rebuild the index" >&2
-        echo "            against the CURRENT HEAD and commit again." >&2
-        echo >&2
-        echo "            If you mean to delete a check, say so in the message" >&2
-        echo "            and use --no-verify, which leaves no trace of its own." >&2
+        echo "pre-commit: refused. This commit removes checks [${GONE_SORTED}] and declares [${SAID}]." >&2
+        echo "            A check is deleted only when the commit says so, by number:" >&2
+        echo "            contracts/tools/seat_commit.py --removes-check N. If you did not" >&2
+        echo "            mean to delete one, HEAD moved under your index; rebuild it." >&2
         exit 1
     fi
+    [ -n "$SAID" ] && echo "pre-commit: removes checks $SAID, as declared"
 fi
 
-# And say what is being left behind, because this hook no longer looks at it. A
-# green gate now means the commit is green, not that the working copy is.
-#
-# `git diff --name-only` is worktree against the index being committed, which is
-# already the right set: another session's uncommitted edits, and also a file
-# staged and then edited further -- where the version on disk is not the version
-# going in. Filtering the staged names out of it would hide that second case.
 DIRTY=$(git diff --name-only)
 if [ -n "$DIRTY" ]; then
     echo "pre-commit: differs from what is being committed, and not checked"
@@ -258,78 +79,30 @@ if [ -n "$DIRTY" ]; then
 fi
 echo
 
-# `git commit -- <paths>` and `git commit -a` each build a temporary index and
-# point GIT_INDEX_FILE at it before running this hook. checkout-index reads
-# that, so what lands here is exactly the tree the commit would create --
-# neither the working copy nor the plain index.
 EXPORT=$(mktemp -d "${TMPDIR:-/tmp}/sma-pre-commit-XXXXXXXX")
 trap 'rm -rf "$EXPORT"' EXIT HUP INT TERM
 if ! git checkout-index -a -f --prefix="$EXPORT/"; then
-    echo >&2
-    echo "pre-commit: refused. The index could not be unpacked, so there is" >&2
-    echo "            nothing to check. Ambiguity stops (P0)." >&2
+    echo "pre-commit: refused. The index could not be unpacked, so there is nothing to check." >&2
     exit 1
 fi
-
-# The content checks read the export -- they resolve every path from the
-# validator's own location. Checks 35 and 41 cannot: they have to ask the real
-# repository what is staged and who is committing, and the export has no .git.
-# SMA_GIT_REPO is how the two are told apart.
-#
-# When a refusal here does not reproduce by hand, suspect the identity before
-# the staging. `git commit -- <paths>` builds its own index, so another
-# session's staged work is already excluded from what is checked; what differs
-# is that this hook runs with GIT_COMMITTER_* set to a seat and a run by hand
-# does not. Check 41 then takes the unknown-committer path, returns early, and
-# never reaches the code that failed here -- which is how a NameError in it
-# survived every manual verification on 2026-09-17.
 export SMA_GIT_REPO="$REPO"
 
-# Run once and keep the output. A passing commit does not need forty lines,
-# so only selected lines are printed -- but the run that decides has to be the
-# run that is quoted. It used to run --quiet and then run AGAIN to say what
-# failed, which is two judgements of two trees a moment apart, and which the
-# 2026-09-20 attribution warning could not use at all: PENDING is not a
-# failure, so the second run never happened and the warning had nowhere to go.
 echo "pre-commit: contracts"
-# `set -e` is on, and a failing command substitution in a plain assignment
-# aborts the script THERE -- before STATUS is read and before a word of the
-# refusal is printed. That is what this looked like from a seat's chair on
-# 2026-09-22: "pre-commit: contracts", exit 1, silence, five times, and the
-# cause only came out of running the hook by hand under `sh -x`. The old
-# two-run form was exempt because a command in an `if` condition is; the
-# capture-once rewrite lost that exemption and nobody noticed, because the
-# hook only breaks this way when a check actually fails.
 OUT=$(py "$EXPORT/contracts/validate.py" --staged 2>&1) && STATUS=0 || STATUS=$?
 if [ "$STATUS" -ne 0 ]; then
     echo "$OUT" | grep -E "FAIL|UNDECIDED" >&2 || true
     echo >&2
     echo "pre-commit: refused. The failures above are in the tree this commit" >&2
-    echo "            would create, so they are this commit's. Fix them, or" >&2
-    echo "            commit with --no-verify and say in the message why the" >&2
-    echo "            gate was bypassed." >&2
+    echo "            would create, so they are this commit's." >&2
     exit 1
 fi
-
-# An unattributed commit passes and must not pass silently. seats.json sets
-# unknown_committer to `report`, so a seat that has not adopted an identity is
-# not blocked -- and until now nothing reported: check 41 returns PENDING,
-# PENDING is not a failure, and the hook printed only on failure. The registry
-# already records what this costs -- an unattributed commit gets no boundary
-# checking at all, because nothing says whose paths those were -- so the one
-# thing standing between that and silence was a line nobody printed.
-# The colon is load-bearing: check 41 writes "...carry no attribution: <paths>"
-# and anything that merely QUOTES that phrase does not. Without it this
-# matched check 59's own passing line, which names the phrase in order to
-# say the hook still looks for it, and the gate warned that an attributed
-# commit was unattributed -- on the commit that added the check.
+# check 59 reads this phrase: keep it in step with what check 41 emits.
 ATTRIB=$(echo "$OUT" | grep "carry no attribution:" || true)
 if [ -n "$ATTRIB" ]; then
     echo >&2
     echo "pre-commit: this commit carries no attribution. It is allowed and is" >&2
-    echo "            not checked -- no seat owns these paths, so no later sweep" >&2
-    echo "            will attribute them. Adopt a seat identity, or accept that" >&2
-    echo "            the record will not say who wrote this:" >&2
+    echo "            not checked -- no name owns these paths. Commit through" >&2
+    echo "            contracts/tools/seat_commit.py so the record says who wrote it:" >&2
     echo "$ATTRIB" | sed 's#^#  #' >&2
 fi
 
@@ -341,5 +114,4 @@ if ! py "$EXPORT/contracts/validate.py" --expect-fail "$EXPORT/contracts/example
     echo "            $PY contracts/validate.py --expect-fail contracts/examples/rejected" >&2
     exit 1
 fi
-
 exit 0
