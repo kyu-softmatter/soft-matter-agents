@@ -2,10 +2,11 @@
 
     python -m unittest tests.test_approvals_harness_subfolder        (from microscope_runtime/)
 
-The person's word on a harness proposal may be given through the console, which writes it into
-`approvals/harness/HP-<n>-<12 hex>.json` (plan.md 8.3, 15.1 item 4). One of the three things that
-keep such a word away from the instrument is that the runtime's readers glob `approvals/*.json` and
-never recurse. This holds each of the three to it: the operator's `approvals_on_disk`, the live-view
+A file in a subfolder of approvals/ is never an approval: the runtime's readers glob
+`approvals/*.json` and never recurse. The subfolder was first used for the person's word on a
+harness proposal, which this branch no longer has (2026-11-04); the rule stands without it, because
+an approval is a top-level file the person committed and nothing else. This holds each of the three
+readers to it: the operator's `approvals_on_disk`, the live-view
 host's list lookup and `mm_config_gate.read_approvals`.
 
 For each, a temporary approvals folder holds one valid top-level file; a `harness/HP-902-<12 hex>.json`
@@ -47,11 +48,6 @@ lv = _load("_live_view_088", SRC / "live_view.py")
 op = lv.op
 gate = _load("_mm_config_gate_088", SRC / "mm_config_gate.py")
 validate = _load("_validate_088", REPO / "contracts" / "validate.py")
-
-try:
-    import jsonschema
-except ImportError:                                              # pragma: no cover
-    jsonschema = None
 
 PROPOSAL_SHA = "ab12cd34ef56" + "0" * 52
 HARNESS_NAME = f"HP-902-{PROPOSAL_SHA[:12]}.json"
@@ -161,11 +157,7 @@ class _Base:
             (self.folder / "harness" / "HP-903-malformed.json").unlink()
 
     # -- the tests ---------------------------------------------------------------------------
-    def test_the_valid_harness_permission_is_one_the_schema_accepts(self):
-        if jsonschema is None:
-            self.skipTest("jsonschema is not installed")
-        schema = json.loads((REPO / "contracts/schemas/harness_permission.schema.json").read_text(encoding="utf-8"))
-        jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker()).validate(HARNESS_VALID)
+    def test_the_malformed_plant_is_malformed(self):
         with self.assertRaises(json.JSONDecodeError):
             json.loads(HARNESS_MALFORMED_BYTES)
 
