@@ -1,0 +1,125 @@
+{
+  "artifact": "findings",
+  "schema_version": "0.1",
+  "seat": "microscope-scope-20261105-1",
+  "on": "2026-11-05",
+  "delivered_to": "librarian_agent",
+  "items": [
+    {
+      "id": "tweez300_gui_holds_kinetix_a23h723003",
+      "fact": "The Tweez 300 GUI's camera is the Kinetix with serial A23H723003: its main form (window class TArTw300GUIClientMainForm) is titled 'Tweez 300 GUI  - Kinetix A23H723003-PVCAM - RELEASED.' The serial is read off the tweezers software itself, which is the reading the store's tweez300_software_opens_the_red_arm_camera entry names as the one that settles it. Under camera_bodies_are_told_apart_by_serial (A23H723003 is the blue arm), the GUI holds the blue-arm body, not the red one, unless the bodies have changed arms since 2026-09-03.",
+      "kind": "document_fact",
+      "how": "Read-only: the window title of every top-level window of class TArTw300GUIClientMainForm, read with user32 EnumWindows/GetWindowTextW at 2026-11-05 13:28 -0800, saved to the evidence file. This is the same title REA's tweez_control.py reads for its camera status. No click, no message, no menu was sent to the GUI.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/evidence_20261105-lunf-tweez.json (key tweez300_main_form)",
+        "sha256": "d3a0f61c5b8b8f45603e4b9df68b15d38f24a06a49fd080b70a7596815761a99"
+      },
+      "for_store": true,
+      "note": "Bears on librarian task 058 (which Kinetix the tweezers GUI holds), which asked how REA had read A23H723003: from this title. It refutes the E5 person-recall entry or the 2026-09-03 serial-to-arm mapping; it does not say which, because the arm of each body was not looked at today. The 'RELEASED.' suffix was read after the camera had been released, so it is the state at 13:28, not at the failed loads."
+    },
+    {
+      "id": "kinetix_blue_label_refused_while_tweez300_held_a_camera",
+      "fact": "With the Tweez 300 GUI holding its camera, loading the Micro-Manager configuration dualcam_LUNF_noDMD.cfg failed at 'Property,Core,Initialize,1' with device Kinetix_blue: [PVCAM] pl_cam_open failed, pvErr 195 (PL_ERR_DDI_DEVICE_OPEN_FAILED). Twice, at 13:07:52 and 13:08:59. After the camera was released in the GUI, the same load succeeded at 13:10:23 and both Kinetix_red and Kinetix_blue gave frames through the Multi Camera device.",
+      "kind": "document_fact",
+      "how": "automeasure hwcheck (read only: moves nothing, switches no light) run three times from D:/automeasure with configs/bench.yaml, Tweez 300 GUI running throughout (same process, pid 12576, started 10:20:51). Between the second and third run the camera was released in the Tweez 300 GUI; who released it and how was not seen by this seat.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/hwcheck_20261105-130752.json, hwcheck_20261105-130859.json, hwcheck_20261105-131023.json (sha256 of the third; the first two are 5e28829d982d3cd766681abeabe7e0b1d0fc0aad57a3891da008f026913f4cb0 and 2f779f81ffe637b992d42e5c3795849edfc99445e04cce485ba723b2650972bb)",
+        "sha256": "f67b94b72932da1d909996cf7f05c68b284bd87a45078bd03f3af44f7df65fd9"
+      },
+      "for_store": true,
+      "note": "Consistent with the item above under the label Kinetix_blue -> A23H723003, but the label-to-serial binding for Kinetix_blue in this configuration was not read today (the existing E1 entry binds Kinetix_red to A24M723015 under a different configuration)."
+    },
+    {
+      "id": "pvcam_module_loaded_is_not_a_camera_hold",
+      "fact": "A process having pvcam64.dll loaded does not mean it holds a camera: at 13:10 and 13:28 the Tweez 300 GUI still had pvcam64.dll (and earlier pvcamDDI.dll) loaded while its camera was released and Micro-Manager opened both Kinetix bodies. A detector that reads loaded modules can therefore refuse but never permit; the GUI's main-form title (' - RELEASED.' suffix) distinguishes the two states.",
+      "kind": "document_fact",
+      "how": "tasklist /m pvcam64.dll before the first failed load (only Tweez300GUI.exe listed, with pvcam64.dll and pvcamDDI.dll), after the successful load, and in the evidence file; compared with the hwcheck outcomes. The before-failure listing was seen in this seat's session and not saved to a file; the 13:28 listing is in the evidence file.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/evidence_20261105-lunf-tweez.json (key pvcam_loaded_by)",
+        "sha256": "d3a0f61c5b8b8f45603e4b9df68b15d38f24a06a49fd080b70a7596815761a99"
+      },
+      "for_store": true,
+      "note": "For the resources/holders detectors in plan.md 4.6.10: a window-title read is the kind that section says needs a ruling before it is used."
+    },
+    {
+      "id": "tweez300_camera_release_is_a_gui_menu_only",
+      "fact": "The Tweez 300 GUI releases and re-takes its camera only through the 'Release Camera' / 'Grab Camera' item of the right-click menu on the GUI root item of its tree. There is no TCP, COM or Python route. REA's tweez_control.py (camera status|release|grab) drives that menu item by UI automation, moving the real mouse, and reads the state back from the window title. The GUI refuses the release while a calibration is active, a view is recording, or a ROI is active, and refuses camera operations while released ('Camera released - can't perform this operation!'). Verified live by REA on 2026-10-13 (three release/grab cycles).",
+      "kind": "document_fact",
+      "how": "Read REA tweez300/INTERFACE_MAP.md sections 5a (item 2), 5d and 'Cannot be controlled', and the docstring of tweez300/tweez_control.py, at REA main d894a4e. Nothing was run.",
+      "source": {
+        "type": "document",
+        "path": "D:/Kyu Hwan Choi/REA/tweez300/INTERFACE_MAP.md @ REA d894a4e (tweez_control.py sha256 ed3f51c43fdcb3457948d104ff3cae26831a292ce5f2ea636a2c5f93341d0214)",
+        "sha256": "f1150b4e9d311d1c5255c05a96c0fc2eba2603142ced384075f3a5de573b5010"
+      },
+      "for_store": true,
+      "note": "Control-path structure from an accepted source (plan.md 10.2, REA). Because it moves the real mouse it may run only with nobody at the computer, and only as a bench experiment holding the shared run lock (plan.md 4.6.8); it is not a route for a plan run."
+    },
+    {
+      "id": "lunf_has_two_control_routes_in_rea",
+      "fact": "REA reaches the LUN-F by two routes. (1) nis_laser: a server running inside NIS-Elements (started by the macro start_server.mac), reached over TCP 127.0.0.1:5995, calling NIS's MultiLaser functions; it needs NIS running, reads lasers, levels, shutters and light path, and gates every light-adding write on a limits file and the light-path position read at that moment. Its log holds 248 commands from 2026-10-23 to 2026-10-30, the last an all_off. (2) lunf_direct: with NIS closed, power as an SPI word to a 12-bit quad DAC behind FTDI interface 'FT4222 A' (0-5 V full scale) and on/off as NI-DAQ digital lines Dev1/port0/line2, 4, 6, 8 (405, 488, 561, 640 nm; active high). REA's FINDINGS.md records all four lines lit and dark on command, NIS closed, on 2026-10-13, with the person watching; whether a cold boot without NIS needs NIS's GPIO start-up sequence replayed is open.",
+      "kind": "document_fact",
+      "how": "Read REA nis_laser/README.md, the tail of nis_laser/nis_laser_log.jsonl, lunf_direct/FINDINGS.md and the class structure of lunf_direct/lunf_direct.py, at REA main d894a4e. nis_laser_log.jsonl is not tracked by REA's git, so it is cited by sha256 16cab4bc766b988b4335d45a7f65ad993c4bc6e5675360f652e2e34f8333b35c. nis_laser/README.md sha256 adcce9de3657140f02a3fb31ec1b878bd001263f37529c9c47ae37a9498dde3c. Nothing was run.",
+      "source": {
+        "type": "document",
+        "path": "D:/Kyu Hwan Choi/REA/lunf_direct/FINDINGS.md @ REA d894a4e",
+        "sha256": "e390a72ace62d4dedcbaa8a5b58b42db16197a61afa13dbdfbf7879efd21472c"
+      },
+      "for_store": true,
+      "note": "REA's limits files (nis_laser/limits.json, lunf_direct/lunf_direct_limits.json) and their gates do not cross (plan.md 10.3 rule 4); no voltage or level here is a limit. The two routes exclude each other: NIS holds NI-DAQ Dev1 and FT4222 A-C while it runs."
+    },
+    {
+      "id": "lunf_control_boards_enumerate_free_with_nis_closed",
+      "fact": "With NIS-Elements closed (nis_ar.exe not running), FTDI enumeration lists the LUN-F's FT4222 board as four interfaces 'FT4222 A' to 'FT4222 D', serials 00294-BOA to 00294-BOD, LocIds 5921 to 5924, each with Flags 2 (high-speed, not opened by any process); LocId 5921 matches the chip location NIS's device database gives for the LUN-F. NI-DAQmx lists one device, Dev1, a PCIe-6323, with port0 lines 2, 4, 6 and 8 present. The NIS laser server was not reachable (connection refused on 127.0.0.1:5995), as expected with NIS closed.",
+      "kind": "document_fact",
+      "how": "Read-only driver enumeration at 13:28 -0800: FT_CreateDeviceInfoList and FT_GetDeviceInfoList (ftd2xx), DAQmxGetSysDevNames, DAQmxGetDevProductType, DAQmxGetDevSerialNum and DAQmxGetDevDOLines (nicaiu). No device was opened, no SPI word, GPIO or digital line was written, no light. The refused server connection is in the hwcheck reports.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/evidence_20261105-lunf-tweez.json (keys ftdi, nidaq, nis_ar_running)",
+        "sha256": "d3a0f61c5b8b8f45603e4b9df68b15d38f24a06a49fd080b70a7596815761a99"
+      },
+      "for_store": true,
+      "note": "This is the 'device flag' detector kind of plan.md 4.6.10 working passively: FT_FLAGS_OPENED (bit 0) reports a holder without opening the device. What the flag reads while NIS runs was not measured today. Four other FTDI nodes read Flags 1 with empty description and serial (opened by some process); which programs hold them was not established."
+    },
+    {
+      "id": "stand_state_at_hwcheck_20261105",
+      "fact": "Stand state read at 13:10 -0800 with the configuration dualcam_LUNF_noDMD.cfg: stage X 13909.5 um, Y 2220.0 um, Z 481.98 um; objective 4x (Plan Apo Lambda D 4x), pixel 1.625 um; focus hold off and out of range; brightfield lamp and Aura off; light path position 3 (label 4-L100); CSU-W1 on the confocal port, camera port blue_only, dichroic on, both emission filters 'multi', CSU shutter closed; both turret shutters 0; LUN-F blanking lines 2, 4, 6, 8 all 0. Dark frames: Kinetix_red full frame median 100 ADU (min 69, max 134); through the Multi Camera at 256 x 256, Kinetix_red median 99 and Kinetix_blue median 138 ADU.",
+      "kind": "document_fact",
+      "how": "automeasure hwcheck, third run, read only; nothing written on close because no lamp was on.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/hwcheck_20261105-131023.json",
+        "sha256": "f67b94b72932da1d909996cf7f05c68b284bd87a45078bd03f3af44f7df65fd9"
+      },
+      "for_store": false,
+      "note": "A snapshot of the day's state, kept so it is not lost; not a lasting fact about the instrument. The dark offsets were read at 10 ms exposure with every light off."
+    },
+    {
+      "id": "staging_disk_write_speed_20261105",
+      "fact": "Sustained write with fsync of 400 full 2400 x 2400 16-bit frames (about 4.3 GB) to C:/automeasure_stage measured 1061, 1078 and 1073 MB/s in three runs, against 1099 MB/s needed for both cameras at full frame and 50 frames per second; D:/automeasure/runs measured 185 to 189 MB/s. Free space 149.1 GB and 198.3 GB.",
+      "kind": "document_fact",
+      "how": "automeasure hwcheck's disk step, three runs at 13:07, 13:08 and 13:10 -0800.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/hwcheck_20261105-131023.json",
+        "sha256": "f67b94b72932da1d909996cf7f05c68b284bd87a45078bd03f3af44f7df65fd9"
+      },
+      "for_store": true,
+      "note": "About 2 to 3 percent short of the full-frame dual-camera rate at 50 fps; a smaller region or a lower rate fits."
+    },
+    {
+      "id": "lunf_direct_cold_boot_and_nis_held_flags_unmeasured",
+      "fact": "Not established today: the arm each Kinetix body sits on; the Micro-Manager label-to-serial binding for Kinetix_blue in dualcam_LUNF_noDMD.cfg; what the FT4222 flags read while NIS runs; and whether REA's direct LUN-F route gives light after a cold boot without NIS. None of these was looked at.",
+      "kind": "unmeasured",
+      "how": "Stated so the next session does not treat them as known; each is named in the items above as the reading that would settle it.",
+      "source": {
+        "type": "document",
+        "path": "D:/automeasure/runs/evidence_20261105-lunf-tweez.json",
+        "sha256": "d3a0f61c5b8b8f45603e4b9df68b15d38f24a06a49fd080b70a7596815761a99"
+      },
+      "for_store": true
+    }
+  ]
+}
