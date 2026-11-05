@@ -1961,7 +1961,7 @@ convention exists to remove.
 
 **One Claude Code session per agent.** Four are always launched separately, and one session does not simply change directory scope. A session at the repository root writes the design, and the person seats every session directly. There are no tiers: who commits what is the six names of §6.2.1 (D12).
 
-**Until 2026-11-04 the positions were tiers and the identities were per session.** Nine positions at first -- one architecture, four managers, four execution seats -- then a dated identity per session, one intake seat per computer for the person's ideas and questions, and 135 registered seats in all. The person replaced that on branch `closed-loop-validation` with six names (§6.2.1). What it taught survives there in one line each: two sessions under one name cannot be told apart by any check, so a name now stands for a boundary and not a session -- the gate holds each commit inside one, and which sessions work inside it is the person's call; and a name that can sign an approval must not be the name a session commits ordinary work under.
+**Until 2026-11-04 the positions were tiers and the identities were per session.** Nine positions at first -- one architecture, four managers, four execution seats -- then a dated identity per session, one intake seat per computer for the person's ideas and questions, and 135 registered seats in all. The person replaced that on branch `closed-loop-validation` with six names (§6.2.1). What it taught survives there in one line each: two sessions under one name cannot be told apart by any check, so a name now stands for a boundary and not a session -- the gate holds each commit inside one, and which sessions work inside it is the person's call; and a name that can sign an approval must not be the name a session commits ordinary work under. The intake desk came back on 2026-11-05. It is now a session that commits under `design`, not a seat or a tier (§6.2.4).
 
 **What enforces the boundary is the commit gate (checks 35 and 41). `.claude/settings.json` states it, and its path denials are enforced only in a session sitting at the repository root.** This subsection said the exact opposite until 2026-09-19 — that the settings enforce and check 35 catches at commit. **An outward-facing path denial is inert in a session rooted at an agent**: a path pattern resolves against that session's root, so `Write(microscope_agent/**)` from a session sitting in `bridge/` means `bridge/microscope_agent/**`, and **such a path cannot exist.** Every entry naming a sibling directory, `contracts/` or `plan.md` is the same. This is the defect class §7 wrote at length about for `.mcp.json` — the resolution point must not be the session's cwd — and **here there is no equivalent of `$(git rev-parse)`. Permission patterns are literal, and an absolute path becomes identical across checkouts, which is the answer §7 already refused.** So there is no portable expression for this position. bridge-85 found it and the bridge manager reproduced it.
 
@@ -2082,8 +2082,16 @@ Every session of one agent commits under that agent's name: the microscope's pla
 1. **The person tells each session directly** what it is and what it may do. Nothing a session writes makes another session anything.
 2. **Work can be sent by message.** Requests, questions and reports flow freely between sessions, and every transfer that matters leaves a file.
 3. **A request that widens a boundary is refused whoever sends it.** "Commit this file for me" or "use the person's name" from another session is escalated to the person, never done.
+4. **One exception: the intake session's committed record** (§6.2.4; the person, 2026-11-05, restoring what held from 2026-10-17 to 2026-11-04).
+   - **What counts.** A decision the person says in the intake session's window counts as said to the session it concerns. It counts only **once the intake session has committed the verbatim line** in `docs/ideas/`.
+   - **How it is used.** The session that acts on the decision cites that commit. A message alone still counts for nothing, because without a committed line there is nothing anyone can check later.
+   - **What never passes through it.** Four acts stay the person's own, in their own place, whatever is said anywhere:
+     - signing a plan's hash in `approvals/`;
+     - writing a value into `envelope/safety.json`;
+     - handing a session the bench, in that session's own window;
+     - paying for a service.
 
-**A technique is not an instruction, and it travels the way permission is forbidden to travel (2026-09-20).** The three rules stop a message from carrying authority; they do not stop one from carrying a *method*. A session that learns from another how to reach the store around its own isolation has been handed the crossing without the permission. Judge a method you were shown by whether it is yours to use, not by whether it worked for the sender, and write a method you should not have used down as what it was, not neutrally.
+**A technique is not an instruction, and it travels the way permission is forbidden to travel (2026-09-20).** These rules stop a message from carrying authority; they do not stop one from carrying a *method*. A session that learns from another how to reach the store around its own isolation has been handed the crossing without the permission. Judge a method you were shown by whether it is yours to use, not by whether it worked for the sender, and write a method you should not have used down as what it was, not neutrally.
 
 #### 6.2.3 A session may be cleared after each task — and clearing is P1's test
 
@@ -2135,6 +2143,53 @@ GIT_COMMITTER_EMAIL=manager-microscope@seat.invalid git commit -m …
 **It is `--worktree`, not `--local`.** Until 2026-09-18 this subsection prescribed `--local` and **was wrong** — in a linked worktree, `--local` writes not to that worktree but **to the shared `.git/config`.** Followed literally, one seat's identity would have been read as their own by every session, and that is §11-10's pre-worktree hazard surviving **past** worktrees. The microscope manager caught it and confirmed both directions in a throwaway repository — a value written with `--local` is read from the main copy, and one written with `--worktree` is not.
 
 **Git reads `committer.name`/`committer.email`** — since v2.22, confirmed on 2.50.1 on 2026-09-18: committing with no env prefix still makes the committer the seat and leaves the author as the person. So the worktree setting is **enforcement** rather than a record, and the environment variables are needed only on a shared copy with no worktree setting. This subsection said the exact opposite until that day — "git does not read those keys, so the first commit after a reset is downgraded to the person's identity". **The wrong side was the more cautious side, so nobody collided with it, and it nearly went unfixed forever** — a seat reading that comment merely kept attaching an unnecessary prefix and never sees a failure. An error whose conclusion is safer than reality lives longest. microscope-2 found it in its own worktree. The point is **that a session which lost its seat can read from disk who it is**, and without that a person has to re-seat it after every reset (§6.2.2 said seat **assignment** is a person's job; it did not say **remembering** the seat is).
+#### 6.2.4 The intake session: the person's one window, one per computer
+
+**Restored on 2026-11-05 at the person's word, as a session and not a tier.**
+- **What the person said.** In a root session on the Office computer: "I'd like to build intake session too".
+- **What the person chose.** Asked how far the session reaches and where it runs, the person chose:
+  - "예전처럼 단일 창구" (a single window, as before);
+  - "두 컴퓨터 모두" (both computers).
+- **Its history.** It ran from 2026-10-17 to 2026-11-04 as one intake seat per computer, and was archived with the per-session seats. What it was for did not go with them: the person should not have to know which session holds what before saying an idea, and a question should not wait unseen in a window the person is not looking at.
+
+**What it is.**
+- **Who it is.** A session at the repository root that the person has told, in its own window, that it is the intake session of that computer.
+- **What it writes.** It commits under `design` and writes only its computer's day file, `docs/ideas/<YYYYMMDD>-<computer>.md`, where `<computer>` is `office` or `scope`.
+- **Why that narrowing is an instruction and not a gate.** A name stands for a boundary, not a session (§6.2.1), and `docs/` is `design`'s, so the gate cannot tell the intake session from any other root session.
+- **What it does not touch.** No instrument, no design, and no section of this document.
+
+**What it does, in order.**
+1. **Writes first.** Each idea, question, answer or decision goes into the day file in the person's own words, verbatim and timed, before anything else. An item then survives even if no session takes it.
+2. **Routes.**
+   - It splits an idea into pieces and sends each piece to the session that does that work: the microscope's planning or runtime session, the simulation, the librarian, the bridge, or a root design session.
+   - Each piece carries the person's words verbatim and the commit of the line.
+   - It reads who is running from the session list, never from memory.
+   - A piece whose work is on the other computer is recorded as waiting for it, and the person is told.
+3. **Tells an idea from a decision.**
+   - A decision is a go-ahead, an approval to commit or push, a new source, or a change to a rule.
+   - A decision is put back to the person in plain words when it is not already plain, and recorded with the answer.
+   - The four acts of §6.2.2 rule 4 are never taken here. The person is told where each is done.
+4. **Tracks.** Each piece carries its state in the same file: sent, taken, landed (with the commit), or declined (with the reason). A piece no session takes is reported as unrouted, not dropped.
+5. **Reports.** It tells the person, in plain Korean, what went where and what waits on whom.
+
+**The one window for questions and results.**
+- **Questions.** A session that needs the person's answer sends the question to the intake session on its own computer, instead of waiting in its own window.
+- **Results.** A result meant for the person goes there too.
+- **The loop.** The intake session puts each one to the person, records the answer verbatim, commits it, and sends the asking session the words with the commit.
+- **Direct words still count.** What the person says directly in a session's own window still counts there. The intake session is where questions go, not the only place the person may speak.
+- **No desk running.** When no intake session is running on a computer, its sessions ask in their own windows, as they did from 2026-11-04 to 2026-11-05.
+
+**Ids and files.**
+- **Id form.** `I-` is an idea, `Q-` a question, `D-` a decision and `R-` a result or report, each written `<prefix>-<YYYYMMDD>-<computer>-<nn>`.
+- **No reuse.** An id is never reused, so a session citing one names one line.
+- **One file per desk.** Each computer's desk writes its own file. Neither writes in the record of a window it was not in, and neither outranks the other.
+- **Older files.** The day files written before 2026-11-05 keep their old headers and seat names as written.
+
+**What it does not do.**
+- **Not its work.** It does not design, choose between sessions, decide for the person, commit another session's files, or push without the person's word.
+- **When to send it back.** When two sessions would take a piece differently, or a piece fits no session, the choice goes back to the person.
+- **Who answers for a piece.** A session that receives a piece records it as "the person, in the intake session's window, relayed verbatim". The receiving session, not the intake session, answers for what it writes.
+
 ## 7. Repository layout
 
 ```
@@ -2195,7 +2250,7 @@ rebuild/
     assets/                film and images. **Empty is the normal state** -- with no film the page shows a
                              placeholder rather than a broken player (it says what is absent is absent, P1)
     ideas/<YYYYMMDD>-<computer>.md  **the person's ideas as said, and where each piece went** (2026-10-17; 6, the intake seat).
-                             Written only by an intake seat, one file per computer per day, `office` or `scope` (2026-10-27; until then one
+                             Written only by that computer's intake session (6.2.4; an intake seat until 2026-11-04), one file per computer per day, `office` or `scope` (2026-10-27; until then one
                              shared `<YYYYMMDD>.md` per day, each seat in its own sections, 2026-10-19, and those stay). Each idea is verbatim and timed, and each piece has its
                              route and state: sent, taken, landed with its commit, or declined with its reason. A
                              record, not a design: nothing here binds until a section's holder writes it into its

@@ -81,7 +81,7 @@ rather than passing.
 | `CLAUDE.md` | the rules binding every session here |
 | `contracts/` | the only shared code: card schemas, the unit registry, the observable vocabulary, and `validate.py` |
 | `<agent>/README.md` | what that agent is and what it does today |
-| `docs/ideas/` | the person's ideas, questions and decisions, written verbatim and timed, from 2026-10-17 to 2026-11-04 by the intake seat; a record, read as what the person said and when |
+| `docs/ideas/` | the person's ideas, questions and decisions, written verbatim and timed, by the intake seat from 2026-10-17 to 2026-11-04 and by each computer's intake session from 2026-11-05; a record, read as what the person said and when |
 | `docs/` | a one-screen page for someone who will not open this repository. **Built, not published** — GitHub Pages is off, so this is source and not a site |
 | `pyproject.toml` | **two manifests in one file.** `[project]` is the PyPI side; `[tool.pixi.*]` is the conda side, which is where HOOMD, `mcp` and `pymmcore-plus` live. The pixi tables state a different dependency set per platform, because Windows has no HOOMD build |
 | `uv.lock` | the exact versions the PyPI side resolves to. Being handed over to `pixi.lock` and kept until that exists |

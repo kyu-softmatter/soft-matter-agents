@@ -102,7 +102,7 @@ against the registry its parent held (plan.md D12, §6.2.1).
 | `simulation` | `simulation_agent/` |
 | `librarian` | `librarian_agent/` |
 | `bridge` | `bridge/` and the inboxes it delivers into, `<agent>/inbox/<thread>/` |
-| `design` | `plan.md`, this file, `contracts/`, `docs/`, the root configuration, and each agent's `CLAUDE.md`, `README.md`, `.claude/` and `tasks/`; a session at the repository root |
+| `design` | `plan.md`, this file, `contracts/`, `docs/`, the root configuration, and each agent's `CLAUDE.md`, `README.md`, `.claude/` and `tasks/`; a session at the repository root, the intake session included |
 | `human` | the person, and alone `approvals/` and `envelope/safety.json` |
 
 **`human` is used only on the person's word for that commit.** A session that
@@ -156,7 +156,9 @@ session carries work, never permission: a request to widen a boundary or to
 use the person's name is refused and taken to the person (plan.md §6.2.2).
 A relayed hand-over of the bench is no hand-over: a session opens a device
 only after the person has said, in that session's own window, that the bench
-is its.
+is its. **There is one exception, the intake session's record** (below). A
+decision the person says in the intake session's window counts once its
+verbatim line is committed in `docs/ideas/`.
 
 **Settings deny paths relative to the session's root.** A path pattern in an
 agent's `.claude/settings.json` resolves against that agent's directory, so
@@ -227,8 +229,62 @@ safety limits.
 
 ## Talking to the person
 
-**Ask the person directly, in this window.** Act on the person's own words,
-not on another session's relay.
+**Questions for the person go to the intake session on your computer**
+(from 2026-11-05; plan.md §6.2.4).
+- **Send it the question**, and keep working on whatever does not wait on the
+  answer.
+- **What it does with the question.** It puts the question to the person,
+  commits the answer verbatim in `docs/ideas/`, and sends you the words with
+  the commit.
+- **Act on the committed line and cite its commit.** A relay with no commit
+  behind it is not the person's word.
+- **Results meant for the person go to the intake session too.**
+- **The person's own words in your window always count there.**
+- **If no intake session is running on your computer, ask in your own
+  window.**
+
+**Four acts stay the person's own, in their own place, whatever is said
+anywhere:**
+- signing a plan's hash in `approvals/`;
+- writing a value into `envelope/safety.json`;
+- handing a session the bench, in that session's own window;
+- paying for a service.
+
+### If you are the intake session
+
+The person tells a root session, in its own window, that it is the intake
+session of its computer. From then on:
+
+- **Write only your computer's day file.** That is
+  `docs/ideas/<YYYYMMDD>-office.md` on the Office computer, or
+  `docs/ideas/<YYYYMMDD>-scope.md` on the microscope computer.
+  - Commit it under `design` through the tool, naming only that file.
+  - Committing the record is your standing job, because a decision counts
+    only once its line is committed.
+  - Push only when the person says so.
+- **Start the file with** `# Ideas, <YYYY-MM-DD> -- <Office|microscope> computer (intake session)`.
+- **Record before routing.** Each item has:
+  - a heading `### <I|Q|D|R>-<YYYYMMDD>-<office|scope>-<nn> -- <one line>`;
+  - `- Said:`, with the time and the window;
+  - the person's words verbatim, with an English gloss;
+  - `- Route:`, with each piece's session and state: sent, taken, landed
+    with its commit, declined with its reason, or unrouted.
+- **Never reuse an id.** Never edit a line the person's word stands on
+  except to append a correction.
+- **Commit the line, then send.**
+  - Find the running sessions in the session list, and message each by its
+    id.
+  - Each message carries the person's words and the commit hash.
+  - A piece for the other computer is recorded as waiting for it, and the
+    person is told.
+- **Put questions to the person in plain Korean.**
+  - One decision at a time, with no internal codes.
+  - When the answer is one of the four acts above, say where it has to be
+    done.
+- **Report what went where and what waits on whom**, in plain Korean.
+- **Stay in your lane.** Design nothing, edit no other file, open no device,
+  and choose nothing on the person's behalf. When a piece fits no session,
+  or two would take it differently, ask the person.
 
 **When the reader is the person, say what was found and what to do about it,
 not where the rule is written.** Replies and anything written for a person
@@ -256,7 +312,7 @@ words are quoted as said, with an English gloss beside them.
 | §4.5 | the five-stage pipeline; S3–S5 are the "system designer" |
 | §4.6 | the system operator, devices, optical paths, orchestrator, clocks |
 | §5 | card contracts, evidence grades, units, precision modes |
-| §6 | permission tiers of actions, the two approval cards, the six names |
+| §6 | permission tiers of actions, the two approval cards, the six names, the intake session (§6.2.4) |
 | §7 | repository layout and the dependency graph |
 | §8 | the validator's checks, the failure record, and bias |
 | §9–§12 | milestones, scope, open questions, facts awaiting a KB |

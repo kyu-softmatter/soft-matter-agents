@@ -46,7 +46,7 @@
       "owns": [
         "design"
       ],
-      "note": "The repository's own files: plan.md, the instruction files, contracts/ (this registry included), docs/, the root configuration, and each agent's CLAUDE.md, README.md, .claude/ and tasks/. A session at the repository root commits under this name. It is not the person and cannot commit an approval or a safety limit."
+      "note": "The repository's own files: plan.md, the instruction files, contracts/ (this registry included), docs/, the root configuration, and each agent's CLAUDE.md, README.md, .claude/ and tasks/. A session at the repository root commits under this name, each computer's intake session included (plan.md 6.2.4), which writes only docs/ideas/. It is not the person and cannot commit an approval or a safety limit."
     },
     {
       "seat": "human",
