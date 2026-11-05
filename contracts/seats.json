@@ -2189,6 +2189,17 @@
         "microscope_agent/"
       ],
       "note": "The microscope agent's planning session on the microscope computer (Windows, hostname Takatori_lab), rooted at microscope_agent/: the desktop session titled \"Microscope · planning\". It answered a role check on 2026-10-19 holding no seat and naming none. microscope-scope-20261019-6 is not given to it, because that row was the 2026-10-13 bench session's, archived on 2026-10-19 at the person's word, and a vacated identity is not inherited. The person, asked in architecture-scope-20261019-1's window to solve the open questions, had this row opened. Every field except seat, committer_email and note copied by code from microscope-scope-20261019-6. Not yet seated: the person names it to that session in its own window. Opened concurrently; closes nothing."
+    },
+    {
+      "seat": "microscope-scope-20261105-1",
+      "committer_email": "microscope-scope-20261105-1@seat.invalid",
+      "owns": [
+        "microscope_agent"
+      ],
+      "paths": [
+        "microscope_agent/"
+      ],
+      "note": "The desktop session titled \"Hardware connection testing\" on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root, opened 2026-11-05. It asked for this row by message; the person's words, as that session reported them from its own window, were: asked which role the window should take to save the day's REA findings in soft-matter-agents, the person chose \"Microscope\"; asked whether to open an architecture window to register the seat so the file can be committed, the person answered \"Yes, register it\". The person then confirmed in architecture-scope-20261019-1's window on 2026-11-05 that this row should be added. n is 1, the first microscope seat for scope on 2026-11-05. owns and paths copied by code from microscope-scope-20261019-8. The session sits at the repository root, not microscope_agent/, so its agent-directory denials do not apply; its only intended write is one findings file under microscope_agent/findings/. Opened concurrently; closes nothing."
     }
   ],
   "paths_field": "Optional, per seat: a list of path prefixes narrowing the seat inside the boundaries it owns. It exists for the case 6.2.1 names -- two seats that have to share a boundary must divide it first. A seat without it owns its boundaries whole.",
