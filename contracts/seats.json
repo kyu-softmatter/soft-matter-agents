@@ -2259,6 +2259,7 @@
     {
       "seat": "architecture-scope-20261105-3",
       "committer_email": "architecture-scope-20261105-3@seat.invalid",
+      "status": "closed 2026-11-09 -- replaced by architecture-scope-20261109-1; the person, in architecture-scope-20261105-1's window, asked whether to close it: \"close it\"",
       "owns": [
         "design"
       ],
@@ -2276,7 +2277,7 @@
       "paths": [
         "docs/ideas/"
       ],
-      "note": "The intake seat on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root: the session titled \"Intake seat: commit wall-effect lines\" (local_9cbd5928), opened 2026-11-09 by the bench-session request. The person, in that session's own window, as that session's prepared entry reports: confirmed 'yes' that it is the intake seat, and for the identity 'new name with today's date' then 'architecture-scope-20261109-1'. Entry added by architecture-scope-20261105-1 on the person's word in its own window on 2026-11-09, answering whether to register it: \"Yes, register it\". Every field except seat, committer_email and note copied from architecture-scope-20261105-3. Closes architecture-scope-20261105-3 only if the person says so; until then both are open."
+      "note": "The intake seat on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root: the session titled \"Intake seat: commit wall-effect lines\" (local_9cbd5928), opened 2026-11-09 by the bench-session request. The person, in that session's own window, as that session's prepared entry reports: confirmed 'yes' that it is the intake seat, and for the identity 'new name with today's date' then 'architecture-scope-20261109-1'. Entry added by architecture-scope-20261105-1 on the person's word in its own window on 2026-11-09, answering whether to register it: \"Yes, register it\". Every field except seat, committer_email and note copied from architecture-scope-20261105-3. Closes architecture-scope-20261105-3: the person, in architecture-scope-20261105-1's window later on 2026-11-09, \"close it\"."
     },
     {
       "seat": "harness-scope-20261105-1",
