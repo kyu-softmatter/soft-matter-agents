@@ -95,6 +95,18 @@
    },
    "for_store": false,
    "note": "Both the speed and the pixel size are therefore anchored to the instrument's own commands. A 10 percent target on the drag needs the stiffness, offset and speed each known well inside 10 percent, and nothing independent backs the speed or the pixel scale. The heating correction (1 minus 0.0575 times the stiffness) is from one bead at one height and is about 20 percent uncertain."
+  },
+  {
+   "id": "stuck_beads_in_focus_at_z_2957_5_same_coverslip",
+   "fact": "The person saw beads stuck on the glass, and the stand Z at which those stuck beads were in focus, at the bead middle and not the glass surface, was 2957.5 um. They said it is the same coverslip as the drag runs. The person gave the unit as um; they did not say which stand's Z it is. This seat reads it as the controller's stand Z on the scale of the drag runs, and that reading is not the person's.",
+   "kind": "person_statement",
+   "how": "Said by the person in the microscope agent's window and then in the intake seat's window on 2026-11-09, committed verbatim by the intake seat: the lines 'I saw beads stuck on the glass.', '2957.5', 'right- bead middle', 'right' (same coverslip) and '2957.5 um'. A live-view session that day (live_beads_red_green_2_20261109.log, 10:54) opened with the stand at Z 2957.26 um, within 0.3 um of this value; whether that is the session where they were seen was not confirmed.",
+   "source": {
+    "type": "person",
+    "recorded_at": "docs/ideas/20261109-scope.md, I-20261109-scope-03, -04 and -05 (commits 7ca24d3b, f8a176a0, ffb65fe3)"
+   },
+   "for_store": true,
+   "note": "This is the first position in the run's records that is tied to the glass by something other than the wall-formula fit. If the stuck beads are the same size as the trapped one, about 5 um across and unmeasured, the glass is about one radius (about 2.5 um) below the bead middle, near Z 2955; the bench's fit put it near Z 2955.5 (3.2 um below the 2958.7 reference). That comparison is this seat's arithmetic and not a finding of the person. The bead size is an assumption, the focal shift through oil into water (about 10 percent smaller than nominal, per the bench session) applies to the Z difference, and a bead stuck to glass can sit at a slightly different height from one held in a trap."
   }
  ]
 }
