@@ -20,7 +20,7 @@ correctly, because no configuration declares the observable
 (`8624725f`) in three steps:
 
 1. the microscope seat writes the bench's 2026-11-09 drag run up as findings
-   (done: `82ace365`, revised at `5a0d928b` and `2a664060`);
+   (done: `82ace365`, revised at `5a0d928b`, `2a664060` and `b6b22a73`);
 2. **you rule the findings** -- this card;
 3. the microscope manager then declares the observable in
    `contracts/capabilities/microscope.json`, citing the entries you made, and
@@ -34,13 +34,13 @@ reading it.
 ## The input
 
 `microscope_agent/findings/microscope-scope-20261105-3-20261109.json`, **at
-`2a664060`**, not the earlier versions at `82ace365` and `5a0d928b`: the
-microscope seat asked for the latest to be ruled. Eight items. Three are
+`b6b22a73`**, not the earlier versions at `82ace365`, `5a0d928b` and
+`2a664060`: the microscope seat asked for the latest to be ruled. Eight items. Three are
 marked `for_store: true`, five `false`. The two added at `5a0d928b` record
 the bench session's answers by message, so no file read there shows them.
 The one added at `2a664060` is the person's own word, committed in
-`docs/ideas/20261109-scope.md` (I-20261109-scope-03 to -05: `7ca24d3b`,
-`f8a176a0`, `ffb65fe3`).
+`docs/ideas/20261109-scope.md` (I-20261109-scope-03 to -06: `7ca24d3b`,
+`f8a176a0`, `ffb65fe3`, `01ebb1af`). `b6b22a73` changed only that item.
 No grades are written; deriving them is yours. Every source is a file under
 `D:/automeasure/` with a sha256, which is outside this repository: re-hash
 what you cite, and if a hash differs, stop on that item and say so.
@@ -53,7 +53,7 @@ what you cite, and if a hash differs, stop on that item and say so.
 | `heating_correction_and_wall_formula_have_no_computing_file` | false | three bench numbers with no file that computes them |
 | `drag_run_bead_identity_not_in_records` | false | the bead has no recorded identity |
 | `drag_run_heights_are_fitted_from_the_drag_data_not_measured` | false | the bead heights came from fitting a wall formula, with an assumed radius, to the drag values themselves; the reference Z is where the bead was first trapped, not a found glass contact |
-| `stuck_beads_in_focus_at_z_2957_5_same_coverslip` | true | the person's reading: beads stuck on the glass were in focus, at the bead middle, at stand Z 2957.5 um, on the same coverslip as the drag runs. Which stand's Z it is was not said; the microscope seat's reading of that is its own |
+| `stuck_beads_in_focus_at_z_2957_5_same_coverslip` | true | the person's reading: beads stuck on the glass were in focus, at the bead middle, at stand Z 2957.5 um, on the same coverslip as the drag runs. Asked which Z, the person said "it's the stand Z" (`01ebb1af`). That this means the stand's focus drive and not the piezo is the microscope manager's reading, flagged as its own, and is not the person's word |
 | `drag_run_stage_speed_and_pixel_scale_not_independently_checked` | false | 20 um/s is the controller's nominal value; the 0.0646 um pixel came from walking the trap with the tweezers' own steps; the one check tests their product |
 
 ## TASK
@@ -77,7 +77,7 @@ what you cite, and if a hash differs, stop on that item and say so.
    derived from the wall formula cannot then test the wall formula**, so
    whatever you enter must not let a later plan use these heights as
    independent of the drag. Do not enter Z readings as heights.
-   The `2a664060` item is the first glass reference that does not come from
+   The eighth item is the first glass reference that does not come from
    the fit, and it is the person's reading, so grade it as one. It is not yet
    a height: turning it into one needs the stuck bead's size (unmeasured,
    about 5 um assumed), the focal shift between oil and water, and the
