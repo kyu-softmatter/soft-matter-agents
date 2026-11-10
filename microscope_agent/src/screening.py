@@ -562,15 +562,35 @@ def to_refusal(result: Screening, goal: dict, qid: str, created_at: str) -> dict
             "limit_number": "configurations_available",
             "statement": "screening needs at least one configuration that declares this observable, and the capability table declares none",
         }],
+        # These two were `computed:` with no formula, and check 17 refused every
+        # refusal card this function wrote -- none had ever been written before
+        # 2026-11-09, so nothing had run it. Neither is arithmetic: one is a rule
+        # of the screen and the other a count read off the capability table, so
+        # each is stated as what it is, with the thing that would retire it.
         "numbers": [
             {"name": "configurations_required", "value": 1, "unit": "count",
-             "source": "computed:screening_minimum", "grade": "E4"},
+             "source": "assumed:a_screening_minimum", "grade": "E5"},
             {"name": "configurations_available", "value": len(result.candidates), "unit": "count",
-             "source": "computed:screening", "grade": "E4"},
+             "source": "assumed:a_capability_table_read", "grade": "E5"},
         ],
-        "assumptions": [],
+        "assumptions": [
+            {"rationale_id": "a_screening_minimum",
+             "statement": "S3.0 needs at least one configuration that declares the observable; "
+                          "with none there is nothing to fan out over (4.5, S3.0).",
+             "numbers": ["configurations_required"],
+             "falsifier": "a change to 4.5's S3.0 that lets the system designer proceed with no "
+                          "configuration"},
+            {"rationale_id": "a_capability_table_read",
+             "statement": "The count of configurations declaring the observable is read off "
+                          "contracts/capabilities/microscope.json by the screen, not measured.",
+             "numbers": ["configurations_available"],
+             "falsifier": "re-running the screen after the capability table declares the observable"},
+        ],
         "kb_refs": [],
-        "degraded": result.degraded,
+        # A refusal at S3.0 asks the librarian nothing: it reads the capability
+        # table. A card that never reached the service says so (check 39), and
+        # an empty list here would claim an answer nobody gave.
+        "degraded": sorted(set(result.degraded) | {"librarian_agent"}),
     }
 
 

@@ -1,0 +1,55 @@
+{
+  "card": "goal",
+  "schema_version": "0.1",
+  "id": "goal-mic-20261109-001-r1",
+  "qid": "mic-20261109-001",
+  "thread": "solo-mic-20261109-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-11-10T01:30:00Z",
+  "status": "VALIDATED",
+  "purpose": "characterize",
+  "intent": "confirm",
+  "intent_rationale": "characterize defaults to explore. The person wrote down an accuracy, 'Within about 10 %', in the bench session on 2026-11-09 (docs/ideas/20261109-scope.md, I-20261109-scope-01, ac871bda), and 5.8 turns confirm on when a person writes down what is to be confirmed and to what accuracy. What is to be confirmed is how drag on a trapped bead changes with height above the glass, to about 10 %.",
+  "observable": {
+    "name": "trapped_particle_drag_offset"
+  },
+  "targets": [
+    {
+      "metric": "trapped_particle_drag_offset",
+      "kind": "uncertainty",
+      "value": 0.1,
+      "unit": "1",
+      "note": "Relative, 10 %, the person's 'Within about 10 %' (I-20261109-scope-01). 'About' is theirs and is kept: it is a decision about what is worth resolving, not a tolerance this card has tightened. It applies to the drag coefficient derived at each height (stiffness times offset over relative speed), so the stiffness and the speed each have to be known well inside it. A target is a decision and carries no grade."
+    }
+  ],
+  "priority": [
+    "physical_feasibility",
+    "target_accuracy",
+    "evidence_grade",
+    "cost"
+  ],
+  "sample_contrast": [
+    "fluorescence"
+  ],
+  "sample_contrast_provenance": {
+    "source": "operator_recall:kyuhwan_20261106_dye_488_520_unconfirmed",
+    "grade": "E5"
+  },
+  "requested_by": "human",
+  "numbers": [],
+  "assumptions": [],
+  "kb_refs": [],
+  "kb_gaps": [],
+  "degraded": ["librarian_agent"],
+  "constraint_notes": [
+    "WHAT IS ASKED. The person, in the bench session on 2026-11-09, asked for the drag on an optically trapped bead to be measured against height above the glass, so as to find how much the wall changes it and the height above which it stops mattering. Purpose 'Quantify the wall effect'; accuracy 'Within about 10 %'; if two goals conflict, 'Number of heights' gives way first. Verbatim and committed at ac871bda.",
+    "WHAT GIVES WAY FIRST. Fewer heights is the allowed cost: if time, bead life or trap stability cannot buy the accuracy at every height, drop heights and keep the 10 % at the ones that remain. It is a priority between two goals of this question, not a field the contract has a place for, so it is carried in this note and S4 reads it here.",
+    "THE OBSERVABLE, AND WHY IT IS NOT AN EXACT FIT. The registered quantity nearest the question is trapped_particle_drag_offset: the mean displacement of the bead from the trap centre along the flow while the fluid moves past at constant speed. The drag coefficient the person wants is derived from it, gamma = kappa * offset / v, with kappa the trap stiffness (from the bead's position scatter with no flow, which assumes a harmonic trap and is recorded as an assumption) and v the relative speed. No registered observable names the drag coefficient against height. Proposed, not changed: a name for it is a vocabulary entry for the owner of the vocabulary. This card uses the offset and says where the derivation adds error.",
+    "STAGE, NOT TRAP. The standing preference (2026-09-19) is to move the stage and hold the trap still, so the bead stays at one place on the sensor. The bench run did this, with piezo flow. It is a preference and not evidence.",
+    "THE SAMPLE. The person's bench note: one bead, about 5 um, material and dye unknown. The store holds a measured 5 um tracer_diameter, and the person has not said today's bead is from that bottle, so it is not cited until they say so. Whether the bead fluoresces under the Aura green line is the person's 2026-11-06 statement (excites near 488 nm, emits near 520, unconfirmed) and is graded E5 above.",
+    "CONTEXT, NOT INPUT. Today's bench numbers (drag at four heights, stiffness near 3.1 pN/um, the heating correction, the free-water drag and wall formula from memory) came from the bench session without a source or grade. They enter nothing here: no number on this card is copied from them, and every value the plan uses has to come from the store or be named as a gap. What the bench numbers legitimately do is show the question is askable on this instrument, and they are the data a later comparison would be made against.",
+    "DEGRADED UNTIL THE SERVICE ANSWERS. degraded names the librarian now because nothing has been asked yet. It is emptied only by the axis cards that carry served answers, and the kb_refs and kb_gaps of this card are filled from the same queries."
+  ]
+}

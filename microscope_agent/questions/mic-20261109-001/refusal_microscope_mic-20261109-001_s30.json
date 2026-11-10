@@ -1,0 +1,61 @@
+{
+  "card": "refusal",
+  "schema_version": "0.1",
+  "id": "refusal-mic-20261109-001-s30",
+  "qid": "mic-20261109-001",
+  "thread": "solo-mic-20261109-001",
+  "round": 0,
+  "revision": 1,
+  "author": "microscope_agent",
+  "created_at": "2026-11-10T01:22:18Z",
+  "status": "REFUSED",
+  "stage": "S3.0",
+  "refused_what": "producing 'trapped_particle_drag_offset' on this instrument",
+  "reason_code": "no_capable_configuration",
+  "counterexample": [
+    {
+      "parameter": "capable_configurations",
+      "required_number": "configurations_required",
+      "limit_number": "configurations_available",
+      "statement": "screening needs at least one configuration that declares this observable, and the capability table declares none"
+    }
+  ],
+  "numbers": [
+    {
+      "name": "configurations_required",
+      "value": 1,
+      "unit": "count",
+      "source": "assumed:a_screening_minimum",
+      "grade": "E5"
+    },
+    {
+      "name": "configurations_available",
+      "value": 0,
+      "unit": "count",
+      "source": "assumed:a_capability_table_read",
+      "grade": "E5"
+    }
+  ],
+  "assumptions": [
+    {
+      "rationale_id": "a_screening_minimum",
+      "statement": "S3.0 needs at least one configuration that declares the observable; with none there is nothing to fan out over (4.5, S3.0).",
+      "numbers": [
+        "configurations_required"
+      ],
+      "falsifier": "a change to 4.5's S3.0 that lets the system designer proceed with no configuration"
+    },
+    {
+      "rationale_id": "a_capability_table_read",
+      "statement": "The count of configurations declaring the observable is read off contracts/capabilities/microscope.json by the screen, not measured.",
+      "numbers": [
+        "configurations_available"
+      ],
+      "falsifier": "re-running the screen after the capability table declares the observable"
+    }
+  ],
+  "kb_refs": [],
+  "degraded": [
+    "librarian_agent"
+  ]
+}
