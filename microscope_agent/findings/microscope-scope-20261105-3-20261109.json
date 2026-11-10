@@ -98,12 +98,12 @@
   },
   {
    "id": "stuck_beads_in_focus_at_z_2957_5_same_coverslip",
-   "fact": "The person saw beads stuck on the glass, and the stand Z at which those stuck beads were in focus, at the bead middle and not the glass surface, was 2957.5 um. They said it is the same coverslip as the drag runs. The person gave the unit as um; they did not say which stand's Z it is. This seat reads it as the controller's stand Z on the scale of the drag runs, and that reading is not the person's.",
+   "fact": "The person saw beads stuck on the glass, and the stand Z at which those stuck beads were in focus, at the bead middle and not the glass surface, was 2957.5 um. They said it is the same coverslip as the drag runs. The person gave the unit as um and, asked which Z it is, said 'it's the stand Z' (I-20261109-scope-06, 01ebb1af). That the stand is the microscope stand's focus drive and not the piezo stage is the manager's reading of those words, flagged as its own in that entry; it is also the scale of the drag runs' Z values.",
    "kind": "person_statement",
-   "how": "Said by the person in the microscope agent's window and then in the intake seat's window on 2026-11-09, committed verbatim by the intake seat: the lines 'I saw beads stuck on the glass.', '2957.5', 'right- bead middle', 'right' (same coverslip) and '2957.5 um'. A live-view session that day (live_beads_red_green_2_20261109.log, 10:54) opened with the stand at Z 2957.26 um, within 0.3 um of this value; whether that is the session where they were seen was not confirmed.",
+   "how": "Said by the person in the microscope agent's window and then in the intake seat's window on 2026-11-09, committed verbatim by the intake seat: the lines 'I saw beads stuck on the glass.', '2957.5', 'right- bead middle', 'right' (same coverslip), '2957.5 um' and \"it's the stand Z\". A live-view session that day (live_beads_red_green_2_20261109.log, 10:54) opened with the stand at Z 2957.26 um, within 0.3 um of this value; whether that is the session where they were seen was not confirmed.",
    "source": {
     "type": "person",
-    "recorded_at": "docs/ideas/20261109-scope.md, I-20261109-scope-03, -04 and -05 (commits 7ca24d3b, f8a176a0, ffb65fe3)"
+    "recorded_at": "docs/ideas/20261109-scope.md, I-20261109-scope-03, -04, -05 and -06 (commits 7ca24d3b, f8a176a0, ffb65fe3, 01ebb1af)"
    },
    "for_store": true,
    "note": "This is the first position in the run's records that is tied to the glass by something other than the wall-formula fit. If the stuck beads are the same size as the trapped one, about 5 um across and unmeasured, the glass is about one radius (about 2.5 um) below the bead middle, near Z 2955; the bench's fit put it near Z 2955.5 (3.2 um below the 2958.7 reference). That comparison is this seat's arithmetic and not a finding of the person. The bead size is an assumption, the focal shift through oil into water (about 10 percent smaller than nominal, per the bench session) applies to the Z difference, and a bead stuck to glass can sit at a slightly different height from one held in a trap."
