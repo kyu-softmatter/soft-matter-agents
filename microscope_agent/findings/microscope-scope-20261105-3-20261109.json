@@ -68,7 +68,33 @@
     "sha256": "711af852d32c6fd5573e655ccdc56c01e4062cdd65e5c64727e13a0a0ff969c3"
    },
    "for_store": false,
-   "note": "Not tied to the store's measured 5 um tracer, because nobody has said this bead came from that bottle. The person can close it by saying which bottle."
+   "note": "Not tied to the store's measured 5 um tracer, because nobody has said this bead came from that bottle. The person can close it by saying which bottle. UPDATE 2026-11-09, from the bench session's reply to this seat's question: the person said they 'made a new stock with random particle I have'; the bottle, the material (polystyrene or PMMA unknown), the dye and the exact size were not recorded. It stays a gap, and the person may know."
+  },
+  {
+   "id": "drag_run_heights_are_fitted_from_the_drag_data_not_measured",
+   "fact": "The bead-centre heights of the 2026-11-09 drag runs (3.5, 8.9, 18.9 and 28.7 um, stated as 3.5, 12, 22 and 32 um earlier in the session) were not measured. The reference stand Z of 2958.7 um is only where the bead was first trapped near the wall for the first drag record, a controller reading and not a found glass contact: nobody touched or focused on the glass. Height was then taken as h = 3.2 um + (stand Z - 2958.7 um), where the 3.2 um is a fitted number: the Faxen wall formula with an assumed 2.5 um radius was fitted jointly to the drag values of the first two beads, with free-water drag and the offset h0 both free (misfit about 4 percent, bounds on h0 2.6 to 40 um). The four heights are 3.2 + 0.3 (Z 2959.0), 8.9 (Z 2967.6), 18.9 (Z 2977.6) and 28.7 (Z 2987.4).",
+   "kind": "unmeasured",
+   "how": "The bench session (D:/automeasure) answered this seat's question by message on 2026-11-09. The records read (stand Z values in the drag_20261109 JSON files, dz in errbar_data_20261109.json) hold Z only, so the answer is the bench session's statement and no file read here shows the fit. Source is the run record that carries Z and no height.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/runs/drag_20261109/153958_rep_z2987_1.json",
+    "sha256": "711af852d32c6fd5573e655ccdc56c01e4062cdd65e5c64727e13a0a0ff969c3"
+   },
+   "for_store": false,
+   "note": "The consequence for any plan: the heights come out of the same drag data they are plotted against, so a wall-effect curve built on them is not an independent test of a wall formula. The Z step is the controller's nominal value; the true focal shift through oil into water may be about 10 percent smaller (the bench session's estimate). That all beads sat over the same glass height is unchecked. A measured height needs a different method, which is a design question for the plan."
+  },
+  {
+   "id": "drag_run_stage_speed_and_pixel_scale_not_independently_checked",
+   "fact": "The 20 um/s of the drag runs is the piezo pattern's nominal speed, the controller's own value at 50 steps per second, and it was not measured independently. The only check is the scale check 2 pi times corner frequency times offset over speed, which read 0.92 to 1.06 in the final repeats and 0.6 to 0.8 earlier when a wrong speed was used in the analysis. That checks pixel size times speed together and not speed alone. The red camera pixel of 0.0646 um came from walking the trap 3 um with the tweezers' own steps; a stage-micrometer check was not done.",
+   "kind": "unmeasured",
+   "how": "The bench session's reply to this seat's question on 2026-11-09, read against drag_ramp.py (which states the pixel size came from walking the trap 3 um) and the check column in the summary files.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/connect/drag_ramp.py",
+    "sha256": "cf93f3773db8f14ef6392409decb475c7aee7fdeb0f010cb02c5c0fdde373213"
+   },
+   "for_store": false,
+   "note": "Both the speed and the pixel size are therefore anchored to the instrument's own commands. A 10 percent target on the drag needs the stiffness, offset and speed each known well inside 10 percent, and nothing independent backs the speed or the pixel scale. The heating correction (1 minus 0.0575 times the stiffness) is from one bead at one height and is about 20 percent uncertain."
   }
  ]
 }
