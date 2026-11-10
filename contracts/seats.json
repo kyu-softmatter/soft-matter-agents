@@ -2268,6 +2268,17 @@
       "note": "The session titled \"Intake desk\" on the microscope computer (Windows, hostname Takatori_lab), reseated under a new date and name on 2026-11-05. The person, in architecture-scope-20261019-1's window that day: \"and we can clean all previous chat in each sessions. change the model and effort i'd like to seat them with new date and name.\" The session's previous chat is cleared and it takes this identity in place of architecture-scope-20261019-6, which is closed. Every field except seat, committer_email and note copied by code from architecture-scope-20261019-6. SEATED 2026-11-05: the person confirmed this seat in that session's own window, answering \"yes\" to its one-line statement of the proposed name, after clearing the session's chat; recorded from that session's own report and transcript by architecture-scope-20261019-1. Closes architecture-scope-20261019-6."
     },
     {
+      "seat": "architecture-scope-20261109-1",
+      "committer_email": "architecture-scope-20261109-1@seat.invalid",
+      "owns": [
+        "design"
+      ],
+      "paths": [
+        "docs/ideas/"
+      ],
+      "note": "The intake seat on the microscope computer (Windows, hostname Takatori_lab), rooted at the repository root: the session titled \"Intake seat: commit wall-effect lines\" (local_9cbd5928), opened 2026-11-09 by the bench-session request. The person, in that session's own window, as that session's prepared entry reports: confirmed 'yes' that it is the intake seat, and for the identity 'new name with today's date' then 'architecture-scope-20261109-1'. Entry added by architecture-scope-20261105-1 on the person's word in its own window on 2026-11-09, answering whether to register it: \"Yes, register it\". Every field except seat, committer_email and note copied from architecture-scope-20261105-3. Closes architecture-scope-20261105-3 only if the person says so; until then both are open."
+    },
+    {
       "seat": "harness-scope-20261105-1",
       "committer_email": "harness-scope-20261105-1@seat.invalid",
       "owns": [
