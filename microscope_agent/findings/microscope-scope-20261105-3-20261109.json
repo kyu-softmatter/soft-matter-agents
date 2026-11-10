@@ -1,0 +1,74 @@
+{
+ "artifact": "findings",
+ "schema_version": "0.1",
+ "seat": "microscope-scope-20261105-3",
+ "on": "2026-11-09",
+ "delivered_to": "librarian_agent",
+ "items": [
+  {
+   "id": "piezo_x_ramp_commanded_as_readback_points_not_waveform",
+   "fact": "On 2026-11-09 the relative flow in the drag runs was made by moving the NanoBench 6000 piezo stage (NPC-6330 controller, SP-XYZ-600 stage, closed loop, port COM4) along x. Its speed was commanded as a staircase of position targets, 50 points per second, each target computed from an integer point count (start + distance * i/n), and every point was read back with stage.position.measured.get. The controller's hardware waveform generator was not used. The pattern piezo_ramp_x_20um_s commands +20 um/s for 10 s (+200 um), holds 5 s, returns at the same speed, holds 5 s. The run log's own read-back speeds for one record (connect/logs/piezo_ramp_20261109_154012.json, quoted in 153958_rep_z2987_1.json) are +20.02 um/s out and -20.04 um/s back, with a worst point error of 0.457 um against target.",
+   "kind": "document_fact",
+   "how": "Read piezo_sine.py (do_ramp, point, Link.measured_um, docstring on the waveform generator), run_pattern.py (builds the command from the pattern file), patterns/piezo_ramp_x_20um_s.json, and the stdout tail stored in runs/drag_20261109/153958_rep_z2987_1.json. Nothing was run.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/connect/piezo_sine.py; D:/automeasure/connect/run_pattern.py; D:/automeasure/connect/patterns/piezo_ramp_x_20um_s.json; D:/automeasure/runs/drag_20261109/153958_rep_z2987_1.json",
+    "sha256": "5743b98810446d6c7ab93dd4fc53af03858789b6159088204449b3302c31e56c"
+   },
+   "for_store": true,
+   "note": "The measured speed is the distance between the first and last read-back points over the software clock between them, and each reading is taken right after its command while the stage follows with a lag (the script's own comment, 2026-11-06). So it is a read-back of position and not an independent speed measurement. The tracking abort was switched off for these runs (ignore_tracking true, the person's word recorded in the pattern file); errors were still logged. Nothing independent of the controller's own reading checked the stage's travel, and the camera frames give no stage position. The controller refused the closed-loop range query ('Command locked by security') in the same log, so the range limits were not read in these runs."
+  },
+  {
+   "id": "drag_runs_operating_points_and_height_as_stand_z",
+   "fact": "The operating points actually run were: stage speed 20 um/s over 200 um in x (ten seconds out, five held, back, five held), with the trapped bead imaged on the red Kinetix at about 990 frames per second, 1 ms exposure, a 192 px square region, 0.0646 um per pixel, under the Aura green line at 10 percent, with the 100x oil objective. Patterns for 30 um/s and 10 um/s also exist; the 20 um/s pattern file says 30 um/s moved the bead 515 nm and it escaped on the return ramp. Height was changed by moving the stand's Z drive (connect/z_slow.py, 2 um steps with a pause, read back each step) and is recorded as a Z reading in micrometres, for example 2987.4, 2977.6, 2967.5 and 2959.04. Each height group has five repeats (the repeat_series scripts) and the trap laser level was set between 0.1 and 0.027 by the Tweez300 control script.",
+   "kind": "document_fact",
+   "how": "Read drag_ramp.py (settings and docstring), repeat_series_20261109.sh and repeat_series3_20261109.sh with their logs, the zslow_20261109.jsonl log, and the 20 um/s pattern file.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/connect/drag_ramp.py; D:/automeasure/runs/repeat_series3_20261109.sh; D:/automeasure/runs/repeat_series3_20261109.log; D:/automeasure/runs/zslow_20261109.jsonl",
+    "sha256": "cf93f3773db8f14ef6392409decb475c7aee7fdeb0f010cb02c5c0fdde373213"
+   },
+   "for_store": true,
+   "note": "THE HEIGHT IS A COMMANDED FOCUS POSITION, NOT A MEASURED GAP TO THE GLASS. The records read hold the stand Z value of each run and the differences between them (the dz in errbar_data_20261109.json is Z minus a reference near 2959). They do not say how the glass surface, or the bead-centre height above it (the person's 3.5, 12, 22 and 32 um), was fixed, so that mapping is a gap and is asked of the bench session. A laser-level command counts as accepted when the control script reports ok true, which is acceptance of text and not a reading of the laser; the trap power at the sample was not read in these records."
+  },
+  {
+   "id": "drag_per_height_values_from_bench_analysis",
+   "fact": "For the five repeats at Z 2987 (about 28.7 um above the reference Z) the bench analysis returned an offset of about 222 nm, a trap stiffness from position variance of 3.02 to 3.27 pN/um, a corner frequency near 13.5 Hz, and a drag from the ramp of 0.0334 to 0.0367 pN s/um. The analysis defines offset as half the difference between the mean position on the out plateau and on the back plateau, stiffness as kT over the variance within the holds, and drag as stiffness times offset over speed, with kT taken as 4.114 pN nm; a second drag comes from the Lorentzian corner frequency. The check column (2 pi times corner frequency times offset over speed) reads 0.94 for the first record. Values at the other heights are in errbar_data_20261109.json and the summary files beside the records.",
+   "kind": "observable_value",
+   "how": "Read summary_repeat_z2987.json and errbar_data_20261109.json, and drag_analyse.py for the definitions. No analysis was re-run.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/runs/drag_20261109/summary_repeat_z2987.json; D:/automeasure/runs/errbar_data_20261109.json; D:/automeasure/connect/drag_analyse.py",
+    "sha256": "b99e1c7b0c66b543ca9cb295a1210e6d1e97b21bce7fef9fd7179bd37c5b5095"
+   },
+   "for_store": false,
+   "note": "Not for the store: these wait for a plan that cites their run. Three limits to carry. The stiffness comes from equipartition, which assumes a harmonic trap, and no check of that was read. The analysis has no blur correction and no noise-floor subtraction, which its own header lists as open. The script's default speed is 30.05 um/s; the 20 um/s summaries are consistent with a speed near 20 (a check value near 0.94 is what 20 gives for these numbers, and 30.05 would give about 0.62), but which speed was passed for each summary file was not read."
+  },
+  {
+   "id": "heating_correction_and_wall_formula_have_no_computing_file",
+   "fact": "The heating correction used at the bench (drag lowered about 5.75 percent per pN/um of stiffness, uncertain by about 20 percent), the free-water drag of 0.0419 pN s/um, and the parallel-wall formula were not traced to a file that computes them. The 5.75 percent per pN/um appears as the heat_factor ladder in proper_power_sim_20261109.json (0.9425 at 1 pN/um, falling to 0.62625 at the largest stiffness) with heat_err 0.0115 at 1 pN/um, which is 20 percent of 5.75 percent. The wall formula and free-water value appear inside the bench's simulation files (drag_ramp_sim_20261109.json, power_scan_sim3_20261109.json) as inputs and outputs, and their derivation was not read.",
+   "kind": "unmeasured",
+   "how": "Searched connect/, src/, and the runs JSON and shell files for the formula, the free-water value and the heating coefficient. Found them only as values inside the bench's own simulation outputs.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/runs/proper_power_sim_20261109.json; D:/automeasure/runs/drag_ramp_sim_20261109.json; D:/automeasure/runs/power_scan_sim3_20261109.json",
+    "sha256": "2e44d0c0b6512e40132d8bc5af80760d4d12ba504d17ebd98ed52731c68db163"
+   },
+   "for_store": false,
+   "note": "Stated as assumptions of the bench session and none a measurement. The heating coefficient is from one bead and the person calls it uncertain by about 20 percent. Any plan that uses a wall formula or a heating correction takes it from the store or names it as a gap."
+  },
+  {
+   "id": "drag_run_bead_identity_not_in_records",
+   "fact": "The bead used in the 2026-11-09 drag runs has no recorded identity in the run records: no material, dye, lot, or measured diameter appears in the drag_20261109 JSON files or the scripts. The only size on file is the person's spoken 'about 5 um' (a radius of 2.5 um enters the bench's free-water drag), which the records do not carry.",
+   "kind": "unmeasured",
+   "how": "Searched the fields of 153958_rep_z2987_1.json (label, pattern, person, settings, positions, objective, frames) and the series scripts for any bead description.",
+   "source": {
+    "type": "document",
+    "path": "D:/automeasure/runs/drag_20261109/153958_rep_z2987_1.json",
+    "sha256": "711af852d32c6fd5573e655ccdc56c01e4062cdd65e5c64727e13a0a0ff969c3"
+   },
+   "for_store": false,
+   "note": "Not tied to the store's measured 5 um tracer, because nobody has said this bead came from that bottle. The person can close it by saying which bottle."
+  }
+ ]
+}
