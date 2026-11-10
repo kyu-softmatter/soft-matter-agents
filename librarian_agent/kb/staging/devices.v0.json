@@ -952,6 +952,90 @@
       "grade": "E3",
       "entry_ref": "cameras_both_kinetix22",
       "note": "both Kinetix 22. This closes a discrepancy the prior dossier left open between a purchase quote and the current state: a swap did happen against the quote, and the record now matches the hardware. The general lesson survives the specific resolution -- this instrument's paper record has drifted from its hardware before, which is why a position or model claim is re-read rather than inherited."
+    },
+    {
+      "what": "what separates the person's stuck-bead focus reading (stand Z 2957.5 um, entry stuck_beads_in_focus_at_stand_z_2957_5_um) from a measured height of the trapped bead above the glass",
+      "gap_id": "stand_z_to_glass_height_2957_5",
+      "device": [
+        "stand_ti2e"
+      ],
+      "why_it_matters": "a wall-effect question needs the bead-centre height above the glass. The reading is a stand focus position at a bead middle. It is not a height, and no height may be derived from it until the three missing pieces are measured",
+      "kind": "absent",
+      "searched": [
+        "the 2026-11-09 findings (b6b22a73): the bead size is only the person's spoken 'about 5 um', the oil-to-water focal shift is a bench-session statement with no file behind it, and nothing records that a stuck bead and a trapped bead sit alike",
+        "this store's entries: none holds a stuck-bead size, a focal shift for this objective into water, or a glass position"
+      ],
+      "what_would_close_it": "the stuck bead's measured diameter, the axial focal shift of this objective through the oil-to-water interface measured on this bench, and a check that a stuck bead's focus plane is where a trapped bead of that size sits relative to the glass (or a direct glass-contact focus found and recorded with its Z)",
+      "do_not": "do NOT enter the microscope seat's comparison (glass near Z 2955 against the fit's 2955.5) as agreement, and do NOT subtract a radius from 2957.5 to make a height",
+      "status": "open. Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
+    },
+    {
+      "what": "bead heights above the glass in the 2026-11-09 drag runs that do not come from fitting a wall formula to the drag data itself",
+      "gap_id": "drag_run_heights_are_fitted_not_measured",
+      "device": [
+        "stand_ti2e"
+      ],
+      "why_it_matters": "the bench session's heights (3.5, 8.9, 18.9 and 28.7 um) are reported to be h = 3.2 um + (stand Z - 2958.7 um), where the 3.2 um was fitted with the Faxen wall formula and an assumed 2.5 um radius to the first two beads' drag values. A wall-effect curve built on them is then not an independent test of a wall formula. The only account of the fit is the bench session's message; no file read here holds it",
+      "kind": "unqualified_source",
+      "searched": [
+        "findings items drag_run_heights_are_fitted_from_the_drag_data_not_measured and drag_runs_operating_points_and_height_as_stand_z at b6b22a73: the run records hold stand Z only, no height",
+        "D:/automeasure runs and connect files named by the items: the fit is not in them"
+      ],
+      "what_would_close_it": "the fit's script and output committed, so the heights can be checked as derived; and, for an independent test, a height measured by another method (see stand_z_to_glass_height_2957_5)",
+      "do_not": "do NOT enter the four heights, the 3.2 um or the 2958.7 um reference as heights or as a reference; do NOT let a plan treat them as independent of the drag values",
+      "status": "open. No entry made from the item, which stays held (its source is a message, which leaves no trace). Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
+    },
+    {
+      "what": "an independent check of the stage speed and of the red camera's pixel scale used in the 2026-11-09 drag runs",
+      "gap_id": "drag_run_speed_and_pixel_scale_unchecked",
+      "device": [
+        "piezo_stage"
+      ],
+      "why_it_matters": "the 20 um/s is the controller's nominal command and the 0.0646 um pixel came from walking the trap 3 um with the tweezers' own steps, so both rest on the instrument's own commands. The one check, 2 pi times corner frequency times offset over speed, tests their product and not either. A drag known to 10 percent needs each of stiffness, offset and speed inside that",
+      "kind": "absent",
+      "searched": [
+        "findings item drag_run_stage_speed_and_pixel_scale_not_independently_checked at b6b22a73, which says so",
+        "this store's entries: piezo_x_ramp_is_a_staircase_of_position_targets_read_back records that the read-back is the controller's own; no entry holds an independent speed or a stage-micrometer pixel size for the red camera at the 100x oil objective in this configuration"
+      ],
+      "what_would_close_it": "a stage-micrometer image of the red camera at the 100x oil objective, and a speed taken from something other than the controller's readback (for example a fixed fiducial crossing a known number of pixels against the camera clock)",
+      "status": "open. The speed is held as that (entered only as how it was commanded); the pixel scale is not entered from this item. Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
+    },
+    {
+      "what": "a published source for the parallel-wall drag correction and for a trap-heating correction to drag, and the bench's free-water drag figure",
+      "gap_id": "wall_drag_formula_and_heating_correction_sources",
+      "kind": "absent",
+      "why_it_matters": "the wall-effect question compares drag at several heights with a wall formula, and the bench used a heating correction of 5.75 percent per pN/um (about 20 percent uncertain, from one bead) and a free-water drag of 0.0419 pN s/um. The three appear only as inputs and outputs inside the bench's own simulation files; none was traced to a file that computes it",
+      "searched": [
+        "findings item heating_correction_and_wall_formula_have_no_computing_file at b6b22a73: searched connect/, src/ and the runs files, found them only as values inside simulation outputs",
+        "this store's entries: wall_drag_correction has no entry (the 2026-11-09 queries of sim-20261109-002 returned absent)"
+      ],
+      "what_would_close_it": "the published wall-correction formula for a sphere moving parallel to a wall, entered from the paper or textbook itself with its validity range, and a published or measured heating coefficient for the trap laser at this wavelength, entered from that source",
+      "do_not": "do NOT enter any of the three from the bench files, and a coefficient from one bead is at most the person's stated assumption",
+      "status": "open. This seat did not search outside the repository in task 066; the search is the next step and the gap stands until it is done. Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
+    },
+    {
+      "what": "which bottle, material, dye and measured size the bead of the 2026-11-09 drag runs came from",
+      "gap_id": "drag_run_bead_identity",
+      "kind": "absent",
+      "why_it_matters": "the drag and the wall correction both scale with the bead radius, and an assumed 2.5 um enters the bench's free-water drag. The store's measured 5 um tracer (tracer_diameter_measured) is not linked: nobody has said this bead came from that bottle",
+      "searched": [
+        "findings item drag_run_bead_identity_not_in_records at b6b22a73: the run records name no material, dye, lot or diameter",
+        "the bench session's reply, relayed in the item: the person said they made a new stock with a random particle they have, with no bottle, material, dye or size recorded"
+      ],
+      "what_would_close_it": "the person naming the bottle, or the bead's diameter measured",
+      "status": "open. Not linked to any tracer entry. If the person is to be asked, the question goes through the intake desk. Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
+    },
+    {
+      "what": "commits for the files the 2026-11-09 findings stand on: the drag run records, the 20 um/s pattern file, drag_ramp.py, drag_analyse.py and the series scripts",
+      "gap_id": "drag_run_files_not_in_a_commit",
+      "kind": "unqualified_source",
+      "why_it_matters": "plan.md 7 says an item whose source is not committed is not entered. In automeasure at d3614b1, runs/ is gitignored and the pattern file, drag_ramp.py and drag_analyse.py are untracked, so no commit identifier names them and a change would go unseen. Their hashes in the findings match what this seat read on 2026-11-09, which is a check made once and not a trace",
+      "searched": [
+        "D:/automeasure git status and ls-files on 2026-11-09: connect/piezo_sine.py and connect/run_pattern.py tracked and clean; the pattern file, drag_ramp.py and drag_analyse.py untracked; runs/ ignored",
+        "sha256 of each cited first-listed file recomputed and equal to the findings'"
+      ],
+      "what_would_close_it": "the bench committing those files in automeasure and naming the commit, or the person ruling another way to identify them; then the held operating-points item and the run-record half of the ramp item can be ruled again",
+      "status": "open. Items held for it: drag_runs_operating_points_and_height_as_stand_z and the run-record numbers of the ramp item. Filed by librarian-scope-20261105-1, task 066, from findings microscope-scope-20261105-3-20261109.json at b6b22a73."
     }
   ],
   "confirmed_meaning": "confirmed_by means the fact no longer rests only on the prior project: the operator checked it here. The grade stays E3, since an operator reading is not a measurement by this system (10.3 rule 1), but the dependency on the other repository is gone and the row can survive that repository disappearing."

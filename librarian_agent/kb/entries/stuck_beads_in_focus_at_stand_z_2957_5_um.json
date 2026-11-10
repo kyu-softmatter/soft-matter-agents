@@ -1,0 +1,24 @@
+{
+  "entry_id": "stuck_beads_in_focus_at_stand_z_2957_5_um",
+  "schema_version": "0.1",
+  "kind": "claim",
+  "claim": "The person states that beads stuck on the glass were in focus, at the bead middle and not at the glass surface, at a Z of 2957.5 um, on the same coverslip as the 2026-11-09 drag runs. Asked which Z it is, the person said it is the stand Z. This is a stand focus-drive position at which the middle of a stuck bead was in focus. It is not the height of anything above the glass.",
+  "subject": [
+    {
+      "kind": "device",
+      "id": "stand_ti2e"
+    }
+  ],
+  "source": "operator_recall:kyuhwan_20261109_stuck_beads_z",
+  "grade": "E5",
+  "grade_tag": "operator_recall",
+  "source_ref": "src_person_statement_stuck_beads_z_20261109",
+  "validity_conditions": "THE PERSON'S WORDS, committed verbatim in docs/ideas/20261109-scope.md: 'I saw beads stuck on the glass.' (I-20261109-scope-03); '2957.5'; 'right- bead middle' and 'right' to the two questions, bead middle versus glass surface and same coverslip (-04); '2957.5 um' (-05); \"it's the stand Z\" (-06, commit 01ebb1af). THREE READINGS ARE NOT THE PERSON'S AND THE ENTRY DOES NOT HIDE THEM: that 'right- bead middle' means the stuck beads were in focus at their middle is the intake seat's reading of a one-line answer; that 'the stand Z' means the microscope stand's focus drive and not the piezo stage is the microscope manager's reading, flagged as its own at 01ebb1af; and that the Z was read off the display then and not recalled is nobody's statement, which is why this is E5 and not E3 (the record does not say; a reading taken with a recorded event would supersede it). WHAT IT IS GOOD FOR: the one position in the 2026-11-09 records tied to the glass by something other than the wall-formula fit. WHAT IT IS NOT: a height. Turning it into one needs the stuck bead's size (unmeasured, about 5 um assumed), the focal shift between oil and water (the bench session put it near 10 percent of the Z difference, a statement with no file behind it), and the assumption that a stuck bead and a trapped bead sit alike; none is settled, see the gap stand_z_to_glass_height_2957_5. The microscope seat's comparison of this with the fit's glass near Z 2955.5 is that seat's arithmetic, not a finding, and is not entered as agreement. The Z is a controller reading: nothing says the stand's reading was calibrated against the glass. Slot: the glass reference for a wall-effect question (microscope task 105). Delivered as item stuck_beads_in_focus_at_z_2957_5_same_coverslip of microscope_agent/findings/microscope-scope-20261105-3-20261109.json at b6b22a73 (task 066); this seat read the cited lines at 01ebb1af.",
+  "date": "2026-11-09",
+  "valid_until": {
+    "event": "The coverslip is replaced or the stand's Z zero is re-referenced, or a measured glass position (a recorded reading of the stuck bead's focus, with its size) supersedes this."
+  },
+  "supersedes": null,
+  "conflict_with": [],
+  "curated_by": "seat:librarian-scope-20261105-1"
+}

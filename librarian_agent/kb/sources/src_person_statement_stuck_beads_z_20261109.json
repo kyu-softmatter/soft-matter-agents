@@ -1,0 +1,9 @@
+{
+  "source_id": "src_person_statement_stuck_beads_z_20261109",
+  "kind": "operator_recall",
+  "identifier": "The person's statements of 2026-11-09 in the microscope agent's window and then the intake seat's, committed verbatim in docs/ideas/20261109-scope.md as I-20261109-scope-03 to -06 (commits 7ca24d3b, f8a176a0, ffb65fe3, 01ebb1af): beads stuck on the glass were in focus at 2957.5 um, at the bead middle, on the same coverslip as the drag runs; asked which Z, the person said it is the stand Z.",
+  "accessed": "2026-11-09",
+  "grade_rule": "E5. The record says what the person said and does not say it was read off the stand's display at that moment, so it takes the recollection grade (5.3), as the 2026-09-24 piezo range did. Which it was belongs to the person; the conservative grade is filed until the person says otherwise. A reading taken with a recorded event would be a different, higher entry.",
+  "what_was_not": "that the Z is the stand's focus drive and not the piezo stage: that is the microscope manager's reading of the words 'it's the stand Z', flagged as its own in the findings item and in 01ebb1af, and is not the person's word. The entry says so. The microscope seat's arithmetic that puts the glass near the bench fit's is not a finding and is not entered.",
+  "delivered_by": "microscope-scope-20261105-3, findings item stuck_beads_in_focus_at_z_2957_5_same_coverslip at b6b22a73, task 066. This seat read the cited lines of docs/ideas/20261109-scope.md at 01ebb1af."
+}

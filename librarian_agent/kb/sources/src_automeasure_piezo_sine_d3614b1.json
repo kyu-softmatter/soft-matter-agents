@@ -1,0 +1,14 @@
+{
+  "source_id": "src_automeasure_piezo_sine_d3614b1",
+  "kind": "prior_run",
+  "identifier": "automeasure (the person's bench-script repository, D:/automeasure) connect/piezo_sine.py and connect/run_pattern.py at commit d3614b1515fcee9d7cefd8ffce625b9495252596: the ramp routine do_ramp, the module docstring on the waveform generator, and the pattern runner that builds the command.",
+  "commit": "d3614b1515fcee9d7cefd8ffce625b9495252596",
+  "body_sha256": "5743b98810446d6c7ab93dd4fc53af03858789b6159088204449b3302c31e56c",
+  "body_sha256_rule": "sha256 of connect/piezo_sine.py as it stands in the working copy on 2026-11-09; the file is tracked and unmodified there, so it is the file at the commit. The findings item named this file and this hash; this seat recomputed it and it matches.",
+  "accessed": "2026-11-09",
+  "grade_rule": "E3 for what the code does, by 10.3 rule 1: a script written and run elsewhere is not a run here, and there is no run_id from this system. Nothing in it is a measurement.",
+  "how_it_was_reached": "Findings item piezo_x_ramp_commanded_as_readback_points_not_waveform (microscope-scope-20261105-3, read at b6b22a73, task 066). This seat read do_ramp and the docstring itself rather than the item's wording.",
+  "what_was_entered": "how the ramp is commanded: ordinary position targets at a fixed software-clock rate, each read back, no hardware waveform generator.",
+  "what_was_not": "everything the item takes from the run record or the pattern file: the 20 um/s, the 200 um, the read-back speeds of +20.02 and -20.04 um/s, the 0.457 um worst error, the refused closed-loop range query. Those files (connect/patterns/piezo_ramp_x_20um_s.json and runs/drag_20261109/*) are in no automeasure commit, and runs/ is gitignored there, so no id can name them and a later change could not be seen. plan.md 7 (the findings folder) says an item whose source is not committed is not entered. The script's own caps (30 um/s, 300 um) are its author's choices and are not a limit and not knowledge about the stage.",
+  "delivered_by": "microscope-scope-20261105-3, microscope_agent/findings/microscope-scope-20261105-3-20261109.json at b6b22a73, task 066."
+}
