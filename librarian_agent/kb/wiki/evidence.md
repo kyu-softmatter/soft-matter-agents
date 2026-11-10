@@ -69,7 +69,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [trap_laser_power_at_sample_1064nm_20x_level_sweep](../entries/trap_laser_power_at_sample_1064nm_20x_level_sweep.json) | a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity illumination_power](../wiki/quantity_illumination_power.md) |
 | [trap_laser_power_at_sample_1064nm_4x_80pct](../entries/trap_laser_power_at_sample_1064nm_4x_80pct.json) | a calibration on this instrument | E2 · calibration:cal-illumination-power-20260909 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity illumination_power](../wiki/quantity_illumination_power.md) |
 
-## From a document, a reading off the instrument, or another project's record (E3): 251 entries
+## From a document, a reading off the instrument, or another project's record (E3): 252 entries
 
 | entry | source kind | grade and source as recorded | status | subject pages |
 |---|---|---|---|---|
@@ -302,6 +302,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [objective_transmittance_is_between_half_and_all](../entries/objective_transmittance_is_between_half_and_all.json) | the person read it off the instrument | E3 · operator_read:kyuhwan_20260924_transmittance_graphs | current | [device nosepiece](../wiki/device_nosepiece.md) |
 | [pfs_reports_focus_maintenance_status_and_range_in_three_states](../entries/pfs_reports_focus_maintenance_status_and_range_in_three_states.json) | the person read it off the instrument | E3 · operator_read:kyuhwan_20261013_bench_readings | current | [device pfs](../wiki/device_pfs.md) |
 | [piezo_waveform_generator_does_not_read_picometres](../entries/piezo_waveform_generator_does_not_read_picometres.json) | another project's record | E3 · prior_run:agentic-microscope@fbedef0/kb/decisions/2026-08-27-piezo-first-light | current | [device piezo_stage](../wiki/device_piezo_stage.md) |
+| [piezo_x_ramp_is_a_staircase_of_position_targets_read_back](../entries/piezo_x_ramp_is_a_staircase_of_position_targets_read_back.json) | another project's record | E3 · prior_run:automeasure@d3614b1 | current | [device piezo_stage](../wiki/device_piezo_stage.md) |
 | [pixeltype_misreports_bit_depth](../entries/pixeltype_misreports_bit_depth.json) | another project's record | E3 · prior_run:agentic-microscope@safety-2026-09-03 | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [prior_mm_config_declares_lunf_blanking](../entries/prior_mm_config_declares_lunf_blanking.json) | another project's record | E3 · prior_run:agentic-microscope@fbedef0/config/micromanager/dualcam_noDMD.cfg | current | [device laser_combiner](../wiki/device_laser_combiner.md), [device line_select](../wiki/device_line_select.md) |
 | [room_temperature_is_controlled](../entries/room_temperature_is_controlled.json) | the person read it off the instrument | E3 · operator_read:kyuhwan_20260919 | current | [quantity ambient_temperature](../wiki/quantity_ambient_temperature.md), [quantity temperature](../wiki/quantity_temperature.md) |
@@ -358,7 +359,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [trap_laser_power_at_sample_1064nm_60x_80pct_rough](../entries/trap_laser_power_at_sample_1064nm_60x_80pct_rough.json) | computed from other values | E4 · computed:power_scaled_by_objective_transmittance_band | current | [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity illumination_power](../wiki/quantity_illumination_power.md) |
 | [working_distance_is_measured_to_the_coverslip](../entries/working_distance_is_measured_to_the_coverslip.json) | computed from other values | E4 · computed:working_distance_versus_coverslip | current | [device nosepiece](../wiki/device_nosepiece.md) |
 
-## Recalled or assumed (E5): 18 entries
+## Recalled or assumed (E5): 19 entries
 
 | entry | source kind | grade and source as recorded | status | subject pages |
 |---|---|---|---|---|
@@ -376,6 +377,7 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 | [red_path_605_is_the_ff01_595_31_filter](../entries/red_path_605_is_the_ff01_595_31_filter.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260920 | current | none; [unfiled entries](../wiki/unfiled.md) |
 | [room_temperature_hold_band](../entries/room_temperature_hold_band.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260923 | current | [quantity ambient_temperature](../wiki/quantity_ambient_temperature.md), [quantity temperature](../wiki/quantity_temperature.md) |
 | [room_thermometer_reads_in_one_kelvin_steps](../entries/room_thermometer_reads_in_one_kelvin_steps.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260923 | current | [quantity ambient_temperature](../wiki/quantity_ambient_temperature.md), [quantity temperature](../wiki/quantity_temperature.md) |
+| [stuck_beads_in_focus_at_stand_z_2957_5_um](../entries/stuck_beads_in_focus_at_stand_z_2957_5_um.json) | the person's recollection | E5 · operator_recall:kyuhwan_20261109_stuck_beads_z | current | [device stand_ti2e](../wiki/device_stand_ti2e.md) |
 | [trap_heating_detection_bound](../entries/trap_heating_detection_bound.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260919 | current | [configuration trapping](../wiki/configuration_trapping.md), [device optical_tweezers](../wiki/device_optical_tweezers.md), [quantity temperature](../wiki/quantity_temperature.md) |
 | [tweez300_camera_is_released_so_it_shows_no_image](../entries/tweez300_camera_is_released_so_it_shows_no_image.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260924_tweezers_camera | current | [device camera_red](../wiki/device_camera_red.md), [device optical_tweezers](../wiki/device_optical_tweezers.md) |
 | [tweez300_does_not_restore_last_project](../entries/tweez300_does_not_restore_last_project.json) | the person's recollection | E5 · operator_recall:kyuhwan_20260924 | current | [device optical_tweezers](../wiki/device_optical_tweezers.md) |
@@ -383,4 +385,4 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ---
 
-Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-31456a00fae4. Do not edit by hand: correct the store and regenerate.

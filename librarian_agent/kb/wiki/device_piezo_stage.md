@@ -322,6 +322,18 @@ Conditions, verbatim:
 
 > Ruled DOWNGRADE by the microscope seat and entered at E3, the cap for a measurement taken in another project (10.3 rule 1). The finding crosses; the swing, amplitude and timing figures do not, because they sit in prose (10.3 rule 3). Slot: A7 (driving and motion) and the device wrapper -- it is why the microscope refuses the waveform generator, and the refusal is recorded in that agent's failure record. Measured there on one lateral axis, on that project's controller. The prior record names the experiment that settles the unit: a constant waveform, which cannot oscillate whatever the unit, played on a lateral axis, so wherever the stage parks is the answer. Falsified by a picometre-coded waveform that plays back at the amplitude written. Delivered as item `prior_waveform_313um_swing` of microscope_agent/findings/microscope-20260924-2-20260924.json at a0fda99 (card 043); the source was opened and its sha256 recorded before this was ruled.
 
+### [piezo_x_ramp_is_a_staircase_of_position_targets_read_back](../entries/piezo_x_ramp_is_a_staircase_of_position_targets_read_back.json)
+
+The bench's constant-speed ramp of the NanoBench piezo stage is made in software, not by the controller's hardware waveform generator: do_ramp in automeasure's connect/piezo_sine.py sends ordinary position commands, one per tick of a software clock at a fixed 50 ticks per second, each target computed from an integer point count as start + distance * i/n, out at the stated speed for the stated time and then back to the start at the same speed. Every point is read back with stage.position.measured.get right after its command. The script's own note is that the stage follows the command with a lag, so a read-back speed (distance between the first and last read-back points over the software clock between them) is a read-back of position and not an independent measurement of speed. The generator is not used because, in the prior project, its samples were not read in picometres and a small sine swung the axis far (see piezo_waveform_generator_does_not_read_picometres).
+
+Identifiers: none
+
+How it is known: from a document, a reading off the instrument, or another project's record; another project's record (E3 · prior_run:automeasure@d3614b1).
+
+Conditions, verbatim:
+
+> WHAT THIS IS: how a script commands the stage, read from the script at a committed hash (10.3 rule 1: E3, a run elsewhere is not a run here). WHAT IT IS NOT: it does not say the stage moved at a controlled velocity. Nothing independent of the controller's own reading checked the travel or the speed, and the camera frames give no stage position, so the speed a plan can claim for this route is 'commanded as position targets and read back by the controller', and no more. The per-tick read-back lags the command; the script's own comment gives one case of 0.016 um read for a 0.6 um first point. The 50 ticks per second is a constant of this script, not a property of the stage. The script has a switch (ignore_tracking) that turns off its abort when the reading lags the command, errors still logged; the drag runs of 2026-11-09 ran with it on the person's word. That is a fact about how those runs were done and is not a limit, and nothing here writes one: the script's own caps (30 um/s, 300 um) are its author's choices. NOT HERE ON PURPOSE: the 20 um/s, the 200 um, the read-back speeds and the worst point error of the drag runs, and the controller's refusal of the closed-loop range query. They are in the run record and the pattern file, which are in no automeasure commit (runs/ is gitignored there); an item whose source is not committed is not entered (plan.md 7, findings folder), so those wait until the bench commits the files or the person rules another form. Slot: the device wrapper's ramp route and the capability declaration for a drag observable (microscope task 105). The microscope manager may cite this id as the evidence that a commanded x-velocity route exists and what it is, and not as evidence of an achieved velocity. Delivered as item piezo_x_ramp_commanded_as_readback_points_not_waveform of microscope_agent/findings/microscope-scope-20261105-3-20261109.json at b6b22a73 (task 066); this seat read do_ramp and the docstring in the file whose sha256 the item gives.
+
 ## Disputed and withdrawn
 
 - [piezo_calibrated_range](../entries/piezo_calibrated_range.json): in conflict; the other side: [piezo_device_range_as_stated_by_the_person](../entries/piezo_device_range_as_stated_by_the_person.json)
@@ -337,4 +349,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-31456a00fae4. Do not edit by hand: correct the store and regenerate.

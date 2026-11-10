@@ -6,8 +6,8 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ## The store
 
-- version: kbv-d027f44dadc0
-- entries: 352
+- version: kbv-31456a00fae4
+- entries: 354
 - device pages: 28
 - quantity pages: 37
 - observable pages: 17
@@ -46,8 +46,8 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 - [nosepiece](../wiki/device_nosepiece.md) (46 entries)
 - [optical_tweezers](../wiki/device_optical_tweezers.md) (58 entries)
 - [pfs](../wiki/device_pfs.md) (2 entries)
-- [piezo_stage](../wiki/device_piezo_stage.md) (25 entries)
-- [stand_ti2e](../wiki/device_stand_ti2e.md) (17 entries)
+- [piezo_stage](../wiki/device_piezo_stage.md) (26 entries)
+- [stand_ti2e](../wiki/device_stand_ti2e.md) (18 entries)
 - [temperature_stage](../wiki/device_temperature_stage.md) (1 entries)
 - [z_drive](../wiki/device_z_drive.md) (2 entries)
 
@@ -158,4 +158,4 @@ Generated from the store; cite the entries, as `kb:<entry_id>`, not this page.
 
 ---
 
-Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-31456a00fae4. Do not edit by hand: correct the store and regenerate.

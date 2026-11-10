@@ -413,6 +413,18 @@ Conditions, verbatim:
 
 > Ruled TRANSFER under 10.2.1 and passed 10.3 rule 1, so it caps at E3 -- a run taken in another project is not a run taken here. 10.2's hardware-control-path row is open and says in its own rule that it does not wait for envelope/, because wrapping a control path needs no safety limit. Slot: O1 preflight and the orchestrator, both of which move Z. It carries no number and no limit -- a direction is not a permission. It is transferred BECAUSE it replaced a guess that ran the other way: the earlier reading had been that larger Z was retracted, taken from the fact that one rotation at a high Z broke nothing, and under the measured convention that rotation drove the incoming lens millimetres PAST the sample plane, so nothing broke because nothing was in the way. Anyone following the old guess would have driven the objective toward the coverslip believing they were retracting. The source document's own open-questions list still says this direction is unmeasured and calls it the most consequential gap in the document; the body of the same document records the measurement two days later. The list is stale, not the measurement -- see the pfs_offset_sign_unmeasured gap for the direction that really is still open.
 
+### [stuck_beads_in_focus_at_stand_z_2957_5_um](../entries/stuck_beads_in_focus_at_stand_z_2957_5_um.json)
+
+The person states that beads stuck on the glass were in focus, at the bead middle and not at the glass surface, at a Z of 2957.5 um, on the same coverslip as the 2026-11-09 drag runs. Asked which Z it is, the person said it is the stand Z. This is a stand focus-drive position at which the middle of a stuck bead was in focus. It is not the height of anything above the glass.
+
+Identifiers: none
+
+How it is known: recalled or assumed; the person's recollection (E5 · operator_recall:kyuhwan_20261109_stuck_beads_z).
+
+Conditions, verbatim:
+
+> THE PERSON'S WORDS, committed verbatim in docs/ideas/20261109-scope.md: 'I saw beads stuck on the glass.' (I-20261109-scope-03); '2957.5'; 'right- bead middle' and 'right' to the two questions, bead middle versus glass surface and same coverslip (-04); '2957.5 um' (-05); "it's the stand Z" (-06, commit 01ebb1af). THREE READINGS ARE NOT THE PERSON'S AND THE ENTRY DOES NOT HIDE THEM: that 'right- bead middle' means the stuck beads were in focus at their middle is the intake seat's reading of a one-line answer; that 'the stand Z' means the microscope stand's focus drive and not the piezo stage is the microscope manager's reading, flagged as its own at 01ebb1af; and that the Z was read off the display then and not recalled is nobody's statement, which is why this is E5 and not E3 (the record does not say; a reading taken with a recorded event would supersede it). WHAT IT IS GOOD FOR: the one position in the 2026-11-09 records tied to the glass by something other than the wall-formula fit. WHAT IT IS NOT: a height. Turning it into one needs the stuck bead's size (unmeasured, about 5 um assumed), the focal shift between oil and water (the bench session put it near 10 percent of the Z difference, a statement with no file behind it), and the assumption that a stuck bead and a trapped bead sit alike; none is settled, see the gap stand_z_to_glass_height_2957_5. The microscope seat's comparison of this with the fit's glass near Z 2955.5 is that seat's arithmetic, not a finding, and is not entered as agreement. The Z is a controller reading: nothing says the stand's reading was calibrated against the glass. Slot: the glass reference for a wall-effect question (microscope task 105). Delivered as item stuck_beads_in_focus_at_z_2957_5_same_coverslip of microscope_agent/findings/microscope-scope-20261105-3-20261109.json at b6b22a73 (task 066); this seat read the cited lines at 01ebb1af.
+
 ## Disputed and withdrawn
 
 None.
@@ -436,4 +448,4 @@ None.
 
 ---
 
-Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.
+Generated from the knowledge store at kbv-31456a00fae4. Do not edit by hand: correct the store and regenerate.

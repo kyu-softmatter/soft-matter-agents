@@ -1575,6 +1575,12 @@
    "type": "about"
   },
   {
+   "from": "entry:piezo_x_ramp_is_a_staircase_of_position_targets_read_back",
+   "stated_by": "piezo_x_ramp_is_a_staircase_of_position_targets_read_back",
+   "to": "page:device_piezo_stage",
+   "type": "about"
+  },
+  {
    "from": "entry:pixel_size_100x_zoom_1_5x",
    "stated_by": "pixel_size_100x_zoom_1_5x",
    "to": "page:device_nosepiece",
@@ -2058,6 +2064,12 @@
    "from": "entry:stopped_disk_frame_looks_bright",
    "stated_by": "stopped_disk_frame_looks_bright",
    "to": "page:device_csuw1_disk_speed",
+   "type": "about"
+  },
+  {
+   "from": "entry:stuck_beads_in_focus_at_stand_z_2957_5_um",
+   "stated_by": "stuck_beads_in_focus_at_stand_z_2957_5_um",
+   "to": "page:device_stand_ti2e",
    "type": "about"
   },
   {
@@ -2937,8 +2949,8 @@
    "type": "supports"
   }
  ],
- "footer": "Generated from the knowledge store at kbv-d027f44dadc0. Do not edit by hand: correct the store and regenerate.",
- "kb_version": "kbv-d027f44dadc0",
+ "footer": "Generated from the knowledge store at kbv-31456a00fae4. Do not edit by hand: correct the store and regenerate.",
+ "kb_version": "kbv-31456a00fae4",
  "nodes": [
   {
    "grade": "E3",
@@ -4488,6 +4500,13 @@
    "status": "current"
   },
   {
+   "grade": "E3",
+   "id": "entry:piezo_x_ramp_is_a_staircase_of_position_targets_read_back",
+   "kind": "entry",
+   "source": "prior_run:automeasure@d3614b1",
+   "status": "current"
+  },
+  {
    "grade": "E2",
    "id": "entry:pixel_size_100x_zoom_1_5x",
    "kind": "entry",
@@ -4849,6 +4868,13 @@
    "id": "entry:stopped_disk_frame_looks_bright",
    "kind": "entry",
    "source": "prior_run:agentic-microscope@fbedef0/kb/decisions/2026-09-02-lunf-first-light",
+   "status": "current"
+  },
+  {
+   "grade": "E5",
+   "id": "entry:stuck_beads_in_focus_at_stand_z_2957_5_um",
+   "kind": "entry",
+   "source": "operator_recall:kyuhwan_20261109_stuck_beads_z",
    "status": "current"
   },
   {
@@ -5733,7 +5759,7 @@
    "coverage": {
     "E1": 9,
     "E2": 0,
-    "E3": 15,
+    "E3": 16,
     "E4": 0,
     "E5": 1
    },
@@ -5748,7 +5774,7 @@
     "E2": 0,
     "E3": 13,
     "E4": 0,
-    "E5": 0
+    "E5": 1
    },
    "disputed": 0,
    "id": "page:device_stand_ti2e",
