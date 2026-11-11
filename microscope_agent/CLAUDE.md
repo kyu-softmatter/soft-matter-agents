@@ -247,22 +247,26 @@ Two boundaries inside that are not negotiable:
   with a `from` provenance field. The model interprets what the plan did not
   foresee, and writes the deviation report, after the abort has happened.
 
-**When the question's observable has a row in `contracts/calculations.json`,
-S3 runs the row and nothing else** (plan.md §4.5.2.2, from 2026-11-11 on
-branch `calculator-skills`).
-- **Asking.** Ask the librarian only for what the row's required calculators
-  need.
-- **Running.** Run each one through its skill,
-  `.claude/skills/calc-<id>/SKILL.md`, which names the code that computes it.
-- **Recording.** Write every other inequality the axis owns as abstained,
-  kind `not_requested`, with the row's reason.
-- **Never by hand.** Compute no bound in conversation. A calculator still
-  `planned` abstains, kind `no_input`, until its module exists.
-- **Never edit a skill.** The skills are generated from the table, and the
-  table is the design's.
+**Bounds and computed values come from the dispatcher, never from you**
+(plan.md §4.5.2.2, from 2026-11-11 on branch `calculator-runner`).
+- **Run the dispatcher.** In S3, for any question, use the `run-skills`
+  skill. It runs the dispatcher, which derives the question's floor from
+  `contracts/skills.json`, runs every skill in it and writes the run sheet.
+- **The floor is a floor.** You may ask the dispatcher to add a landed skill,
+  with your reason. You drop nothing, and an exclusion counts only once the
+  person has confirmed it.
+- **A refused run tells you what is needed.** Its `requires` names each
+  missing input and how it is obtained. Do not supply the input yourself.
+- **A planned skill is a missing bound.** `planned_missing` lists bounds that
+  are designed and not built. Say so in the plan.
+- **Never by hand.** Compute no bound in conversation, run no skill's script
+  yourself, and type no value into a sheet or a card.
+- **Never edit the generated files.** `.claude/skill-docs/` and
+  `.claude/skills/run-skills/` are rendered from the table, and the table is
+  the design's.
 
-The pilot row is `trapped_particle_drag_coefficient` on `transmitted`, and
-task 105 builds what it needs.
+The pilot question is `trapped_particle_drag_coefficient` on `transmitted`,
+and task 105 builds what it needs.
 
 ## What is unbuilt, and in what order
 

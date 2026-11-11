@@ -215,7 +215,7 @@
         "simulation"
       ],
       "comparable": false,
-      "note": "Registered 2026-11-11 on branch calculator-skills for the drag-against-height calibration the person asked for on 2026-11-04 (docs/drafts/literature_trap_drag_vs_height_above_a_wall.md), and the first observable with a row in contracts/calculations.json. NOT `trapped_particle_drag_offset`: that one is the mean displacement under steady flow, which needs a stage moving at a controlled velocity, and gives a drag only with the stiffness known from elsewhere. This one is read from the passive spectrum of the same kind of trace as `trapped_position_distribution`, and needs no stage motion at all."
+      "note": "Registered 2026-11-11 on branch calculator-skills for the drag-against-height calibration the person asked for on 2026-11-04 (docs/drafts/literature_trap_drag_vs_height_above_a_wall.md), and the first observable contracts/skills.json covers. NOT `trapped_particle_drag_offset`: that one is the mean displacement under steady flow, which needs a stage moving at a controlled velocity, and gives a drag only with the stiffness known from elsewhere. This one is read from the passive spectrum of the same kind of trace as `trapped_position_distribution`, and needs no stage motion at all."
     },
     {
       "id": "well_occupancy",

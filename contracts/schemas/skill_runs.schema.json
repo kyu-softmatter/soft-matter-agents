@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skill_runs.schema.json",
+  "title": "Skill run sheet",
+  "description": "What the dispatcher writes for one question revision and one configuration (plan.md 4.5.2.2): every skill and legacy inequality it considered, who asked for each, what happened, and each value with the skill that computed it. The shapes follow the meta-agent repository's skill_run record and its sheet's skills_considered. A model never writes this file and never types a value into it.",
+  "type": "object",
+  "required": ["artifact", "schema_version", "question", "revision", "config", "agent", "table_sha256", "skills_considered", "planned_missing", "runs"],
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {"const": "skill_runs"},
+    "schema_version": {"type": "string"},
+    "question": {"type": "string", "pattern": "^(mic|sim)-[0-9]{8}-[0-9]{3}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "config": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+    "agent": {"enum": ["microscope_agent", "simulation_agent"]},
+    "table_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "of contracts/skills.json as read, so the floor this sheet claims can be derived again from the same table."},
+    "skills_considered": {
+      "type": "array",
+      "description": "Every landed skill and every legacy inequality of this agent, each once. Two separate facts for each: who asked, and what happened. A silent omission fails.",
+      "items": {
+        "type": "object",
+        "required": ["ref", "requested_by", "verdict"],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {"type": "string", "pattern": "^([a-z][a-z0-9_]*@v[0-9]+|legacy:[a-z][a-z0-9_]*)$"},
+          "requested_by": {"enum": ["table", "model", "nobody"], "description": "table: in the floor. model: added by the model, with its reason. nobody: not in the floor and not added."},
+          "reason": {"type": "string", "minLength": 20, "description": "The model's reason for adding it. Required when requested_by is model."},
+          "verdict": {"enum": ["used", "not_applied"]},
+          "why": {"type": "string", "minLength": 20, "description": "Required when not_applied: the row's confirmed exclusion, or the table's default reason."}
+        },
+        "allOf": [
+          {"if": {"properties": {"requested_by": {"const": "model"}}, "required": ["requested_by"]}, "then": {"required": ["reason"]}},
+          {"if": {"properties": {"verdict": {"const": "not_applied"}}, "required": ["verdict"]}, "then": {"required": ["why"]}},
+          {"if": {"properties": {"requested_by": {"const": "nobody"}}, "required": ["requested_by"]}, "then": {"properties": {"verdict": {"const": "not_applied"}}}},
+          {"if": {"properties": {"requested_by": {"const": "table"}}, "required": ["requested_by"]}, "then": {"properties": {"verdict": {"const": "used"}}}}
+        ]
+      }
+    },
+    "planned_missing": {
+      "type": "array",
+      "description": "Drafts in the table's planned[] whose applies_to matches this question. No run can use a draft, so each one is a bound this plan does not have yet. Listed so that a missing bound is never read as no constraint. Empty when there is none.",
+      "items": {
+        "type": "object",
+        "required": ["ref", "parameter", "side"],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {"type": "string", "pattern": "^[a-z][a-z0-9_]*@v[0-9]+$"},
+          "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "side": {"enum": ["min", "max", "value"]}
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "description": "One record per skill that was used. A legacy inequality has no record here: its axis module computes it and its outcome is in the axis card.",
+      "items": {
+        "type": "object",
+        "required": ["ref", "verdict", "inputs", "outputs"],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {"type": "string", "pattern": "^[a-z][a-z0-9_]*@v[0-9]+$"},
+          "verdict": {"enum": ["ran", "refused", "failed"], "description": "refused: before any code ran, for a missing or unknown input or a held skill. failed: the code ran and its output did not match the manifest."},
+          "why": {"type": "string", "minLength": 10},
+          "inputs": {"type": "object", "description": "each manifest input mapped to where its value came from: kb:<entry_id>, goal:<design_input>, or <skill>@v<N>:<output>", "additionalProperties": {"type": "string"}},
+          "requires": {
+            "type": "array",
+            "description": "For a refused run: each missing input and how the manifest says it is obtained. Derived, so a planner reads a field and never prose.",
+            "items": {
+              "type": "object",
+              "required": ["input", "by"],
+              "additionalProperties": false,
+              "properties": {"input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, "by": {"enum": ["source", "measurement", "person", "skill"]}}
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "side", "value", "unit", "source", "grade", "basis"],
+              "additionalProperties": false,
+              "properties": {
+                "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "side": {"enum": ["min", "max", "value"]},
+                "value": {"type": "number"},
+                "unit": {"type": "string"},
+                "source": {"type": "string", "pattern": "^computed:[a-z][a-z0-9_]*@v[0-9]+$"},
+                "grade": {"type": "string", "pattern": "^E[1-5]$", "description": "the worse of E4 and the worst input's grade"},
+                "value_kind": {"enum": ["computed", "correlation"]},
+                "uncertainty": {"type": "number"},
+                "basis": {
+                  "type": "object",
+                  "required": ["skill", "inputs"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "skill": {"type": "string", "pattern": "^[a-z][a-z0-9_]*@v[0-9]+$"},
+                    "inputs": {"type": "object", "additionalProperties": {"type": "string"}}
+                  }
+                }
+              }
+            }
+          },
+          "outputs_absent": {"type": "array", "items": {"type": "string"}}
+        },
+        "allOf": [
+          {"if": {"properties": {"verdict": {"enum": ["refused", "failed"]}}, "required": ["verdict"]}, "then": {"required": ["why"], "properties": {"outputs": {"maxItems": 0}}}},
+          {"if": {"properties": {"verdict": {"const": "ran"}}, "required": ["verdict"]}, "then": {"properties": {"outputs": {"minItems": 1}}}}
+        ]
+      }
+    }
+  }
+}

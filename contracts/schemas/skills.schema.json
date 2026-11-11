@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skills.schema.json",
+  "title": "Skill table",
+  "description": "contracts/skills.json (plan.md 4.5.2.2). A skill is code that does one thing for one reason, run only through a dispatcher. A manifest here uses the field names of the meta-agent repository's contracts/schemas/skill.schema.json (read at 780d424), so an entry with its two files maps onto a meta skill folder <id>@v<N>/{skill.json, scripts/, cases.json}. Three differences, all stated in the fields below: applies_to names observables and configurations, which are what this repository registers; entry.script and cases are repository paths under <agent>/src/skills/, because depth inside an agent is limited to 3 and a folder per version does not fit; and source carries a pin to the librarian's entry. Each difference is mapped when a bundle is built.",
+  "type": "object",
+  "required": ["artifact", "schema_version", "default_not_applied_reason", "skills", "planned", "legacy_inequalities", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {"const": "skills"},
+    "schema_version": {"type": "string"},
+    "note": {"type": "string"},
+    "default_not_applied_reason": {"type": "string", "minLength": 20, "description": "The reason a run sheet writes for a skill that nothing applies to the question. One sentence for all of them, so a sheet never carries an invented one."},
+    "skills": {
+      "type": "array",
+      "description": "Landed skills only: the code exists, and at least one case in its cases file runs and passes. A landed (id, version) and its two files are never edited; a change is the next version.",
+      "items": {"$ref": "#/$defs/manifest"}
+    },
+    "planned": {
+      "type": "array",
+      "description": "Drafts in the manifest shape whose code and running case have not landed. A draft is in no floor and no run can use it. It joins skills[] in the commit that lands its code and case. `held` is not used for this: held means one thing, a device-writing skill the person has not released.",
+      "items": {"$ref": "#/$defs/manifest"}
+    },
+    "legacy_inequalities": {
+      "type": "array",
+      "description": "What the axis modules still compute themselves. Not skills: several return a window, a discrete set or a requirement on the plan, and none has a module or cases of its own. Each is converted in a later card into bound skills with one side each; a window becomes two.",
+      "items": {"$ref": "#/$defs/legacy"}
+    },
+    "rows": {
+      "type": "array",
+      "description": "Per observable and configuration, the legacy inequalities a question leaves out. Separate from the manifests, so a row change never touches a landed manifest.",
+      "items": {"$ref": "#/$defs/row"}
+    }
+  },
+  "$defs": {
+    "manifest": {
+      "type": "object",
+      "required": ["schema_version", "id", "version", "kind", "side_effect", "status", "summary", "applies_to", "inputs", "outputs", "entry", "source", "cases"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "0.1"},
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "version": {"type": "integer", "minimum": 1},
+        "kind": {"enum": ["bound", "data_analysis", "hardware_connection", "hardware_state", "hardware_boot", "hardware_control", "hardware_calibration", "hardware_range"], "description": "bound: one maximum, minimum or value of one parameter from one reason. data_analysis: reads recorded data and returns a result. hardware_*: a procedure over tools; it calls tools by name and never contains a device backend, which stays code behind the orchestrator."},
+        "side_effect": {"enum": ["none", "read_device", "write_device"]},
+        "status": {"enum": ["usable", "held"], "description": "held is for a write_device skill the person has not released, and for nothing else."},
+        "summary": {"type": "string", "minLength": 20},
+        "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "side": {"enum": ["min", "max", "value"]},
+        "value_kind": {"enum": ["computed", "correlation"]},
+        "applies_to": {
+          "type": "object",
+          "required": ["parameters", "observables", "configurations"],
+          "additionalProperties": false,
+          "description": "DIFFERS from the meta schema, which has parameters, methods, instruments and engines. An observable is a quantity and not a technique, and a configuration is a mode of an instrument and not a device, so they are named as what they are and mapped when a bundle is built.",
+          "properties": {
+            "parameters": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+            "observables": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, "description": "ids in contracts/observables.json"},
+            "configurations": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z0-9_]+$"}, "description": "configuration ids in contracts/capabilities/"}
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "unit", "meaning", "obtained_by"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "unit": {"type": "string"},
+              "meaning": {"type": "string", "minLength": 10},
+              "obtained_by": {"enum": ["source", "measurement", "person", "skill"], "description": "ADDED to the meta shape. How this input is obtained: from a store entry, from a measurement on this instrument, from the person or the goal, or from another skill's output. When the input is missing the run is refused before any code runs, and the sheet's requirement is derived from this field, never written as prose."},
+              "judgement": {"type": "boolean", "description": "ADDED. True when the value is a choice and not a fact: a target, a margin, a multiple. Its row must carry a source that says so, and a judgement is never a literal in the code."}
+            }
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "unit", "meaning"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "unit": {"type": "string"},
+              "meaning": {"type": "string", "minLength": 10}
+            }
+          }
+        },
+        "entry": {
+          "type": "object",
+          "required": ["script", "function"],
+          "additionalProperties": false,
+          "properties": {
+            "script": {"type": "string", "pattern": "^(microscope|simulation)_agent/src/skills/[a-z][a-z0-9_]*_v[0-9]+\\.py$", "description": "DIFFERS from the meta schema's scripts/<name>.py: a repository path, flat, with the version in the file name."},
+            "function": {"type": "string", "pattern": "^[a-z_][a-z0-9_]*$"}
+          }
+        },
+        "source": {
+          "type": "object",
+          "required": ["citation"],
+          "additionalProperties": false,
+          "properties": {
+            "citation": {"type": "string", "minLength": 10},
+            "locus": {"type": "string"},
+            "entry": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]*$", "description": "ADDED: the librarian's entry that is the source record. Named before the entry exists, as a request to the librarian."},
+            "revision": {"type": ["integer", "null"]},
+            "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$", "description": "ADDED: of the entry file as committed, pinned when the skill lands. The commit gate compares it, so a changed entry is caught at commit and never refuses a run."}
+          }
+        },
+        "cases": {"type": "string", "pattern": "^(microscope|simulation)_agent/src/skills/[a-z][a-z0-9_]*_v[0-9]+\\.cases\\.json$", "description": "DIFFERS from the meta schema's constant cases.json: a repository path beside the script. The file is a list of {name, inputs, expect, tolerance {rel}, worked, not_run}, worked from the cited source."},
+        "validity": {"type": "string"},
+        "note": {"type": "string"},
+        "release": {
+          "type": "object",
+          "required": ["persons_words", "ideas"],
+          "additionalProperties": false,
+          "properties": {
+            "persons_words": {"type": "string", "minLength": 3},
+            "ideas": {"type": "string", "description": "the docs/ideas id of the line holding those words"}
+          }
+        },
+        "calls_tools": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+        "uses_skills": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*@v[0-9]+$"}}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "bound"}}, "required": ["kind"]}, "then": {"required": ["parameter", "side"]}},
+        {"if": {"properties": {"side_effect": {"const": "none"}}, "required": ["side_effect"]}, "then": {"properties": {"calls_tools": {"maxItems": 0}}}, "else": {"required": ["calls_tools"], "properties": {"calls_tools": {"minItems": 1}}}},
+        {"if": {"properties": {"status": {"const": "held"}}, "required": ["status"]}, "then": {"properties": {"side_effect": {"const": "write_device"}}}}
+      ]
+    },
+    "legacy": {
+      "type": "object",
+      "required": ["id", "agent", "axis", "parameter", "statement", "needs", "module"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "agent": {"enum": ["microscope_agent", "simulation_agent"]},
+        "axis": {"enum": ["a1", "a2", "a3", "a4", "a5", "a6", "a7"]},
+        "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "statement": {"type": "string", "minLength": 20},
+        "needs": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+        "module": {"type": "string", "pattern": "^(microscope|simulation)_agent/src/[A-Za-z0-9_]+\\.py$"}
+      }
+    },
+    "row": {
+      "type": "object",
+      "required": ["observable", "configurations", "excluded"],
+      "additionalProperties": false,
+      "properties": {
+        "observable": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "configurations": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z0-9_]+$"}},
+        "requires_legacy": {
+          "type": "array",
+          "description": "Why a legacy inequality matters to this question, as a record. It adds nothing to the floor: every legacy inequality runs unless a confirmed exclusion removes it.",
+          "items": {
+            "type": "object",
+            "required": ["inequality", "why"],
+            "additionalProperties": false,
+            "properties": {"inequality": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, "why": {"type": "string", "minLength": 20}}
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "description": "Legacy inequalities this question leaves out. Each is a judgement, so each takes effect only once the person has confirmed it; until then the inequality stays in the floor and runs.",
+          "items": {
+            "type": "object",
+            "required": ["inequality", "why", "confirmed"],
+            "additionalProperties": false,
+            "properties": {
+              "inequality": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "why": {"type": "string", "minLength": 20},
+              "confirmed": {
+                "description": "null until the person confirms. Then the person's words and the docs/ideas id of the line that holds them: a quotation, never a flag.",
+                "oneOf": [
+                  {"type": "null"},
+                  {"type": "object", "required": ["persons_words", "ideas"], "additionalProperties": false,
+                   "properties": {"persons_words": {"type": "string", "minLength": 3}, "ideas": {"type": "string", "minLength": 3}}}
+                ]
+              }
+            }
+          }
+        },
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

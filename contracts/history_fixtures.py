@@ -1058,35 +1058,130 @@ def fixture_01_a_lint_report_carrying_an_entry_value(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
-def fixture_01_a_calculator_skill_four_folders_deep(repo: Path) -> str:
-    """The required-calculation table as committed (plan.md 4.5.2.2), and one
-    generated skill where Claude Code reads it: `<agent>/.claude/skills/<name>/SKILL.md`.
+def _skills_tool(repo: Path):
+    """The skill table's tool, loaded from the built repository's own copy."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("_fixture_skills_tool", repo / "contracts" / "tools" / "skills.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
-    Two rows read this one repository. Check 1 judges the real table that base
-    copies, so the table is schema-checked in a built repository from the
-    commit that adds it. Check 13 sees a file four folders inside an agent,
-    one deeper than the repository's own limit, and passes it because the
-    layout is the tool's. Delete the `.claude` exemption in check 13 and its
-    row stops answering, which is how it was watched on 2026-11-11.
+
+def _render_skill_pages(repo: Path) -> None:
+    """Write what the table renders for the microscope: its skill pages and its one dispatcher skill."""
+    tool = _skills_tool(repo)
+    for rel, text in tool.generated(tool.load(repo)).items():
+        if rel.startswith("microscope_agent/"):
+            write(repo, rel, text)
+
+
+def fixture_99_the_skill_table_and_its_generated_pages(repo: Path) -> str:
+    """The skill table as committed (plan.md 4.5.2.2), with the pages and the
+    one Claude Code skill it renders for the microscope.
+
+    Three rows read this one repository. Check 1 judges the real table base
+    copies. Check 13 sees `.claude/skills/run-skills/SKILL.md`, four folders
+    inside an agent and one deeper than this repository's own limit, and
+    passes it because the layout is Claude Code's. Check 99 finds the pages
+    equal to what the table renders. Each was watched on 2026-11-11: without
+    the `.claude` exemption the check 13 row stops answering; without the
+    ARTIFACT_SCHEMA line the check 1 row does; and with check 99 taken out of
+    CHECKS all four of its rows do.
     """
     start = base(repo)
-    write(repo, "microscope_agent/.claude/skills/calc-wall-correction-validity-floor/SKILL.md",
-          "---\nname: calc-wall-correction-validity-floor\ndescription: \"a fixture's skill\"\n---\n")
-    commit(repo, "one calculator skill", "microscope_agent/.claude", seat="design")
+    _render_skill_pages(repo)
+    commit(repo, "the generated skill pages", "microscope_agent/.claude", seat="design")
     return f"{start}..HEAD"
 
 
-def fixture_01_a_calculator_table_naming_no_code(repo: Path) -> str:
-    """A calculator declared with no module behind it. The table is the
-    record of which code computes a bound, so a calculator without `code`
-    would leave a skill telling a session to run nothing, and a model to fill
-    the gap by hand. Only the schema refuses it."""
+def fixture_01_a_skill_manifest_naming_no_code(repo: Path) -> str:
+    """A manifest with no `entry`: a skill declared with no code behind it.
+    The table is the record of which code computes a bound, so this would
+    leave a session told to run nothing, and a model to fill the gap by hand.
+    Only the schema refuses it."""
     start = base(repo)
-    path = repo / "contracts" / "calculations.json"
+    path = repo / "contracts" / "skills.json"
     table = json.loads(path.read_text(encoding="utf-8"))
-    del table["calculators"][0]["code"]
-    write(repo, "contracts/calculations.json", table)
-    commit(repo, "a calculator with no code", "contracts", seat="design")
+    del table["planned"][0]["entry"]
+    write(repo, "contracts/skills.json", table)
+    commit(repo, "a manifest with no entry", "contracts", seat="design")
+    return f"{start}..HEAD"
+
+
+def fixture_99_a_skill_page_edited_by_hand(repo: Path) -> str:
+    """A generated page that no longer says what the table says. A session
+    reads the page, so an edited page is a second, unreviewed table."""
+    start = base(repo)
+    _render_skill_pages(repo)
+    page = "microscope_agent/.claude/skill-docs/camera_blur_ceiling_v1.md"
+    write(repo, page, (repo / page).read_text(encoding="utf-8") + "\nCompute it by hand when the dispatcher is slow.\n")
+    commit(repo, "the pages, one edited by hand", "microscope_agent/.claude", seat="design")
+    return f"{start}..HEAD"
+
+
+def fixture_99_a_pinned_source_that_changed(repo: Path) -> str:
+    """A skill pinned to a store entry whose bytes then changed. The skill's
+    code implements what the entry said when it was pinned, so a changed
+    entry must be caught at commit -- it is, here, and never by refusing a run."""
+    start = base(repo)
+    path = repo / "contracts" / "skills.json"
+    table = json.loads(path.read_text(encoding="utf-8"))
+    entry = table["planned"][0]["source"]["entry"]
+    table["planned"][0]["source"]["sha256"] = "0" * 64
+    write(repo, "contracts/skills.json", table)
+    commit(repo, "a manifest pinned to an entry", "contracts", seat="design")
+    write(repo, f"librarian_agent/kb/entries/{entry}.json", {"entry_id": entry, "claim": "the formula, revised"})
+    commit(repo, "the entry, changed after the pin", "librarian_agent/kb", seat="librarian")
+    return f"{start}..HEAD"
+
+
+def fixture_99_a_skill_file_with_no_manifest(repo: Path) -> str:
+    """Code under src/skills/ that the table does not name. The dispatcher
+    runs only what the table declares, so an undeclared file is either dead
+    or run by hand, and neither is a skill."""
+    start = base(repo)
+    write(repo, "microscope_agent/src/skills/quick_estimate_v1.py", "def bound(inputs):\n    return {}\n")
+    commit(repo, "a skill file nobody declared", "microscope_agent/src", seat="microscope")
+    return f"{start}..HEAD"
+
+
+def _skill_runs(**over) -> dict:
+    """A run sheet as the dispatcher writes it: one skill the table required, which ran."""
+    ref = "drag_parallel_to_wall@v1"
+    body = {
+        "artifact": "skill_runs", "schema_version": "0.1", "question": "mic-20261111-001", "revision": 1,
+        "config": "transmitted", "agent": "microscope_agent", "table_sha256": "a" * 64,
+        "skills_considered": [{"ref": ref, "requested_by": "table", "verdict": "used"}],
+        "planned_missing": [],
+        "runs": [{"ref": ref, "verdict": "ran",
+                  "inputs": {"bead_radius": "kb:tracer_diameter_measured", "viscosity": "kb:water_viscosity_293k",
+                             "bead_centre_height": "bead_height_from_nominal_focus@v1:bead_centre_height"},
+                  "outputs": [{"name": "drag_coefficient", "side": "value", "value": 0.05, "unit": "pN*s/um",
+                               "source": f"computed:{ref}", "grade": "E4", "value_kind": "computed",
+                               "basis": {"skill": ref, "inputs": {"bead_radius": "kb:tracer_diameter_measured"}}}]}],
+    }
+    body.update(over)
+    return body
+
+
+def fixture_01_a_run_sheet_that_conforms(repo: Path) -> str:
+    """The dispatcher's run sheet, in the question's folder."""
+    start = base(repo)
+    write(repo, "microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json", _skill_runs())
+    commit(repo, "a run sheet", "microscope_agent/questions", seat="microscope")
+    return f"{start}..HEAD"
+
+
+def fixture_01_a_run_sheet_dropping_a_required_skill(repo: Path) -> str:
+    """A sheet that says the table asked for a skill and it was not applied.
+    The table is the floor: what it requires runs. Only the schema refuses it."""
+    start = base(repo)
+    sheet = _skill_runs(skills_considered=[{"ref": "drag_parallel_to_wall@v1", "requested_by": "table",
+                                            "verdict": "not_applied",
+                                            "why": "the model judged the wall too far away to matter here"}],
+                        runs=[])
+    write(repo, "microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json", sheet)
+    commit(repo, "a run sheet that drops a required skill", "microscope_agent/questions", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1865,13 +1960,24 @@ FIXTURES = [
     (1, "FAIL", "Additional properties are not allowed ('value' was unexpected) "
                 "[librarian_agent/queries/lint-20261103.json]",
      fixture_01_a_lint_report_carrying_an_entry_value),
-    # The required-calculation table (2026-11-11, plan.md 4.5.2.2), wired with
-    # its schema in one commit; and check 13's `.claude` exemption, which lets
-    # Claude Code's skill layout sit one folder deeper than the agent limit.
-    (1, "PASS", "conform to their schema", fixture_01_a_calculator_skill_four_folders_deep),
-    (13, "PASS", "files sit in declared paths", fixture_01_a_calculator_skill_four_folders_deep),
-    (1, "FAIL", "'code' is a required property [contracts/calculations.json]",
-     fixture_01_a_calculator_table_naming_no_code),
+    # The skill table and the dispatcher's run sheet (2026-11-11, plan.md
+    # 4.5.2.2), each wired with its schema in one commit; check 13's `.claude`
+    # exemption, which lets Claude Code's skill layout sit one folder deeper
+    # than the agent limit; and check 99, which holds the table to its files,
+    # its generated pages and its pinned sources.
+    (1, "PASS", "conform to their schema", fixture_99_the_skill_table_and_its_generated_pages),
+    (13, "PASS", "files sit in declared paths", fixture_99_the_skill_table_and_its_generated_pages),
+    (99, "PASS", "agree with their files, registries, generated pages and pinned entries",
+     fixture_99_the_skill_table_and_its_generated_pages),
+    (1, "FAIL", "'entry' is a required property [contracts/skills.json]",
+     fixture_01_a_skill_manifest_naming_no_code),
+    (99, "FAIL", "differs from what the table renders", fixture_99_a_skill_page_edited_by_hand),
+    (99, "FAIL", "the source changed after the skill landed", fixture_99_a_pinned_source_that_changed),
+    (99, "FAIL", "a file under src/skills/ that no manifest in the table names",
+     fixture_99_a_skill_file_with_no_manifest),
+    (1, "PASS", "conform to their schema", fixture_01_a_run_sheet_that_conforms),
+    (1, "FAIL", "'used' was expected [microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json]",
+     fixture_01_a_run_sheet_dropping_a_required_skill),
     # HP-007: an example is judged at its own instant, a real permit by the
     # clock. Matched on the path as well, so the example files every built
     # repository carries cannot satisfy either row.

@@ -821,69 +821,130 @@ The four above block things **between** siblings. This subsection governs the sp
 
 **Refuse on read-back.** A verdict with no supporting numbers · an interval for an inequality not on its own list (the axis trespassed on another's) · silence on something that is on the list · an abstention with no reason. **One refusal and the round's output is not used** — a refused output is not an absent output, and synthesising without it **records a review that did not happen.**
 
-##### 4.5.2.2 Calculators as skills, chosen by a table (pilot, branch `calculator-skills`, 2026-11-11)
+##### 4.5.2.2 Skills run by one dispatcher, with the table as the floor (branch `calculator-runner`, 2026-11-11)
 
-**What the person asked.**
-- **The question, 2026-11-10.** "지금 이시스템에 있는 gate에서 숫자를 산정하는 코드들을 각각 다 스킬로 바꾸고 필요한 것들만 값을 찾아보는건 어때?" (what about turning each piece of code in this system's gates that computes a number into a skill, and looking up only the values that are needed?)
-- **The answer, 2026-11-11.** Shown the three conditions below, the person said: "이렇게 적용, 별도의 브랜치를 만들어서 작업하면 좋겠는데" (apply it this way, and I would like the work on a separate branch).
+**What the person said, in order.**
+- **2026-11-10, the question.** "지금 이시스템에 있는 gate에서 숫자를 산정하는 코드들을 각각 다 스킬로 바꾸고 필요한 것들만 값을 찾아보는건 어때?" (what about turning each piece of code in this system's gates that computes a number into a skill, and looking up only the values that are needed?)
+- **2026-11-11, three conditions.** The person applied them on a separate branch ("이렇게 적용, 별도의 브랜치를 만들어서 작업하면 좋겠는데"):
+  1. the calculation stays code;
+  2. a table, not a model, says what is needed;
+  3. the run-time gates stay code.
 
-**Why it was worth doing, read off the cards on 2026-11-10.** This is an approximate count over every axis card in the tree.
-- **Microscope side.** 69 axis cards were written for four questions, and 41 of them abstained. Of the per-inequality outcomes, 9 returned an interval and 189 abstained for want of an input. 201 gaps were recorded.
-- **Simulation side.** Most of its bounds return.
-- **The cause.** Every axis asks for every input of every inequality it owns, whether or not the question needs that inequality.
+  The first attempt is branch `calculator-skills`, `83561872`.
+- **2026-11-11, the restructure.** Shown the meta-agent design session's recommendations, the person said "다른 브랜치로 이동후 재구성 시작" (move to another branch and start the restructure).
+- **2026-11-11, who chooses.** Asked who decides which calculations run, the person chose "표는 최소, 모델은 추가만" (the table is the floor, and the model only adds).
+- **2026-11-11, how to work.** "필요한 구성과 질문이 있으면 메타에이전트한테 물어보면서 작업해" (ask the meta-agent session about structure and questions as you work).
+- **2026-11-11, the scope.** "현재 각 코드에 있는 파이썬 스크립트들을 각 목적에 맞는 스킬들로 여러개로 나누어 재구성해도 될듯" (the Python scripts now in each agent's code could be split into several skills by purpose and restructured).
 
-**The three conditions.**
-1. **The calculation stays code.**
-   - A calculator is a module that computes one inequality's bound (§4.5.2.1).
-   - Its skill says four things: when it runs, which inputs it takes from where, which store entries hold its formula, and how its result is written into the axis card.
-   - A skill never says how to compute. A number a model works out by following text is an E6 number, and it cannot enter a card (§5.3).
-2. **A table, not a model, says what is needed.**
-   - `contracts/calculations.json` declares each calculator once.
-   - Its rows say, for each observable and configuration, which calculators a question must run (`required`) and which it leaves out on purpose (`not_required`, with the reason).
-   - An axis whose question has a row still writes every inequality it owns, as before:
-     - a required inequality is computed, or abstains with its kind;
-     - any other is written as abstained, kind `not_requested`, with the row's reason or the table's `default_not_requested_reason`.
-   - Silence is still refused (§4.5.2.1).
-   - **The librarian is asked only for the `needs` of required calculators.** That is the saving the person asked for.
-3. **The run-time gates do not become skills.** These stay code that runs every time (§2.1, §6, §15):
-   - the check of the person's approval and its hash;
-   - the safety policy;
-   - the Micro-Manager configuration gate (`mm_config_gate.py`);
-   - the run lock;
-   - the orchestrator's single entry point;
-   - the commit gate and the validator.
+**Where the shapes come from.**
+- **The source.** The meta-agent repository's design session, reading that repository at `780d424`, answered three sets of questions by message on 2026-11-11.
+- **Its standing.** Its answers are recommendations, and every decision stayed the person's.
+- **Why its shapes are used.** On 2026-11-08 the person named this system as one example of the shape that agents built by meta-agent take. A calculator layer that maps onto a meta bundle can be carried to a tool that is not a microscope.
 
-   Only the planning-stage calculators of S3 are in scope.
+**Why it was worth doing, read off the cards on 2026-11-10.** The microscope's 69 axis cards hold 9 returned intervals against 189 bounds abstained for want of an input, with 201 recorded gaps. Every axis asks for every input of every inequality it owns.
 
-**What exists, and where.**
-- **The table.** `contracts/calculations.json` and its schema, artifact `calculations`, judged by check 1.
-- **The skill generator.** `contracts/tools/calc_skills.py` renders one `SKILL.md` per calculator into `<agent>/.claude/skills/calc-<id>/`.
-  - `--check` reports a skill that differs from the table, or one no calculator declares.
-  - The skills are generated, never written by hand (P3).
-  - An agent's `.claude/` is design's, so an agent session cannot edit the skill it follows.
-- **The calculator modules.** They live in `<agent>/src/calculators/`.
-  - The planned ones do not exist yet.
-  - An existing inequality stays computed inside its axis module, and its table entry says so (`status: built`).
-- **Check 13's depth limit.** It no longer applies inside `.claude/`, because Claude Code fixes the skill layout, as an imported subtree keeps its own.
+**The rules.**
+1. **A skill is code that does one thing for one reason.**
+   - A `bound` skill computes one maximum, one minimum or one value of one parameter. A window is two skills.
+   - A `data_analysis` skill reads recorded data and returns a result.
+   - A `hardware_*` skill is a procedure that calls tools by name.
+2. **A skill runs only through the dispatcher.**
+   - The dispatcher checks the inputs against the manifest, runs the code, checks the outputs, and writes the run sheet.
+   - A session asks the dispatcher. It never runs a skill's script and never types a value.
+   - A value a model works out is E6 and cannot enter a card (§5.3).
+3. **The table is the floor.**
+   - The floor for a question is every landed skill whose `applies_to` matches its observable and configuration, plus every legacy inequality of that agent that no confirmed exclusion removes.
+   - All of the floor runs.
+   - The model may add a landed skill with a reason. The sheet records who asked, and why.
+   - The model drops nothing.
+4. **An exclusion is a judgement, so it is the person's.**
+   - A row may propose leaving a legacy inequality out, with its reason.
+   - The exclusion takes effect only when it carries the person's confirming words and the `docs/ideas/` id of the line that holds them.
+   - Until then the inequality stays in the floor and runs.
+5. **A missing input refuses the run before any code runs.**
+   - Each manifest input says how it is obtained: from a source, by a measurement, from the person, or from another skill.
+   - The sheet's requirement is derived from that field. A planner reads a field, never prose, to learn that something must be measured first.
+6. **A skill is self-contained and proven against its source.**
+   - Its code is one pure function with no I/O.
+   - It lands only with worked cases from the cited source, and at least one of them runs.
+   - A judgement (a target, a margin, a multiple) is an input with its own source. It is never a literal in the code.
+   - A landed `(id, version)` and its two files are never edited. A change is the next version.
+   - The librarian's entry is the source record. The manifest pins it by hash, and the commit gate compares the pin.
+   - A changed entry is therefore caught at commit, and never by refusing a run.
+7. **The run-time gates stay code, and so do the device backends.**
+   - The gates are untouched (§2.1, §6, §15): the check of the person's approval and its hash, the safety policy, the Micro-Manager configuration gate, the run lock, the orchestrator's single entry point, the commit gate and the validator.
+   - A device backend is a tool behind the orchestrator. It is never a skill.
+   - A hardware skill reaches a device only by calling a tool through the orchestrator's path.
 
-**The pilot.** One row, for one question.
-- **The question.** The drag-against-height calibration: the observable `trapped_particle_drag_coefficient`, registered for it, on `transmitted` with the trapping composition. The literature is in `docs/drafts/literature_trap_drag_vs_height_above_a_wall.md`.
-- **What the row names.** All 37 inequalities the microscope's seven axes own, plus five new calculators: 24 required and 18 not required, each with its reason.
-- **The five new calculators.**
-  - A6: `wall_correction_validity_floor` and `focal_shift_measured_first`;
-  - A2: `wall_effect_resolvable_ceiling` and `drag_record_length_floor`;
-  - A1: `camera_blur_ceiling`.
-- **Their formulas.** They are requested from the librarian as entries. Until those entries exist, the bounds abstain, kind `no_input`.
+**What exists on this branch.**
+- **`contracts/skills.json`**, artifact `skills`, with its schema. It has four lists:
+  - `skills[]`: landed manifests;
+  - `planned[]`: drafts whose code and running case have not landed;
+  - `legacy_inequalities[]`: what the axis modules still compute themselves;
+  - `rows[]`: the exclusions, per observable and configuration.
+- **Manifest field names.** They are the meta repository's `skill.schema.json`. There are three stated differences, each mapped when a bundle is built:
+  - `applies_to` names observables and configurations;
+  - the script and the cases are repository paths, `<agent>/src/skills/<id>_v<N>.py` and `<id>_v<N>.cases.json`;
+  - `source` carries the pin.
+- **`contracts/tools/skills.py`.** It does three jobs:
+  - `floor` derives a question's floor;
+  - it renders one page per skill into `<agent>/.claude/skill-docs/`, and one Claude Code skill per agent, `<agent>/.claude/skills/run-skills/SKILL.md`;
+  - `problems()` holds the consistency rules.
+- **Why only one Claude Code skill.** Claude Code loads every skill's name and description at session start. When a table decides what runs, a session needs one trigger. The 42 skills of the first attempt are gone.
+- **`contracts/schemas/skill_runs.schema.json`.** The dispatcher's run sheet, per question revision and configuration:
+  - everything considered, with who asked and what happened;
+  - the designed bounds that are not built, as `planned_missing`;
+  - each run with its values, and each value's skill, inputs and grade.
+- **Check 99.** It holds the table to its registries, its files, its generated pages and its pinned sources.
+
+**The pilot.** The drag-against-height calibration: `trapped_particle_drag_coefficient` on `transmitted`.
+- **Landed skills: none.**
+- **Planned skills: six.**
+  - `drag_parallel_to_wall` (value);
+  - `wall_correction_validity_floor` (min);
+  - `wall_effect_resolvable_ceiling` (max);
+  - `drag_record_length_floor` (min);
+  - `camera_blur_ceiling` (max);
+  - `bead_height_from_nominal_focus` (value).
+- **Legacy inequalities: 37.** All of them run.
+- **Exclusions: 18 proposed, none confirmed.** None takes effect, so the saving the person asked for begins when the person confirms them.
+
+**The split of the existing scripts, proposed and not yet done.** No code has moved. Each conversion is its own card, one skill at a time, for the agent that owns the code.
+
+| What exists today | Becomes | Why |
+|---|---|---|
+| The bounds inside the axis modules (microscope `axis_a1`–`a7`, simulation `axis_a*` and `config_*`) | `bound` skills, one side each | They compute physics or limits |
+| Estimators, focus metrics, fits of recorded data (`estimator*.py`, `focus_classical.py`, photostability fits) | `data_analysis` skills | They read recorded data and return a result |
+| A limit read off recorded data, such as a bleaching ceiling | a `bound` skill, apart from the fit that feeds it | One reason per skill |
+| Device backends (`devices/micromanager.py`, `python_serial.py`, `python_tcp.py`, `lunf.py`) | **stay code**, as tools behind the orchestrator, each with a contract naming its side effect and its gate | A skill that held backend code would be the device access itself |
+| `devices/manual.py` and `devices/mock.py` | stay code: the person's step, and the adapter that validation runs against | — |
+| Procedures over devices (find and identify, ready or busy, what a device reports of itself, an ordered start-up, a calibration sweep) | `hardware_connection`, `hardware_state`, `hardware_range`, `hardware_boot`, `hardware_control` and `hardware_calibration` skills. One that writes to a device is `held` until the person releases it | They are sequences of gated tool calls |
+| Screening, synthesis, plan cards, card assembly, the interval intersection | **stay code** | They combine skill results and compute no physics |
+| Report generators | **stay code** | A report is assembled from cards, and every number in it exists in a card |
+| The orchestrator, the operator, the run lock, the configuration gate, the live-view host, the watcher, the validator | **stay code** | Rule 7 |
+| Dated one-off run and session scripts | stay as records | They are what was run, not what will run |
+
+**Open on both sides, said by the meta design session about its own repository too.**
+- **No discrete-set shape.** A bound has no shape for a discrete set, so such inequalities stay legacy.
+- **No constants rule.** Nothing yet refuses a numeric literal that is a judgement.
+- **The gate's place.** The gate should sit where the side effect happens, so that importing a backend directly cannot skip it.
 
 **Not done yet, and whose.**
-- **Microscope, task 105.** The axis modules reading the table and writing `not_requested`, and the five calculator modules with their tests.
-- **Librarian, task 066.** The formula and reference entries the five calculators name.
-- **Design, after the first card uses a row.** A gate check that a card honours its row (a required inequality is never `not_requested`, and a `not_requested` one cites the table), and that the skills are current. It waits so that its fixtures can be real cards.
-- **Simulation.** There is no simulation row yet.
+- **Microscope, task 105:**
+  - the dispatcher;
+  - the six skills with their cases;
+  - the axis modules reading the run sheet.
+- **Librarian, task 066:** the source entries, with the worked values the cases need.
+- **The person:** the 18 proposed exclusions.
+- **Design, each with its fixtures:**
+  - a check that a skill's code is pure and its cases pass;
+  - a check that a landed version was never edited;
+  - a check that a run sheet honours its floor and that each value recomputes.
+- **Simulation:** there is no skill yet. The same table serves both sides, because comparing them needs the same quantity names and units.
 
 **How the pilot is judged.**
-- **The comparison.** Run one drag question twice, once with its row and once without, and compare the inputs asked of the librarian, the gaps recorded and the bounds returned.
-- **What it decides.** Whether more rows are written.
+- **The comparison.** Run one drag question twice, once through the dispatcher with the exclusions confirmed and once as today, and compare the inputs asked of the librarian, the gaps recorded and the bounds returned.
+- **What it decides.** Whether more skills and rows are written.
 
 #### 4.5.3 Configurations and axes — two orthogonal dimensions
 
@@ -2341,9 +2402,9 @@ rebuild/
                            enforces that inclusion. Rule 1 was written by the data -- **a name states the quantity,
                            not its own subject or locus** (§5.3.3\'s `at`, check 44's `subject`). Growth is as with
                            `observables.json`: one at a time when a question needs it, never speculatively
-    calculations.json      the **required-calculation table** (§4.5.2.2, 2026-11-11): each calculator declared once,
-                           and per observable and configuration which ones a question must run and which it leaves
-                           out with a reason. Read by the axes; its skills are rendered from it
+    skills.json            the **skill table** (§4.5.2.2, 2026-11-11): landed skill manifests, planned drafts, the
+                           legacy inequalities the axis modules still compute, and per observable and configuration
+                           the exclusions with the person's confirming words. The floor of a question is derived from it
     seats.json             committer identity -> owned boundary. Read by check 41 (§6.2.1)
     validation_limits.json the validator's thresholds. `null` means "nobody has chosen one yet"
     validate.py            the deterministic validator
@@ -2356,8 +2417,8 @@ rebuild/
                            says what it publishes. `python contracts/tools/seat_commit.py --help` for its use
     tools/seat_commit_fixtures.py  its proof: 11 throwaway repositories, each failing the naive way and holding
                            through the tool
-    tools/calc_skills.py   renders each calculator's `SKILL.md` from `calculations.json` into
-                           `<agent>/.claude/skills/calc-<id>/`; `--check` reports a skill that differs or is stray (§4.5.2.2)
+    tools/skills.py        the skill table's tool: derives a question's floor, renders the skill pages and the one
+                           dispatcher skill, and holds the consistency rules check 99 runs (§4.5.2.2)
     examples/              one hand-written set of cards + cards that must fail
     history_fixtures.py    builds throwaway repositories for the four checks that read
                            history (26, 35, 41, 46). Built and not stored (§11-7); 35 and
@@ -2403,11 +2464,12 @@ rebuild/
                                       operator.py                            (S6)
                                       orchestrator.py   single entry point, parallel (§4.6.8)
                                       devices/          one per control channel + manual.py, mock.py
-                                      calculators/      one module per calculator `contracts/calculations.json` declares (§4.5.2.2)
+                                      skills/           one script and one cases file per skill version `contracts/skills.json` declares (§4.5.2.2)
     tests/                          the seats' own tests of their code, one file per module (`tests/<name>.py`). Added to ALLOWED_PATHS at `d9cf1c6` when microscope-20260924-4 started its wrapper's tests; recorded here after, because check 55 compares this list against ALLOWED_PATHS in one direction only and so passed without it
     findings/<seat>-<YYYYMMDD>.json the day's findings a seat hands to the librarian, one file per seat per day (`contracts/schemas/findings.schema.json`, `9fc1645`): each item a fact, how it was established, its kind and a source the kind requires, an observable's value always `for_store: false` (§11-21 condition 4). The execution seat writes it. **The librarian may read this folder, and exactly the paths a committed findings item cites, at the commit the item names (`git show <commit>:<path>`), and nothing else of this tree** -- read only, the same shape as the bridge's exception to read `questions/` (§6.2 rule 3). Widened the same evening from "this folder and nothing else", which left the librarian able to read a finding and not what it stands on, so every self-report would have been entered on the seat's word -- `librarian-20260924-2` found it and held. Reading at the named commit rather than the working copy means no other seat's work in progress is visible. An item whose source is not committed is not checkable and is not entered, and a verbatim copy inside the findings file does not substitute: a copy is the seat's word again. A message leaves no trace; the committed file is the trace. Added 2026-09-24 for the harvest the person asked for before the architecture session closed
-    .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording, and one
-                                    `calc-<id>/SKILL.md` per calculator, generated by `contracts/tools/calc_skills.py` (§4.5.2.2)
+    .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording, and
+                                    `run-skills/SKILL.md`, the one skill that sends a session to the dispatcher (§4.5.2.2)
+    .claude/skill-docs/             one generated page per skill, for reference; not loaded as skills (§4.5.2.2)
     autofocus/                      **all of dino-autofocus, imported whole with its history by `git subtree add --prefix=microscope_agent/autofocus` (the person, 2026-10-15, directly to architecture-20261003-1: "전부 옮기고 dino는 동결" -- all of it moves and dino is frozen; "기록째 가져옴" -- with its history; "현미경 에이전트 안" -- inside the microscope agent). Imported on 2026-10-15 at `8f94789`, a subtree merge of dino-autofocus `main` `95eee95` (the freeze point its merge session reported, the person approved it there) by microscope-office-20261015-1 on card 071: 531 files.** Its own layout is kept as it was -- `src/dino_autofocus/` (console server, engine, focus, maps), `web/`, `configs/`, `models/`, `scripts/`, `tests/`, `docs/`, its own `pyproject.toml` and `uv.lock`. **To the validator it is one imported subtree, not agent source**: ALLOWED_PATHS declares it whole, and the checks that read cards or agent source do not read inside it -- manager-microscope's, with fixtures showing the skip stops at this directory, because a trial import in a scratch clone on 2026-10-15 drew 802 FAILs, every one of them from reading dino's package and its card-shaped mock data as this agent's own. **It sits inside the microscope boundary because it acts only on this instrument**, so the microscope's guards and seats apply to it, and taking `microscope_agent/` plus `contracts/` to the microscope computer is still the whole move. dino-autofocus is frozen from the import on and kept as a read-only record. **What moving it does not settle**: numbers in its code and configs enter the store through the librarian like any other -- the person's ruling condition now covers numbers and safety values only ("숫자와 안전값에만 적용" -- only to numbers and safety values), capped at E3, and no safety limit crosses, so the person's envelope keys stay the only focus Z limits; its six focus-core files duplicate `src/focus_*` here, and `src/` holds the original, so its mirror is retired by a card; and 48 of its text files carried Korean at `95eee95` (3,808 lines, by `git grep -c -I -P` for Hangul, read off a run by microscope-office-20261015-2; an earlier 49 here matched no clean run and was retracted). They were kept under a dated temporary exception to the English-only rule until card 074 translated them ("옮긴 뒤 영어로 번역" -- translate to English after the move). **Card 074 closed on 2026-10-17 at `4c62924`** (commits `ede2a6c`, `5563415`, `e6f5ace`, `4c62924`). The same count then gives 6 files and 47 lines, and every one of them is the person's own words quoted with an English gloss, the convention this file follows. The temporary exception ended with it, and the root `CLAUDE.md` removed it at `026dce49`.
     **After section 15's move** (2026-10-17) this folder is the design half (S2-S5): `questions/`, `inbox/`, design `findings/`,
                                     the planning code in `src/` and its tests, and `envelope/snapshot.json`, the one copy of the
@@ -3184,6 +3246,7 @@ The check list:
 63. **A tie verdict carries the worse grade of the two values it compared** (§5.8.1). A tie is a verdict about values and inherits their weakness; a verdict the writer may choose is not a gate, which is why it is recomputed rather than read. Fixtures carry both ways it fails -- a tie claiming E2 between an E1 and an E5, and a tie with no grade at all.
 72. **The remaining verdict fields follow from the numbers beside them** -- `deviations[].within_tolerance` and `estimation.followed`, recomputed and not read. It returns UNDECIDED where `contracts/` cannot express the tolerance being claimed, which is the honest verdict for a field that is three claims in one (§5.3).
 73. **A result's `approval_id` and `run_id` resolve** -- to an approval that exists and covers this plan revision, and to a run directory in this tree. `plan_hash` was checked and these two were not, so the approval chain was verified up to the plan and stopped before the result: nothing confirmed the run reported was the run that happened, which §2.1 rule 7 assumes on the way in.
+99. **The skill table agrees with what it names** (§4.5.2.2). `contracts/skills.json` says which code computes which bound, which store entry that code implements, and which questions leave which inequality out, and a session reads pages and one Claude Code skill rendered from it. The rules are `problems()` in `contracts/tools/skills.py`, so the tool's `--check` and this check are one rule: (a) each `(id, version)` is declared once, with its script and cases named for it; (b) a manifest's observables, configurations and units are registered; (c) a landed skill has its script, its cases with one that runs, and its source entry pinned; (d) a pinned entry in the tree still hashes to its pin, so a changed source is caught at commit and never by refusing a run; (e) every file under `<agent>/src/skills/` has one manifest; (f) a row names legacy inequalities the table lists and never both requires and excludes one; (g) the generated pages and the one dispatcher skill are what the table renders, and no per-calculation skill remains. **What it does not hold**, each a later check: that a skill's code is pure and its cases pass, that a landed version was never edited, and that a run sheet honours its floor. It reads the table's own files at fixed paths, so its fixtures are history fixtures: four rows, one PASS and three FAIL, and with 99 taken out of `CHECKS` none of the four answers. Implemented and declared by a design session on 2026-11-11, on branch `calculator-runner`.
 98. **A device row's property bindings and state words are copies of their cited entries** (librarian cards 062 and 064; 15.1 item 10). A plan carries a quantity in its registered unit and names a hand-set position in the path table's words; Micro-Manager takes a property in its own unit, one per line on a light engine, and reports its own state labels. Which property a quantity sets, in what unit and on which line, and which state a word names, are facts about this instrument, so they reach the runtime only as `mm_bindings` `[{quantity, property, unit, entry_ref[, line][, step][, config_sha256]}]` and `mm_states` `[{word, state_label, entry_ref[, config_sha256]}]` on rows of `librarian_agent/kb/staging/devices.v0.json`, neither carrying a grade or source of its own. For every row carrying either field: (a) the row carries `mm_label`, because a property or a state belongs to the device under that label, and each item has exactly those keys; (b) the cited entry is neither refuted nor superseded, and its `identifiers` carry the row's label and the item's fields -- `mm_property`, `quantity`, `unit` and `line` for a binding, `path_word` and `mm_state_label` for a state -- character for character, so a binding with no `line` cites an entry with none; (c) a binding's quantity is in `contracts/quantities.json` and is not `frame_count`, a verb's argument that no property holds; (d) its unit is a symbol in `contracts/units.json` and is not `1` where the quantity's registered unit is not, because `1` cannot tell 10 from 1 per cent on a fraction-of-scale property -- the reason `permille` was registered (`d64bb1d6`); (e) one binding per quantity, or per quantity and line where bindings carry one, and one per property, with no quantity bound both on a line and without one; one state label per word and one word per state label; (f) a word is one the path table can write for that row -- a value of `required_selectors` in `optical_paths.v0.json`, a `content` in the row's `slot_contents`, or a key of its `states`; (g) on a row verified by acquiring (`verify_by: acquisition`), or on `lapp_branch` or `csuw1_disk_position`, the entry is a `measured:` run whose `identifiers.lit_detectors` lists the detector rows that got light, each a row of the table and, where the row's `slot_contents` says what a slot reaches, exactly those, because a label read back says the device has a state called X and never that X is the word; (h) a `config_sha256` follows 96's rule (f); (i) a binding's `step` is a copy of its entry's one `numbers[]` item named `property_step`, in the binding's unit, present exactly when the entry holds one -- a step nobody read is absent and is never filled in, so the runtime writes nothing through it; (j) a `kind: calibration` entry that serves a binding carries a `conversion` (`kb_entry.schema.json`), and every `conversion` is card 064's form: on a calibration only, `physical_to_control` by `piecewise_linear_within_points` with no fit, its physical side the entry's own quantity in the registered unit, two or more points with one unit per side, physical values strictly increasing and control values strictly monotone, the first and last physical values exactly the validity's min and max, every point's source deriving E1, and serving a binding on some device row whose unit and line it matches. The store is read before the N/A gate, so a conversion that no row binds is still judged. **What it does not decide**: whether a binding may command anything is the runtime's ruling on the entry's grade and digest, and whether a calibration covers a planned value is decided at derivation -- this check keeps the copies honest, as 96 does for the label. N/A on the repository until a row carries a binding or a state word. Like 96 it reads the store's own files at a fixed path, so its fixtures are history fixtures and not rejected groups. Implemented by `manager-librarian-20261007-1` in two commits. `09f586e1` (card 062) is branches (a)-(h), with 22 history rows -- one PASS, one N/A, twenty FAIL -- and amends card 062 to name `lit_detectors`, which it required in words and gave no field; of 24 mutants, each weakening one branch, 23 stopped exactly the rows written for it and the 24th, walking every labelled row instead of every row carrying either field, stopped the no-label row as well, which is the expectation being incomplete and not the check; with 98 taken out of `CHECKS`, 0/22 of its rows answered. `2b0ca52b` (card 064, renumbered from 063 at `c5ea2b97` because the microscope computer had published its own librarian card 063 first) adds `line`, `step`, the `conversion` schema and branches (i) and (j), with 28 history rows on a synthetic store binding a Spectra III on GREEN with a step and a calibration and on NIR with neither -- one PASS and 27 FAIL -- and all 50 of 98's rows answer as intended; 26 mutants, each switching off one branch, each stopped exactly the rows written for it. On a clean clone of `f37a56b9` with `2b0ca52b` applied, the plain run is `231 passed, 0 failed` with 98 N/A, `--expect-fail` rejects 90/90 cards and 166/166 groups, and history passes 142/142, measured by the implementer. Declared by architecture.
 97. **A run's unused-number list is the one rule applied to the plan it ran** (15.1 item 10, `574499c9`, `9e9c480b`). The console shows the numbers nothing at run time uses beside the plan the person signs, and the operator records the same list at derivation, so two copies of one rule meet in one record. The rule is `unused_numbers(plan)` in `contracts/validate.py`, a function of the plan card alone; what counts as used is item 10's and is not restated here. Two things are held: (a) every `unused_numbers_case` under `contracts/examples/` (schema `unused_numbers_case.schema.json`) lists exactly what the rule gives for its plan, so the console's copy, which imports nothing from this tree, is tested on the same cases; (b) every run log's derivation event lists exactly what the rule gives for the one card in the judged tree whose plan hash is the event's `plan_hash`, which `run_log.schema.json` now requires. The card is found by that hash and not by plan id and revision, because an id and revision name a card and not its contents. No such card is a FAIL: the card the run executed was changed after it ran, or was never committed. The card's id and revision must be the log's, and where a `plan_approval` authorised the run, its `plan_hash` must be the event's. The comparison is exact and in order, value and unit included, since any difference is a second rule. A run log with no plan is not judged, and a tree with no case and no such derivation is N/A. Implemented by `manager-microscope-20261003-1` at `f5699603`, with eleven cases. Its fixtures are four rejected groups, one per failure branch of (b) -- a number left off, a plan of another revision, a hash that is no card, a hash that is not the approval's -- and three rejected cases that count as used a computed number's input, a number behind a selector and a precondition's basis. No history fixture: the check judges the tree and reads no history. The three existing `bad_run_log_derivation_*` cards gained a `plan_hash`, so each still fails only for its own reason. On a clean clone of `f5699603`, 166/166 groups and 88/88 cards are rejected with 97 in place, and 162/166 and 85/88 with it removed. The seven not rejected are exactly its own, the four groups failing then only on other checks. Each fixture was watched failing on 97 alone before the commit, measured by the implementer. Declared by architecture.
 96. **A device row's Micro-Manager label is the one its cited entry holds** (librarian card 061). The runtime's software-motion check reaches Micro-Manager by device label, and a plan names the store's rows, so `mm_label` on a row in `librarian_agent/kb/staging/devices.v0.json` is the one place a plan's name becomes a device a command can reach. The field is a copy of what an entry says and carries no grade or source of its own, so the row can never claim more than the entry does. For every row carrying it: (a) `mm_label` is `{label, entry_ref[, config_sha256]}` and `entry_ref` names an entry in `kb/entries/`; (b) that entry's `identifiers` carry the same label, character for character, under `mm_label` or `mm_device`, the two keys the store has used for one meaning; (c) the entry is neither refuted nor superseded; (d) no label sits on two rows, because a label names one device and a shared one would let a command meant for one reach the other; (e) `widefield_source_a` and `_b` carry none, because which channel is which light engine is the open question `lapp_branch_assignment`, and a label on either row would settle it in passing; (f) a `config_sha256` is 64 lowercase hex and equals the entry's `identifiers.mm_config_sha256`; (g) an entry carrying `mm_config_sha256` has a `measured:` source, because which configuration was loaded is a run's fact and not a file's. Whether a label may command anything is the runtime's ruling, on the entry's grade and digest; this check only keeps the copy honest. N/A on the repository until a row carries the field. It reads the store's own files at a fixed path, so its fixtures are history fixtures and not rejected groups. Implemented by `manager-librarian-20261007-1` at `dbad1100`, with eleven history fixtures. On a clean clone of `e96dc3d9` with the change applied, the plain run is `0 failed` with 96 N/A, `--expect-fail` rejects 85/85 cards and 162/162 groups, and the history suite passes 86/86, measured by the implementer. With 96 deleted from `CHECKS` on a clean clone of `dbad1100` and nothing else changed, exactly its eleven history fixtures stop answering as intended (75/86) -- its one PASS row and its ten FAIL rows -- and no other row moves, also measured by the implementer. Declared by architecture.

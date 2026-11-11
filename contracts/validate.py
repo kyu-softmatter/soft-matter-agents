@@ -302,10 +302,12 @@ ARTIFACT_SCHEMA = {
     # first real report is not refused as an unknown artifact the way the
     # map's was.
     "kb_lint": "kb_lint.schema.json",
-    # 2026-11-11, plan.md 4.5.2.2 (branch calculator-skills): the
-    # required-calculation table. Wired with its schema and its check 1 history
-    # rows in the same commit, so the table is judged from its first line.
-    "calculations": "calculations.schema.json",
+    # 2026-11-11, plan.md 4.5.2.2 (branch calculator-runner): the skill table
+    # and the run sheet the dispatcher writes. Wired with their schemas and
+    # their check 1 history rows in the same commit, so the table is judged
+    # from its first line and the first real sheet is not an unknown artifact.
+    "skills": "skills.schema.json",
+    "skill_runs": "skill_runs.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -1819,16 +1821,16 @@ ALLOWED_PATHS = [
     # person asked for an MIT license at the repository root. These two lists
     # first, then the section 7 item and the seat's paths, then the file.
     r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
-    # calculations.json, 2026-11-11 (plan.md 4.5.2.2, branch calculator-skills):
-    # which calculators a question needs, by observable and configuration.
-    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|calculations\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
+    # skills.json, 2026-11-11 (plan.md 4.5.2.2, branch calculator-runner): the
+    # skill manifests, the legacy inequalities and the rows of exclusions.
+    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|skills\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
     # The commit tool and its built-repository fixtures (8.3 HP-001,
     # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
     # name, not as any file in tools/, so the next tool is declared too.
-    # calc_skills.py, 2026-11-11: renders each calculator's SKILL.md from
-    # contracts/calculations.json (plan.md 4.5.2.2), so the skills are generated
-    # and never written by hand (P3).
-    r"^contracts/tools/(seat_commit|seat_commit_fixtures|calc_skills)\.py$",
+    # skills.py, 2026-11-11: the skill table's tool (plan.md 4.5.2.2). It
+    # derives a question's floor, renders the generated pages, and holds the
+    # consistency rules check 99 runs.
+    r"^contracts/tools/(seat_commit|seat_commit_fixtures|skills)\.py$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -1854,9 +1856,10 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
-    # src/calculators/, 2026-11-11 (plan.md 4.5.2.2): one module per calculator
-    # contracts/calculations.json declares, each computing one bound.
-    r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+|calculators/[A-Za-z0-9_.-]+)$",
+    # src/skills/, 2026-11-11 (plan.md 4.5.2.2): one script and one cases file
+    # per skill version contracts/skills.json declares, flat, the version in
+    # the file name. Check 99 holds them one to one with the manifests.
+    r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+|skills/[a-z][a-z0-9_]*_v[0-9]+(\.py|\.cases\.json))$",
     # The microscope's device wrappers carry refusal tests that are watched
     # failing (cards 035-037, 2026-09-24): three seats writing three wrappers
     # at once, and a test beside its module in src/ would read as code the
@@ -9118,6 +9121,57 @@ def check_96_a_device_label_is_its_cited_entrys(b: Bundle) -> list[Finding]:
     return out
 
 
+def check_99_the_skill_table_agrees_with_what_it_names(b: Bundle) -> list[Finding]:
+    """The skill table, its files, its generated pages and its pinned sources agree (plan.md 4.5.2.2).
+
+    `contracts/skills.json` says which code computes which bound, which store
+    entry that code implements, and which questions leave which inequality
+    out. A session reads generated pages and one Claude Code skill rendered
+    from it. If any of those drifts from the table, a session is told to run
+    something the table does not hold, or a skill computes a formula its
+    source no longer states -- and nothing at run time would say so.
+
+    The rules live in `contracts/tools/skills.py`, in `problems()`, because the
+    tool's own `--check` and this check must be one rule and not two. Loaded
+    by path from this tree, so a built repository judges with its own copy.
+
+    What it holds:
+    - each (id, version) is declared once, and its script and cases are named
+      for it;
+    - a manifest's observables, configurations and units are registered;
+    - a landed skill has its script, its cases with one that runs, and its
+      source entry pinned;
+    - a pinned entry in the tree still hashes to the pin. A change is caught
+      here, at commit, and never refuses a run;
+    - every file under `<agent>/src/skills/` has one manifest;
+    - a row names legacy inequalities the table lists, and never requires
+      and excludes one;
+    - the generated pages and the one dispatcher skill are what the table
+      renders, and no per-calculation skill from before the dispatcher remains.
+
+    What it does not hold, each a later check with its own fixtures: that a
+    skill's code is pure and its cases pass, that a landed version was never
+    edited, and that a run sheet honours its floor.
+    """
+    tool = CONTRACTS / "tools" / "skills.py"
+    if not (CONTRACTS / "skills.json").exists():
+        return [Finding(99, NA, "no contracts/skills.json in this tree")]
+    if not tool.exists():
+        return [Finding(99, FAIL, "contracts/skills.json is here and contracts/tools/skills.py, which holds its rules, "
+                                  "is not", "contracts/skills.json")]
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("_sma_skills_tool", tool)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    found = module.problems(REPO)
+    if found:
+        return [Finding(99, FAIL, message, where) for message, where in found]
+    table = module.load(REPO)
+    return [Finding(99, PASS, f"{len(table['skills'])} landed skills, {len(table['planned'])} planned, "
+                              f"{len(table['legacy_inequalities'])} legacy inequalities and {len(table['rows'])} rows "
+                              "agree with their files, registries, generated pages and pinned entries")]
+
+
 def check_98_a_binding_and_a_state_word_are_their_cited_entrys(b: Bundle) -> list[Finding]:
     """A device row's property bindings and state words are copies of their cited entries (librarian cards 062, 064).
 
@@ -9540,6 +9594,7 @@ CHECKS = [
     check_97_the_unused_list_is_the_rules,
     check_96_a_device_label_is_its_cited_entrys,
     check_98_a_binding_and_a_state_word_are_their_cited_entrys,
+    check_99_the_skill_table_agrees_with_what_it_names,
     check_67_entry_units_are_declared,
     check_69_no_entry_cites_itself,
     check_70_one_version_one_answer,
