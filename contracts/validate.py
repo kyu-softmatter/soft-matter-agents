@@ -302,6 +302,10 @@ ARTIFACT_SCHEMA = {
     # first real report is not refused as an unknown artifact the way the
     # map's was.
     "kb_lint": "kb_lint.schema.json",
+    # 2026-11-11, plan.md 4.5.2.2 (branch calculator-skills): the
+    # required-calculation table. Wired with its schema and its check 1 history
+    # rows in the same commit, so the table is judged from its first line.
+    "calculations": "calculations.schema.json",
 }
 
 GRADE_ORDER = ["E1", "E2", "E3", "E4", "E5", "E6"]
@@ -1815,11 +1819,16 @@ ALLOWED_PATHS = [
     # person asked for an MIT license at the repository root. These two lists
     # first, then the section 7 item and the seat's paths, then the file.
     r"^(plan\.md|CLAUDE\.md|ARCHITECT\.md|README\.md|LICENSE|\.gitignore|\.gitattributes|\.mcp\.json|pyproject\.toml|uv\.lock|pixi\.lock)$",
-    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
+    # calculations.json, 2026-11-11 (plan.md 4.5.2.2, branch calculator-skills):
+    # which calculators a question needs, by observable and configuration.
+    r"^contracts/(units\.md|units\.json|observables\.json|quantities\.json|calculations\.json|seats\.json|validate\.py|validation_limits\.json|history_fixtures\.py|bridge_board\.py)$",
     # The commit tool and its built-repository fixtures (8.3 HP-001,
     # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
     # name, not as any file in tools/, so the next tool is declared too.
-    r"^contracts/tools/(seat_commit|seat_commit_fixtures)\.py$",
+    # calc_skills.py, 2026-11-11: renders each calculator's SKILL.md from
+    # contracts/calculations.json (plan.md 4.5.2.2), so the skills are generated
+    # and never written by hand (P3).
+    r"^contracts/tools/(seat_commit|seat_commit_fixtures|calc_skills)\.py$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
     r"^contracts/hooks/[a-z-]+$",
     r"^contracts/capabilities/[A-Za-z0-9_.-]+\.json$",
@@ -1845,7 +1854,9 @@ ALLOWED_PATHS = [
     r"^(microscope|simulation)_agent/inbox/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/questions/[a-z0-9-]+/[A-Za-z0-9_.-]+$",
     r"^(microscope|simulation)_agent/runs/[a-z0-9-]+/([A-Za-z0-9_.-]+|raw/.*)$",
-    r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+)$",
+    # src/calculators/, 2026-11-11 (plan.md 4.5.2.2): one module per calculator
+    # contracts/calculations.json declares, each computing one bound.
+    r"^(microscope|simulation)_agent/src/([A-Za-z0-9_.-]+|devices/[A-Za-z0-9_.-]+|calculators/[A-Za-z0-9_.-]+)$",
     # The microscope's device wrappers carry refusal tests that are watched
     # failing (cards 035-037, 2026-09-24): three seats writing three wrappers
     # at once, and a test beside its module in src/ would read as code the
@@ -1954,6 +1965,12 @@ def check_13_paths(b: Bundle) -> list[Finding]:
         # The depth limit is this repository's layout rule, and an imported
         # subtree keeps the layout of the project it came from (2026-10-15).
         if is_imported(rel):
+            continue
+        # And so does `.claude/`, for the same reason (2026-11-11, plan.md
+        # 4.5.2.2): Claude Code reads a skill only at
+        # `.claude/skills/<name>/SKILL.md`, which is one level deeper than this
+        # repository allows inside an agent, and the layout is the tool's, not ours.
+        if len(parts) > 2 and parts[1] == ".claude":
             continue
         if parts[0].endswith("_agent") or parts[0] in ("bridge", "microscope_runtime"):
             if "raw" not in parts and len(parts) > 4:

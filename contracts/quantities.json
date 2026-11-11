@@ -233,6 +233,13 @@
       "note": "The complement of `trapped_position_distribution`, which subtracts exactly this mean before reporting a width."
     },
     {
+      "id": "trapped_particle_drag_coefficient",
+      "definition": "The drag coefficient of a trapped sphere along one lateral axis at a declared height of its centre above a wall.",
+      "unit": "pN*s/um",
+      "kind": "physical",
+      "note": "Every observable is a quantity. The height and the objective belong in the number's conditions, never in the name."
+    },
+    {
       "id": "self_propulsion_speed",
       "definition": "The speed at which an active particle is displaced along its own orientation. An input to the model, not a measured output.",
       "unit": "um/s",

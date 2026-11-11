@@ -201,6 +201,23 @@
       "note": "THE COMPLEMENT OF `trapped_position_distribution`, READ FROM THE SAME TRACE, and the two must be read together. That entry takes the MEAN POSITION AS THE TRAP CENTRE AND SUBTRACTS IT before reporting a standard deviation -- the quantity it discards is this one, exactly and not approximately. A reader who reaches for the registered name to answer a drag-calibration question computes the one number that cannot answer it. Raised by the execution seat that hit it, 2026-09-23."
     },
     {
+      "id": "trapped_particle_drag_coefficient",
+      "definition": "The drag coefficient of one trapped sphere along one lateral axis, at a declared height of its centre above the coverslip: the ratio of the viscous force on it to its velocity relative to the fluid, which the wall raises above the bulk Stokes value as the sphere comes closer.",
+      "units": [
+        "pN*s/um",
+        "N*s/m"
+      ],
+      "estimator": "Record the trapped sphere's lateral position at a declared height, with an absolute position calibration, and fit the position power spectrum with a model corrected for camera blur and aliasing. The fitted diffusion coefficient D gives the drag as k_B*T/D, with T the sample temperature at the laser power used. The record length is the window, and the height and the objective travel with the number, because the same sphere at another height has another drag.",
+      "window_required": true,
+      "window_parameter": "record_length",
+      "producible_by": [
+        "experiment",
+        "simulation"
+      ],
+      "comparable": false,
+      "note": "Registered 2026-11-11 on branch calculator-skills for the drag-against-height calibration the person asked for on 2026-11-04 (docs/drafts/literature_trap_drag_vs_height_above_a_wall.md), and the first observable with a row in contracts/calculations.json. NOT `trapped_particle_drag_offset`: that one is the mean displacement under steady flow, which needs a stage moving at a controlled velocity, and gives a drag only with the stiffness known from elsewhere. This one is read from the passive spectrum of the same kind of trace as `trapped_position_distribution`, and needs no stage motion at all."
+    },
+    {
       "id": "well_occupancy",
       "definition": "The fraction of observation time a single particle held in a multi-well optical potential spends in one named well. Reported per well, so a two-well landscape yields two values that sum to one. A well here is a basin of the TOTAL potential and not a trap: two traps closer together than twice their width form one basin and the observable is then undefined rather than zero.",
       "units": [

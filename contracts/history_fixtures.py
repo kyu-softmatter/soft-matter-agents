@@ -1058,6 +1058,38 @@ def fixture_01_a_lint_report_carrying_an_entry_value(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_01_a_calculator_skill_four_folders_deep(repo: Path) -> str:
+    """The required-calculation table as committed (plan.md 4.5.2.2), and one
+    generated skill where Claude Code reads it: `<agent>/.claude/skills/<name>/SKILL.md`.
+
+    Two rows read this one repository. Check 1 judges the real table that base
+    copies, so the table is schema-checked in a built repository from the
+    commit that adds it. Check 13 sees a file four folders inside an agent,
+    one deeper than the repository's own limit, and passes it because the
+    layout is the tool's. Delete the `.claude` exemption in check 13 and its
+    row stops answering, which is how it was watched on 2026-11-11.
+    """
+    start = base(repo)
+    write(repo, "microscope_agent/.claude/skills/calc-wall-correction-validity-floor/SKILL.md",
+          "---\nname: calc-wall-correction-validity-floor\ndescription: \"a fixture's skill\"\n---\n")
+    commit(repo, "one calculator skill", "microscope_agent/.claude", seat="design")
+    return f"{start}..HEAD"
+
+
+def fixture_01_a_calculator_table_naming_no_code(repo: Path) -> str:
+    """A calculator declared with no module behind it. The table is the
+    record of which code computes a bound, so a calculator without `code`
+    would leave a skill telling a session to run nothing, and a model to fill
+    the gap by hand. Only the schema refuses it."""
+    start = base(repo)
+    path = repo / "contracts" / "calculations.json"
+    table = json.loads(path.read_text(encoding="utf-8"))
+    del table["calculators"][0]["code"]
+    write(repo, "contracts/calculations.json", table)
+    commit(repo, "a calculator with no code", "contracts", seat="design")
+    return f"{start}..HEAD"
+
+
 def fixture_25_a_card_citing_a_wiki_page(repo: Path) -> str:
     """A card whose kb_ref names a wiki page instead of an entry.
 
@@ -1833,6 +1865,13 @@ FIXTURES = [
     (1, "FAIL", "Additional properties are not allowed ('value' was unexpected) "
                 "[librarian_agent/queries/lint-20261103.json]",
      fixture_01_a_lint_report_carrying_an_entry_value),
+    # The required-calculation table (2026-11-11, plan.md 4.5.2.2), wired with
+    # its schema in one commit; and check 13's `.claude` exemption, which lets
+    # Claude Code's skill layout sit one folder deeper than the agent limit.
+    (1, "PASS", "conform to their schema", fixture_01_a_calculator_skill_four_folders_deep),
+    (13, "PASS", "files sit in declared paths", fixture_01_a_calculator_skill_four_folders_deep),
+    (1, "FAIL", "'code' is a required property [contracts/calculations.json]",
+     fixture_01_a_calculator_table_naming_no_code),
     # HP-007: an example is judged at its own instant, a real permit by the
     # clock. Matched on the path as well, so the example files every built
     # repository carries cannot satisfy either row.

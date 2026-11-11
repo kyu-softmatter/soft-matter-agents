@@ -247,6 +247,23 @@ Two boundaries inside that are not negotiable:
   with a `from` provenance field. The model interprets what the plan did not
   foresee, and writes the deviation report, after the abort has happened.
 
+**When the question's observable has a row in `contracts/calculations.json`,
+S3 runs the row and nothing else** (plan.md §4.5.2.2, from 2026-11-11 on
+branch `calculator-skills`).
+- **Asking.** Ask the librarian only for what the row's required calculators
+  need.
+- **Running.** Run each one through its skill,
+  `.claude/skills/calc-<id>/SKILL.md`, which names the code that computes it.
+- **Recording.** Write every other inequality the axis owns as abstained,
+  kind `not_requested`, with the row's reason.
+- **Never by hand.** Compute no bound in conversation. A calculator still
+  `planned` abstains, kind `no_input`, until its module exists.
+- **Never edit a skill.** The skills are generated from the table, and the
+  table is the design's.
+
+The pilot row is `trapped_particle_drag_coefficient` on `transmitted`, and
+task 105 builds what it needs.
+
 ## What is unbuilt, and in what order
 
 Both ends of the pipeline stand and the middle is empty. `src/` holds

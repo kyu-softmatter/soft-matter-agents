@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "calculations.schema.json",
+  "title": "Required-calculation table",
+  "description": "contracts/calculations.json (plan.md 4.5.2.2). Two lists: the calculators, each declared once, and the rows that say which of them a question with a given observable must run. A calculator is code that computes one inequality's bound. Its skill says when to call it and with what inputs. The table, not a model, decides which calculators a question needs, so a calculation that was not run is visible as not requested, with the table's reason, and is never read as 'no constraint'.",
+  "type": "object",
+  "required": ["artifact", "schema_version", "default_not_requested_reason", "calculators", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {"const": "calculations"},
+    "schema_version": {"type": "string"},
+    "note": {"type": "string"},
+    "default_not_requested_reason": {
+      "type": "string",
+      "minLength": 20,
+      "description": "The reason an axis writes for an inequality it owns that a row neither requires nor explains. One sentence for all of them, so a card never carries an invented one."
+    },
+    "calculators": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/calculator"}
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/row"}
+    }
+  },
+  "$defs": {
+    "calculator": {
+      "type": "object",
+      "required": ["id", "agent", "axis", "parameter", "statement", "needs", "formula_entries", "code", "skill", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "The inequality id the axis card writes in `inequalities[].inequality`."},
+        "agent": {"enum": ["microscope_agent", "simulation_agent"]},
+        "axis": {"enum": ["a1", "a2", "a3", "a4", "a5", "a6", "a7"]},
+        "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "The plan parameter the bound restricts, as `inequalities[].parameter`."},
+        "statement": {"type": "string", "minLength": 20, "description": "The inequality in words. The formula itself is the store's, in formula_entries, and never written here: a formula here would be a second place it lives (P14)."},
+        "needs": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "description": "The input values the code needs. Only these are asked of the librarian or read from the goal, which is the point of the table: a question asks for what its required calculators need, and nothing else."
+        },
+        "formula_entries": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "description": "Store entries holding the formula or the reference value the code implements. An entry the store does not hold yet is a request to the librarian, not a licence to write the formula into code from memory."
+        },
+        "code": {"type": "string", "pattern": "^(microscope|simulation)_agent/src/[A-Za-z0-9_./-]+\\.py$", "description": "The module that computes the bound. Code, never prose: a number a model works out by following a skill's text is a model's number (E6) and cannot enter a card."},
+        "skill": {"type": "string", "pattern": "^(microscope|simulation)_agent/\\.claude/skills/[a-z0-9-]+/SKILL\\.md$", "description": "The skill that says when the calculator runs, which inputs it takes from where, and how its result is written into the axis card."},
+        "status": {"enum": ["planned", "built"], "description": "planned: the code does not exist yet, and the axis records the inequality as abstained, kind no_input, naming the calculator. built: the code exists and has its tests."},
+        "note": {"type": "string"}
+      }
+    },
+    "row": {
+      "type": "object",
+      "required": ["observable", "configurations", "required"],
+      "additionalProperties": false,
+      "properties": {
+        "observable": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "An id in contracts/observables.json."},
+        "configurations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "description": "The configurations this row covers, as in contracts/capabilities/. A configuration not listed has no row for this observable, and its axes run as before the table existed."
+        },
+        "required": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["calculator", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "calculator": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "why": {"type": "string", "minLength": 20}
+            }
+          }
+        },
+        "not_required": {
+          "type": "array",
+          "description": "Calculators an axis owns that this row leaves out on purpose, with the reason written for the person to read. Anything an axis owns that is in neither list is recorded as not requested with the default reason, so naming the ones worth explaining here is optional and never a substitute for the card's own entry.",
+          "items": {
+            "type": "object",
+            "required": ["calculator", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "calculator": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "why": {"type": "string", "minLength": 20}
+            }
+          }
+        },
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

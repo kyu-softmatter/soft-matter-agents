@@ -821,6 +821,70 @@ The four above block things **between** siblings. This subsection governs the sp
 
 **Refuse on read-back.** A verdict with no supporting numbers · an interval for an inequality not on its own list (the axis trespassed on another's) · silence on something that is on the list · an abstention with no reason. **One refusal and the round's output is not used** — a refused output is not an absent output, and synthesising without it **records a review that did not happen.**
 
+##### 4.5.2.2 Calculators as skills, chosen by a table (pilot, branch `calculator-skills`, 2026-11-11)
+
+**What the person asked.**
+- **The question, 2026-11-10.** "지금 이시스템에 있는 gate에서 숫자를 산정하는 코드들을 각각 다 스킬로 바꾸고 필요한 것들만 값을 찾아보는건 어때?" (what about turning each piece of code in this system's gates that computes a number into a skill, and looking up only the values that are needed?)
+- **The answer, 2026-11-11.** Shown the three conditions below, the person said: "이렇게 적용, 별도의 브랜치를 만들어서 작업하면 좋겠는데" (apply it this way, and I would like the work on a separate branch).
+
+**Why it was worth doing, read off the cards on 2026-11-10.** This is an approximate count over every axis card in the tree.
+- **Microscope side.** 69 axis cards were written for four questions, and 41 of them abstained. Of the per-inequality outcomes, 9 returned an interval and 189 abstained for want of an input. 201 gaps were recorded.
+- **Simulation side.** Most of its bounds return.
+- **The cause.** Every axis asks for every input of every inequality it owns, whether or not the question needs that inequality.
+
+**The three conditions.**
+1. **The calculation stays code.**
+   - A calculator is a module that computes one inequality's bound (§4.5.2.1).
+   - Its skill says four things: when it runs, which inputs it takes from where, which store entries hold its formula, and how its result is written into the axis card.
+   - A skill never says how to compute. A number a model works out by following text is an E6 number, and it cannot enter a card (§5.3).
+2. **A table, not a model, says what is needed.**
+   - `contracts/calculations.json` declares each calculator once.
+   - Its rows say, for each observable and configuration, which calculators a question must run (`required`) and which it leaves out on purpose (`not_required`, with the reason).
+   - An axis whose question has a row still writes every inequality it owns, as before:
+     - a required inequality is computed, or abstains with its kind;
+     - any other is written as abstained, kind `not_requested`, with the row's reason or the table's `default_not_requested_reason`.
+   - Silence is still refused (§4.5.2.1).
+   - **The librarian is asked only for the `needs` of required calculators.** That is the saving the person asked for.
+3. **The run-time gates do not become skills.** These stay code that runs every time (§2.1, §6, §15):
+   - the check of the person's approval and its hash;
+   - the safety policy;
+   - the Micro-Manager configuration gate (`mm_config_gate.py`);
+   - the run lock;
+   - the orchestrator's single entry point;
+   - the commit gate and the validator.
+
+   Only the planning-stage calculators of S3 are in scope.
+
+**What exists, and where.**
+- **The table.** `contracts/calculations.json` and its schema, artifact `calculations`, judged by check 1.
+- **The skill generator.** `contracts/tools/calc_skills.py` renders one `SKILL.md` per calculator into `<agent>/.claude/skills/calc-<id>/`.
+  - `--check` reports a skill that differs from the table, or one no calculator declares.
+  - The skills are generated, never written by hand (P3).
+  - An agent's `.claude/` is design's, so an agent session cannot edit the skill it follows.
+- **The calculator modules.** They live in `<agent>/src/calculators/`.
+  - The planned ones do not exist yet.
+  - An existing inequality stays computed inside its axis module, and its table entry says so (`status: built`).
+- **Check 13's depth limit.** It no longer applies inside `.claude/`, because Claude Code fixes the skill layout, as an imported subtree keeps its own.
+
+**The pilot.** One row, for one question.
+- **The question.** The drag-against-height calibration: the observable `trapped_particle_drag_coefficient`, registered for it, on `transmitted` with the trapping composition. The literature is in `docs/drafts/literature_trap_drag_vs_height_above_a_wall.md`.
+- **What the row names.** All 37 inequalities the microscope's seven axes own, plus five new calculators: 24 required and 18 not required, each with its reason.
+- **The five new calculators.**
+  - A6: `wall_correction_validity_floor` and `focal_shift_measured_first`;
+  - A2: `wall_effect_resolvable_ceiling` and `drag_record_length_floor`;
+  - A1: `camera_blur_ceiling`.
+- **Their formulas.** They are requested from the librarian as entries. Until those entries exist, the bounds abstain, kind `no_input`.
+
+**Not done yet, and whose.**
+- **Microscope, task 105.** The axis modules reading the table and writing `not_requested`, and the five calculator modules with their tests.
+- **Librarian, task 066.** The formula and reference entries the five calculators name.
+- **Design, after the first card uses a row.** A gate check that a card honours its row (a required inequality is never `not_requested`, and a `not_requested` one cites the table), and that the skills are current. It waits so that its fixtures can be real cards.
+- **Simulation.** There is no simulation row yet.
+
+**How the pilot is judged.**
+- **The comparison.** Run one drag question twice, once with its row and once without, and compare the inputs asked of the librarian, the gaps recorded and the bounds returned.
+- **What it decides.** Whether more rows are written.
+
 #### 4.5.3 Configurations and axes — two orthogonal dimensions
 
 **Axes are written to be modality-neutral.** Since the measurement target is open (§1), an axis must be **a question any optical measurement has to be asked**, not "something about the optical trap".
@@ -2277,6 +2341,9 @@ rebuild/
                            enforces that inclusion. Rule 1 was written by the data -- **a name states the quantity,
                            not its own subject or locus** (§5.3.3\'s `at`, check 44's `subject`). Growth is as with
                            `observables.json`: one at a time when a question needs it, never speculatively
+    calculations.json      the **required-calculation table** (§4.5.2.2, 2026-11-11): each calculator declared once,
+                           and per observable and configuration which ones a question must run and which it leaves
+                           out with a reason. Read by the axes; its skills are rendered from it
     seats.json             committer identity -> owned boundary. Read by check 41 (§6.2.1)
     validation_limits.json the validator's thresholds. `null` means "nobody has chosen one yet"
     validate.py            the deterministic validator
@@ -2289,6 +2356,8 @@ rebuild/
                            says what it publishes. `python contracts/tools/seat_commit.py --help` for its use
     tools/seat_commit_fixtures.py  its proof: 11 throwaway repositories, each failing the naive way and holding
                            through the tool
+    tools/calc_skills.py   renders each calculator's `SKILL.md` from `calculations.json` into
+                           `<agent>/.claude/skills/calc-<id>/`; `--check` reports a skill that differs or is stray (§4.5.2.2)
     examples/              one hand-written set of cards + cards that must fail
     history_fixtures.py    builds throwaway repositories for the four checks that read
                            history (26, 35, 41, 46). Built and not stored (§11-7); 35 and
@@ -2334,9 +2403,11 @@ rebuild/
                                       operator.py                            (S6)
                                       orchestrator.py   single entry point, parallel (§4.6.8)
                                       devices/          one per control channel + manual.py, mock.py
+                                      calculators/      one module per calculator `contracts/calculations.json` declares (§4.5.2.2)
     tests/                          the seats' own tests of their code, one file per module (`tests/<name>.py`). Added to ALLOWED_PATHS at `d9cf1c6` when microscope-20260924-4 started its wrapper's tests; recorded here after, because check 55 compares this list against ALLOWED_PATHS in one direction only and so passed without it
     findings/<seat>-<YYYYMMDD>.json the day's findings a seat hands to the librarian, one file per seat per day (`contracts/schemas/findings.schema.json`, `9fc1645`): each item a fact, how it was established, its kind and a source the kind requires, an observable's value always `for_store: false` (§11-21 condition 4). The execution seat writes it. **The librarian may read this folder, and exactly the paths a committed findings item cites, at the commit the item names (`git show <commit>:<path>`), and nothing else of this tree** -- read only, the same shape as the bridge's exception to read `questions/` (§6.2 rule 3). Widened the same evening from "this folder and nothing else", which left the librarian able to read a finding and not what it stands on, so every self-report would have been entered on the seat's word -- `librarian-20260924-2` found it and held. Reading at the named commit rather than the working copy means no other seat's work in progress is visible. An item whose source is not committed is not checkable and is not entered, and a verbatim copy inside the findings file does not substitute: a copy is the seat's word again. A message leaves no trace; the committed file is the trace. Added 2026-09-24 for the harvest the person asked for before the architecture session closed
-    .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording
+    .claude/skills/                 S2 refinement / system_designer / system_operator / deviation recording, and one
+                                    `calc-<id>/SKILL.md` per calculator, generated by `contracts/tools/calc_skills.py` (§4.5.2.2)
     autofocus/                      **all of dino-autofocus, imported whole with its history by `git subtree add --prefix=microscope_agent/autofocus` (the person, 2026-10-15, directly to architecture-20261003-1: "전부 옮기고 dino는 동결" -- all of it moves and dino is frozen; "기록째 가져옴" -- with its history; "현미경 에이전트 안" -- inside the microscope agent). Imported on 2026-10-15 at `8f94789`, a subtree merge of dino-autofocus `main` `95eee95` (the freeze point its merge session reported, the person approved it there) by microscope-office-20261015-1 on card 071: 531 files.** Its own layout is kept as it was -- `src/dino_autofocus/` (console server, engine, focus, maps), `web/`, `configs/`, `models/`, `scripts/`, `tests/`, `docs/`, its own `pyproject.toml` and `uv.lock`. **To the validator it is one imported subtree, not agent source**: ALLOWED_PATHS declares it whole, and the checks that read cards or agent source do not read inside it -- manager-microscope's, with fixtures showing the skip stops at this directory, because a trial import in a scratch clone on 2026-10-15 drew 802 FAILs, every one of them from reading dino's package and its card-shaped mock data as this agent's own. **It sits inside the microscope boundary because it acts only on this instrument**, so the microscope's guards and seats apply to it, and taking `microscope_agent/` plus `contracts/` to the microscope computer is still the whole move. dino-autofocus is frozen from the import on and kept as a read-only record. **What moving it does not settle**: numbers in its code and configs enter the store through the librarian like any other -- the person's ruling condition now covers numbers and safety values only ("숫자와 안전값에만 적용" -- only to numbers and safety values), capped at E3, and no safety limit crosses, so the person's envelope keys stay the only focus Z limits; its six focus-core files duplicate `src/focus_*` here, and `src/` holds the original, so its mirror is retired by a card; and 48 of its text files carried Korean at `95eee95` (3,808 lines, by `git grep -c -I -P` for Hangul, read off a run by microscope-office-20261015-2; an earlier 49 here matched no clean run and was retracted). They were kept under a dated temporary exception to the English-only rule until card 074 translated them ("옮긴 뒤 영어로 번역" -- translate to English after the move). **Card 074 closed on 2026-10-17 at `4c62924`** (commits `ede2a6c`, `5563415`, `e6f5ace`, `4c62924`). The same count then gives 6 files and 47 lines, and every one of them is the person's own words quoted with an English gloss, the convention this file follows. The temporary exception ended with it, and the root `CLAUDE.md` removed it at `026dce49`.
     **After section 15's move** (2026-10-17) this folder is the design half (S2-S5): `questions/`, `inbox/`, design `findings/`,
                                     the planning code in `src/` and its tests, and `envelope/snapshot.json`, the one copy of the
