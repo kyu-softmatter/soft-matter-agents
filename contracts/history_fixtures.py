@@ -1145,14 +1145,32 @@ def fixture_99_a_skill_file_with_no_manifest(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
+def fixture_99_a_suggestion_for_a_safety_candidate(repo: Path) -> str:
+    """A row that suggests leaving a safety candidate out. A candidate that
+    rests on the safety policy is always used, and no suggestion and no fixed
+    decision may say otherwise: a suggestion a model reads is a nudge, and a
+    model makes no safety decision."""
+    start = base(repo)
+    path = repo / "contracts" / "skills.json"
+    table = json.loads(path.read_text(encoding="utf-8"))
+    table["rows"][0]["suggestions"].append(
+        {"ref": "legacy:power_within_safety", "verdict": "not_applied",
+         "why": "the trap is run far below any power that could approach the limit"})
+    write(repo, "contracts/skills.json", table)
+    commit(repo, "a suggestion to drop a safety candidate", "contracts", seat="design")
+    return f"{start}..HEAD"
+
+
 def _skill_runs(**over) -> dict:
-    """A run sheet as the dispatcher writes it: one skill the table required, which ran."""
+    """A run sheet as the dispatcher writes it: one candidate the model chose to use, which ran."""
     ref = "drag_parallel_to_wall@v1"
     body = {
         "artifact": "skill_runs", "schema_version": "0.1", "question": "mic-20261111-001", "revision": 1,
         "config": "transmitted", "agent": "microscope_agent", "table_sha256": "a" * 64,
-        "skills_considered": [{"ref": ref, "requested_by": "table", "verdict": "used"}],
+        "skills_considered": [{"ref": ref, "decided_by": "model", "verdict": "used",
+                               "why": "The drag at each height is what this question measures."}],
         "planned_missing": [],
+        "incomplete_because": [],
         "runs": [{"ref": ref, "verdict": "ran",
                   "inputs": {"bead_radius": "kb:tracer_diameter_measured", "viscosity": "kb:water_viscosity_293k",
                              "bead_centre_height": "bead_height_from_nominal_focus@v1:bead_centre_height"},
@@ -1172,16 +1190,30 @@ def fixture_01_a_run_sheet_that_conforms(repo: Path) -> str:
     return f"{start}..HEAD"
 
 
-def fixture_01_a_run_sheet_dropping_a_required_skill(repo: Path) -> str:
-    """A sheet that says the table asked for a skill and it was not applied.
-    The table is the floor: what it requires runs. Only the schema refuses it."""
+def fixture_01_a_run_sheet_dropping_a_safety_candidate(repo: Path) -> str:
+    """A sheet in which a candidate decided by code is not applied. Code
+    decides only the candidates that rest on the safety policy, and those are
+    always used: a model makes no safety decision. Only the schema refuses it."""
     start = base(repo)
-    sheet = _skill_runs(skills_considered=[{"ref": "drag_parallel_to_wall@v1", "requested_by": "table",
+    sheet = _skill_runs(skills_considered=[{"ref": "legacy:power_within_safety", "decided_by": "code",
                                             "verdict": "not_applied",
-                                            "why": "the model judged the wall too far away to matter here"}],
+                                            "why": "the plan stays far below any power that could matter"}],
                         runs=[])
     write(repo, "microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json", sheet)
-    commit(repo, "a run sheet that drops a required skill", "microscope_agent/questions", seat="microscope")
+    commit(repo, "a run sheet that drops a safety candidate", "microscope_agent/questions", seat="microscope")
+    return f"{start}..HEAD"
+
+
+def fixture_01_a_run_sheet_with_a_choice_and_no_reason(repo: Path) -> str:
+    """A sheet in which the model marked a candidate not applied and gave no
+    reason. The model may choose; it may not choose silently, because the
+    reason is the only thing a person can check. Only the schema refuses it."""
+    start = base(repo)
+    sheet = _skill_runs(skills_considered=[{"ref": "legacy:heating_budget", "decided_by": "model",
+                                            "verdict": "not_applied"}],
+                        runs=[])
+    write(repo, "microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json", sheet)
+    commit(repo, "a run sheet with a choice and no reason", "microscope_agent/questions", seat="microscope")
     return f"{start}..HEAD"
 
 
@@ -1975,9 +2007,13 @@ FIXTURES = [
     (99, "FAIL", "the source changed after the skill landed", fixture_99_a_pinned_source_that_changed),
     (99, "FAIL", "a file under src/skills/ that no manifest in the table names",
      fixture_99_a_skill_file_with_no_manifest),
+    (99, "FAIL", "which is marked safety: it is always used",
+     fixture_99_a_suggestion_for_a_safety_candidate),
     (1, "PASS", "conform to their schema", fixture_01_a_run_sheet_that_conforms),
     (1, "FAIL", "'used' was expected [microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json]",
-     fixture_01_a_run_sheet_dropping_a_required_skill),
+     fixture_01_a_run_sheet_dropping_a_safety_candidate),
+    (1, "FAIL", "'why' is a required property [microscope_agent/questions/mic-20261111-001/v1_skill_runs_transmitted.json]",
+     fixture_01_a_run_sheet_with_a_choice_and_no_reason),
     # HP-007: an example is judged at its own instant, a real permit by the
     # clock. Matched on the path as well, so the example files every built
     # repository carries cannot satisfy either row.

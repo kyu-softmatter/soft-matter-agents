@@ -250,13 +250,17 @@ Two boundaries inside that are not negotiable:
 **Bounds and computed values come from the dispatcher, never from you**
 (plan.md §4.5.2.2, from 2026-11-11 on branch `calculator-runner`).
 - **Run the dispatcher.** In S3, for any question, use the `run-skills`
-  skill. It runs the dispatcher, which derives the question's floor from
-  `contracts/skills.json`, runs every skill in it and writes the run sheet.
-- **The floor is a floor.** You may ask the dispatcher to add a landed skill,
-  with your reason. You drop nothing, and an exclusion counts only once the
-  person has confirmed it.
+  skill. The dispatcher lists the question's candidates from
+  `contracts/skills.json`, takes your answer for each one, runs what you
+  marked `used` and writes the run sheet.
+- **You choose, and you say why.** Answer for every candidate, `used` or
+  `not_applied`, with a reason a person can check. An unanswered candidate
+  fails the run.
+- **Two things are not yours to choose.** A candidate marked safety is always
+  used. A decision the person fixed stays as fixed.
 - **A refused run tells you what is needed.** Its `requires` names each
   missing input and how it is obtained. Do not supply the input yourself.
+  `incomplete_because` names each bound you chose that did not come back.
 - **A planned skill is a missing bound.** `planned_missing` lists bounds that
   are designed and not built. Say so in the plan.
 - **Never by hand.** Compute no bound in conversation, run no skill's script

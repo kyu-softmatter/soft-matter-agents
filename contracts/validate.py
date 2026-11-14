@@ -1828,7 +1828,7 @@ ALLOWED_PATHS = [
     # 2026-10-16), landing together in one commit as 8.3 asks. Declared by
     # name, not as any file in tools/, so the next tool is declared too.
     # skills.py, 2026-11-11: the skill table's tool (plan.md 4.5.2.2). It
-    # derives a question's floor, renders the generated pages, and holds the
+    # derives a question's candidates, renders the generated pages, and holds the
     # consistency rules check 99 runs.
     r"^contracts/tools/(seat_commit|seat_commit_fixtures|skills)\.py$",
     r"^contracts/schemas/[A-Za-z0-9_.-]+\.json$",
@@ -9144,14 +9144,14 @@ def check_99_the_skill_table_agrees_with_what_it_names(b: Bundle) -> list[Findin
     - a pinned entry in the tree still hashes to the pin. A change is caught
       here, at commit, and never refuses a run;
     - every file under `<agent>/src/skills/` has one manifest;
-    - a row names legacy inequalities the table lists, and never requires
-      and excludes one;
+    - a row's fixed decisions and suggestions name what the table declares,
+      once each, and never a candidate marked safety;
     - the generated pages and the one dispatcher skill are what the table
       renders, and no per-calculation skill from before the dispatcher remains.
 
     What it does not hold, each a later check with its own fixtures: that a
     skill's code is pure and its cases pass, that a landed version was never
-    edited, and that a run sheet honours its floor.
+    edited, and that a run sheet answers for every candidate.
     """
     tool = CONTRACTS / "tools" / "skills.py"
     if not (CONTRACTS / "skills.json").exists():

@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
-"""The skill table's tool (plan.md 4.5.2.2): the floor, the generated files, the table's own consistency.
+"""The skill table's tool (plan.md 4.5.2.2): the candidates, the generated files, the table's own consistency.
 
     python contracts/tools/skills.py                      # write the generated files
     python contracts/tools/skills.py --check              # exit 1 if anything is wrong; changes nothing
-    python contracts/tools/skills.py floor --agent microscope_agent --observable O --configuration C
+    python contracts/tools/skills.py candidates --agent microscope_agent --observable O --configuration C
 
 Three things, and each is read by more than one place, which is why they are
 here and not in an agent:
 
-1. `floor()`: what a question must run. Every landed skill whose applies_to
-   matches, plus every legacy inequality of that agent that no CONFIRMED
-   exclusion removes. The dispatcher runs it; the commit gate derives it
-   again to judge a run sheet. A model may add to it and never takes away.
+1. `candidates()`: what a question must answer for. Every landed skill
+   whose applies_to matches, plus every legacy inequality of that agent.
+   Code decides this list. The model decides, for each candidate, used or
+   not applied, with a reason; a candidate marked safety and a decision the
+   person fixed are not the model's. The dispatcher uses it, and the commit
+   gate derives it again to judge a run sheet.
 2. The generated files: one page per skill under
    `<agent>/.claude/skill-docs/`, and ONE Claude Code skill per agent,
    `<agent>/.claude/skills/run-skills/SKILL.md`, which tells a session to
    call the dispatcher. Pages are outside `.claude/skills/` on purpose:
    Claude Code loads every skill's name and description at session start,
-   and when a table decides what runs the model needs one trigger, not one
-   per calculation.
+   and a session needs one trigger, not one per calculation.
 3. `problems()`: whether the table agrees with itself, with the registries,
    with the files it names and with the pinned store entries. Check 99 calls
    it at every commit.
@@ -56,30 +57,38 @@ def matches(m: dict, observable: str, configuration: str) -> bool:
     return observable in a["observables"] and configuration in a["configurations"]
 
 
-def floor(table: dict, agent: str, observable: str, configuration: str) -> dict:
-    """What a question must run, and what it does not, each with its reason.
+def candidates(table: dict, agent: str, observable: str, configuration: str) -> dict:
+    """The candidates a question must answer for, and what binds the answer.
 
-    An exclusion the person has not confirmed takes no effect: the inequality
-    stays in the floor. That is deliberate. An exclusion is a judgement, and a
-    judgement nobody confirmed must not be able to remove a check.
+    Code decides applicability: every landed skill whose applies_to matches,
+    and every legacy inequality of the agent, is a candidate. The model then
+    decides, for every candidate, used or not applied, with a reason. Two
+    things bind it. A candidate marked `safety` is always used, because a
+    model makes no safety decision. A decision in the row's `fixed` is the
+    person's. A suggestion binds nobody.
     """
     mine = lambda m: m["entry"]["script"].startswith(agent + "/")
     row = next((r for r in table["rows"]
                 if r["observable"] == observable and configuration in r["configurations"]), None)
-    confirmed = {e["inequality"]: e["why"] for e in (row or {}).get("excluded", []) if e["confirmed"]}
-    proposed = {e["inequality"]: e["why"] for e in (row or {}).get("excluded", []) if not e["confirmed"]}
-    skills = [ref(m) for m in table["skills"] if mine(m) and matches(m, observable, configuration)]
+    skills = [m for m in table["skills"] if mine(m) and matches(m, observable, configuration)]
+    legacy = [q for q in table["legacy_inequalities"] if q["agent"] == agent]
+    refs = [ref(m) for m in skills] + [f"legacy:{q['id']}" for q in legacy]
+    safety = [ref(m) for m in skills if m.get("safety")] + [f"legacy:{q['id']}" for q in legacy if q.get("safety")]
+    fixed = [f for f in (row or {}).get("fixed", []) if f["ref"] in refs and f["ref"] not in safety]
+    bound = set(safety) | {f["ref"] for f in fixed}
     planned = [{"ref": ref(m), "parameter": m.get("parameter", ""), "side": m.get("side", "value")}
                for m in table["planned"] if mine(m) and matches(m, observable, configuration)]
-    legacy = [q["id"] for q in table["legacy_inequalities"] if q["agent"] == agent]
     return {
         "covered": bool(row or skills or planned),
-        "skills": skills,
-        "legacy": [i for i in legacy if i not in confirmed],
-        "excluded": [{"ref": f"legacy:{i}", "why": confirmed[i]} for i in legacy if i in confirmed],
-        "exclusions_awaiting_the_person": [{"ref": f"legacy:{i}", "why": proposed[i]} for i in legacy if i in proposed],
+        "candidates": refs,
+        "decided_by_code": [{"ref": r, "verdict": "used",
+                             "why": "It rests on the safety policy, so it is always used and no model decides it."}
+                            for r in safety],
+        "decided_by_person": [{"ref": f["ref"], "verdict": f["verdict"],
+                               "why": f"The person fixed it: \"{f['persons_words']}\" ({f['ideas']})."} for f in fixed],
+        "for_the_model": [r for r in refs if r not in bound],
+        "suggestions": [s for s in (row or {}).get("suggestions", []) if s["ref"] in refs and s["ref"] not in bound],
         "planned_missing": planned,
-        "may_be_added": [ref(m) for m in table["skills"] if mine(m) and not matches(m, observable, configuration)],
     }
 
 
@@ -130,29 +139,34 @@ def render_skill(table: dict, agent: str) -> str:
     n_plan = sum(agent_of(m) == agent for m in table["planned"])
     n_leg = sum(q["agent"] == agent for q in table["legacy_inequalities"])
     description = ("Get the bounds and computed values a question needs. Use in S3, for any question, instead of "
-                   "computing anything yourself: it calls the dispatcher, which runs the skills contracts/skills.json "
-                   "requires and writes the run sheet.")
+                   "computing anything yourself: you choose which candidates apply, with a reason for each, and the "
+                   "dispatcher runs them and writes the run sheet.")
     return "\n".join([
         "---", "name: run-skills", f"description: {json.dumps(description, ensure_ascii=False)}", "---", "", HEADER, "",
         "# Run the skills a question needs", "",
         f"`contracts/skills.json` declares {n_skill} landed skills, {n_plan} planned and {n_leg} legacy inequalities "
-        "for this agent. You never choose which of them run, and you never compute what they compute.", "",
+        "for this agent. You choose which candidates apply to the question, and you say why for each one. You "
+        "never compute what they compute.", "",
         "## What to do", "",
-        f"1. Run the dispatcher, `{DISPATCHER}`, with the question, its revision and the configuration. It reads "
-        "the table, derives the floor, runs every skill in it, and writes the run sheet into the question's folder.",
-        "2. Read the run sheet. Each value carries the skill that computed it, the inputs it used and its grade.",
-        "3. A run that was **refused** lists `requires`: each missing input and how it is obtained, by a "
-        "measurement, from the person, from a source, or from another skill. That list is what has to happen "
-        "before the bound exists. Do not supply the input yourself.",
-        "4. `planned_missing` lists bounds that are designed and not built. Say so in the plan: a missing bound "
-        "is not a bound that does not bind.", "",
-        "## What you may and may not change", "",
-        "- **You may add** a landed skill the floor does not contain, by asking the dispatcher for it with your "
-        "reason. The sheet records that you asked and why.",
-        "- **You may not drop** anything the floor contains, whatever the reason.",
-        "- **You may not type a value** into the run sheet or a card. Values are the code's.",
-        "- An exclusion in the table takes effect only once the person has confirmed it. Until then the "
-        "excluded inequality still runs.", "",
+        f"1. Ask the dispatcher, `{DISPATCHER}`, for the question's candidates. Code decides the list: every "
+        "landed skill whose declaration matches the observable and configuration, and every legacy inequality.",
+        "2. **Answer for every candidate**: `used` or `not_applied`, with your reason in a sentence a person can "
+        "check. The table's suggestions show what the design session proposed and why; adopt one or overrule "
+        "it, in your own words either way. Leaving a candidate unanswered fails the run.",
+        "3. Hand your answers to the dispatcher. It runs every candidate you marked `used`, and writes the run "
+        "sheet into the question's folder.",
+        "4. Read the run sheet. Each value carries the skill that computed it, the inputs it used and its grade.",
+        "5. A run that was **refused** lists `requires`: each missing input and how it is obtained, by a "
+        "measurement, from the person, from a source, or from another skill. That is what has to happen before "
+        "the bound exists. Do not supply the input yourself. `incomplete_because` names each bound you chose "
+        "that did not come back: an interval missing that side is incomplete, not unconstrained.",
+        "6. `planned_missing` lists bounds that are designed and not built. Say so in the plan.", "",
+        "## What binds your choice", "",
+        "- **A candidate marked safety is always used.** The dispatcher decides it. You do not.",
+        "- **A decision the person fixed is the person's.** You do not overrule it.",
+        "- **A reason is required for both verdicts.** \"Not relevant\" is not a reason; say what about this "
+        "question makes it so.",
+        "- **You may not type a value** into the run sheet or a card. Values are the code's.", "",
         "## Where to read about one skill", "",
         "`.claude/skill-docs/<id>_v<N>.md`, one page per skill: its inputs and how each is obtained, its "
         "outputs, its source, and its code. Those pages are reference. They are not instructions to run anything.", "",
@@ -264,13 +278,20 @@ def problems(root: Path = REPO) -> list[tuple[str, str]]:
             if (row["observable"], c) in seen_rows:
                 out.append((f"{row['observable']!r} on {c!r} has two rows", rel))
             seen_rows.add((row["observable"], c))
-        req = [r["inequality"] for r in row.get("requires_legacy", [])]
-        exc = [e["inequality"] for e in row["excluded"]]
-        for i in req + exc:
-            if i not in known:
-                out.append((f"{where} names legacy inequality {i!r}, which the table does not list", rel))
-        for i in sorted(set(req) & set(exc)):
-            out.append((f"{where} both requires and excludes {i!r}", rel))
+        named = set(refs) | {f"legacy:{i}" for i in known}
+        safe = {f"legacy:{q['id']}" for q in table["legacy_inequalities"] if q.get("safety")} | \
+               {ref(m) for m in every if m.get("safety")}
+        for label in ("fixed", "suggestions"):
+            seen = []
+            for item in row[label]:
+                if item["ref"] not in named:
+                    out.append((f"{where} has a {label} entry for {item['ref']!r}, which the table does not declare", rel))
+                if item["ref"] in safe:
+                    out.append((f"{where} has a {label} entry for {item['ref']!r}, which is marked safety: it is "
+                                "always used, and neither a suggestion nor a fixed decision may say otherwise", rel))
+                if item["ref"] in seen:
+                    out.append((f"{where} has two {label} entries for {item['ref']!r}", rel))
+                seen.append(item["ref"])
 
     declared_files = {m["entry"]["script"] for m in every} | {m["cases"] for m in every}
     for agent in AGENTS:
@@ -306,17 +327,17 @@ def problems(root: Path = REPO) -> list[tuple[str, str]]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("command", nargs="?", choices=["floor"], help="print a question's floor as JSON")
+    ap.add_argument("command", nargs="?", choices=["candidates"], help="print a question's candidates as JSON")
     ap.add_argument("--check", action="store_true", help="exit 1 if anything is wrong; changes nothing")
     ap.add_argument("--agent", choices=AGENTS)
     ap.add_argument("--observable")
     ap.add_argument("--configuration")
     args = ap.parse_args(argv)
 
-    if args.command == "floor":
+    if args.command == "candidates":
         if not (args.agent and args.observable and args.configuration):
-            ap.error("floor needs --agent, --observable and --configuration")
-        print(json.dumps(floor(load(), args.agent, args.observable, args.configuration), ensure_ascii=False, indent=2))
+            ap.error("candidates needs --agent, --observable and --configuration")
+        print(json.dumps(candidates(load(), args.agent, args.observable, args.configuration), ensure_ascii=False, indent=2))
         return 0
 
     if not args.check:

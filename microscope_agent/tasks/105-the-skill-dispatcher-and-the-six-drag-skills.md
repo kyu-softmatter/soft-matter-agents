@@ -16,26 +16,40 @@ plan.md §4.5.2.2 is the design, and read it first. In short:
   computes one maximum, one minimum or one value of one parameter.
 - **A skill runs only through one dispatcher.** A session never runs a
   skill's script and never types a value.
-- **`contracts/skills.json` is the floor.**
-  - What it applies to a question always runs.
-  - The model may add a landed skill with a reason, and drops nothing.
-  - An exclusion counts only once the person has confirmed it.
+- **Code decides the candidates, and the model chooses among them.**
+  - `contracts/skills.json` says which skills and legacy inequalities are
+    candidates for a question.
+  - The session answers for every candidate, `used` or `not_applied`, with a
+    reason for either. An unanswered candidate fails the run.
+  - A candidate marked safety is always used, and a decision the person fixed
+    stays as fixed. Neither is the session's to choose.
 - **The run-time gates do not change.** Do not touch `microscope_runtime/`.
 
 The pilot question is `trapped_particle_drag_coefficient` on `transmitted`.
-The table holds six planned skills for it, 37 legacy inequalities, and 18
-proposed exclusions that the person has not confirmed.
+The table holds six planned skills for it, 37 legacy inequalities (one of
+them marked safety), and 36 suggestions that bind nobody.
 
 ## What to build, in `microscope_agent/src/`
 
 ### 1. The dispatcher, `src/run_skills.py`
 
-- **Inputs.** A question id, its revision and a configuration. Optionally,
-  skills to add, each with a reason.
-- **The floor.** Derive it with `floor()` from `contracts/tools/skills.py`.
-  Load that file by path, and do not copy its logic. The commit gate derives
-  the same floor, and two copies would drift.
-- **Run every skill in the floor**, and every added one.
+- **Two calls.**
+  - *List:* given a question id, its revision and a configuration, print the
+    candidates, what code and the person already decided, and the
+    suggestions.
+  - *Run:* given the same, plus the session's answers, run and write the
+    sheet.
+- **The candidates.** Derive them with `candidates()` from
+  `contracts/tools/skills.py`. Load that file by path, and do not copy its
+  logic. The commit gate derives the same list, and two copies would drift.
+- **The answers.** A file the session writes: for each candidate in
+  `for_the_model`, a verdict and a reason of at least a sentence.
+- **Refuse the whole run** when:
+  - a candidate is unanswered;
+  - an answer names something that is not a candidate;
+  - an answer tries to decide a safety candidate or a fixed decision.
+- **Run every candidate marked `used`**, including those code and the person
+  decided.
   - Bind each manifest input to where its value comes from: the librarian's
     recorded answer (`kb:<entry_id>`), the goal (`goal:<design_input>`), or
     another skill's output (`<skill>@v<N>:<output>`).
@@ -48,13 +62,15 @@ proposed exclusions that the person has not confirmed.
 - **Grade each value** as the worse of E4 and its worst input.
 - **Write the run sheet** into the question's folder, as
   `contracts/schemas/skill_runs.schema.json` defines it:
-  - every landed skill and every legacy inequality, each once, with who asked
-    and what happened;
+  - every candidate, each once, with who decided it (`model`, `person` or
+    `code`), the verdict and the reason;
   - `planned_missing` for the planned skills that apply;
+  - `incomplete_because` for each used skill whose run was refused or failed,
+    with the parameter and side it would have bounded;
   - one record for each skill that ran.
-- **Additions.** Refuse an addition for a skill the floor already holds, and
-  refuse one for a skill that is not landed.
-- **A session never writes the sheet.** Only this program does.
+- **A session never writes the sheet.** Only this program does. The session's
+  answers file is an input, and it stays in the question's folder beside the
+  sheet.
 
 ### 2. The six skills, in `src/skills/`
 
@@ -93,9 +109,10 @@ Rules for each script:
 
 - An axis no longer decides whether an inequality applies. It reads the run
   sheet.
-- **A legacy inequality in the floor:** the axis computes it as today.
-- **A legacy inequality a confirmed exclusion removed:** write
-  `state: "abstained"`, `kind: "not_requested"`, with the exclusion's reason.
+- **A legacy inequality the sheet marks `used`:** the axis computes it as
+  today.
+- **A legacy inequality the sheet marks `not_applied`:** write
+  `state: "abstained"`, `kind: "not_requested"`, with the sheet's reason.
   That kind is written if and only if the sheet says `not_applied`.
 - **A skill's value:** the axis copies it into the card as an inequality
   entry, with the skill named in its basis.
@@ -104,9 +121,11 @@ Rules for each script:
 ### 4. Tests, in `tests/`
 
 - The dispatcher refuses on a missing input and names how it is obtained.
-- It refuses an addition of a required skill, and of a skill not landed.
-- It writes every considered item once.
-- An unconfirmed exclusion removes nothing.
+- It refuses a run with an unanswered candidate.
+- It refuses an answer that marks a safety candidate `not_applied`, and one
+  that overrules a fixed decision.
+- It writes every candidate once.
+- A used skill that was refused appears in `incomplete_because`.
 - Each skill's cases pass.
 
 Watch each test fail before it passes.
@@ -135,8 +154,8 @@ Watch each test fail before it passes.
    - once as today.
 
    Report, for each run, the inputs asked of the librarian, the gaps
-   recorded, and the bounds returned, refused and not applied. Say in the
-   report whether the exclusions were confirmed when you ran it, because
-   until they are, both runs compute the same 37.
+   recorded, and the bounds returned, refused and not applied. Include every
+   reason the session gave for a `not_applied`, word for word, so the person
+   can read them.
 3. Commit under `microscope`, through the tool, on branch `calculator-runner`,
    and only once the person has said to commit.

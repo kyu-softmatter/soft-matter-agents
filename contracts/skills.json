@@ -1,8 +1,7 @@
 {
   "artifact": "skills",
-  "schema_version": "0.4",
-  "note": "The skill table (plan.md 4.5.2.2), on branch calculator-runner since 2026-11-11. skills[] holds one manifest per landed skill version, in the meta-agent repository's skill.schema.json field names with three differences this file's schema states. planned[] holds drafts in the same shape whose code and running case have not landed; a draft is in no floor. legacy_inequalities[] lists what the axis modules still compute themselves. rows[] holds, per observable and configuration, the legacy inequalities a question leaves out, each with its reason and the person's confirming words. The floor for a question is every skill in skills[] whose applies_to matches, plus every legacy inequality of that agent that no confirmed exclusion removes. All of it runs, the model may add a landed skill with a reason, and nothing is dropped.",
-  "default_not_applied_reason": "Nothing in contracts/skills.json applies this to the question's observable and configuration, so it was not run. It says nothing about whether it would bind.",
+  "schema_version": "0.5",
+  "note": "The skill table (plan.md 4.5.2.2), on branch calculator-runner. skills[] holds one manifest per landed skill version, in the meta-agent repository's skill.schema.json field names with three differences this file's schema states. planned[] holds drafts in the same shape whose code and running case have not landed. legacy_inequalities[] lists what the axis modules still compute themselves. Code decides which of these are candidates for a question: every landed skill whose applies_to matches, and every legacy inequality of that agent. The model decides, for every candidate, used or not applied, and writes why; leaving one unanswered fails. Two things bind the model: a candidate marked safety is always used, and a decision in a row's fixed[] is the person's. rows[] also holds suggestions, the design session's proposed verdict and reason for a candidate, which the model may adopt or overrule. Every value is computed by code.",
   "skills": [],
   "planned": [
     {
@@ -812,7 +811,8 @@
       "needs": [
         "safety_power_limit"
       ],
-      "module": "microscope_agent/src/axis_a7_driving.py"
+      "module": "microscope_agent/src/axis_a7_driving.py",
+      "safety": true
     }
   ],
   "rows": [
@@ -821,177 +821,190 @@
       "configurations": [
         "transmitted"
       ],
-      "requires_legacy": [
+      "fixed": [],
+      "suggestions": [
         {
-          "inequality": "independent_repeats",
+          "ref": "legacy:independent_repeats",
+          "verdict": "used",
           "why": "Bead radius spread goes straight into the drag, so the number of beads measured per series is a requirement, not a convenience."
         },
         {
-          "inequality": "heating_budget",
+          "ref": "legacy:heating_budget",
+          "verdict": "used",
           "why": "The trap laser heats the water around the bead, and the viscosity, hence the drag, falls with temperature. At the store's rough full-power figure this is several kelvin."
         },
         {
-          "inequality": "concentration_window",
+          "ref": "legacy:concentration_window",
+          "verdict": "used",
           "why": "A second bead within tens of radii couples to the trapped one through the wall and changes its drag, so the sample must be dilute enough to isolate one bead."
         },
         {
-          "inequality": "devices_present",
+          "ref": "legacy:devices_present",
+          "verdict": "used",
           "why": "Every configuration must be drivable; this question changes nothing about that."
         },
         {
-          "inequality": "path_tuple_valid",
+          "ref": "legacy:path_tuple_valid",
+          "verdict": "used",
           "why": "Every configuration must put light where it is read; this question changes nothing about that."
         },
         {
-          "inequality": "selector_exclusivity",
+          "ref": "legacy:selector_exclusivity",
+          "verdict": "used",
           "why": "Every configuration must avoid contended selectors; the tweezers hold a camera exclusively."
         },
         {
-          "inequality": "selector_automatable",
+          "ref": "legacy:selector_automatable",
+          "verdict": "used",
           "why": "Every selector the plan sets must be settable without a person, or the plan says who sets it."
         },
         {
-          "inequality": "selector_verifiable",
+          "ref": "legacy:selector_verifiable",
+          "verdict": "used",
           "why": "Every selector the plan sets must be confirmed; an unverified state does not proceed."
         },
         {
-          "inequality": "focus_drift_over_record",
+          "ref": "legacy:focus_drift_over_record",
+          "verdict": "used",
           "why": "Axial drift during a record changes the bead's height, which is the controlled variable."
         },
         {
-          "inequality": "pfs_across_configuration_change",
+          "ref": "legacy:pfs_across_configuration_change",
+          "verdict": "used",
           "why": "Focus stabilisation holds the objective-to-coverslip distance that every height is measured from."
         },
         {
-          "inequality": "settling_after_configuration_change",
+          "ref": "legacy:settling_after_configuration_change",
+          "verdict": "used",
           "why": "Each height step moves the stage; a record taken before it settles mixes two heights."
         },
         {
-          "inequality": "total_duration_within_budget",
+          "ref": "legacy:total_duration_within_budget",
+          "verdict": "used",
           "why": "A height series is many records; it has to fit the session."
         },
         {
-          "inequality": "schedule_serialisation",
+          "ref": "legacy:schedule_serialisation",
+          "verdict": "used",
           "why": "The tweezers, camera and piezo are shared; the run needs a window where they are free."
         },
         {
-          "inequality": "escape_velocity_window",
+          "ref": "legacy:escape_velocity_window",
+          "verdict": "used",
           "why": "The stage-oscillation check moves the fluid past the trapped bead; too fast and the bead leaves, too slow and the response is not resolved."
         },
         {
-          "inequality": "sampling_above_corner",
+          "ref": "legacy:sampling_above_corner",
+          "verdict": "used",
           "why": "The drag comes from the position spectrum, which must be sampled above the trap's corner frequency to be fitted."
         },
         {
-          "inequality": "resolvable_offset_floor",
+          "ref": "legacy:resolvable_offset_floor",
+          "verdict": "used",
           "why": "The localisation error sets the smallest response worth commanding, and it is the noise floor of the spectrum."
         },
         {
-          "inequality": "settling_before_measurement",
+          "ref": "legacy:settling_before_measurement",
+          "verdict": "used",
           "why": "After each move the bead must re-equilibrate in the trap before a record starts."
         },
         {
-          "inequality": "stage_motion_envelope",
+          "ref": "legacy:stage_motion_envelope",
+          "verdict": "used",
           "why": "Heights are set and the oscillation is driven by the piezo stage; its range, bandwidth and settling bound both."
         },
         {
-          "inequality": "power_within_safety",
-          "why": "Total optical power meets the safety limit before anything else; the runtime still enforces the limit at execution."
+          "ref": "legacy:disk_period_multiple",
+          "verdict": "not_applied",
+          "why": "This row covers the transmitted configuration, which has no spinning disk in the path."
+        },
+        {
+          "ref": "legacy:snr_floor",
+          "verdict": "not_applied",
+          "why": "Bright-field tracking of a micrometre bead is not signal-limited; the localisation error that does limit it enters through resolvable_offset_floor."
+        },
+        {
+          "ref": "legacy:detection_limit",
+          "verdict": "not_applied",
+          "why": "A micrometre bead in bright field is far above any detection limit; the localisation error enters through resolvable_offset_floor."
+        },
+        {
+          "ref": "legacy:background_budget",
+          "verdict": "not_applied",
+          "why": "There is no fluorescence background in transmitted bright field."
+        },
+        {
+          "ref": "legacy:motion_blur",
+          "verdict": "not_applied",
+          "why": "This bound is for a freely diffusing tracer; a trapped bead's blur is set by its relaxation time and is camera_blur_ceiling's."
+        },
+        {
+          "ref": "legacy:snr_sustained_over_window",
+          "verdict": "not_applied",
+          "why": "Transmitted bright field excites no dye, so the signal does not decay over a record."
+        },
+        {
+          "ref": "legacy:record_length_vs_diffusive_time",
+          "verdict": "not_applied",
+          "why": "That bound is for a mean squared displacement; the drag here is read from a position power spectrum, whose record length is drag_record_length_floor's."
+        },
+        {
+          "ref": "legacy:displacement_samples_per_lag",
+          "verdict": "not_applied",
+          "why": "That bound is for a mean squared displacement fit; the drag here is read from a position power spectrum."
+        },
+        {
+          "ref": "legacy:ensemble_size",
+          "verdict": "not_applied",
+          "why": "One bead is measured at a time on purpose, so tracers in the field are not the statistic."
+        },
+        {
+          "ref": "legacy:photodamage_dose",
+          "verdict": "not_applied",
+          "why": "The sample is a polystyrene bead in water under bright field; there is nothing to photodamage at these doses."
+        },
+        {
+          "ref": "legacy:bleaching_over_record",
+          "verdict": "not_applied",
+          "why": "Transmitted bright field excites no dye."
+        },
+        {
+          "ref": "legacy:disk_spin_up_before_acquisition",
+          "verdict": "not_applied",
+          "why": "This row covers the transmitted configuration, which has no spinning disk in the path."
+        },
+        {
+          "ref": "legacy:lateral_resolution",
+          "verdict": "not_applied",
+          "why": "A micrometre bead is several times larger than the diffraction-limited spot."
+        },
+        {
+          "ref": "legacy:nyquist_sampling",
+          "verdict": "not_applied",
+          "why": "A micrometre bead spans many pixels at every trapping objective; the centroid is not limited by pixel sampling."
+        },
+        {
+          "ref": "legacy:field_of_view",
+          "verdict": "not_applied",
+          "why": "One bead near the image centre is the whole field the question needs."
+        },
+        {
+          "ref": "legacy:optical_sectioning",
+          "verdict": "not_applied",
+          "why": "Transmitted bright field has no pinhole, and one isolated bead needs no rejection of others."
+        },
+        {
+          "ref": "legacy:depth_of_field",
+          "verdict": "not_applied",
+          "why": "The trapped bead's axial excursion is far smaller than the depth of field; the height is set by the stage, not read from focus."
+        },
+        {
+          "ref": "legacy:trap_splitting_stiffness",
+          "verdict": "not_applied",
+          "why": "One trap only: other time-shared traps would couple hydrodynamically to the measured bead."
         }
       ],
-      "excluded": [
-        {
-          "inequality": "disk_period_multiple",
-          "why": "This row covers the transmitted configuration, which has no spinning disk in the path.",
-          "confirmed": null
-        },
-        {
-          "inequality": "snr_floor",
-          "why": "Bright-field tracking of a micrometre bead is not signal-limited; the localisation error that does limit it enters through resolvable_offset_floor.",
-          "confirmed": null
-        },
-        {
-          "inequality": "detection_limit",
-          "why": "A micrometre bead in bright field is far above any detection limit; the localisation error enters through resolvable_offset_floor.",
-          "confirmed": null
-        },
-        {
-          "inequality": "background_budget",
-          "why": "There is no fluorescence background in transmitted bright field.",
-          "confirmed": null
-        },
-        {
-          "inequality": "motion_blur",
-          "why": "This bound is for a freely diffusing tracer; a trapped bead's blur is set by its relaxation time and is camera_blur_ceiling's.",
-          "confirmed": null
-        },
-        {
-          "inequality": "snr_sustained_over_window",
-          "why": "Transmitted bright field excites no dye, so the signal does not decay over a record.",
-          "confirmed": null
-        },
-        {
-          "inequality": "record_length_vs_diffusive_time",
-          "why": "That bound is for a mean squared displacement; the drag here is read from a position power spectrum, whose record length is drag_record_length_floor's.",
-          "confirmed": null
-        },
-        {
-          "inequality": "displacement_samples_per_lag",
-          "why": "That bound is for a mean squared displacement fit; the drag here is read from a position power spectrum.",
-          "confirmed": null
-        },
-        {
-          "inequality": "ensemble_size",
-          "why": "One bead is measured at a time on purpose, so tracers in the field are not the statistic.",
-          "confirmed": null
-        },
-        {
-          "inequality": "photodamage_dose",
-          "why": "The sample is a polystyrene bead in water under bright field; there is nothing to photodamage at these doses.",
-          "confirmed": null
-        },
-        {
-          "inequality": "bleaching_over_record",
-          "why": "Transmitted bright field excites no dye.",
-          "confirmed": null
-        },
-        {
-          "inequality": "disk_spin_up_before_acquisition",
-          "why": "This row covers the transmitted configuration, which has no spinning disk in the path.",
-          "confirmed": null
-        },
-        {
-          "inequality": "lateral_resolution",
-          "why": "A micrometre bead is several times larger than the diffraction-limited spot.",
-          "confirmed": null
-        },
-        {
-          "inequality": "nyquist_sampling",
-          "why": "A micrometre bead spans many pixels at every trapping objective; the centroid is not limited by pixel sampling.",
-          "confirmed": null
-        },
-        {
-          "inequality": "field_of_view",
-          "why": "One bead near the image centre is the whole field the question needs.",
-          "confirmed": null
-        },
-        {
-          "inequality": "optical_sectioning",
-          "why": "Transmitted bright field has no pinhole, and one isolated bead needs no rejection of others.",
-          "confirmed": null
-        },
-        {
-          "inequality": "depth_of_field",
-          "why": "The trapped bead's axial excursion is far smaller than the depth of field; the height is set by the stage, not read from focus.",
-          "confirmed": null
-        },
-        {
-          "inequality": "trap_splitting_stiffness",
-          "why": "One trap only: other time-shared traps would couple hydrodynamically to the measured bead.",
-          "confirmed": null
-        }
-      ],
-      "note": "The drag-against-height pilot. requires_legacy says why each legacy inequality matters to this question, as a record; it adds nothing to the floor, because every legacy inequality runs unless excluded. excluded is a list of judgements proposed by the design session on 2026-11-11. None is confirmed, so none takes effect yet: all 37 still run."
+      "note": "The drag-against-height pilot. The suggestions were written by the design session on 2026-11-11 and bind nobody. fixed is empty: the person has fixed no decision for this question. power_within_safety has no suggestion because it is marked safety and is always used."
     }
   ]
 }
